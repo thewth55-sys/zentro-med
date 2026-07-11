@@ -11,6 +11,7 @@ import {
   type TemplateSendValues,
 } from '@/components/inbox/template-picker';
 import { MedicalTab } from '@/components/contacts/medical-tab';
+import { AppointmentsTab } from '@/components/contacts/appointments-tab';
 import {
   Dialog,
   DialogContent,
@@ -387,7 +388,7 @@ export function ContactDetailView({
     <>
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className="bg-popover border-border text-popover-foreground w-full max-w-2xl max-h-[85vh] p-0 flex flex-col"
+        className="bg-popover border-border text-popover-foreground w-full max-w-5xl max-h-[90vh] p-0 flex flex-col"
       >
         {loading || !contact ? (
           <div className="flex items-center justify-center h-full py-16">
@@ -483,6 +484,12 @@ export function ContactDetailView({
                   {t('tabs.medical')}
                 </TabsTrigger>
                 <TabsTrigger
+                  value="appointments"
+                  className="data-active:bg-muted data-active:text-primary text-muted-foreground"
+                >
+                  {t('tabs.appointments')}
+                </TabsTrigger>
+                <TabsTrigger
                   value="custom"
                   className="data-active:bg-muted data-active:text-primary text-muted-foreground"
                 >
@@ -499,7 +506,7 @@ export function ContactDetailView({
               {/* Details Tab */}
               <TabsContent value="details" className="flex-1 overflow-y-auto px-4 py-3">
                 <div className="space-y-3">
-                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
                     <div className="space-y-1.5">
                       <Label className="text-muted-foreground text-xs">{t('name')}</Label>
                       <Input
@@ -658,6 +665,11 @@ export function ContactDetailView({
               {/* Medical Tab */}
               <TabsContent value="medical" className="flex-1 overflow-y-auto px-4 py-3">
                 {contactId && <MedicalTab contactId={contactId} />}
+              </TabsContent>
+
+              {/* Appointments Tab */}
+              <TabsContent value="appointments" className="flex-1 overflow-y-auto px-4 py-3">
+                {contactId && <AppointmentsTab contactId={contactId} />}
               </TabsContent>
 
               {/* Custom Fields Tab */}

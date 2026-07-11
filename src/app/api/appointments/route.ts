@@ -16,6 +16,7 @@ export async function GET(request: Request) {
     const { supabase, accountId } = await requireRole('viewer');
     const url = new URL(request.url);
     const dealId = url.searchParams.get('deal_id');
+    const contactId = url.searchParams.get('contact_id');
     const doctorId = url.searchParams.get('doctor_id');
     const roomId = url.searchParams.get('room_id');
     const from = url.searchParams.get('from');
@@ -28,6 +29,7 @@ export async function GET(request: Request) {
       .order('start_at', { ascending: true });
 
     if (dealId) query = query.eq('deal_id', dealId);
+    if (contactId) query = query.eq('contact_id', contactId);
     if (doctorId) query = query.eq('doctor_id', doctorId);
     if (roomId) query = query.eq('room_id', roomId);
     if (from) query = query.gte('end_at', from);

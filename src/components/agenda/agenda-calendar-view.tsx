@@ -7,6 +7,7 @@ import { useLocale, useTranslations } from "next-intl";
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
+import listPlugin from "@fullcalendar/list";
 import interactionPlugin from "@fullcalendar/interaction";
 import type { EventClickArg, EventDropArg } from "@fullcalendar/core";
 import type { EventResizeDoneArg } from "@fullcalendar/interaction";
@@ -266,17 +267,22 @@ export function AgendaCalendarView() {
 
       <div className="rounded-lg border border-border bg-card p-3">
         <FullCalendar
-          plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
+          plugins={[dayGridPlugin, timeGridPlugin, listPlugin, interactionPlugin]}
           initialView="timeGridWeek"
           headerToolbar={{
             left: "prev,next today",
             center: "title",
-            right: "timeGridDay,timeGridWeek,dayGridMonth",
+            right: "timeGridDay,timeGridWeek,dayGridMonth,listWeek",
           }}
           height={700}
           firstDay={1}
-          slotMinTime="07:00:00"
-          slotMaxTime="21:00:00"
+          // Full 24h range so appointments outside a "typical" clinic
+          // window are never silently hidden by the grid — FullCalendar
+          // drops out-of-range events with no warning. scrollTime just
+          // picks where the view opens; slotMin/MaxTime stays wide open.
+          slotMinTime="00:00:00"
+          slotMaxTime="24:00:00"
+          scrollTime="07:00:00"
           nowIndicator
           locale={locale === "es" ? esLocale : undefined}
           events={events}

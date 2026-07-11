@@ -30,11 +30,13 @@ import {
   MessageSquare,
   DollarSign,
   Loader2,
+  UserPlus,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
 import { trackConversion } from "@/lib/conversions/track-client";
 import { DealAppointmentPanel } from "@/components/pipelines/deal-appointment-panel";
+import { ContactForm } from "@/components/contacts/contact-form";
 
 interface DealFormProps {
   open: boolean;
@@ -69,6 +71,7 @@ export function DealForm({
   const [notes, setNotes] = useState("");
 
   const [contacts, setContacts] = useState<Contact[]>([]);
+  const [newContactOpen, setNewContactOpen] = useState(false);
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [linkedConversation, setLinkedConversation] =
     useState<Conversation | null>(null);
@@ -126,6 +129,11 @@ export function DealForm({
       cancelled = true;
     };
   }, [open, supabase]);
+
+  async function refetchContacts() {
+    const { data } = await supabase.from("contacts").select("*").order("name");
+    setContacts((data ?? []) as Contact[]);
+  }
 
   // Fetch linked conversation for the selected contact (newest open one).
   // Clearing on no-selection is sync with prop state; the populated
@@ -257,6 +265,7 @@ export function DealForm({
   }
 
   return (
+    <>
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
         side="right"
@@ -282,18 +291,30 @@ export function DealForm({
 
             <div className="grid gap-2">
               <Label className="text-muted-foreground">{t("contact")}</Label>
-              <select
-                value={contactId}
-                onChange={(e) => setContactId(e.target.value)}
-                className="h-9 w-full rounded-lg border border-border bg-muted px-2.5 text-sm text-foreground outline-none focus:border-primary focus:ring-1 focus:ring-primary"
-              >
-                <option value="">{t("selectContact")}</option>
-                {contacts.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name || c.phone}
-                  </option>
-                ))}
-              </select>
+              <div className="flex gap-2">
+                <select
+                  value={contactId}
+                  onChange={(e) => setContactId(e.target.value)}
+                  className="h-9 w-full rounded-lg border border-border bg-muted px-2.5 text-sm text-foreground outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+                >
+                  <option value="">{t("selectContact")}</option>
+                  {contacts.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.name || c.phone}
+                    </option>
+                  ))}
+                </select>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  onClick={() => setNewContactOpen(true)}
+                  className="h-9 w-9 shrink-0 border-border text-muted-foreground hover:bg-muted hover:text-foreground"
+                  title={t("newContact")}
+                >
+                  <UserPlus className="size-4" />
+                </Button>
+              </div>
 
               {linkedConversation && (
                 <Link
@@ -496,5 +517,14 @@ export function DealForm({
         </div>
       </SheetContent>
     </Sheet>
+    <ContactForm
+      open={newContactOpen}
+      onOpenChange={setNewContactOpen}
+      onSaved={async (newContactId) => {
+        await refetchContacts();
+        setContactId(newContactId);
+      }}
+    />
+    </>
   );
 }
