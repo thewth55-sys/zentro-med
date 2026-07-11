@@ -12,6 +12,7 @@ import {
 } from '@/components/inbox/template-picker';
 import { MedicalTab } from '@/components/contacts/medical-tab';
 import { AppointmentsTab } from '@/components/contacts/appointments-tab';
+import { BillingTab } from '@/components/contacts/billing-tab';
 import {
   Dialog,
   DialogContent,
@@ -388,7 +389,7 @@ export function ContactDetailView({
     <>
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className="bg-popover border-border text-popover-foreground w-full max-w-5xl max-h-[90vh] p-0 flex flex-col"
+        className="bg-popover border-border text-popover-foreground w-full max-w-5xl sm:max-w-5xl max-h-[90vh] p-0 flex flex-col"
       >
         {loading || !contact ? (
           <div className="flex items-center justify-center h-full py-16">
@@ -488,6 +489,12 @@ export function ContactDetailView({
                   className="data-active:bg-muted data-active:text-primary text-muted-foreground"
                 >
                   {t('tabs.appointments')}
+                </TabsTrigger>
+                <TabsTrigger
+                  value="billing"
+                  className="data-active:bg-muted data-active:text-primary text-muted-foreground"
+                >
+                  {t('tabs.billing')}
                 </TabsTrigger>
                 <TabsTrigger
                   value="custom"
@@ -670,6 +677,11 @@ export function ContactDetailView({
               {/* Appointments Tab */}
               <TabsContent value="appointments" className="flex-1 overflow-y-auto px-4 py-3">
                 {contactId && <AppointmentsTab contactId={contactId} />}
+              </TabsContent>
+
+              {/* Billing Tab */}
+              <TabsContent value="billing" className="flex-1 overflow-y-auto px-4 py-3">
+                {contactId && <BillingTab contactId={contactId} />}
               </TabsContent>
 
               {/* Custom Fields Tab */}

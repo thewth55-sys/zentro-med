@@ -243,7 +243,7 @@ export function AppointmentEditorDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-full max-w-md bg-popover text-popover-foreground">
+      <DialogContent className="w-full max-w-md sm:max-w-md bg-popover text-popover-foreground">
         <DialogHeader>
           <DialogTitle>{draft?.mode === "edit" ? t("editAppointment") : t("newAppointment")}</DialogTitle>
         </DialogHeader>

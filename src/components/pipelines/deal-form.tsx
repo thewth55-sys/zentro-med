@@ -14,11 +14,11 @@ import type {
   Profile,
 } from "@/types";
 import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -266,17 +266,14 @@ export function DealForm({
 
   return (
     <>
-    <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent
-        side="right"
-        className="bg-popover border-border text-popover-foreground sm:max-w-lg w-full p-0"
-      >
-        <div className="flex h-full flex-col">
-          <SheetHeader className="border-b border-border/50 p-4">
-            <SheetTitle className="text-popover-foreground">
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="bg-popover border-border text-popover-foreground w-full max-w-4xl sm:max-w-4xl max-h-[90vh] p-0 flex flex-col">
+        <div className="flex min-h-0 flex-1 flex-col">
+          <DialogHeader className="border-b border-border/50 p-4">
+            <DialogTitle className="text-popover-foreground">
               {deal ? t("editDeal") : t("newDeal")}
-            </SheetTitle>
-          </SheetHeader>
+            </DialogTitle>
+          </DialogHeader>
 
           <div className="flex-1 overflow-y-auto p-4 space-y-4">
             <div className="grid gap-2">
@@ -289,113 +286,117 @@ export function DealForm({
               />
             </div>
 
-            <div className="grid gap-2">
-              <Label className="text-muted-foreground">{t("contact")}</Label>
-              <div className="flex gap-2">
-                <select
-                  value={contactId}
-                  onChange={(e) => setContactId(e.target.value)}
-                  className="h-9 w-full rounded-lg border border-border bg-muted px-2.5 text-sm text-foreground outline-none focus:border-primary focus:ring-1 focus:ring-primary"
-                >
-                  <option value="">{t("selectContact")}</option>
-                  {contacts.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.name || c.phone}
-                    </option>
-                  ))}
-                </select>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="icon"
-                  onClick={() => setNewContactOpen(true)}
-                  className="h-9 w-9 shrink-0 border-border text-muted-foreground hover:bg-muted hover:text-foreground"
-                  title={t("newContact")}
-                >
-                  <UserPlus className="size-4" />
-                </Button>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div className="grid gap-2">
+                <Label className="text-muted-foreground">{t("contact")}</Label>
+                <div className="flex gap-2">
+                  <select
+                    value={contactId}
+                    onChange={(e) => setContactId(e.target.value)}
+                    className="h-9 w-full rounded-lg border border-border bg-muted px-2.5 text-sm text-foreground outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+                  >
+                    <option value="">{t("selectContact")}</option>
+                    {contacts.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.name || c.phone}
+                      </option>
+                    ))}
+                  </select>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    onClick={() => setNewContactOpen(true)}
+                    className="h-9 w-9 shrink-0 border-border text-muted-foreground hover:bg-muted hover:text-foreground"
+                    title={t("newContact")}
+                  >
+                    <UserPlus className="size-4" />
+                  </Button>
+                </div>
+
+                {linkedConversation && (
+                  <Link
+                    href="/inbox"
+                    className="mt-1 inline-flex items-center gap-1.5 self-start rounded-md bg-primary/10 px-2 py-1 text-xs text-primary hover:bg-primary/20"
+                  >
+                    <MessageSquare className="h-3 w-3" />
+                    {t("linkToConversation")}
+                  </Link>
+                )}
               </div>
 
-              {linkedConversation && (
-                <Link
-                  href="/inbox"
-                  className="mt-1 inline-flex items-center gap-1.5 self-start rounded-md bg-primary/10 px-2 py-1 text-xs text-primary hover:bg-primary/20"
-                >
-                  <MessageSquare className="h-3 w-3" />
-                  {t("linkToConversation")}
-                </Link>
-              )}
-            </div>
-
-            <div className="grid grid-cols-[1fr_110px] gap-3">
-              <div className="grid gap-2">
-                <Label className="text-muted-foreground">{t("value")}</Label>
-                <div className="relative">
-                  <DollarSign className="absolute left-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
-                  <Input
-                    type="number"
-                    value={value}
-                    onChange={(e) => setValue(e.target.value)}
-                    placeholder="0"
-                    className="border-border bg-muted pl-7 text-foreground"
-                  />
+              <div className="grid grid-cols-[1fr_110px] gap-3">
+                <div className="grid gap-2">
+                  <Label className="text-muted-foreground">{t("value")}</Label>
+                  <div className="relative">
+                    <DollarSign className="absolute left-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+                    <Input
+                      type="number"
+                      value={value}
+                      onChange={(e) => setValue(e.target.value)}
+                      placeholder="0"
+                      className="border-border bg-muted pl-7 text-foreground"
+                    />
+                  </div>
+                </div>
+                <div className="grid gap-2">
+                  <Label className="text-muted-foreground">{t("currency")}</Label>
+                  <select
+                    value={currency}
+                    onChange={(e) => setCurrency(e.target.value)}
+                    className="h-9 w-full rounded-lg border border-border bg-muted px-2.5 text-sm text-foreground outline-none focus:border-primary"
+                  >
+                    {CURRENCIES.map((c) => (
+                      <option key={c.code} value={c.code}>
+                        {c.code}
+                      </option>
+                    ))}
+                  </select>
                 </div>
               </div>
+            </div>
+
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
               <div className="grid gap-2">
-                <Label className="text-muted-foreground">{t("currency")}</Label>
+                <Label className="text-muted-foreground">{t("expectedCloseDate")}</Label>
+                <Input
+                  type="date"
+                  value={expectedCloseDate}
+                  onChange={(e) => setExpectedCloseDate(e.target.value)}
+                  className="border-border bg-muted text-foreground"
+                />
+              </div>
+
+              <div className="grid gap-2">
+                <Label className="text-muted-foreground">{t("stage")}</Label>
                 <select
-                  value={currency}
-                  onChange={(e) => setCurrency(e.target.value)}
+                  value={stageId}
+                  onChange={(e) => setStageId(e.target.value)}
                   className="h-9 w-full rounded-lg border border-border bg-muted px-2.5 text-sm text-foreground outline-none focus:border-primary"
                 >
-                  {CURRENCIES.map((c) => (
-                    <option key={c.code} value={c.code}>
-                      {c.code}
+                  {stages.map((s) => (
+                    <option key={s.id} value={s.id}>
+                      {s.name}
                     </option>
                   ))}
                 </select>
               </div>
-            </div>
 
-            <div className="grid gap-2">
-              <Label className="text-muted-foreground">{t("expectedCloseDate")}</Label>
-              <Input
-                type="date"
-                value={expectedCloseDate}
-                onChange={(e) => setExpectedCloseDate(e.target.value)}
-                className="border-border bg-muted text-foreground"
-              />
-            </div>
-
-            <div className="grid gap-2">
-              <Label className="text-muted-foreground">{t("stage")}</Label>
-              <select
-                value={stageId}
-                onChange={(e) => setStageId(e.target.value)}
-                className="h-9 w-full rounded-lg border border-border bg-muted px-2.5 text-sm text-foreground outline-none focus:border-primary"
-              >
-                {stages.map((s) => (
-                  <option key={s.id} value={s.id}>
-                    {s.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="grid gap-2">
-              <Label className="text-muted-foreground">{t("assignedTo")}</Label>
-              <select
-                value={assignedTo}
-                onChange={(e) => setAssignedTo(e.target.value)}
-                className="h-9 w-full rounded-lg border border-border bg-muted px-2.5 text-sm text-foreground outline-none focus:border-primary"
-              >
-                <option value="">{t("unassigned")}</option>
-                {profiles.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.full_name || p.email}
-                  </option>
-                ))}
-              </select>
+              <div className="grid gap-2">
+                <Label className="text-muted-foreground">{t("assignedTo")}</Label>
+                <select
+                  value={assignedTo}
+                  onChange={(e) => setAssignedTo(e.target.value)}
+                  className="h-9 w-full rounded-lg border border-border bg-muted px-2.5 text-sm text-foreground outline-none focus:border-primary"
+                >
+                  <option value="">{t("unassigned")}</option>
+                  {profiles.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.full_name || p.email}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
 
             <div className="grid gap-2">
@@ -515,8 +516,8 @@ export function DealForm({
               ))}
           </div>
         </div>
-      </SheetContent>
-    </Sheet>
+      </DialogContent>
+    </Dialog>
     <ContactForm
       open={newContactOpen}
       onOpenChange={setNewContactOpen}

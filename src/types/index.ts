@@ -788,3 +788,129 @@ export interface QuickReply {
   created_at: string;
   updated_at: string;
 }
+
+// ------------------------------------------------------------
+// Billing — quotes, catalog, taxes, invoices, payments (see
+// supabase/migrations/039_billing_core.sql).
+// ------------------------------------------------------------
+
+export interface Product {
+  id: string;
+  account_id: string;
+  name: string;
+  description?: string | null;
+  unit_price: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at?: string;
+}
+
+export interface Tax {
+  id: string;
+  account_id: string;
+  name: string;
+  /** Percentage, e.g. 16 for 16%. */
+  rate: number;
+  is_default: boolean;
+  is_active: boolean;
+  created_at: string;
+  updated_at?: string;
+}
+
+export type QuoteStatus = 'draft' | 'sent' | 'accepted' | 'rejected' | 'expired' | 'converted';
+
+export interface QuoteItem {
+  id: string;
+  account_id: string;
+  quote_id: string;
+  product_id: string | null;
+  description: string;
+  quantity: number;
+  unit_price: number;
+  tax_id: string | null;
+  tax_rate_snapshot: number;
+  line_total: number;
+  position: number;
+  created_at: string;
+  product?: Product;
+  tax?: Tax;
+}
+
+export interface Quote {
+  id: string;
+  account_id: string;
+  contact_id: string;
+  deal_id: string | null;
+  quote_number: string;
+  status: QuoteStatus;
+  issue_date: string;
+  expiry_date?: string | null;
+  subtotal: number;
+  tax_total: number;
+  total: number;
+  currency: string;
+  notes?: string | null;
+  created_by?: string | null;
+  created_at: string;
+  updated_at?: string;
+  contact?: Contact;
+  items?: QuoteItem[];
+}
+
+export type InvoiceStatus = 'draft' | 'sent' | 'paid' | 'partial' | 'overdue' | 'void';
+
+export interface InvoiceItem {
+  id: string;
+  account_id: string;
+  invoice_id: string;
+  product_id: string | null;
+  description: string;
+  quantity: number;
+  unit_price: number;
+  tax_id: string | null;
+  tax_rate_snapshot: number;
+  line_total: number;
+  position: number;
+  created_at: string;
+  product?: Product;
+  tax?: Tax;
+}
+
+export interface Invoice {
+  id: string;
+  account_id: string;
+  contact_id: string;
+  deal_id: string | null;
+  quote_id: string | null;
+  invoice_number: string;
+  status: InvoiceStatus;
+  issue_date: string;
+  due_date?: string | null;
+  subtotal: number;
+  tax_total: number;
+  total: number;
+  /** Maintained by a DB trigger off `payments` — never set directly. */
+  amount_paid: number;
+  currency: string;
+  notes?: string | null;
+  created_by?: string | null;
+  created_at: string;
+  updated_at?: string;
+  contact?: Contact;
+  items?: InvoiceItem[];
+  payments?: Payment[];
+}
+
+export type PaymentMethod = 'cash' | 'card' | 'transfer' | 'other';
+
+export interface Payment {
+  id: string;
+  account_id: string;
+  invoice_id: string;
+  amount: number;
+  method: PaymentMethod;
+  paid_at: string;
+  notes?: string | null;
+  created_by?: string | null;
+  created_at: string;
+}

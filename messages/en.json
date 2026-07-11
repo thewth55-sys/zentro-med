@@ -22,6 +22,7 @@
     "contacts": "Patients",
     "pipelines": "Pipelines",
     "agenda": "Agenda",
+    "billing": "Billing",
     "broadcasts": "Broadcasts",
     "automations": "Automations",
     "flows": "Flows",
@@ -363,6 +364,7 @@
         "notes": "Notes",
         "medical": "Medical",
         "appointments": "Appointments",
+        "billing": "Billing",
         "tags": "Tags",
         "custom": "Custom Fields",
         "deals": "Deals",
@@ -463,6 +465,10 @@
       "appointmentsTab": {
         "empty": "No appointments yet.",
         "loadFailed": "Failed to load appointment history"
+      },
+      "billingTab": {
+        "invoices": "Invoices",
+        "quotes": "Quotes"
       }
     },
     "importModal": {
@@ -1105,6 +1111,138 @@
         "valueOptionalLabel": "Value (optional)",
         "currencyOptionalLabel": "Currency (optional)",
         "sendConversionEventHint": "Sends an event to Meta Conversions API using the token configured in Settings → Conversions. Google Ads can't be fired from an automation (it requires an agent's browser)."
+      }
+    }
+  },
+  "Billing": {
+    "page": {
+      "title": "Billing",
+      "subtitle": "Quotes, invoices, and payments for your patients.",
+      "invoices": "Invoices",
+      "quotes": "Quotes"
+    },
+    "lineItems": {
+      "freeText": "Free text…",
+      "descriptionPlaceholder": "Description",
+      "noTax": "No tax",
+      "removeLine": "Remove line",
+      "addLine": "Add line",
+      "subtotal": "Subtotal",
+      "tax": "Tax",
+      "total": "Total"
+    },
+    "quoteForm": {
+      "editTitle": "Edit quote",
+      "newTitle": "New quote",
+      "contact": "Patient",
+      "changeContact": "Change",
+      "searchContactPlaceholder": "Search by name or phone…",
+      "expiryDate": "Expiry date",
+      "status": "Status",
+      "notes": "Notes",
+      "save": "Save",
+      "contactRequired": "Select a patient first",
+      "itemsRequired": "Add at least one line item",
+      "created": "Quote created",
+      "updated": "Quote updated",
+      "saveFailed": "Failed to save quote",
+      "convertToInvoice": "Convert to invoice",
+      "converted": "Converted to invoice",
+      "convertFailed": "Failed to convert quote",
+      "statusValues": {
+        "draft": "Draft",
+        "sent": "Sent",
+        "accepted": "Accepted",
+        "rejected": "Rejected",
+        "expired": "Expired",
+        "converted": "Converted"
+      }
+    },
+    "invoiceForm": {
+      "editTitle": "Edit invoice",
+      "newTitle": "New invoice",
+      "contact": "Patient",
+      "changeContact": "Change",
+      "searchContactPlaceholder": "Search by name or phone…",
+      "dueDate": "Due date",
+      "status": "Status",
+      "notes": "Notes",
+      "save": "Save",
+      "contactRequired": "Select a patient first",
+      "itemsRequired": "Add at least one line item",
+      "created": "Invoice created",
+      "updated": "Invoice updated",
+      "saveFailed": "Failed to save invoice",
+      "paymentsTitle": "Payments",
+      "paymentDeleted": "Payment deleted",
+      "paymentDeleteFailed": "Failed to delete payment",
+      "statusValues": {
+        "draft": "Draft",
+        "sent": "Sent",
+        "paid": "Paid",
+        "partial": "Partially paid",
+        "overdue": "Overdue",
+        "void": "Void"
+      }
+    },
+    "payments": {
+      "empty": "No payments recorded yet.",
+      "delete": "Delete payment",
+      "methods": {
+        "cash": "Cash",
+        "card": "Card",
+        "transfer": "Transfer",
+        "other": "Other"
+      },
+      "amount": "Amount",
+      "remaining": "remaining: {amount}",
+      "method": "Method",
+      "addPayment": "Add payment",
+      "amountRequired": "Enter an amount greater than zero",
+      "recorded": "Payment recorded",
+      "saveFailed": "Failed to record payment"
+    },
+    "quoteList": {
+      "subtitle": "Quotes issued to this account.",
+      "newQuote": "New quote",
+      "loadFailed": "Failed to load quotes",
+      "empty": "No quotes yet.",
+      "columns": {
+        "number": "Number",
+        "contact": "Patient",
+        "date": "Date",
+        "total": "Total",
+        "status": "Status"
+      },
+      "statusValues": {
+        "draft": "Draft",
+        "sent": "Sent",
+        "accepted": "Accepted",
+        "rejected": "Rejected",
+        "expired": "Expired",
+        "converted": "Converted"
+      }
+    },
+    "invoiceList": {
+      "subtitle": "Invoices issued to this account.",
+      "newInvoice": "New invoice",
+      "loadFailed": "Failed to load invoices",
+      "empty": "No invoices yet.",
+      "columns": {
+        "number": "Number",
+        "contact": "Patient",
+        "date": "Date",
+        "total": "Total",
+        "paid": "Paid",
+        "status": "Status"
+      },
+      "statusValues": {
+        "draft": "Draft",
+        "sent": "Sent",
+        "paid": "Paid",
+        "partial": "Partially paid",
+        "overdue": "Overdue",
+        "void": "Void"
       }
     }
   },
@@ -1913,6 +2051,51 @@
         "deleteConfirm": "Remove \"{name}\"? Existing appointments keep their history.",
         "cancel": "Cancel",
         "deleting": "Removing..."
+      }
+    },
+    "billing": {
+      "title": "Billing",
+      "description": "Manage the product/service catalog and tax rates used to build quotes and invoices.",
+      "products": {
+        "title": "Products & services",
+        "description": "Catalog items patients can be billed for.",
+        "namePlaceholder": "Product or service name",
+        "pricePlaceholder": "Price",
+        "add": "Add",
+        "empty": "No products yet.",
+        "loadFailed": "Failed to load products",
+        "created": "Product added",
+        "createFailed": "Failed to add product",
+        "updateFailed": "Failed to update product",
+        "deleted": "Product removed",
+        "deleteFailed": "Failed to remove product",
+        "deleteAria": "Remove {name}",
+        "deleteTitle": "Remove product",
+        "deleteConfirm": "Remove \"{name}\"? Existing quotes/invoices keep their history.",
+        "cancel": "Cancel",
+        "deleting": "Removing..."
+      },
+      "taxes": {
+        "title": "Tax rates",
+        "description": "Tax rates applied to quote/invoice line items.",
+        "namePlaceholder": "Tax name",
+        "ratePlaceholder": "Rate %",
+        "add": "Add",
+        "empty": "No tax rates yet.",
+        "loadFailed": "Failed to load tax rates",
+        "created": "Tax rate added",
+        "createFailed": "Failed to add tax rate",
+        "updateFailed": "Failed to update tax rate",
+        "deleted": "Tax rate removed",
+        "deleteFailed": "Failed to remove tax rate",
+        "deleteAria": "Remove {name}",
+        "deleteTitle": "Remove tax rate",
+        "deleteConfirm": "Remove \"{name}\"? Existing quotes/invoices keep their history.",
+        "cancel": "Cancel",
+        "deleting": "Removing...",
+        "makeDefaultAria": "Make {name} the default tax",
+        "isDefault": "Default tax",
+        "makeDefault": "Make default"
       }
     }
   }

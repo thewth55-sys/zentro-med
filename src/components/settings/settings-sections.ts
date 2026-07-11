@@ -6,6 +6,7 @@ import {
   LayoutGrid,
   Palette,
   PlugZap,
+  Receipt,
   Shield,
   Tags,
   Target,
@@ -37,6 +38,7 @@ export const SETTINGS_SECTIONS = [
   'api',
   'conversions',
   'scheduling',
+  'billing',
 ] as const;
 
 export type SettingsSection = (typeof SETTINGS_SECTIONS)[number];
@@ -65,6 +67,7 @@ export const SECTION_META: Record<SettingsSection, SectionMeta> = {
   api: { id: 'api', label: 'API keys', icon: KeyRound, group: 'workspace' },
   conversions: { id: 'conversions', label: 'Conversions', icon: Target, group: 'workspace' },
   scheduling: { id: 'scheduling', label: 'Scheduling', icon: CalendarClock, group: 'workspace' },
+  billing: { id: 'billing', label: 'Billing', icon: Receipt, group: 'workspace' },
 };
 
 export const RAIL_GROUPS: { label: string | null; group: SectionMeta['group'] }[] = [
