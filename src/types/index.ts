@@ -378,6 +378,83 @@ export interface Deal {
   assignee?: Profile;
 }
 
+// ------------------------------------------------------------
+// Clinic scheduling (rooms, doctors, appointments) — see
+// supabase/migrations/037_clinic_scheduling_core.sql.
+// ------------------------------------------------------------
+
+export interface Doctor {
+  id: string;
+  account_id: string;
+  /** Nullable — a doctor doesn't need a WACRM login to be assignable. */
+  user_id: string | null;
+  name: string;
+  specialty?: string | null;
+  is_active: boolean;
+  google_calendar_connected: boolean;
+  google_calendar_id?: string | null;
+  google_calendar_connected_at?: string | null;
+  created_at: string;
+  updated_at?: string;
+}
+
+export interface Room {
+  id: string;
+  account_id: string;
+  name: string;
+  is_active: boolean;
+  created_at: string;
+  updated_at?: string;
+}
+
+export interface ServiceType {
+  id: string;
+  account_id: string;
+  name: string;
+  duration_minutes: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at?: string;
+}
+
+export interface DoctorAvailabilityBlock {
+  id: string;
+  account_id: string;
+  doctor_id: string;
+  start_at: string;
+  end_at: string;
+  notes?: string | null;
+  created_at: string;
+  updated_at?: string;
+}
+
+export type AppointmentStatus = 'pending' | 'confirmed' | 'completed' | 'cancelled' | 'no_show';
+export type AppointmentSource = 'cal_com' | 'manual';
+
+export interface Appointment {
+  id: string;
+  account_id: string;
+  deal_id: string | null;
+  contact_id: string | null;
+  doctor_id: string | null;
+  room_id: string | null;
+  service_type_id: string | null;
+  start_at: string;
+  end_at: string;
+  status: AppointmentStatus;
+  source: AppointmentSource;
+  cal_com_booking_uid?: string | null;
+  google_calendar_event_id?: string | null;
+  notes?: string | null;
+  created_by?: string | null;
+  created_at: string;
+  updated_at?: string;
+  doctor?: Doctor;
+  room?: Room;
+  service_type?: ServiceType;
+  contact?: Contact;
+}
+
 export type BroadcastStatus = 'draft' | 'scheduled' | 'sending' | 'sent' | 'failed';
 export type RecipientStatus = 'pending' | 'sent' | 'delivered' | 'read' | 'replied' | 'failed';
 

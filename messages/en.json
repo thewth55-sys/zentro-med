@@ -587,6 +587,39 @@
       "lostThisMonth": "Lost This Month",
       "lostThisMonthTooltip": "Deals marked as Lost since the first day of the current month.",
       "howCalculated": "How {label} is calculated"
+    },
+    "appointments": {
+      "title": "Appointment",
+      "newAppointment": "New appointment",
+      "empty": "No appointments yet.",
+      "status": {
+        "pending": "Pending",
+        "confirmed": "Confirmed",
+        "completed": "Completed",
+        "cancelled": "Cancelled",
+        "no_show": "No-show"
+      },
+      "noServiceType": "No treatment set",
+      "noDoctor": "No doctor assigned",
+      "noRoom": "No room assigned",
+      "edit": "Edit",
+      "cancel": "Cancel",
+      "serviceType": "Treatment",
+      "selectServiceType": "Select a treatment…",
+      "doctor": "Doctor",
+      "selectDoctor": "Select a doctor…",
+      "room": "Room",
+      "selectRoom": "Select a room…",
+      "startTime": "Start time",
+      "durationMin": "Duration (min)",
+      "save": "Save",
+      "timeRequired": "Start time is required",
+      "conflictDoctor": "This doctor already has an appointment at this time.",
+      "conflictRoom": "This room is already booked at this time.",
+      "created": "Appointment created",
+      "updated": "Appointment updated",
+      "cancelled": "Appointment cancelled",
+      "saveFailed": "Failed to save appointment"
     }
   },
   "Broadcasts": {
@@ -1513,7 +1546,8 @@
       "deals": "Deals & currency",
       "members": "Team members",
       "api": "API keys",
-      "conversions": "Conversions"
+      "conversions": "Conversions",
+      "scheduling": "Scheduling"
     },
     "groups": {
       "account": "Account",
@@ -1738,6 +1772,69 @@
       "saveFailed": "Failed to save settings",
       "loadFailed": "Failed to load conversion tracking settings",
       "adminOnlyHint": "Only admins and owners can change this configuration."
+    },
+    "scheduling": {
+      "title": "Scheduling",
+      "description": "Manage the doctors, exam rooms, and treatment types used to schedule appointments from the pipeline.",
+      "doctors": {
+        "title": "Doctors",
+        "description": "Doctors assignable to appointments. Linking a doctor to a team member lets them log in and declare their own monthly availability.",
+        "namePlaceholder": "Doctor name",
+        "specialtyPlaceholder": "Specialty (optional)",
+        "add": "Add",
+        "empty": "No doctors yet.",
+        "noLogin": "No login linked",
+        "linked": "Doctor linked to member",
+        "loadFailed": "Failed to load doctors",
+        "created": "Doctor added",
+        "createFailed": "Failed to add doctor",
+        "updateFailed": "Failed to update doctor",
+        "deleted": "Doctor removed",
+        "deleteFailed": "Failed to remove doctor",
+        "deleteAria": "Remove {name}",
+        "deleteTitle": "Remove doctor",
+        "deleteConfirm": "Remove \"{name}\"? Existing appointments keep their history; new ones can no longer be assigned to them.",
+        "cancel": "Cancel",
+        "deleting": "Removing..."
+      },
+      "rooms": {
+        "title": "Exam rooms",
+        "description": "The physical consultorios patients are assigned to when an appointment is confirmed.",
+        "namePlaceholder": "Room name",
+        "add": "Add",
+        "empty": "No rooms yet.",
+        "loadFailed": "Failed to load rooms",
+        "created": "Room added",
+        "createFailed": "Failed to add room",
+        "updateFailed": "Failed to update room",
+        "deleted": "Room removed",
+        "deleteFailed": "Failed to remove room",
+        "deleteAria": "Remove {name}",
+        "deleteTitle": "Remove room",
+        "deleteConfirm": "Remove \"{name}\"? Existing appointments keep their history.",
+        "cancel": "Cancel",
+        "deleting": "Removing..."
+      },
+      "serviceTypes": {
+        "title": "Treatment types",
+        "description": "Services patients can be booked for, with an estimated duration.",
+        "namePlaceholder": "Treatment name",
+        "durationLabel": "Duration (minutes)",
+        "minutes": "{count, plural, =1 {1 minute} other {# minutes}}",
+        "add": "Add",
+        "empty": "No treatment types yet.",
+        "loadFailed": "Failed to load treatment types",
+        "created": "Treatment type added",
+        "createFailed": "Failed to add treatment type",
+        "updateFailed": "Failed to update treatment type",
+        "deleted": "Treatment type removed",
+        "deleteFailed": "Failed to remove treatment type",
+        "deleteAria": "Remove {name}",
+        "deleteTitle": "Remove treatment type",
+        "deleteConfirm": "Remove \"{name}\"? Existing appointments keep their history.",
+        "cancel": "Cancel",
+        "deleting": "Removing..."
+      }
     }
   }
 }

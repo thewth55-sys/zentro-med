@@ -34,6 +34,7 @@ import {
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
 import { trackConversion } from "@/lib/conversions/track-client";
+import { DealAppointmentPanel } from "@/components/pipelines/deal-appointment-panel";
 
 interface DealFormProps {
   open: boolean;
@@ -385,6 +386,8 @@ export function DealForm({
                 className="min-h-[100px] border-border bg-muted text-foreground"
               />
             </div>
+
+            {deal && <DealAppointmentPanel dealId={deal.id} contactId={contactId} />}
 
             {deal && (
               <div className="space-y-2 rounded-lg border border-border bg-muted/50 p-3">

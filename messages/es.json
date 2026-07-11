@@ -587,6 +587,39 @@
       "lostThisMonth": "Perdidos este mes",
       "lostThisMonthTooltip": "Negocios marcados como Perdidos desde el primer día del mes actual.",
       "howCalculated": "Cómo se calcula {label}"
+    },
+    "appointments": {
+      "title": "Cita",
+      "newAppointment": "Nueva cita",
+      "empty": "Aún no hay citas.",
+      "status": {
+        "pending": "Pendiente",
+        "confirmed": "Confirmada",
+        "completed": "Completada",
+        "cancelled": "Cancelada",
+        "no_show": "No se presentó"
+      },
+      "noServiceType": "Sin tratamiento",
+      "noDoctor": "Sin doctor asignado",
+      "noRoom": "Sin consultorio asignado",
+      "edit": "Editar",
+      "cancel": "Cancelar",
+      "serviceType": "Tratamiento",
+      "selectServiceType": "Selecciona un tratamiento…",
+      "doctor": "Doctor",
+      "selectDoctor": "Selecciona un doctor…",
+      "room": "Consultorio",
+      "selectRoom": "Selecciona un consultorio…",
+      "startTime": "Hora de inicio",
+      "durationMin": "Duración (min)",
+      "save": "Guardar",
+      "timeRequired": "La hora de inicio es obligatoria",
+      "conflictDoctor": "Este doctor ya tiene una cita en este horario.",
+      "conflictRoom": "Este consultorio ya está ocupado en este horario.",
+      "created": "Cita creada",
+      "updated": "Cita actualizada",
+      "cancelled": "Cita cancelada",
+      "saveFailed": "Error al guardar la cita"
     }
   },
   "Broadcasts": {
@@ -1513,7 +1546,8 @@
       "deals": "Negocios y moneda",
       "members": "Miembros del equipo",
       "api": "Claves de API",
-      "conversions": "Conversiones"
+      "conversions": "Conversiones",
+      "scheduling": "Agendamiento"
     },
     "groups": {
       "account": "Cuenta",
@@ -1738,6 +1772,69 @@
       "saveFailed": "Error al guardar la configuración",
       "loadFailed": "Error al cargar la configuración de conversiones",
       "adminOnlyHint": "Solo admins y propietarios pueden cambiar esta configuración."
+    },
+    "scheduling": {
+      "title": "Agendamiento",
+      "description": "Gestiona los doctores, consultorios y tipos de tratamiento usados para agendar citas desde el pipeline.",
+      "doctors": {
+        "title": "Doctores",
+        "description": "Doctores asignables a citas. Vincular un doctor a un miembro del equipo le permite iniciar sesión y declarar su propia disponibilidad mensual.",
+        "namePlaceholder": "Nombre del doctor",
+        "specialtyPlaceholder": "Especialidad (opcional)",
+        "add": "Agregar",
+        "empty": "Aún no hay doctores.",
+        "noLogin": "Sin acceso vinculado",
+        "linked": "Doctor vinculado al miembro",
+        "loadFailed": "Error al cargar los doctores",
+        "created": "Doctor agregado",
+        "createFailed": "Error al agregar el doctor",
+        "updateFailed": "Error al actualizar el doctor",
+        "deleted": "Doctor eliminado",
+        "deleteFailed": "Error al eliminar el doctor",
+        "deleteAria": "Eliminar {name}",
+        "deleteTitle": "Eliminar doctor",
+        "deleteConfirm": "¿Eliminar a \"{name}\"? Las citas existentes conservan su historial; las nuevas ya no podrán asignársele.",
+        "cancel": "Cancelar",
+        "deleting": "Eliminando..."
+      },
+      "rooms": {
+        "title": "Consultorios",
+        "description": "Los consultorios físicos a los que se asigna un paciente al confirmar una cita.",
+        "namePlaceholder": "Nombre del consultorio",
+        "add": "Agregar",
+        "empty": "Aún no hay consultorios.",
+        "loadFailed": "Error al cargar los consultorios",
+        "created": "Consultorio agregado",
+        "createFailed": "Error al agregar el consultorio",
+        "updateFailed": "Error al actualizar el consultorio",
+        "deleted": "Consultorio eliminado",
+        "deleteFailed": "Error al eliminar el consultorio",
+        "deleteAria": "Eliminar {name}",
+        "deleteTitle": "Eliminar consultorio",
+        "deleteConfirm": "¿Eliminar \"{name}\"? Las citas existentes conservan su historial.",
+        "cancel": "Cancelar",
+        "deleting": "Eliminando..."
+      },
+      "serviceTypes": {
+        "title": "Tipos de tratamiento",
+        "description": "Servicios para los que se puede agendar a un paciente, con una duración estimada.",
+        "namePlaceholder": "Nombre del tratamiento",
+        "durationLabel": "Duración (minutos)",
+        "minutes": "{count, plural, =1 {1 minuto} other {# minutos}}",
+        "add": "Agregar",
+        "empty": "Aún no hay tipos de tratamiento.",
+        "loadFailed": "Error al cargar los tipos de tratamiento",
+        "created": "Tipo de tratamiento agregado",
+        "createFailed": "Error al agregar el tipo de tratamiento",
+        "updateFailed": "Error al actualizar el tipo de tratamiento",
+        "deleted": "Tipo de tratamiento eliminado",
+        "deleteFailed": "Error al eliminar el tipo de tratamiento",
+        "deleteAria": "Eliminar {name}",
+        "deleteTitle": "Eliminar tipo de tratamiento",
+        "deleteConfirm": "¿Eliminar \"{name}\"? Las citas existentes conservan su historial.",
+        "cancel": "Cancelar",
+        "deleting": "Eliminando..."
+      }
     }
   }
 }
