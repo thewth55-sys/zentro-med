@@ -13,6 +13,7 @@ import {
 import { createClient } from "@/lib/supabase/client";
 import type { User } from "@supabase/supabase-js";
 import { DEFAULT_CURRENCY } from "@/lib/currency";
+import type { Plan, SubscriptionStatus } from "@/lib/billing-platform/plans";
 import {
   canEditSettings as canEditSettingsFor,
   canManageMembers as canManageMembersFor,
@@ -43,6 +44,12 @@ interface AccountSummary {
   /** Default deal currency (ISO-4217). NOT NULL DEFAULT 'USD' in the
    *  DB (migration 021); narrowed to DEFAULT_CURRENCY when absent. */
   default_currency: string;
+  /** Subscription state (migration 040) — drives useHasPlan/access gating. */
+  plan: Plan;
+  subscription_status: SubscriptionStatus;
+  trial_ends_at: string;
+  included_seats: number;
+  stripe_customer_id: string | null;
 }
 
 interface AuthContextValue {
@@ -171,7 +178,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             .from("accounts")
             // default_currency added in migration 021; narrowed to the
             // USD fallback below for older schemas where it reads null.
-            .select("id, name, default_currency")
+            .select("id, name, default_currency, plan, subscription_status, trial_ends_at, included_seats, stripe_customer_id")
             .eq("id", data.account_id)
             .maybeSingle();
           if (accountErr) {
@@ -186,6 +193,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               id: account.id,
               name: account.name,
               default_currency: account.default_currency ?? DEFAULT_CURRENCY,
+              plan: account.plan,
+              subscription_status: account.subscription_status,
+              trial_ends_at: account.trial_ends_at,
+              included_seats: account.included_seats,
+              stripe_customer_id: account.stripe_customer_id,
             };
           }
         }

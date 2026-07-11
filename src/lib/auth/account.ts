@@ -29,6 +29,7 @@ import { NextResponse } from "next/server";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 import { createClient } from "@/lib/supabase/server";
+import type { Plan, SubscriptionStatus } from "@/lib/billing-platform/plans";
 import { hasMinRole, isAccountRole, type AccountRole } from "./roles";
 
 // ------------------------------------------------------------
@@ -54,6 +55,14 @@ export class ForbiddenError extends Error {
   }
 }
 
+export class SubscriptionRequiredError extends Error {
+  readonly status = 402 as const;
+  constructor(message = "This account's trial or subscription has ended") {
+    super(message);
+    this.name = "SubscriptionRequiredError";
+  }
+}
+
 /**
  * Convert one of the typed errors above (or anything else) into a
  * `NextResponse`. Routes can do:
@@ -67,7 +76,11 @@ export class ForbiddenError extends Error {
  * server internals out of the wire.
  */
 export function toErrorResponse(err: unknown): NextResponse {
-  if (err instanceof UnauthorizedError || err instanceof ForbiddenError) {
+  if (
+    err instanceof UnauthorizedError ||
+    err instanceof ForbiddenError ||
+    err instanceof SubscriptionRequiredError
+  ) {
     return NextResponse.json({ error: err.message }, { status: err.status });
   }
   console.error("[toErrorResponse] uncategorized error:", err);
@@ -87,8 +100,16 @@ export interface AccountContext {
   accountId: string;
   /** Caller's role within their account. */
   role: AccountRole;
-  /** Lightweight account meta — id + name. */
-  account: { id: string; name: string };
+  /** Lightweight account meta — id + name + subscription state. */
+  account: {
+    id: string;
+    name: string;
+    plan: Plan;
+    subscriptionStatus: SubscriptionStatus;
+    trialEndsAt: string;
+    includedSeats: number;
+    stripeCustomerId: string | null;
+  };
 }
 
 /**
@@ -149,7 +170,7 @@ export async function getCurrentAccount(): Promise<AccountContext> {
   // RLS, so it stays robust against cache staleness and older schemas.
   const { data: account, error: accountErr } = await supabase
     .from("accounts")
-    .select("id, name")
+    .select("id, name, plan, subscription_status, trial_ends_at, included_seats, stripe_customer_id")
     .eq("id", data.account_id)
     .maybeSingle();
 
@@ -168,7 +189,15 @@ export async function getCurrentAccount(): Promise<AccountContext> {
     userId: user.id,
     accountId: data.account_id,
     role: data.account_role,
-    account: { id: account.id, name: account.name },
+    account: {
+      id: account.id,
+      name: account.name,
+      plan: account.plan,
+      subscriptionStatus: account.subscription_status,
+      trialEndsAt: account.trial_ends_at,
+      includedSeats: account.included_seats,
+      stripeCustomerId: account.stripe_customer_id,
+    },
   };
 }
 
@@ -187,4 +216,22 @@ export async function requireRole(min: AccountRole): Promise<AccountContext> {
     );
   }
   return ctx;
+}
+
+/**
+ * Throws `SubscriptionRequiredError` (402) if `ctx.account`'s trial
+ * has expired or its subscription is fully canceled. Not applied
+ * globally (see plan doc — Fase A ships this as an available
+ * primitive plus UI-level gating; retrofitting every existing write
+ * route is separate follow-up work). Call this explicitly in routes
+ * that should hard-block writes once access lapses:
+ *
+ *   const ctx = await requireRole("agent");
+ *   requireActiveSubscription(ctx);
+ */
+export function requireActiveSubscription(ctx: AccountContext): void {
+  const status = ctx.account.subscriptionStatus;
+  if (status === "trial_expired" || status === "canceled") {
+    throw new SubscriptionRequiredError();
+  }
 }

@@ -1,8 +1,9 @@
-# wacrm — CRM Template for WhatsApp
+# Zentro Med — CRM/EHR médico multi-tenant
 
-> Self-hostable CRM template for WhatsApp® — shared inbox, contacts,
-> sales pipelines, broadcasts, and no-code automations. Fork it, brand
-> it, host it.
+> CRM/EHR para clínicas y consultorios médicos — bandeja de WhatsApp
+> compartida, pipeline de pacientes, agenda de doctores/consultorios,
+> expediente clínico, facturación, y automatizaciones sin código.
+> Fork de [wacrm](https://github.com/ArnasDon/wacrm) (MIT).
 
 <p align="center">
   <a href="https://www.hostinger.com/web-apps-hosting">

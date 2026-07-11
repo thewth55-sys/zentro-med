@@ -21,6 +21,7 @@ import { ApiKeysSettings } from '@/components/settings/api-keys-settings';
 import { ConversionTrackingConfig } from '@/components/settings/conversion-tracking-config';
 import { SchedulingPanel } from '@/components/settings/scheduling-panel';
 import { BillingPanel } from '@/components/settings/billing-panel';
+import { SubscriptionPanel } from '@/components/settings/subscription-panel';
 import {
   resolveSection,
   type SettingsSection,
@@ -71,6 +72,7 @@ export default function SettingsPage() {
     conversions: <ConversionTrackingConfig />,
     scheduling: <SchedulingPanel />,
     billing: <BillingPanel />,
+    'billing-platform': <SubscriptionPanel />,
   };
 
   return (

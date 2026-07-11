@@ -386,7 +386,7 @@ export interface Deal {
 export interface Doctor {
   id: string;
   account_id: string;
-  /** Nullable — a doctor doesn't need a WACRM login to be assignable. */
+  /** Nullable — a doctor doesn't need a Zentro Med login to be assignable. */
   user_id: string | null;
   name: string;
   specialty?: string | null;
