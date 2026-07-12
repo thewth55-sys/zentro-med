@@ -36,6 +36,8 @@ export interface QuotePdfProps {
   items: QuotePdfLineItem[];
   subtotal: number;
   taxTotal: number;
+  discountAmount: number;
+  discountLabel: string | null;
   total: number;
   currency: string;
   notes: string | null;
@@ -136,6 +138,12 @@ export function QuotePdfDocument(props: QuotePdfProps) {
             <Text>Subtotal</Text>
             <Text>{fmtMoney(props.subtotal, props.currency)}</Text>
           </View>
+          {props.discountAmount > 0 ? (
+            <View style={styles.totalsRow}>
+              <Text>Descuento{props.discountLabel ? ` (${props.discountLabel})` : ""}</Text>
+              <Text>-{fmtMoney(props.discountAmount, props.currency)}</Text>
+            </View>
+          ) : null}
           <View style={styles.totalsRow}>
             <Text>Impuestos</Text>
             <Text>{fmtMoney(props.taxTotal, props.currency)}</Text>

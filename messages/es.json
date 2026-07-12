@@ -1178,7 +1178,8 @@
       "title": "Facturación",
       "subtitle": "Cotizaciones, facturas y pagos de tus pacientes.",
       "invoices": "Facturas",
-      "quotes": "Cotizaciones"
+      "quotes": "Cotizaciones",
+      "priceList": "Lista de precios"
     },
     "lineItems": {
       "freeText": "Texto libre…",
@@ -1188,7 +1189,11 @@
       "addLine": "Agregar línea",
       "subtotal": "Subtotal",
       "tax": "Impuesto",
-      "total": "Total"
+      "total": "Total",
+      "discountType": "Tipo de descuento",
+      "discountNone": "Sin descuento",
+      "discountValue": "Valor del descuento",
+      "documentDiscount": "Descuento"
     },
     "quoteForm": {
       "editTitle": "Editar cotización",
@@ -1264,7 +1269,10 @@
       "addPayment": "Agregar pago",
       "amountRequired": "Ingresa un monto mayor a cero",
       "recorded": "Pago registrado",
-      "saveFailed": "No se pudo registrar el pago"
+      "saveFailed": "No se pudo registrar el pago",
+      "paidAt": "Fecha de pago",
+      "receipt": "Recibo",
+      "receiptFailed": "No se pudo generar el recibo"
     },
     "quoteList": {
       "subtitle": "Cotizaciones emitidas por esta cuenta.",
@@ -2126,7 +2134,9 @@
         "deleteTitle": "Eliminar tipo de tratamiento",
         "deleteConfirm": "¿Eliminar \"{name}\"? Las citas existentes conservan su historial.",
         "cancel": "Cancelar",
-        "deleting": "Eliminando..."
+        "deleting": "Eliminando...",
+        "linkedProduct": "Producto vinculado",
+        "noLinkedProduct": "Sin producto vinculado"
       }
     },
     "billing": {

@@ -1178,7 +1178,8 @@
       "title": "Billing",
       "subtitle": "Quotes, invoices, and payments for your patients.",
       "invoices": "Invoices",
-      "quotes": "Quotes"
+      "quotes": "Quotes",
+      "priceList": "Price list"
     },
     "lineItems": {
       "freeText": "Free text…",
@@ -1188,7 +1189,11 @@
       "addLine": "Add line",
       "subtotal": "Subtotal",
       "tax": "Tax",
-      "total": "Total"
+      "total": "Total",
+      "discountType": "Discount type",
+      "discountNone": "No discount",
+      "discountValue": "Discount value",
+      "documentDiscount": "Discount"
     },
     "quoteForm": {
       "editTitle": "Edit quote",
@@ -1264,7 +1269,10 @@
       "addPayment": "Add payment",
       "amountRequired": "Enter an amount greater than zero",
       "recorded": "Payment recorded",
-      "saveFailed": "Failed to record payment"
+      "saveFailed": "Failed to record payment",
+      "paidAt": "Payment date",
+      "receipt": "Receipt",
+      "receiptFailed": "Could not generate the receipt"
     },
     "quoteList": {
       "subtitle": "Quotes issued to this account.",
@@ -2126,7 +2134,9 @@
         "deleteTitle": "Remove treatment type",
         "deleteConfirm": "Remove \"{name}\"? Existing appointments keep their history.",
         "cancel": "Cancel",
-        "deleting": "Removing..."
+        "deleting": "Removing...",
+        "linkedProduct": "Linked product",
+        "noLinkedProduct": "No linked product"
       }
     },
     "billing": {

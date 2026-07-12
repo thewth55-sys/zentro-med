@@ -25,7 +25,7 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import { useTranslations } from 'next-intl';
-import type { ServiceType } from '@/types';
+import type { Product, ServiceType } from '@/types';
 
 const DEFAULT_DURATION = 30;
 
@@ -41,8 +41,10 @@ export function ServiceTypeManager() {
 
   const [loading, setLoading] = useState(true);
   const [serviceTypes, setServiceTypes] = useState<ServiceType[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
   const [newName, setNewName] = useState('');
   const [newDuration, setNewDuration] = useState(String(DEFAULT_DURATION));
+  const [newProductId, setNewProductId] = useState('');
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -55,6 +57,7 @@ export function ServiceTypeManager() {
       return;
     }
     fetchServiceTypes(accountId);
+    fetchProducts(accountId);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [authLoading, accountId]);
 
@@ -63,7 +66,7 @@ export function ServiceTypeManager() {
       setLoading(true);
       const { data, error } = await supabase
         .from('service_types')
-        .select('*')
+        .select('*, product:products(*)')
         .eq('account_id', acctId)
         .order('created_at', { ascending: true });
       if (error) throw error;
@@ -76,6 +79,16 @@ export function ServiceTypeManager() {
     }
   }
 
+  async function fetchProducts(acctId: string) {
+    const { data } = await supabase
+      .from('products')
+      .select('*')
+      .eq('account_id', acctId)
+      .eq('is_active', true)
+      .order('name');
+    setProducts(data || []);
+  }
+
   async function handleCreate() {
     if (!newName.trim() || !accountId) return;
     const duration = Number(newDuration) || DEFAULT_DURATION;
@@ -85,17 +98,36 @@ export function ServiceTypeManager() {
         account_id: accountId,
         name: newName.trim(),
         duration_minutes: duration,
+        product_id: newProductId || null,
       });
       if (error) throw error;
       toast.success(t('created'));
       setNewName('');
       setNewDuration(String(DEFAULT_DURATION));
+      setNewProductId('');
       await fetchServiceTypes(accountId);
     } catch (err) {
       console.error('Create service type error:', err);
       toast.error(t('createFailed'));
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function updateProductLink(st: ServiceType, productId: string) {
+    try {
+      const { error } = await supabase
+        .from('service_types')
+        .update({ product_id: productId || null })
+        .eq('id', st.id);
+      if (error) throw error;
+      const product = products.find((p) => p.id === productId) ?? null;
+      setServiceTypes((prev) =>
+        prev.map((s) => (s.id === st.id ? { ...s, product_id: productId || null, product: product ?? undefined } : s))
+      );
+    } catch (err) {
+      console.error('Link product to service type error:', err);
+      toast.error(t('updateFailed'));
     }
   }
 
@@ -159,12 +191,26 @@ export function ServiceTypeManager() {
                 {serviceTypes.map((st) => (
                   <div
                     key={st.id}
-                    className="flex items-center justify-between gap-3 rounded-lg border border-border bg-muted/40 px-3 py-2"
+                    className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border bg-muted/40 px-3 py-2"
                   >
                     <span className="text-sm text-foreground">
                       {st.name} <span className="text-muted-foreground">· {t('minutes', { count: st.duration_minutes })}</span>
                     </span>
                     <div className="flex items-center gap-3">
+                      <select
+                        value={st.product_id ?? ''}
+                        onChange={(e) => updateProductLink(st, e.target.value)}
+                        disabled={!canEdit}
+                        aria-label={t('linkedProduct')}
+                        className="h-8 rounded-md border border-border bg-muted px-2 text-xs text-foreground outline-none focus:border-primary disabled:opacity-60"
+                      >
+                        <option value="">{t('noLinkedProduct')}</option>
+                        {products.map((p) => (
+                          <option key={p.id} value={p.id}>
+                            {p.name}
+                          </option>
+                        ))}
+                      </select>
                       <Switch
                         checked={st.is_active}
                         onCheckedChange={() => toggleActive(st)}
@@ -206,6 +252,20 @@ export function ServiceTypeManager() {
                   className="w-24"
                   aria-label={t('durationLabel')}
                 />
+                <select
+                  value={newProductId}
+                  onChange={(e) => setNewProductId(e.target.value)}
+                  disabled={saving}
+                  aria-label={t('linkedProduct')}
+                  className="h-9 rounded-md border border-border bg-muted px-2 text-sm text-foreground outline-none focus:border-primary disabled:opacity-60"
+                >
+                  <option value="">{t('noLinkedProduct')}</option>
+                  {products.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.name}
+                    </option>
+                  ))}
+                </select>
                 <Button variant="outline" size="sm" onClick={handleCreate} disabled={saving || !newName.trim()}>
                   {saving ? <Loader2 className="size-4 animate-spin" /> : <Plus className="size-4" />}
                   {t('add')}

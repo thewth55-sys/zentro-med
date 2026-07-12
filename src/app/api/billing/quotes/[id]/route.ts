@@ -70,12 +70,15 @@ export async function PATCH(
     if (Array.isArray(body.items)) {
       let resolved;
       try {
-        resolved = await resolveBillingLines(supabase, accountId, body.items);
+        resolved = await resolveBillingLines(supabase, accountId, body.items, body.discount_type, body.discount_value);
       } catch (err) {
         return NextResponse.json({ error: err instanceof Error ? err.message : 'Invalid line items' }, { status: 400 });
       }
       updates.subtotal = resolved.subtotal;
       updates.tax_total = resolved.taxTotal;
+      updates.discount_type = resolved.discountType;
+      updates.discount_value = resolved.discountValue;
+      updates.discount_amount = resolved.discountAmount;
       updates.total = resolved.total;
 
       const { error: deleteError } = await supabase.from('quote_items').delete().eq('quote_id', id);

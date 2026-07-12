@@ -70,6 +70,8 @@ export async function POST(
         items={items}
         subtotal={quote.subtotal}
         taxTotal={quote.tax_total}
+        discountAmount={quote.discount_amount ?? 0}
+        discountLabel={quote.discount_type === "percent" ? `${quote.discount_value}%` : null}
         total={quote.total}
         currency={quote.currency}
         notes={quote.notes ?? null}

@@ -17,7 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { BillingLineItemsEditor, type EditableLine } from "./billing-line-items-editor";
-import type { Contact, Product, Quote, QuoteStatus, Tax } from "@/types";
+import type { Contact, DiscountType, Product, Quote, QuoteStatus, Tax } from "@/types";
 
 interface QuoteFormProps {
   open: boolean;
@@ -46,6 +46,8 @@ export function QuoteForm({ open, onOpenChange, quote, contactId, dealId, onSave
   const contactSearchSeq = useRef(0);
 
   const [items, setItems] = useState<EditableLine[]>([]);
+  const [discountType, setDiscountType] = useState<DiscountType>(null);
+  const [discountValue, setDiscountValue] = useState(0);
   const [expiryDate, setExpiryDate] = useState("");
   const [notes, setNotes] = useState("");
   const [status, setStatus] = useState<QuoteStatus>("draft");
@@ -128,8 +130,12 @@ export function QuoteForm({ open, onOpenChange, quote, contactId, dealId, onSave
           quantity: i.quantity,
           unit_price: i.unit_price,
           tax_id: i.tax_id,
+          discount_type: i.discount_type,
+          discount_value: i.discount_value,
         }))
       );
+      setDiscountType(quote.discount_type);
+      setDiscountValue(quote.discount_value);
       setExpiryDate(quote.expiry_date ?? "");
       setNotes(quote.notes ?? "");
       setStatus(quote.status);
@@ -137,6 +143,8 @@ export function QuoteForm({ open, onOpenChange, quote, contactId, dealId, onSave
     } else {
       setContact(null);
       setItems([]);
+      setDiscountType(null);
+      setDiscountValue(0);
       setExpiryDate("");
       setNotes("");
       setStatus("draft");
@@ -191,7 +199,14 @@ export function QuoteForm({ open, onOpenChange, quote, contactId, dealId, onSave
         const res = await fetch(`/api/billing/quotes/${quote.id}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ status, notes: notes || null, expiry_date: expiryDate || null, items }),
+          body: JSON.stringify({
+            status,
+            notes: notes || null,
+            expiry_date: expiryDate || null,
+            items,
+            discount_type: discountType,
+            discount_value: discountValue,
+          }),
         });
         if (!res.ok) throw new Error("update failed");
         toast.success(t("updated"));
@@ -205,6 +220,8 @@ export function QuoteForm({ open, onOpenChange, quote, contactId, dealId, onSave
             expiry_date: expiryDate || null,
             notes: notes || null,
             items,
+            discount_type: discountType,
+            discount_value: discountValue,
           }),
         });
         if (!res.ok) throw new Error("create failed");
@@ -347,6 +364,12 @@ export function QuoteForm({ open, onOpenChange, quote, contactId, dealId, onSave
               taxes={taxes}
               disabled={isConverted}
               currency={currency}
+              documentDiscountType={discountType}
+              documentDiscountValue={discountValue}
+              onDocumentDiscountChange={(type, value) => {
+                setDiscountType(type);
+                setDiscountValue(value);
+              }}
             />
           </div>
 

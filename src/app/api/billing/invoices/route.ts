@@ -51,7 +51,7 @@ export async function POST(request: Request) {
 
     let resolved;
     try {
-      resolved = await resolveBillingLines(supabase, accountId, body.items ?? []);
+      resolved = await resolveBillingLines(supabase, accountId, body.items ?? [], body.discount_type, body.discount_value);
     } catch (err) {
       return NextResponse.json({ error: err instanceof Error ? err.message : 'Invalid line items' }, { status: 400 });
     }
@@ -81,6 +81,9 @@ export async function POST(request: Request) {
         due_date: body.due_date || null,
         subtotal: resolved.subtotal,
         tax_total: resolved.taxTotal,
+        discount_type: resolved.discountType,
+        discount_value: resolved.discountValue,
+        discount_amount: resolved.discountAmount,
         total: resolved.total,
         currency: account?.default_currency ?? 'USD',
         notes: body.notes || null,

@@ -19,10 +19,17 @@ interface PaymentFormProps {
 
 const METHODS: PaymentMethod[] = ["cash", "card", "transfer", "other"];
 
+function todayLocalDate(): string {
+  const d = new Date();
+  const offset = d.getTimezoneOffset();
+  return new Date(d.getTime() - offset * 60000).toISOString().slice(0, 10);
+}
+
 export function PaymentForm({ invoiceId, remaining, currency, onSaved }: PaymentFormProps) {
   const t = useTranslations("Billing.payments");
   const [amount, setAmount] = useState(remaining > 0 ? String(remaining) : "");
   const [method, setMethod] = useState<PaymentMethod>("cash");
+  const [paidAt, setPaidAt] = useState(todayLocalDate());
   const [saving, setSaving] = useState(false);
   const currencyFormatter = new Intl.NumberFormat(undefined, { style: "currency", currency });
 
@@ -37,7 +44,7 @@ export function PaymentForm({ invoiceId, remaining, currency, onSaved }: Payment
       const res = await fetch(`/api/billing/invoices/${invoiceId}/payments`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ amount: value, method }),
+        body: JSON.stringify({ amount: value, method, paid_at: paidAt || undefined }),
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
@@ -45,6 +52,7 @@ export function PaymentForm({ invoiceId, remaining, currency, onSaved }: Payment
       }
       toast.success(t("recorded"));
       setAmount("");
+      setPaidAt(todayLocalDate());
       onSaved();
     } catch (err) {
       console.error("Record payment error:", err);
@@ -83,6 +91,15 @@ export function PaymentForm({ invoiceId, remaining, currency, onSaved }: Payment
             </option>
           ))}
         </select>
+      </div>
+      <div className="space-y-1">
+        <Label className="text-xs text-muted-foreground">{t("paidAt")}</Label>
+        <Input
+          type="date"
+          value={paidAt}
+          onChange={(e) => setPaidAt(e.target.value)}
+          className="h-8 w-36 border-border bg-muted text-xs text-foreground"
+        />
       </div>
       <Button type="button" size="sm" onClick={handleSubmit} disabled={saving} className="h-8 text-xs">
         {saving ? <Loader2 className="size-3.5 animate-spin" /> : <Plus className="size-3.5" />}

@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { QuoteList } from "@/components/billing/quote-list";
 import { InvoiceList } from "@/components/billing/invoice-list";
+import { ProductManager } from "@/components/settings/product-manager";
 
 export default function BillingPage() {
   const t = useTranslations("Billing.page");
@@ -28,12 +29,18 @@ export default function BillingPage() {
           <TabsTrigger value="quotes" className="data-active:bg-muted data-active:text-primary text-muted-foreground">
             {t("quotes")}
           </TabsTrigger>
+          <TabsTrigger value="priceList" className="data-active:bg-muted data-active:text-primary text-muted-foreground">
+            {t("priceList")}
+          </TabsTrigger>
         </TabsList>
         <TabsContent value="invoices" className="pt-4">
           <InvoiceList />
         </TabsContent>
         <TabsContent value="quotes" className="pt-4">
           <QuoteList />
+        </TabsContent>
+        <TabsContent value="priceList" className="pt-4">
+          <ProductManager />
         </TabsContent>
       </Tabs>
     </div>

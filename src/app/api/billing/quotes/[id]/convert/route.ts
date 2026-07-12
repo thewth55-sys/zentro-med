@@ -62,6 +62,9 @@ export async function POST(
         invoice_number: invoiceNumber,
         subtotal: quote.subtotal,
         tax_total: quote.tax_total,
+        discount_type: quote.discount_type,
+        discount_value: quote.discount_value,
+        discount_amount: quote.discount_amount,
         total: quote.total,
         currency: quote.currency,
         notes: quote.notes,
@@ -86,6 +89,8 @@ export async function POST(
           unit_price: item.unit_price,
           tax_id: item.tax_id,
           tax_rate_snapshot: item.tax_rate_snapshot,
+          discount_type: item.discount_type,
+          discount_value: item.discount_value,
           line_total: item.line_total,
           position: item.position,
         }))

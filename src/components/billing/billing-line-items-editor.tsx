@@ -5,7 +5,7 @@ import { useTranslations } from "next-intl";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { computeDocumentTotals, computeLineTotal } from "@/lib/billing/totals";
+import { computeDocumentTotals, computeLineTotal, type DiscountType } from "@/lib/billing/totals";
 import type { Product, Tax } from "@/types";
 
 export interface EditableLine {
@@ -14,6 +14,8 @@ export interface EditableLine {
   quantity: number;
   unit_price: number;
   tax_id: string | null;
+  discount_type: DiscountType;
+  discount_value: number;
 }
 
 interface BillingLineItemsEditorProps {
@@ -23,11 +25,22 @@ interface BillingLineItemsEditorProps {
   taxes: Tax[];
   disabled?: boolean;
   currency: string;
+  documentDiscountType: DiscountType;
+  documentDiscountValue: number;
+  onDocumentDiscountChange: (type: DiscountType, value: number) => void;
 }
 
 function emptyLine(taxes: Tax[]): EditableLine {
   const defaultTax = taxes.find((t) => t.is_default);
-  return { product_id: null, description: "", quantity: 1, unit_price: 0, tax_id: defaultTax?.id ?? null };
+  return {
+    product_id: null,
+    description: "",
+    quantity: 1,
+    unit_price: 0,
+    tax_id: defaultTax?.id ?? null,
+    discount_type: null,
+    discount_value: 0,
+  };
 }
 
 /**
@@ -44,6 +57,9 @@ export function BillingLineItemsEditor({
   taxes,
   disabled,
   currency,
+  documentDiscountType,
+  documentDiscountValue,
+  onDocumentDiscountChange,
 }: BillingLineItemsEditorProps) {
   const t = useTranslations("Billing.lineItems");
 
@@ -81,7 +97,11 @@ export function BillingLineItemsEditor({
       quantity: line.quantity,
       unit_price: line.unit_price,
       tax_rate_snapshot: line.tax_id ? (taxRateById.get(line.tax_id) ?? 0) : 0,
-    }))
+      discount_type: line.discount_type,
+      discount_value: line.discount_value,
+    })),
+    documentDiscountType,
+    documentDiscountValue
   );
 
   return (
@@ -90,7 +110,7 @@ export function BillingLineItemsEditor({
         {items.map((line, index) => (
           <div
             key={index}
-            className="grid grid-cols-1 gap-2 rounded-md border border-border bg-muted/40 p-2.5 sm:grid-cols-[1.5fr_1fr_80px_100px_100px_36px] sm:items-center"
+            className="grid grid-cols-1 gap-2 rounded-md border border-border bg-muted/40 p-2.5 sm:grid-cols-[1.3fr_0.9fr_65px_85px_110px_95px_32px] sm:items-center"
           >
             <div className="space-y-1">
               <select
@@ -149,8 +169,39 @@ export function BillingLineItemsEditor({
               className="h-8 border-border bg-muted text-xs text-foreground disabled:opacity-60"
             />
 
+            <div className="flex items-center gap-1">
+              <select
+                value={line.discount_type ?? ""}
+                disabled={disabled}
+                onChange={(e) =>
+                  updateLine(index, {
+                    discount_type: (e.target.value || null) as DiscountType,
+                    discount_value: e.target.value ? line.discount_value : 0,
+                  })
+                }
+                aria-label={t("discountType")}
+                className="h-8 w-14 rounded-md border border-border bg-muted px-1 text-xs text-foreground outline-none focus:border-primary disabled:opacity-60"
+              >
+                <option value="">{t("discountNone")}</option>
+                <option value="percent">%</option>
+                <option value="fixed">$</option>
+              </select>
+              <Input
+                type="number"
+                min={0}
+                step="0.01"
+                value={line.discount_value}
+                disabled={disabled || !line.discount_type}
+                onChange={(e) => updateLine(index, { discount_value: Number(e.target.value) || 0 })}
+                aria-label={t("discountValue")}
+                className="h-8 w-full border-border bg-muted text-xs text-foreground disabled:opacity-60"
+              />
+            </div>
+
             <span className="text-right text-xs text-muted-foreground">
-              {currencyFormatter.format(computeLineTotal(line.quantity, line.unit_price))}
+              {currencyFormatter.format(
+                computeLineTotal(line.quantity, line.unit_price, line.discount_type, line.discount_value)
+              )}
             </span>
 
             {!disabled && (
@@ -179,6 +230,42 @@ export function BillingLineItemsEditor({
           <span>{t("subtotal")}</span>
           <span>{currencyFormatter.format(totals.subtotal)}</span>
         </div>
+
+        <div className="flex items-center justify-between gap-2 text-muted-foreground">
+          <span>{t("documentDiscount")}</span>
+          {disabled ? (
+            <span>{currencyFormatter.format(totals.discountAmount)}</span>
+          ) : (
+            <div className="flex items-center gap-1">
+              <select
+                value={documentDiscountType ?? ""}
+                onChange={(e) =>
+                  onDocumentDiscountChange(
+                    (e.target.value || null) as DiscountType,
+                    e.target.value ? documentDiscountValue : 0
+                  )
+                }
+                aria-label={t("discountType")}
+                className="h-7 w-14 rounded-md border border-border bg-muted px-1 text-xs text-foreground outline-none focus:border-primary"
+              >
+                <option value="">{t("discountNone")}</option>
+                <option value="percent">%</option>
+                <option value="fixed">$</option>
+              </select>
+              <Input
+                type="number"
+                min={0}
+                step="0.01"
+                value={documentDiscountValue}
+                disabled={!documentDiscountType}
+                onChange={(e) => onDocumentDiscountChange(documentDiscountType, Number(e.target.value) || 0)}
+                aria-label={t("discountValue")}
+                className="h-7 w-20 border-border bg-muted text-xs text-foreground disabled:opacity-60"
+              />
+            </div>
+          )}
+        </div>
+
         <div className="flex justify-between text-muted-foreground">
           <span>{t("tax")}</span>
           <span>{currencyFormatter.format(totals.taxTotal)}</span>

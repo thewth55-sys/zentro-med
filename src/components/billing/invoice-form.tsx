@@ -19,7 +19,7 @@ import { Label } from "@/components/ui/label";
 import { BillingLineItemsEditor, type EditableLine } from "./billing-line-items-editor";
 import { PaymentForm } from "./payment-form";
 import { PaymentList } from "./payment-list";
-import type { Contact, Invoice, InvoiceStatus, Payment, Product, Tax } from "@/types";
+import type { Contact, DiscountType, Invoice, InvoiceStatus, Payment, Product, Tax } from "@/types";
 
 interface InvoiceFormProps {
   open: boolean;
@@ -48,6 +48,8 @@ export function InvoiceForm({ open, onOpenChange, invoice, contactId, dealId, on
   const contactSearchSeq = useRef(0);
 
   const [items, setItems] = useState<EditableLine[]>([]);
+  const [discountType, setDiscountType] = useState<DiscountType>(null);
+  const [discountValue, setDiscountValue] = useState(0);
   const [dueDate, setDueDate] = useState("");
   const [notes, setNotes] = useState("");
   const [status, setStatus] = useState<InvoiceStatus>("draft");
@@ -86,8 +88,12 @@ export function InvoiceForm({ open, onOpenChange, invoice, contactId, dealId, on
           quantity: i.quantity,
           unit_price: i.unit_price,
           tax_id: i.tax_id,
+          discount_type: i.discount_type,
+          discount_value: i.discount_value,
         }))
       );
+      setDiscountType(invoice.discount_type);
+      setDiscountValue(invoice.discount_value);
       setDueDate(invoice.due_date ?? "");
       setNotes(invoice.notes ?? "");
       setStatus(invoice.status);
@@ -98,6 +104,8 @@ export function InvoiceForm({ open, onOpenChange, invoice, contactId, dealId, on
     } else {
       setContact(null);
       setItems([]);
+      setDiscountType(null);
+      setDiscountValue(0);
       setDueDate("");
       setNotes("");
       setStatus("draft");
@@ -184,7 +192,11 @@ export function InvoiceForm({ open, onOpenChange, invoice, contactId, dealId, on
           notes: notes || null,
           due_date: dueDate || null,
         };
-        if (!itemsLocked) payload.items = items;
+        if (!itemsLocked) {
+          payload.items = items;
+          payload.discount_type = discountType;
+          payload.discount_value = discountValue;
+        }
         const res = await fetch(`/api/billing/invoices/${invoice.id}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
@@ -202,6 +214,8 @@ export function InvoiceForm({ open, onOpenChange, invoice, contactId, dealId, on
             due_date: dueDate || null,
             notes: notes || null,
             items,
+            discount_type: discountType,
+            discount_value: discountValue,
           }),
         });
         if (!res.ok) throw new Error("create failed");
@@ -326,12 +340,19 @@ export function InvoiceForm({ open, onOpenChange, invoice, contactId, dealId, on
               taxes={taxes}
               disabled={itemsLocked}
               currency={currency}
+              documentDiscountType={discountType}
+              documentDiscountValue={discountValue}
+              onDocumentDiscountChange={(type, value) => {
+                setDiscountType(type);
+                setDiscountValue(value);
+              }}
             />
 
             {isEdit && invoice && (
               <div className="space-y-2 rounded-lg border border-border bg-muted/50 p-3">
                 <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">{t("paymentsTitle")}</p>
                 <PaymentList
+                  invoiceId={invoice.id}
                   payments={payments}
                   currency={currency}
                   onDelete={handleDeletePayment}

@@ -413,8 +413,11 @@ export interface ServiceType {
   name: string;
   duration_minutes: number;
   is_active: boolean;
+  /** Billing catalog price this service type is priced from, if linked. */
+  product_id?: string | null;
   created_at: string;
   updated_at?: string;
+  product?: Product;
 }
 
 export interface DoctorAvailabilityBlock {
@@ -818,6 +821,7 @@ export interface Tax {
 }
 
 export type QuoteStatus = 'draft' | 'sent' | 'accepted' | 'rejected' | 'expired' | 'converted';
+export type DiscountType = 'percent' | 'fixed' | null;
 
 export interface QuoteItem {
   id: string;
@@ -829,6 +833,8 @@ export interface QuoteItem {
   unit_price: number;
   tax_id: string | null;
   tax_rate_snapshot: number;
+  discount_type: DiscountType;
+  discount_value: number;
   line_total: number;
   position: number;
   created_at: string;
@@ -847,6 +853,9 @@ export interface Quote {
   expiry_date?: string | null;
   subtotal: number;
   tax_total: number;
+  discount_type: DiscountType;
+  discount_value: number;
+  discount_amount: number;
   total: number;
   currency: string;
   notes?: string | null;
@@ -869,6 +878,8 @@ export interface InvoiceItem {
   unit_price: number;
   tax_id: string | null;
   tax_rate_snapshot: number;
+  discount_type: DiscountType;
+  discount_value: number;
   line_total: number;
   position: number;
   created_at: string;
@@ -888,6 +899,9 @@ export interface Invoice {
   due_date?: string | null;
   subtotal: number;
   tax_total: number;
+  discount_type: DiscountType;
+  discount_value: number;
+  discount_amount: number;
   total: number;
   /** Maintained by a DB trigger off `payments` — never set directly. */
   amount_paid: number;
