@@ -97,13 +97,13 @@ export function Sidebar({ open = false, onClose }: SidebarProps) {
   const unreadNotifications = useUnreadNotifications();
   const { isPlatformAdmin } = usePlatformAdmin();
   const orderedNavItems = applyNavOrder(navItems, profile?.nav_order);
-  // Only two distinct gated features exist today (see
-  // lib/billing-platform/features.ts) — called at the top level
-  // rather than per-item inside the map below, since hooks can't be
-  // called conditionally/in a loop.
+  // Called at the top level rather than per-item inside the map below,
+  // since hooks can't be called conditionally/in a loop — one call per
+  // distinct gated feature in lib/billing-platform/features.ts.
   const featureAccess: Record<GatedFeature, boolean> = {
     automations: useHasFeature("automations"),
     ai_autoreply: useHasFeature("ai_autoreply"),
+    whatsapp_inbox: useHasFeature("whatsapp_inbox"),
   };
   // Only surface the account-name strip when it actually carries
   // information. A solo user's personal account is named after them
