@@ -12,6 +12,7 @@ import { useEffect, useState } from "react";
 import {
   DndContext,
   PointerSensor,
+  TouchSensor,
   useSensor,
   useSensors,
   closestCenter,
@@ -53,7 +54,15 @@ export function NavOrderEditor() {
     setItems(applyNavOrder(navItems, profile?.nav_order));
   }, [profile?.nav_order]);
 
-  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
+  // Both sensors so the drag handle is reliable on mouse (PointerSensor,
+  // 5px move to activate — avoids swallowing plain clicks) and on
+  // touch (TouchSensor, a short press-hold instead of a distance
+  // threshold — a finger drifts more than 5px just resting on glass,
+  // so a distance constraint alone makes touch drag flaky).
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 150, tolerance: 5 } }),
+  );
 
   const isDefaultOrder = items.every((item, i) => item.href === navItems[i]?.href);
 

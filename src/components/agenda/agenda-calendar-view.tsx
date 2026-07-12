@@ -60,6 +60,7 @@ export function AgendaCalendarView() {
   const [serviceTypes, setServiceTypes] = useState<ServiceType[]>([]);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [availabilityBlocks, setAvailabilityBlocks] = useState<DoctorAvailabilityBlock[]>([]);
+  const [googleBusyBlocks, setGoogleBusyBlocks] = useState<{ doctorId: string; start: string; end: string }[]>([]);
 
   const [doctorFilter, setDoctorFilter] = useState("");
   const [roomFilter, setRoomFilter] = useState("");
@@ -103,6 +104,19 @@ export function AgendaCalendarView() {
       const { data: blocks, error } = await blockQuery;
       if (error) throw error;
       setAvailabilityBlocks((blocks ?? []) as DoctorAvailabilityBlock[]);
+
+      // Best-effort — a Google API hiccup shouldn't block the rest of
+      // the calendar from loading, so this is fetched separately from
+      // the throwing block above and just falls back to no busy
+      // overlay on failure.
+      try {
+        const busyRes = await fetch(`/api/google-calendar/busy-range?${params.toString()}`);
+        const busyData = await busyRes.json();
+        setGoogleBusyBlocks(busyData.busy ?? []);
+      } catch (busyErr) {
+        console.error("Failed to load Google Calendar busy blocks:", busyErr);
+        setGoogleBusyBlocks([]);
+      }
     } catch (err) {
       console.error("Failed to load agenda data:", err);
       toast.error(t("loadFailed"));
@@ -146,8 +160,22 @@ export function AgendaCalendarView() {
         extendedProps: { type: "availability", block: b },
       }));
 
-    return [...blockEvents, ...apptEvents];
-  }, [appointments, availabilityBlocks, doctorFilter, doctors, t]);
+    // A fixed color (not per-doctor, unlike availability blocks) so a
+    // "busy on their personal Google Calendar" overlay always reads
+    // as visually distinct from an internal availability block, no
+    // matter which doctor it belongs to.
+    const googleBusyEvents: CalendarEvent[] = googleBusyBlocks.map((b, i) => ({
+      id: `google-busy-${b.doctorId}-${i}`,
+      title: t("googleBusy", { name: doctors.find((d) => d.id === b.doctorId)?.name ?? "" }),
+      start: b.start,
+      end: b.end,
+      display: "background" as const,
+      backgroundColor: "rgba(239, 68, 68, 0.25)",
+      extendedProps: { type: "google-busy" },
+    }));
+
+    return [...blockEvents, ...googleBusyEvents, ...apptEvents];
+  }, [appointments, availabilityBlocks, googleBusyBlocks, doctorFilter, doctors, t]);
 
   function handleEventClick(info: EventClickArg) {
     const type = info.event.extendedProps.type;

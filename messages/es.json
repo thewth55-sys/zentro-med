@@ -778,7 +778,8 @@
       "deleted": "Disponibilidad eliminada",
       "saveFailed": "No se pudo guardar la disponibilidad",
       "endBeforeStart": "La hora de fin debe ser posterior a la de inicio"
-    }
+    },
+    "googleBusy": "Ocupado en Google Calendar · {name}"
   },
   "Broadcasts": {
     "page": {
