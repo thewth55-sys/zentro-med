@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Loader2, CalendarDays } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
@@ -68,6 +68,36 @@ export function AgendaCalendarView() {
 
   const [editorOpen, setEditorOpen] = useState(false);
   const [draft, setDraft] = useState<AppointmentDraft | null>(null);
+
+  // A 7-button header toolbar (prev/next/today + 4 view switchers) and
+  // a week grid both assume desktop width — on a phone they either
+  // wrap into a squashed mess or force horizontal scroll, which reads
+  // as "the calendar gets cut off." Below the sm breakpoint, default
+  // to a single-day view with a trimmed toolbar instead. Read once on
+  // mount + tracked via matchMedia rather than a resize listener —
+  // cheaper, and this only needs to react to actual breakpoint
+  // crossings, not every pixel of a drag-resize.
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const mql = window.matchMedia("(max-width: 639px)");
+    setIsMobile(mql.matches);
+    const onChange = (e: MediaQueryListEvent) => setIsMobile(e.matches);
+    mql.addEventListener("change", onChange);
+    return () => mql.removeEventListener("change", onChange);
+  }, []);
+
+  // `initialView` only applies at mount — FullCalendar ignores changes
+  // to it afterward. isMobile can flip (matchMedia listener above, or
+  // simply because it starts false and resolves true on the very next
+  // tick after mount) after the calendar has already rendered with
+  // the wrong view, so the view is also switched imperatively here.
+  const calendarRef = useRef<FullCalendar>(null);
+  useEffect(() => {
+    const api = calendarRef.current?.getApi();
+    if (!api) return;
+    const nextView = isMobile ? "timeGridDay" : "timeGridWeek";
+    if (api.view.type !== nextView) api.changeView(nextView);
+  }, [isMobile]);
 
   useEffect(() => {
     (async () => {
@@ -293,16 +323,21 @@ export function AgendaCalendarView() {
         {loading && <Loader2 className="size-4 animate-spin text-muted-foreground" />}
       </div>
 
-      <div className="rounded-lg border border-border bg-card p-3">
+      <div className="overflow-x-hidden rounded-lg border border-border bg-card p-2 sm:p-3">
         <FullCalendar
+          ref={calendarRef}
           plugins={[dayGridPlugin, timeGridPlugin, listPlugin, interactionPlugin]}
-          initialView="timeGridWeek"
-          headerToolbar={{
-            left: "prev,next today",
-            center: "title",
-            right: "timeGridDay,timeGridWeek,dayGridMonth,listWeek",
-          }}
-          height={700}
+          initialView={isMobile ? "timeGridDay" : "timeGridWeek"}
+          headerToolbar={
+            isMobile
+              ? { left: "prev,next", center: "title", right: "today" }
+              : {
+                  left: "prev,next today",
+                  center: "title",
+                  right: "timeGridDay,timeGridWeek,dayGridMonth,listWeek",
+                }
+          }
+          height={isMobile ? "auto" : 700}
           firstDay={1}
           // Full 24h range so appointments outside a "typical" clinic
           // window are never silently hidden by the grid — FullCalendar

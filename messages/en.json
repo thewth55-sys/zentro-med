@@ -1255,7 +1255,12 @@
         "partial": "Partially paid",
         "overdue": "Overdue",
         "void": "Void"
-      }
+      },
+      "downloadPdf": "Download PDF",
+      "sendWhatsapp": "Send via WhatsApp",
+      "pdfFailed": "Could not generate the PDF",
+      "whatsappSendSuccess": "Invoice sent via WhatsApp",
+      "whatsappSendFailed": "Could not send via WhatsApp"
     },
     "payments": {
       "empty": "No payments recorded yet.",
@@ -1915,7 +1920,13 @@
       "navOrderSave": "Save order",
       "navOrderReset": "Reset",
       "navOrderSaved": "Menu order saved",
-      "navOrderSaveFailed": "Could not save the menu order"
+      "navOrderSaveFailed": "Could not save the menu order",
+      "professionalTitle": "Title",
+      "professionalTitlePlaceholder": "Dr., MD, Lic....",
+      "specialty": "Specialty",
+      "specialtyPlaceholder": "Cardiology, Pediatrics...",
+      "licenseNumber": "Professional license number",
+      "licenseNumberPlaceholder": "12345678"
     },
     "appearance": {
       "title": "Appearance",
@@ -2124,7 +2135,16 @@
         "deleteTitle": "Remove room",
         "deleteConfirm": "Remove \"{name}\"? Existing appointments keep their history.",
         "cancel": "Cancel",
-        "deleting": "Removing..."
+        "deleting": "Removing...",
+        "addTitle": "Add room",
+        "editTitle": "Edit room",
+        "nameLabel": "Name",
+        "addressLabel": "Address",
+        "addressPlaceholder": "Street, number, neighborhood, city",
+        "addressHint": "Used as the location when creating the Google Calendar event.",
+        "editAria": "Edit {name}",
+        "save": "Save",
+        "updated": "Room updated"
       },
       "serviceTypes": {
         "title": "Treatment types",

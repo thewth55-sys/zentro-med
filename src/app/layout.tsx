@@ -6,6 +6,7 @@ import Script from "next/script";
 import "./globals.css";
 import { ThemeProvider } from "@/hooks/use-theme";
 import { ThemedToaster } from "@/components/themed-toaster";
+import { PwaRegister } from "@/components/pwa-register";
 import {
   DEFAULT_MODE,
   DEFAULT_THEME,
@@ -37,6 +38,16 @@ export const metadata: Metadata = {
     email: false,
     address: false,
     telephone: false,
+  },
+  manifest: "/manifest.webmanifest",
+  // iOS Safari ignores most of the web manifest for "Add to Home
+  // Screen" — these Apple-specific meta tags are what actually make
+  // it install as a standalone app there instead of just bookmarking
+  // the page.
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "Zentro Med",
   },
 };
 
@@ -112,6 +123,7 @@ export default async function RootLayout({
           <ThemeProvider>
             {children}
             <ThemedToaster />
+            <PwaRegister />
           </ThemeProvider>
         </NextIntlClientProvider>
       </body>

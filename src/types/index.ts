@@ -52,6 +52,11 @@ export interface Profile {
    * not an account-wide setting.
    */
   nav_order?: string[] | null;
+  /** Professional title, e.g. "Dr.", "Dra.", "Lic." */
+  title?: string | null;
+  specialty?: string | null;
+  /** Cédula profesional / matrícula. */
+  license_number?: string | null;
   created_at: string;
 }
 
@@ -409,6 +414,8 @@ export interface Room {
   id: string;
   account_id: string;
   name: string;
+  /** Surfaced as the Google Calendar event's location when an appointment in this room syncs. */
+  address?: string | null;
   is_active: boolean;
   created_at: string;
   updated_at?: string;

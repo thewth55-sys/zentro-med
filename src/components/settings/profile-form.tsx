@@ -41,6 +41,9 @@ export function ProfileForm() {
 
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
+  const [title, setTitle] = useState('');
+  const [specialty, setSpecialty] = useState('');
+  const [licenseNumber, setLicenseNumber] = useState('');
   const [pendingAvatar, setPendingAvatar] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [removeAvatar, setRemoveAvatar] = useState(false);
@@ -52,6 +55,9 @@ export function ProfileForm() {
     if (!profile) return;
     setFullName(profile.full_name ?? '');
     setEmail(profile.email ?? '');
+    setTitle(profile.title ?? '');
+    setSpecialty(profile.specialty ?? '');
+    setLicenseNumber(profile.license_number ?? '');
   }, [profile]);
 
   // Cleanup object URLs to avoid leaks.
@@ -141,12 +147,15 @@ export function ProfileForm() {
         nextAvatarUrl = null;
       }
 
-      // Persist name + avatar to profiles.
+      // Persist name + avatar + professional info to profiles.
       const { error: updateError } = await supabase
         .from('profiles')
         .update({
           full_name: trimmedName,
           avatar_url: nextAvatarUrl,
+          title: title.trim() || null,
+          specialty: specialty.trim() || null,
+          license_number: licenseNumber.trim() || null,
         })
         .eq('user_id', user.id);
       if (updateError) {
@@ -197,6 +206,9 @@ export function ProfileForm() {
     !!profile &&
     (fullName.trim() !== (profile.full_name ?? '') ||
       email.trim().toLowerCase() !== (profile.email ?? '').toLowerCase() ||
+      title.trim() !== (profile.title ?? '') ||
+      specialty.trim() !== (profile.specialty ?? '') ||
+      licenseNumber.trim() !== (profile.license_number ?? '') ||
       pendingAvatar !== null ||
       removeAvatar);
 
@@ -277,6 +289,49 @@ export function ProfileForm() {
               disabled={saving}
               required
             />
+          </div>
+
+          {/* Professional info */}
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+            <div className="space-y-2">
+              <Label htmlFor="profile-title" className="text-foreground">
+                {t('professionalTitle')}
+              </Label>
+              <Input
+                id="profile-title"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder={t('professionalTitlePlaceholder')}
+                maxLength={30}
+                disabled={saving}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="profile-specialty" className="text-foreground">
+                {t('specialty')}
+              </Label>
+              <Input
+                id="profile-specialty"
+                value={specialty}
+                onChange={(e) => setSpecialty(e.target.value)}
+                placeholder={t('specialtyPlaceholder')}
+                maxLength={100}
+                disabled={saving}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="profile-license" className="text-foreground">
+                {t('licenseNumber')}
+              </Label>
+              <Input
+                id="profile-license"
+                value={licenseNumber}
+                onChange={(e) => setLicenseNumber(e.target.value)}
+                placeholder={t('licenseNumberPlaceholder')}
+                maxLength={50}
+                disabled={saving}
+              />
+            </div>
           </div>
 
           {/* Email */}

@@ -41,6 +41,11 @@ interface Profile {
    * means "use the default order" (048_profile_nav_order.sql).
    */
   nav_order: string[] | null;
+  /** Professional title, e.g. "Dr.", "Dra.", "Lic." (050_room_address_and_profile_fields.sql). */
+  title: string | null;
+  specialty: string | null;
+  /** Cédula profesional / matrícula. */
+  license_number: string | null;
 }
 
 interface AccountSummary {
@@ -157,7 +162,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const { data, error } = await supabase
         .from("profiles")
         .select(
-          "id, full_name, email, avatar_url, role, beta_features, account_id, account_role, nav_order",
+          "id, full_name, email, avatar_url, role, beta_features, account_id, account_role, nav_order, title, specialty, license_number",
         )
         .eq("user_id", userId)
         .maybeSingle();
@@ -244,6 +249,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           account_id: data.account_id ?? null,
           account_role: accountRole,
           nav_order: Array.isArray(data.nav_order) ? data.nav_order : null,
+          title: data.title ?? null,
+          specialty: data.specialty ?? null,
+          license_number: data.license_number ?? null,
         });
         setAccount(accountRow);
       } else {

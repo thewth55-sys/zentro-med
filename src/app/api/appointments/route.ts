@@ -94,6 +94,7 @@ export async function POST(request: Request) {
     await syncAppointmentToGoogle(supabase, accountId, {
       id: data.id,
       contact_id: data.contact_id,
+      room_id: data.room_id,
       start_at: data.start_at,
       end_at: data.end_at,
       status: data.status,

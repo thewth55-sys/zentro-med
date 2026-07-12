@@ -1255,7 +1255,12 @@
         "partial": "Pago parcial",
         "overdue": "Vencida",
         "void": "Anulada"
-      }
+      },
+      "downloadPdf": "Descargar PDF",
+      "sendWhatsapp": "Enviar por WhatsApp",
+      "pdfFailed": "No se pudo generar el PDF",
+      "whatsappSendSuccess": "Factura enviada por WhatsApp",
+      "whatsappSendFailed": "No se pudo enviar por WhatsApp"
     },
     "payments": {
       "empty": "Aún no hay pagos registrados.",
@@ -1915,7 +1920,13 @@
       "navOrderSave": "Guardar orden",
       "navOrderReset": "Restablecer",
       "navOrderSaved": "Orden del menú guardado",
-      "navOrderSaveFailed": "No se pudo guardar el orden del menú"
+      "navOrderSaveFailed": "No se pudo guardar el orden del menú",
+      "professionalTitle": "Título",
+      "professionalTitlePlaceholder": "Dr., Dra., Lic....",
+      "specialty": "Especialidad",
+      "specialtyPlaceholder": "Cardiología, Pediatría...",
+      "licenseNumber": "Cédula profesional / matrícula",
+      "licenseNumberPlaceholder": "12345678"
     },
     "appearance": {
       "title": "Apariencia",
@@ -2124,7 +2135,16 @@
         "deleteTitle": "Eliminar consultorio",
         "deleteConfirm": "¿Eliminar \"{name}\"? Las citas existentes conservan su historial.",
         "cancel": "Cancelar",
-        "deleting": "Eliminando..."
+        "deleting": "Eliminando...",
+        "addTitle": "Agregar consultorio",
+        "editTitle": "Editar consultorio",
+        "nameLabel": "Nombre",
+        "addressLabel": "Dirección",
+        "addressPlaceholder": "Calle, número, colonia, ciudad",
+        "addressHint": "Se usa como ubicación al crear el evento en Google Calendar.",
+        "editAria": "Editar {name}",
+        "save": "Guardar",
+        "updated": "Consultorio actualizado"
       },
       "serviceTypes": {
         "title": "Tipos de tratamiento",

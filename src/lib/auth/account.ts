@@ -191,6 +191,19 @@ export async function getCurrentAccount(): Promise<AccountContext> {
     throw new ForbiddenError("Profile is not linked to an account");
   }
 
+  // Hard-block EVERY caller (reads included, not just requireRole's
+  // mutating routes) once an admin has suspended the account — this
+  // is meant to fully cut it off, not soften into the read-only mode
+  // a lapsed trial/cancellation gets (see `requireActiveSubscription`,
+  // which deliberately does NOT check 'suspended' — this already
+  // covers it). Found via a live bug report: a suspended account kept
+  // working normally because nothing server-side ever checked
+  // `subscription_status` at all — `AccessBanner` was purely a
+  // client-side visual nudge with no enforcement behind it.
+  if (account.subscription_status === "suspended") {
+    throw new ForbiddenError("This account has been suspended");
+  }
+
   return {
     supabase,
     userId: user.id,
@@ -217,8 +230,10 @@ export async function getCurrentAccount(): Promise<AccountContext> {
  * Resolve the caller's account context and enforce a minimum role.
  *
  * Throws `UnauthorizedError` / `ForbiddenError` as documented on
- * `getCurrentAccount`, plus `ForbiddenError("Insufficient role")`
- * when the caller is below `min`.
+ * `getCurrentAccount` (including the 'suspended' hard-block — every
+ * caller gets it, whether through this or `getCurrentAccount`
+ * directly), plus `ForbiddenError("Insufficient role")` when the
+ * caller is below `min`.
  */
 export async function requireRole(min: AccountRole): Promise<AccountContext> {
   const ctx = await getCurrentAccount();
@@ -232,7 +247,9 @@ export async function requireRole(min: AccountRole): Promise<AccountContext> {
 
 /**
  * Throws `SubscriptionRequiredError` (402) if `ctx.account`'s trial
- * has expired or its subscription is fully canceled. Not applied
+ * has expired or its subscription is fully canceled. Deliberately
+ * does NOT check 'suspended' — `getCurrentAccount` already hard-blocks
+ * that case unconditionally, before this would ever run. Not applied
  * globally (see plan doc — Fase A ships this as an available
  * primitive plus UI-level gating; retrofitting every existing write
  * route is separate follow-up work). Call this explicitly in routes

@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { Loader2, Search } from "lucide-react";
+import { Loader2, Search, Download, MessageCircle } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 import { createClient } from "@/lib/supabase/client";
@@ -59,8 +59,58 @@ export function InvoiceForm({ open, onOpenChange, invoice, contactId, dealId, on
   const [amountPaid, setAmountPaid] = useState(invoice?.amount_paid ?? 0);
   const [invoiceTotal, setInvoiceTotal] = useState(invoice?.total ?? 0);
   const [deletingPaymentId, setDeletingPaymentId] = useState<string | null>(null);
+  const [downloadingPdf, setDownloadingPdf] = useState(false);
+  const [sendingWhatsapp, setSendingWhatsapp] = useState(false);
 
   const itemsLocked = isEdit && ITEMS_LOCKED_STATUSES.includes(status);
+
+  async function generateInvoicePdf(): Promise<{ url: string; filename: string } | null> {
+    if (!invoice) return null;
+    const res = await fetch(`/api/billing/invoices/${invoice.id}/pdf`, { method: "POST" });
+    const body = await res.json().catch(() => null);
+    if (!res.ok || !body?.url) {
+      toast.error(body?.error ?? t("pdfFailed"));
+      return null;
+    }
+    return { url: body.url, filename: body.filename };
+  }
+
+  async function handleDownloadPdf() {
+    setDownloadingPdf(true);
+    try {
+      const result = await generateInvoicePdf();
+      if (result) window.open(result.url, "_blank");
+    } finally {
+      setDownloadingPdf(false);
+    }
+  }
+
+  async function handleSendWhatsapp() {
+    if (!invoice?.contact_id) return;
+    setSendingWhatsapp(true);
+    try {
+      const result = await generateInvoicePdf();
+      if (!result) return;
+      const res = await fetch("/api/whatsapp/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contact_id: invoice.contact_id,
+          message_type: "document",
+          media_url: result.url,
+          filename: result.filename,
+        }),
+      });
+      const body = await res.json().catch(() => null);
+      if (!res.ok) {
+        toast.error(body?.error ?? t("whatsappSendFailed"));
+        return;
+      }
+      toast.success(t("whatsappSendSuccess"));
+    } finally {
+      setSendingWhatsapp(false);
+    }
+  }
 
   useEffect(() => {
     if (!open) return;
@@ -372,6 +422,42 @@ export function InvoiceForm({ open, onOpenChange, invoice, contactId, dealId, on
           </div>
 
           <DialogFooter className="border-t border-border/50 p-4">
+            {isEdit && (
+              <div className="mr-auto flex flex-wrap items-center gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={handleDownloadPdf}
+                  disabled={downloadingPdf || sendingWhatsapp}
+                  className="border-border text-muted-foreground hover:bg-muted"
+                >
+                  {downloadingPdf ? (
+                    <Loader2 className="size-3.5 animate-spin" />
+                  ) : (
+                    <Download className="size-3.5" />
+                  )}
+                  {t("downloadPdf")}
+                </Button>
+                {invoice?.contact_id && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={handleSendWhatsapp}
+                    disabled={downloadingPdf || sendingWhatsapp}
+                    className="border-border text-muted-foreground hover:bg-muted"
+                  >
+                    {sendingWhatsapp ? (
+                      <Loader2 className="size-3.5 animate-spin" />
+                    ) : (
+                      <MessageCircle className="size-3.5" />
+                    )}
+                    {t("sendWhatsapp")}
+                  </Button>
+                )}
+              </div>
+            )}
             <Button
               type="button"
               onClick={handleSave}

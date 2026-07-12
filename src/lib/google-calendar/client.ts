@@ -115,9 +115,19 @@ export interface CalendarEventInput {
   summary: string;
   description?: string;
   location?: string;
+  /** Patient's email, invited as an attendee — this is what makes
+   *  Google actually send them a notification (see sendUpdates=all
+   *  below); without an attendee there's no one to notify. */
+  attendeeEmail?: string;
   startAt: string; // ISO
   endAt: string; // ISO
 }
+
+// `sendUpdates=all` — required for Google to email attendees at all;
+// its default ("insert" default is effectively "all" but PATCH
+// defaults to "none", so this must be explicit on both write paths)
+// notifies both the attendee (the patient) and other guests.
+const SEND_UPDATES_PARAM = "sendUpdates=all";
 
 export async function createCalendarEvent(
   accessToken: string,
@@ -125,7 +135,7 @@ export async function createCalendarEvent(
   event: CalendarEventInput,
 ): Promise<string> {
   const res = await fetch(
-    `${CALENDAR_API_BASE}/calendars/${encodeURIComponent(calendarId)}/events`,
+    `${CALENDAR_API_BASE}/calendars/${encodeURIComponent(calendarId)}/events?${SEND_UPDATES_PARAM}`,
     {
       method: "POST",
       headers: {
@@ -136,6 +146,7 @@ export async function createCalendarEvent(
         summary: event.summary,
         description: event.description,
         location: event.location,
+        attendees: event.attendeeEmail ? [{ email: event.attendeeEmail }] : undefined,
         start: { dateTime: event.startAt },
         end: { dateTime: event.endAt },
       }),
@@ -155,7 +166,7 @@ export async function updateCalendarEvent(
   event: CalendarEventInput,
 ): Promise<void> {
   const res = await fetch(
-    `${CALENDAR_API_BASE}/calendars/${encodeURIComponent(calendarId)}/events/${encodeURIComponent(eventId)}`,
+    `${CALENDAR_API_BASE}/calendars/${encodeURIComponent(calendarId)}/events/${encodeURIComponent(eventId)}?${SEND_UPDATES_PARAM}`,
     {
       method: "PATCH",
       headers: {
@@ -166,6 +177,7 @@ export async function updateCalendarEvent(
         summary: event.summary,
         description: event.description,
         location: event.location,
+        attendees: event.attendeeEmail ? [{ email: event.attendeeEmail }] : undefined,
         start: { dateTime: event.startAt },
         end: { dateTime: event.endAt },
       }),

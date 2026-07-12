@@ -173,4 +173,30 @@ describe("getCurrentAccount", () => {
       "Profile is not linked to an account",
     );
   });
+
+  // Regression guard for a live bug: a platform admin marking an
+  // account 'suspended' had zero effect — nothing server-side ever
+  // checked subscription_status, so every route kept working. This
+  // must reject regardless of the caller's role (owner included) —
+  // the check lives in getCurrentAccount precisely so both direct
+  // callers and requireRole callers are covered by one guard.
+  it("rejects a suspended account even for an owner", async () => {
+    const { client } = makeClient({
+      user: { id: "user-1" },
+      byTable: {
+        profiles: {
+          data: { account_id: "acct-1", account_role: "owner" },
+          error: null,
+        },
+        accounts: {
+          data: { id: "acct-1", name: "Acme", subscription_status: "suspended" },
+          error: null,
+        },
+      },
+    });
+    createClient.mockReturnValue(client);
+    const err = await getCurrentAccount().catch((e) => e);
+    expect(err).toBeInstanceOf(ForbiddenError);
+    expect(err.message).toBe("This account has been suspended");
+  });
 });

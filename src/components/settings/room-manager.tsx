@@ -2,12 +2,13 @@
 
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
-import { Loader2, Plus, DoorOpen, X } from 'lucide-react';
+import { Loader2, Plus, Pencil, DoorOpen, MapPin, X } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/hooks/use-auth';
 import { useCan } from '@/hooks/use-can';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import {
   Card,
@@ -28,9 +29,13 @@ import { useTranslations } from 'next-intl';
 import type { Room } from '@/types';
 
 /**
- * Consultorios (exam rooms) card — plain name + active toggle, no
- * colour picker needed (unlike tags). Same fetch/inline-create/
- * confirm-delete shape as TagManager.
+ * Consultorios (exam rooms) card. A dedicated create/edit dialog
+ * (rather than the single-name inline row other list managers in
+ * this file's family use) so there's room to grow — today just name
+ * + address, but address alone needs more space than an inline row
+ * comfortably gives, and the address is load-bearing: it becomes the
+ * Google Calendar event's location for any appointment booked in
+ * this room (see lib/scheduling/google-calendar-sync.ts).
  */
 export function RoomManager() {
   const t = useTranslations('Settings.scheduling.rooms');
@@ -40,11 +45,15 @@ export function RoomManager() {
 
   const [loading, setLoading] = useState(true);
   const [rooms, setRooms] = useState<Room[]>([]);
-  const [newName, setNewName] = useState('');
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [roomToDelete, setRoomToDelete] = useState<Room | null>(null);
+
+  const [formOpen, setFormOpen] = useState(false);
+  const [editingRoom, setEditingRoom] = useState<Room | null>(null);
+  const [formName, setFormName] = useState('');
+  const [formAddress, setFormAddress] = useState('');
 
   useEffect(() => {
     if (authLoading) return;
@@ -74,21 +83,45 @@ export function RoomManager() {
     }
   }
 
-  async function handleCreate() {
-    if (!newName.trim() || !accountId) return;
+  function openCreate() {
+    setEditingRoom(null);
+    setFormName('');
+    setFormAddress('');
+    setFormOpen(true);
+  }
+
+  function openEdit(room: Room) {
+    setEditingRoom(room);
+    setFormName(room.name);
+    setFormAddress(room.address ?? '');
+    setFormOpen(true);
+  }
+
+  async function handleFormSave() {
+    if (!formName.trim() || !accountId) return;
     try {
       setSaving(true);
-      const { error } = await supabase.from('rooms').insert({
-        account_id: accountId,
-        name: newName.trim(),
-      });
-      if (error) throw error;
-      toast.success(t('created'));
-      setNewName('');
+      if (editingRoom) {
+        const { error } = await supabase
+          .from('rooms')
+          .update({ name: formName.trim(), address: formAddress.trim() || null })
+          .eq('id', editingRoom.id);
+        if (error) throw error;
+        toast.success(t('updated'));
+      } else {
+        const { error } = await supabase.from('rooms').insert({
+          account_id: accountId,
+          name: formName.trim(),
+          address: formAddress.trim() || null,
+        });
+        if (error) throw error;
+        toast.success(t('created'));
+      }
+      setFormOpen(false);
       await fetchRooms(accountId);
     } catch (err) {
-      console.error('Create room error:', err);
-      toast.error(t('createFailed'));
+      console.error('Save room error:', err);
+      toast.error(editingRoom ? t('updateFailed') : t('createFailed'));
     } finally {
       setSaving(false);
     }
@@ -156,13 +189,30 @@ export function RoomManager() {
                     key={room.id}
                     className="flex items-center justify-between gap-3 rounded-lg border border-border bg-muted/40 px-3 py-2"
                   >
-                    <span className="text-sm text-foreground">{room.name}</span>
-                    <div className="flex items-center gap-3">
+                    <div className="min-w-0">
+                      <span className="text-sm text-foreground">{room.name}</span>
+                      {room.address ? (
+                        <p className="mt-0.5 flex items-center gap-1 truncate text-xs text-muted-foreground">
+                          <MapPin className="size-3 shrink-0" />
+                          {room.address}
+                        </p>
+                      ) : null}
+                    </div>
+                    <div className="flex shrink-0 items-center gap-3">
                       <Switch
                         checked={room.is_active}
                         onCheckedChange={() => toggleActive(room)}
                         disabled={!canEdit}
                       />
+                      <button
+                        type="button"
+                        onClick={() => openEdit(room)}
+                        aria-label={t('editAria', { name: room.name })}
+                        disabled={!canEdit}
+                        className="rounded-full p-1 text-muted-foreground opacity-60 transition-opacity hover:bg-black/10 hover:opacity-100 disabled:pointer-events-none dark:hover:bg-white/10"
+                      >
+                        <Pencil className="size-3.5" />
+                      </button>
                       <button
                         type="button"
                         onClick={() => confirmDelete(room)}
@@ -181,27 +231,53 @@ export function RoomManager() {
             )}
 
             {canEdit && (
-              <div className="flex flex-wrap items-center gap-2.5">
-                <Input
-                  placeholder={t('namePlaceholder')}
-                  value={newName}
-                  onChange={(e) => setNewName(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') handleCreate();
-                  }}
-                  disabled={saving}
-                  maxLength={60}
-                  className="min-w-[180px] flex-1"
-                />
-                <Button variant="outline" size="sm" onClick={handleCreate} disabled={saving || !newName.trim()}>
-                  {saving ? <Loader2 className="size-4 animate-spin" /> : <Plus className="size-4" />}
-                  {t('add')}
-                </Button>
-              </div>
+              <Button variant="outline" size="sm" onClick={openCreate}>
+                <Plus className="size-4" />
+                {t('add')}
+              </Button>
             )}
           </>
         )}
       </CardContent>
+
+      <Dialog open={formOpen} onOpenChange={setFormOpen}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle>{editingRoom ? t('editTitle') : t('addTitle')}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div className="space-y-1.5">
+              <Label className="text-xs text-muted-foreground">{t('nameLabel')}</Label>
+              <Input
+                value={formName}
+                onChange={(e) => setFormName(e.target.value)}
+                placeholder={t('namePlaceholder')}
+                disabled={saving}
+                maxLength={60}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs text-muted-foreground">{t('addressLabel')}</Label>
+              <Input
+                value={formAddress}
+                onChange={(e) => setFormAddress(e.target.value)}
+                placeholder={t('addressPlaceholder')}
+                disabled={saving}
+                maxLength={300}
+              />
+              <p className="text-xs text-muted-foreground">{t('addressHint')}</p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setFormOpen(false)} disabled={saving}>
+              {t('cancel')}
+            </Button>
+            <Button onClick={handleFormSave} disabled={saving || !formName.trim()}>
+              {saving ? <Loader2 className="size-4 animate-spin" /> : t('save')}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <DialogContent className="sm:max-w-sm">

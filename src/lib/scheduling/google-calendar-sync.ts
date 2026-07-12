@@ -28,6 +28,7 @@ import {
 interface SyncableAppointment {
   id: string;
   contact_id: string | null;
+  room_id: string | null;
   start_at: string;
   end_at: string;
   status: string;
@@ -69,18 +70,32 @@ export async function syncAppointmentToGoogle(
     if (connected.length === 0) return;
 
     let summary = "Cita";
+    let attendeeEmail: string | undefined;
     if (appointment.contact_id) {
       const { data: contact } = await supabase
         .from("contacts")
-        .select("name, phone")
+        .select("name, phone, email")
         .eq("id", appointment.contact_id)
         .maybeSingle();
       summary = contact?.name || contact?.phone || summary;
+      attendeeEmail = contact?.email || undefined;
+    }
+
+    let location: string | undefined;
+    if (appointment.room_id) {
+      const { data: room } = await supabase
+        .from("rooms")
+        .select("address")
+        .eq("id", appointment.room_id)
+        .maybeSingle();
+      location = room?.address || undefined;
     }
 
     const eventInput = {
       summary: `Cita: ${summary}`,
       description: appointment.notes ?? undefined,
+      location,
+      attendeeEmail,
       startAt: appointment.start_at,
       endAt: appointment.end_at,
     };
