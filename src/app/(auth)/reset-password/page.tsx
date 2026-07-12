@@ -12,6 +12,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,8 +24,10 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { getPasswordStrengthError } from "@/lib/password-strength";
 
 export default function ResetPasswordPage() {
+  const t = useTranslations("ResetPasswordPage");
   const router = useRouter();
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -37,11 +40,12 @@ export default function ResetPasswordPage() {
     setError(null);
 
     if (password !== confirmPassword) {
-      setError("Passwords do not match");
+      setError(t("passwordMismatch"));
       return;
     }
-    if (password.length < 6) {
-      setError("Password must be at least 6 characters");
+    const strengthError = getPasswordStrengthError(password);
+    if (strengthError) {
+      setError(t(`passwordRule_${strengthError}` as Parameters<typeof t>[0]));
       return;
     }
 
@@ -64,10 +68,8 @@ export default function ResetPasswordPage() {
             {/* eslint-disable-next-line @next/next/no-img-element -- static brand asset */}
             <img src="/zentro-isotipo.png" alt="" className="h-7 w-7" />
           </div>
-          <CardTitle className="text-xl text-foreground">Set a new password</CardTitle>
-          <CardDescription className="text-muted-foreground">
-            Choose a new password for your account
-          </CardDescription>
+          <CardTitle className="text-xl text-foreground">{t("title")}</CardTitle>
+          <CardDescription className="text-muted-foreground">{t("desc")}</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
@@ -79,27 +81,28 @@ export default function ResetPasswordPage() {
 
             <div className="flex flex-col gap-2">
               <Label htmlFor="password" className="text-muted-foreground">
-                New password
+                {t("newPasswordLabel")}
               </Label>
               <Input
                 id="password"
                 type="password"
-                placeholder="At least 6 characters"
+                placeholder={t("passwordPlaceholder")}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 className="border-border bg-muted text-foreground placeholder:text-muted-foreground focus-visible:border-primary focus-visible:ring-primary/20"
               />
+              <p className="text-xs text-muted-foreground">{t("passwordHint")}</p>
             </div>
 
             <div className="flex flex-col gap-2">
               <Label htmlFor="confirmPassword" className="text-muted-foreground">
-                Confirm new password
+                {t("confirmPasswordLabel")}
               </Label>
               <Input
                 id="confirmPassword"
                 type="password"
-                placeholder="Repeat your password"
+                placeholder={t("confirmPasswordPlaceholder")}
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 required
@@ -112,7 +115,7 @@ export default function ResetPasswordPage() {
               disabled={loading}
               className="mt-2 h-10 w-full bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
             >
-              {loading ? "Saving..." : "Save new password"}
+              {loading ? t("saving") : t("saveNewPassword")}
             </Button>
           </form>
         </CardContent>

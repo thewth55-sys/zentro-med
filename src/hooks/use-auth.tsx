@@ -55,6 +55,8 @@ interface AccountSummary {
   logo_url: string | null;
   quote_terms: string | null;
   quote_accent_color: string | null;
+  address: string | null;
+  tax_id: string | null;
 }
 
 interface AuthContextValue {
@@ -184,7 +186,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             // default_currency added in migration 021; narrowed to the
             // USD fallback below for older schemas where it reads null.
             .select(
-              "id, name, default_currency, plan, subscription_status, trial_ends_at, included_seats, stripe_customer_id, logo_url, quote_terms, quote_accent_color",
+              "id, name, default_currency, plan, subscription_status, trial_ends_at, included_seats, stripe_customer_id, logo_url, quote_terms, quote_accent_color, address, tax_id",
             )
             .eq("id", data.account_id)
             .maybeSingle();
@@ -208,6 +210,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               logo_url: account.logo_url,
               quote_terms: account.quote_terms,
               quote_accent_color: account.quote_accent_color,
+              address: account.address,
+              tax_id: account.tax_id,
             };
           }
         }

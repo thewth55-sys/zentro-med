@@ -18,6 +18,7 @@ import { SettingsChip, StatusDot } from './settings-chip';
 import { ROLE_META } from './role-meta';
 import { AccountNameEditor } from './account-name-editor';
 import { AccountLogoUploader } from './account-logo-uploader';
+import { InlineFieldEditor } from './inline-field-editor';
 
 interface OverviewCounts {
   members: number | null;
@@ -42,6 +43,8 @@ export function SettingsOverview({
     useAuth();
   const [accountName, setAccountName] = useState<string | null>(null);
   const [logoUrl, setLogoUrl] = useState<string | null | undefined>(undefined);
+  const [address, setAddress] = useState<string | null | undefined>(undefined);
+  const [taxId, setTaxId] = useState<string | null | undefined>(undefined);
   const { mode, theme } = useTheme();
   const t = useTranslations('Settings.overview');
   const tRoles = useTranslations('roles');
@@ -253,39 +256,85 @@ export function SettingsOverview({
         ) : null}
       </Card>
 
-      {/* Account / brand name — what invited teammates join, distinct
-          from the personal identity above. Editable by admin+ only,
-          matching PATCH /api/account's own role gate. */}
+      {/* Marca — what invited teammates join under, and what shows up
+          on the quote PDF header (name, logo, address, tax id). Only
+          the identity that matters to OTHER people; personal identity
+          is the card above. Editable by admin+ only, matching
+          PATCH /api/account's own role gate. */}
       {account ? (
-        <Card className="mt-3 flex-row items-center justify-between gap-4 px-5 py-4">
-          <div className="min-w-0">
-            <div className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
-              Nombre de tu cuenta
+        <Card className="mt-3 px-5 py-4">
+          <div className="mb-3 text-sm font-semibold text-foreground">Marca</div>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div className="min-w-0">
+              <div className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
+                Nombre
+              </div>
+              <div className="mt-1">
+                <AccountNameEditor
+                  name={accountName ?? account.name}
+                  editable={canManageMembers}
+                  onSaved={(name) => {
+                    setAccountName(name);
+                    refreshProfile();
+                  }}
+                />
+              </div>
             </div>
-            <div className="mt-1">
-              <AccountNameEditor
-                name={accountName ?? account.name}
+            <div className="min-w-0">
+              <div className="mb-1 text-xs font-medium tracking-wide text-muted-foreground uppercase">
+                Logo
+              </div>
+              <AccountLogoUploader
+                logoUrl={logoUrl === undefined ? account.logo_url : logoUrl}
                 editable={canManageMembers}
-                onSaved={(name) => {
-                  setAccountName(name);
+                onSaved={(url) => {
+                  setLogoUrl(url);
                   refreshProfile();
                 }}
               />
             </div>
-          </div>
-          <div className="shrink-0 border-l border-border pl-4">
-            <div className="mb-1 text-xs font-medium tracking-wide text-muted-foreground uppercase">
-              Logo de marca
+            <div className="min-w-0">
+              <div className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
+                Dirección
+              </div>
+              <div className="mt-1">
+                <InlineFieldEditor
+                  field="address"
+                  value={address === undefined ? account.address : address}
+                  editable={canManageMembers}
+                  placeholder="Calle, número, ciudad"
+                  emptyLabel="Sin dirección"
+                  maxLength={300}
+                  onSaved={(v) => {
+                    setAddress(v);
+                    refreshProfile();
+                  }}
+                />
+              </div>
             </div>
-            <AccountLogoUploader
-              logoUrl={logoUrl === undefined ? account.logo_url : logoUrl}
-              editable={canManageMembers}
-              onSaved={(url) => {
-                setLogoUrl(url);
-                refreshProfile();
-              }}
-            />
+            <div className="min-w-0">
+              <div className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
+                RFC / Registro fiscal
+              </div>
+              <div className="mt-1">
+                <InlineFieldEditor
+                  field="tax_id"
+                  value={taxId === undefined ? account.tax_id : taxId}
+                  editable={canManageMembers}
+                  placeholder="RFC o registro fiscal"
+                  emptyLabel="Sin registrar"
+                  maxLength={50}
+                  onSaved={(v) => {
+                    setTaxId(v);
+                    refreshProfile();
+                  }}
+                />
+              </div>
+            </div>
           </div>
+          <p className="mt-3 text-xs text-muted-foreground">
+            Estos datos aparecen en el encabezado de tus cotizaciones en PDF.
+          </p>
         </Card>
       ) : null}
 

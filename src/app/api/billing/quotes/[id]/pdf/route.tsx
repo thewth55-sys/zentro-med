@@ -58,6 +58,8 @@ export async function POST(
         accountName={account.name}
         logoUrl={account.logoUrl}
         accentColor={account.quoteAccentColor}
+        address={account.address}
+        taxId={account.taxId}
         quoteTerms={account.quoteTerms}
         quoteNumber={quote.quote_number}
         status={quote.status}

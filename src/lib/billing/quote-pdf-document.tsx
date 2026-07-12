@@ -24,6 +24,8 @@ export interface QuotePdfProps {
   accountName: string;
   logoUrl: string | null;
   accentColor: string | null;
+  address: string | null;
+  taxId: string | null;
   quoteTerms: string | null;
   quoteNumber: string;
   status: string;
@@ -78,6 +80,7 @@ export function QuotePdfDocument(props: QuotePdfProps) {
     grandTotalLabel: { fontSize: 11, fontWeight: 700 },
     grandTotalValue: { fontSize: 13, fontWeight: 700, color: accent },
     terms: { marginTop: 28, paddingTop: 12, borderTop: "1 solid #ddd", fontSize: 8, color: "#666" },
+    issuerMeta: { fontSize: 8, color: "#888", marginTop: 2 },
   });
 
   return (
@@ -90,6 +93,8 @@ export function QuotePdfDocument(props: QuotePdfProps) {
             <Text style={[styles.accountName, { marginTop: props.logoUrl ? 6 : 0 }]}>
               {props.accountName}
             </Text>
+            {props.address ? <Text style={styles.issuerMeta}>{props.address}</Text> : null}
+            {props.taxId ? <Text style={styles.issuerMeta}>RFC: {props.taxId}</Text> : null}
           </View>
           <View>
             <Text style={styles.title}>Cotización</Text>

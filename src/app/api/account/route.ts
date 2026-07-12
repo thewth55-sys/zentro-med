@@ -39,6 +39,8 @@ export async function GET() {
 
 const MAX_NAME_LEN = 80;
 const MAX_QUOTE_TERMS_LEN = 4000;
+const MAX_ADDRESS_LEN = 300;
+const MAX_TAX_ID_LEN = 50;
 const HEX_COLOR_RE = /^#[0-9a-fA-F]{6}$/;
 
 export async function PATCH(request: Request) {
@@ -61,6 +63,8 @@ export async function PATCH(request: Request) {
           logo_url?: unknown;
           quote_terms?: unknown;
           quote_accent_color?: unknown;
+          address?: unknown;
+          tax_id?: unknown;
         }
       | null;
 
@@ -129,6 +133,34 @@ export async function PATCH(request: Request) {
       update.quote_accent_color = body.quote_accent_color;
     }
 
+    if (body.address !== undefined) {
+      if (body.address !== null && typeof body.address !== "string") {
+        return NextResponse.json({ error: "'address' must be a string or null" }, { status: 400 });
+      }
+      const address = typeof body.address === "string" ? body.address.trim() : null;
+      if (address && address.length > MAX_ADDRESS_LEN) {
+        return NextResponse.json(
+          { error: `'address' must be ${MAX_ADDRESS_LEN} characters or fewer` },
+          { status: 400 },
+        );
+      }
+      update.address = address || null;
+    }
+
+    if (body.tax_id !== undefined) {
+      if (body.tax_id !== null && typeof body.tax_id !== "string") {
+        return NextResponse.json({ error: "'tax_id' must be a string or null" }, { status: 400 });
+      }
+      const taxId = typeof body.tax_id === "string" ? body.tax_id.trim() : null;
+      if (taxId && taxId.length > MAX_TAX_ID_LEN) {
+        return NextResponse.json(
+          { error: `'tax_id' must be ${MAX_TAX_ID_LEN} characters or fewer` },
+          { status: 400 },
+        );
+      }
+      update.tax_id = taxId || null;
+    }
+
     if (Object.keys(update).length === 0) {
       return NextResponse.json({ error: "No fields to update" }, { status: 400 });
     }
@@ -140,7 +172,7 @@ export async function PATCH(request: Request) {
       .from("accounts")
       .update(update)
       .eq("id", ctx.accountId)
-      .select("id, name, logo_url, quote_terms, quote_accent_color")
+      .select("id, name, logo_url, quote_terms, quote_accent_color, address, tax_id")
       .single();
 
     if (error) {

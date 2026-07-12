@@ -112,6 +112,8 @@ export interface AccountContext {
     logoUrl: string | null;
     quoteTerms: string | null;
     quoteAccentColor: string | null;
+    address: string | null;
+    taxId: string | null;
   };
 }
 
@@ -174,7 +176,7 @@ export async function getCurrentAccount(): Promise<AccountContext> {
   const { data: account, error: accountErr } = await supabase
     .from("accounts")
     .select(
-      "id, name, plan, subscription_status, trial_ends_at, included_seats, stripe_customer_id, logo_url, quote_terms, quote_accent_color",
+      "id, name, plan, subscription_status, trial_ends_at, included_seats, stripe_customer_id, logo_url, quote_terms, quote_accent_color, address, tax_id",
     )
     .eq("id", data.account_id)
     .maybeSingle();
@@ -205,6 +207,8 @@ export async function getCurrentAccount(): Promise<AccountContext> {
       logoUrl: account.logo_url,
       quoteTerms: account.quote_terms,
       quoteAccentColor: account.quote_accent_color,
+      address: account.address,
+      taxId: account.tax_id,
     },
   };
 }
