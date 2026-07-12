@@ -16,10 +16,13 @@ const PURCHASABLE_PLANS: Plan[] = ["standalone", "zentro_salud_starter", "zentro
  * seats (e.g. invited during the trial), the extra-seat line item is
  * pre-populated with that quantity so Checkout charges correctly from
  * day one instead of under-billing until the next seat change.
+ *
+ * `allowSuspended` so a suspended account can still activate a plan —
+ * that's the intended way out of a suspension, not a bypass.
  */
 export async function POST(request: Request) {
   try {
-    const { supabase, userId, account } = await requireRole("owner");
+    const { supabase, userId, account } = await requireRole("owner", { allowSuspended: true });
     const body = await request.json().catch(() => ({}));
     const plan = body.plan as Plan;
 

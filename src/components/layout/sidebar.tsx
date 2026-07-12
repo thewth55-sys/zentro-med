@@ -104,6 +104,7 @@ export function Sidebar({ open = false, onClose }: SidebarProps) {
     automations: useHasFeature("automations"),
     ai_autoreply: useHasFeature("ai_autoreply"),
     whatsapp_inbox: useHasFeature("whatsapp_inbox"),
+    broadcasts: useHasFeature("broadcasts"),
   };
   // Only surface the account-name strip when it actually carries
   // information. A solo user's personal account is named after them

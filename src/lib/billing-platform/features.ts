@@ -13,7 +13,7 @@
 
 import type { Plan } from "./plans";
 
-export type GatedFeature = "automations" | "ai_autoreply" | "whatsapp_inbox";
+export type GatedFeature = "automations" | "ai_autoreply" | "whatsapp_inbox" | "broadcasts";
 
 const FEATURE_MIN_PLAN: Record<GatedFeature, Plan[]> = {
   // "Automatizaciones y flows" — trial doesn't get it per /pricing;
@@ -25,6 +25,8 @@ const FEATURE_MIN_PLAN: Record<GatedFeature, Plan[]> = {
   // "WhatsApp IA" appears, explicitly X'd out) — WhatsApp itself is a
   // paid-plan feature, not just its AI reply layer.
   whatsapp_inbox: ["standalone", "zentro_salud_starter", "zentro_salud_pro"],
+  // Bulk WhatsApp campaigns, same reasoning as the inbox above.
+  broadcasts: ["standalone", "zentro_salud_starter", "zentro_salud_pro"],
 };
 
 export function planHasFeature(plan: Plan, feature: GatedFeature): boolean {

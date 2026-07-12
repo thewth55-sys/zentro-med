@@ -52,7 +52,7 @@ export const navItems: NavItem[] = [
   { href: "/pipelines", labelKey: "pipelines", icon: GitBranch },
   { href: "/agenda", labelKey: "agenda", icon: CalendarClock },
   { href: "/billing", labelKey: "billing", icon: Receipt },
-  { href: "/broadcasts", labelKey: "broadcasts", icon: Radio },
+  { href: "/broadcasts", labelKey: "broadcasts", icon: Radio, feature: "broadcasts" },
   { href: "/automations", labelKey: "automations", icon: Zap, feature: "automations" },
   { href: "/flows", labelKey: "flows", icon: Workflow, beta: true, feature: "automations" },
   { href: "/agents", labelKey: "aiAgents", icon: Bot, feature: "ai_autoreply" },

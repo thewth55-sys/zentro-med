@@ -7,10 +7,13 @@ import { getStripeClient } from "@/lib/billing-platform/stripe";
  * POST /api/billing-platform/portal — opens Stripe's hosted Customer
  * Portal so the account owner can change plan, update the card, or
  * cancel without support intervention. Owner-only, same as Checkout.
+ * `allowSuspended` so a suspended account can still reach the portal
+ * to sort out billing (e.g. update a card) as part of paying its way
+ * out of the suspension.
  */
 export async function POST() {
   try {
-    const { account } = await requireRole("owner");
+    const { account } = await requireRole("owner", { allowSuspended: true });
 
     const customerId = account.stripeCustomerId;
     if (!customerId) {

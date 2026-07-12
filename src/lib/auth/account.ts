@@ -128,8 +128,12 @@ export interface AccountContext {
  *
  * Use `requireRole(min)` instead when the route also needs a
  * minimum-role check — it's a thin wrapper over this.
+ *
+ * `options.allowSuspended` — set only by the two routes a suspended
+ * account still needs to reach to pay its way out (Checkout, Customer
+ * Portal). Everything else stays hard-blocked; see the check below.
  */
-export async function getCurrentAccount(): Promise<AccountContext> {
+export async function getCurrentAccount(options?: { allowSuspended?: boolean }): Promise<AccountContext> {
   const supabase = await createClient();
 
   const {
@@ -200,7 +204,11 @@ export async function getCurrentAccount(): Promise<AccountContext> {
   // working normally because nothing server-side ever checked
   // `subscription_status` at all — `AccessBanner` was purely a
   // client-side visual nudge with no enforcement behind it.
-  if (account.subscription_status === "suspended") {
+  //
+  // `allowSuspended` is the one deliberate exception: the account
+  // owner needs to reach Checkout/Portal to pay their way out, or a
+  // suspension can never self-resolve.
+  if (!options?.allowSuspended && account.subscription_status === "suspended") {
     throw new ForbiddenError("This account has been suspended");
   }
 
@@ -233,10 +241,14 @@ export async function getCurrentAccount(): Promise<AccountContext> {
  * `getCurrentAccount` (including the 'suspended' hard-block — every
  * caller gets it, whether through this or `getCurrentAccount`
  * directly), plus `ForbiddenError("Insufficient role")` when the
- * caller is below `min`.
+ * caller is below `min`. Pass `{ allowSuspended: true }` through to
+ * `getCurrentAccount` for the Checkout/Portal exception — see there.
  */
-export async function requireRole(min: AccountRole): Promise<AccountContext> {
-  const ctx = await getCurrentAccount();
+export async function requireRole(
+  min: AccountRole,
+  options?: { allowSuspended?: boolean },
+): Promise<AccountContext> {
+  const ctx = await getCurrentAccount(options);
   if (!hasMinRole(ctx.role, min)) {
     throw new ForbiddenError(
       `This action requires the '${min}' role or higher`,

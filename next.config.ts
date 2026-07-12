@@ -47,10 +47,14 @@ const SECURITY_HEADERS = [
       // src/lib/conversions/gtag.ts), never loaded unconditionally.
       // challenges.cloudflare.com is the Turnstile login CAPTCHA
       // (src/components/auth/turnstile-widget.tsx) — only loads when
-      // NEXT_PUBLIC_TURNSTILE_SITE_KEY is configured.
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://challenges.cloudflare.com",
+      // NEXT_PUBLIC_TURNSTILE_SITE_KEY is configured. zoho.com /
+      // zohostatic.com / zohopublic.com are the Zoho Desk support
+      // chat widget (loaded on every page — see layout.tsx), covering
+      // the whole family of subdomains it's known to reach for its
+      // static assets and chat backend.
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://challenges.cloudflare.com https://*.zoho.com https://*.zohostatic.com",
       // Tailwind + inline style attributes on lots of components.
-      "style-src 'self' 'unsafe-inline'",
+      "style-src 'self' 'unsafe-inline' https://*.zohostatic.com",
       // Supabase public-bucket avatars, contact avatars (arbitrary
       // https URLs paste-able from the UI), OG images, data URLs for
       // tiny inline assets.
@@ -58,16 +62,17 @@ const SECURITY_HEADERS = [
       // Outbound media previews (blob: from MediaRecorder + file picker)
       // and Supabase public-bucket audio/video the inbox renders.
       "media-src 'self' blob: https://*.supabase.co",
-      "font-src 'self' data:",
+      "font-src 'self' data: https://*.zohostatic.com",
       // Supabase REST + realtime (WSS). All Meta API calls happen
       // server-side, so graph.facebook.com does not belong here.
       // googletagmanager.com / google.com / doubleclick.net are the
       // Google Ads gtag conversion beacon (client-side, opt-in per
       // account — see src/lib/conversions/gtag.ts).
-      "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://www.googletagmanager.com https://www.google.com https://googleads.g.doubleclick.net https://challenges.cloudflare.com",
+      "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://www.googletagmanager.com https://www.google.com https://googleads.g.doubleclick.net https://challenges.cloudflare.com https://*.zoho.com wss://*.zoho.com",
       // Turnstile renders its interactive challenge inside an iframe
-      // from this origin when it can't pass invisibly.
-      "frame-src https://challenges.cloudflare.com",
+      // from this origin when it can't pass invisibly; Zoho Desk's
+      // chat panel is also an iframe.
+      "frame-src https://challenges.cloudflare.com https://*.zoho.com https://*.zohopublic.com",
       "frame-ancestors 'none'",
       "base-uri 'self'",
       "form-action 'self'",
