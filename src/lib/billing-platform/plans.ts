@@ -11,7 +11,15 @@
  */
 
 export type Plan = "trial" | "standalone" | "zentro_salud_starter" | "zentro_salud_pro";
-export type SubscriptionStatus = "trialing" | "active" | "past_due" | "canceled" | "trial_expired";
+export type SubscriptionStatus =
+  | "trialing"
+  | "active"
+  | "past_due"
+  | "canceled"
+  | "trial_expired"
+  /** Administrative lock set by a platform admin (see /admin) —
+   *  distinct from a customer-initiated `canceled`. */
+  | "suspended";
 
 export const TRIAL_DAYS = 30;
 export const DEFAULT_INCLUDED_SEATS = 2;

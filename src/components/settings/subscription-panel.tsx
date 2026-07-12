@@ -66,6 +66,7 @@ const STATUS_LABELS: Record<string, string> = {
   past_due: "Pago pendiente",
   canceled: "Cancelada",
   trial_expired: "Prueba vencida",
+  suspended: "Suspendida",
 };
 
 /**

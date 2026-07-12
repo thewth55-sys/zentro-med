@@ -13,10 +13,22 @@ import { useHasAccess } from "@/hooks/use-has-access";
  * screen until it's resolved.
  */
 export function AccessBanner() {
-  const { profileLoading } = useAuth();
+  const { profileLoading, account } = useAuth();
   const hasAccess = useHasAccess();
 
   if (profileLoading || hasAccess) return null;
+
+  // Suspended is an administrative lock (see /admin) — no self-serve
+  // "activate a plan" way out, unlike a lapsed trial or a customer's
+  // own cancellation. Distinct, more serious styling on purpose.
+  if (account?.subscription_status === "suspended") {
+    return (
+      <div className="flex items-center justify-center gap-2 border-b border-destructive/30 bg-destructive/10 px-4 py-2 text-sm text-destructive">
+        <AlertTriangle className="size-4 shrink-0" />
+        <span>Esta cuenta fue suspendida. Contacta a soporte para reactivarla.</span>
+      </div>
+    );
+  }
 
   return (
     <div className="flex items-center justify-center gap-2 border-b border-amber-500/30 bg-amber-500/10 px-4 py-2 text-sm text-amber-400">

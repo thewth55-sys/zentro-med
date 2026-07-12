@@ -25,7 +25,25 @@ interface AuditEntry {
 
 const ACTION_LABEL: Record<string, string> = {
   impersonate: "Impersonación",
+  resend_activation: "Reenvío de activación",
+  reset_password: "Restablecimiento de contraseña",
+  suspend: "Suspensión",
+  reactivate: "Reactivación",
+  set_plan: "Cambio de plan",
 };
+
+function formatDetail(entry: AuditEntry): string {
+  const m = entry.metadata;
+  if (!m) return "—";
+  if (entry.action === "set_plan" && "newPlan" in m) {
+    return `${m.previousPlan ?? "?"}/${m.previousStatus ?? "?"} → ${m.newPlan}/${m.newStatus}`;
+  }
+  if ((entry.action === "suspend" || entry.action === "reactivate") && "newStatus" in m) {
+    return `${m.previousStatus ?? "?"} → ${m.newStatus}`;
+  }
+  if (typeof m.targetEmail === "string") return m.targetEmail;
+  return "—";
+}
 
 export default function AdminAuditLogPage() {
   const [entries, setEntries] = useState<AuditEntry[] | null>(null);
@@ -96,9 +114,7 @@ export default function AdminAuditLogPage() {
                     {entry.targetAccountName ?? "—"}
                   </TableCell>
                   <TableCell className="text-xs text-muted-foreground">
-                    {entry.metadata && typeof entry.metadata.targetEmail === "string"
-                      ? entry.metadata.targetEmail
-                      : "—"}
+                    {formatDetail(entry)}
                   </TableCell>
                 </TableRow>
               ))}

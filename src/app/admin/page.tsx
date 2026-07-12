@@ -12,7 +12,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { ImpersonateButton } from "@/components/admin/impersonate-button";
+import { AccountActionsMenu } from "@/components/admin/account-actions-menu";
 import type { Plan, SubscriptionStatus } from "@/lib/billing-platform/plans";
 
 interface AdminAccount {
@@ -43,6 +43,7 @@ const STATUS_VARIANT: Record<SubscriptionStatus, "default" | "secondary" | "dest
   past_due: "destructive",
   canceled: "outline",
   trial_expired: "destructive",
+  suspended: "destructive",
 };
 
 const STATUS_LABEL: Record<SubscriptionStatus, string> = {
@@ -51,27 +52,26 @@ const STATUS_LABEL: Record<SubscriptionStatus, string> = {
   past_due: "Pago vencido",
   canceled: "Cancelada",
   trial_expired: "Prueba vencida",
+  suspended: "Suspendida",
 };
 
 export default function AdminAccountsPage() {
   const [accounts, setAccounts] = useState<AdminAccount[] | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  async function loadAccounts() {
+    try {
+      const res = await fetch("/api/platform-admin/accounts", { cache: "no-store" });
+      const body = await res.json().catch(() => null);
+      if (!res.ok) throw new Error(body?.error ?? "No se pudo cargar la lista de cuentas");
+      setAccounts(body.accounts);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Error desconocido");
+    }
+  }
+
   useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
-        const res = await fetch("/api/platform-admin/accounts");
-        const body = await res.json().catch(() => null);
-        if (!res.ok) throw new Error(body?.error ?? "No se pudo cargar la lista de cuentas");
-        if (!cancelled) setAccounts(body.accounts);
-      } catch (err) {
-        if (!cancelled) setError(err instanceof Error ? err.message : "Error desconocido");
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
+    void loadAccounts();
   }, []);
 
   return (
@@ -136,10 +136,13 @@ export default function AdminAccountsPage() {
                     {new Date(account.createdAt).toLocaleDateString()}
                   </TableCell>
                   <TableCell className="text-right">
-                    <ImpersonateButton
+                    <AccountActionsMenu
                       accountId={account.id}
                       accountName={account.name}
                       ownerEmail={account.ownerEmail}
+                      plan={account.plan}
+                      subscriptionStatus={account.subscriptionStatus}
+                      onChanged={loadAccounts}
                     />
                   </TableCell>
                 </TableRow>
