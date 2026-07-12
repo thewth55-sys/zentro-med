@@ -16,6 +16,7 @@ import { cn } from '@/lib/utils';
 import { SECTION_META, type SettingsSection } from './settings-sections';
 import { SettingsChip, StatusDot } from './settings-chip';
 import { ROLE_META } from './role-meta';
+import { AccountNameEditor } from './account-name-editor';
 
 interface OverviewCounts {
   members: number | null;
@@ -36,8 +37,9 @@ export function SettingsOverview({
 }: {
   onSelect: (section: SettingsSection) => void;
 }) {
-  const { user, profile, accountId, accountRole, defaultCurrency, canManageMembers } =
+  const { user, profile, account, accountId, accountRole, defaultCurrency, canManageMembers, refreshProfile } =
     useAuth();
+  const [accountName, setAccountName] = useState<string | null>(null);
   const { mode, theme } = useTheme();
   const t = useTranslations('Settings.overview');
   const tRoles = useTranslations('roles');
@@ -248,6 +250,29 @@ export function SettingsOverview({
           </SettingsChip>
         ) : null}
       </Card>
+
+      {/* Account / brand name — what invited teammates join, distinct
+          from the personal identity above. Editable by admin+ only,
+          matching PATCH /api/account's own role gate. */}
+      {account ? (
+        <Card className="mt-3 flex-row items-center justify-between gap-4 px-5 py-4">
+          <div className="min-w-0">
+            <div className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
+              Nombre de tu cuenta
+            </div>
+            <div className="mt-1">
+              <AccountNameEditor
+                name={accountName ?? account.name}
+                editable={canManageMembers}
+                onSaved={(name) => {
+                  setAccountName(name);
+                  refreshProfile();
+                }}
+              />
+            </div>
+          </div>
+        </Card>
+      ) : null}
 
       {/* Status tiles */}
       <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">

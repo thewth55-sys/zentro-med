@@ -3,7 +3,9 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { toast } from "sonner";
-import { Loader2, CreditCard, ExternalLink } from "lucide-react";
+import { Download, FileText, Loader2, CreditCard, ExternalLink } from "lucide-react";
+
+import { Badge } from "@/components/ui/badge";
 
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
@@ -16,6 +18,40 @@ import {
 } from "@/components/ui/card";
 import { SettingsPanelHead } from "./settings-panel-head";
 import { PLAN_CONFIG, hasActiveAccess, type Plan } from "@/lib/billing-platform/plans";
+import { formatCurrency } from "@/lib/currency";
+
+interface Invoice {
+  id: string;
+  number: string | null;
+  status: "draft" | "open" | "paid" | "uncollectible" | "void" | null;
+  attempted: boolean;
+  amountDue: number;
+  amountPaid: number;
+  currency: string;
+  created: number;
+  description: string | null;
+  hostedInvoiceUrl: string | null;
+  invoicePdf: string | null;
+}
+
+const INVOICE_STATUS_META: Record<
+  string,
+  { label: string; variant: "default" | "secondary" | "destructive" | "outline" }
+> = {
+  paid: { label: "Pagada", variant: "default" },
+  failed: { label: "Rechazada", variant: "destructive" },
+  pending: { label: "Pendiente", variant: "secondary" },
+  uncollectible: { label: "Incobrable", variant: "destructive" },
+  void: { label: "Anulada", variant: "outline" },
+};
+
+function invoiceStatusKey(inv: Invoice): keyof typeof INVOICE_STATUS_META {
+  if (inv.status === "paid") return "paid";
+  if (inv.status === "void") return "void";
+  if (inv.status === "uncollectible") return "uncollectible";
+  if (inv.status === "open") return inv.attempted ? "failed" : "pending";
+  return "pending";
+}
 
 const PLAN_LABELS: Record<Plan, string> = {
   trial: "Prueba gratuita",
@@ -42,6 +78,8 @@ export function SubscriptionPanel() {
   const { account, isOwner, refreshProfile } = useAuth();
   const [loadingAction, setLoadingAction] = useState<Plan | "portal" | null>(null);
   const searchParams = useSearchParams();
+  const [invoices, setInvoices] = useState<Invoice[] | null>(null);
+  const [invoicesError, setInvoicesError] = useState<string | null>(null);
 
   useEffect(() => {
     // The Stripe redirect lands here before the webhook necessarily
@@ -56,6 +94,25 @@ export function SubscriptionPanel() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    if (!isOwner) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch("/api/billing-platform/invoices", { cache: "no-store" });
+        const body = await res.json().catch(() => null);
+        if (!res.ok) throw new Error(body?.error ?? "Failed to load invoices");
+        if (!cancelled) setInvoices(body.invoices);
+      } catch (err) {
+        console.error("[SubscriptionPanel] invoices fetch error:", err);
+        if (!cancelled) setInvoicesError("No se pudo cargar el historial de pagos");
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [isOwner]);
 
   if (!account) {
     return (
@@ -191,6 +248,70 @@ export function SubscriptionPanel() {
           )}
         </CardContent>
       </Card>
+
+      {isOwner && account.stripe_customer_id && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-foreground">
+              <FileText className="size-4 text-primary" />
+              Historial de pagos
+            </CardTitle>
+            <CardDescription className="text-muted-foreground">
+              Cada cargo a esta cuenta — aprobado, pendiente o rechazado — con su comprobante
+              descargable.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {invoicesError ? (
+              <p className="text-sm text-destructive">{invoicesError}</p>
+            ) : invoices === null ? (
+              <div className="flex items-center gap-2 py-4 text-sm text-muted-foreground">
+                <Loader2 className="size-4 animate-spin" />
+                Cargando…
+              </div>
+            ) : invoices.length === 0 ? (
+              <p className="py-4 text-sm text-muted-foreground">
+                Todavía no hay pagos registrados en esta cuenta.
+              </p>
+            ) : (
+              <ul className="divide-y divide-border">
+                {invoices.map((inv) => {
+                  const meta = INVOICE_STATUS_META[invoiceStatusKey(inv)];
+                  const amount = inv.status === "paid" ? inv.amountPaid : inv.amountDue;
+                  const downloadUrl = inv.invoicePdf ?? inv.hostedInvoiceUrl;
+                  return (
+                    <li key={inv.id} className="flex items-center justify-between gap-3 py-3">
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-medium text-foreground">
+                            {formatCurrency(amount / 100, inv.currency)}
+                          </span>
+                          <Badge variant={meta.variant}>{meta.label}</Badge>
+                        </div>
+                        <p className="mt-0.5 truncate text-xs text-muted-foreground">
+                          {new Date(inv.created * 1000).toLocaleDateString()}
+                          {inv.description ? ` · ${inv.description}` : ""}
+                        </p>
+                      </div>
+                      {downloadUrl ? (
+                        <a
+                          href={downloadUrl}
+                          target="_blank"
+                          rel="noreferrer noopener"
+                          className="flex shrink-0 items-center gap-1.5 text-xs font-medium text-primary hover:underline"
+                        >
+                          <Download className="size-3.5" />
+                          Descargar
+                        </a>
+                      ) : null}
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </CardContent>
+        </Card>
+      )}
     </section>
   );
 }

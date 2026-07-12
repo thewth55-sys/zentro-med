@@ -62,6 +62,7 @@ function SignupPageInner() {
   const purchasePlan = isPurchasablePlan(planParam) ? planParam : null;
 
   const [fullName, setFullName] = useState("");
+  const [brandName, setBrandName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -106,6 +107,10 @@ function SignupPageInner() {
       options: {
         data: {
           full_name: fullName,
+          // Read by handle_new_user() (042_account_brand_name.sql) to
+          // seed accounts.name — falls back to full_name/email when
+          // blank, same as before this field existed.
+          brand_name: brandName.trim() || undefined,
         },
         emailRedirectTo,
       },
@@ -221,6 +226,27 @@ function SignupPageInner() {
                 className="border-border bg-muted text-foreground placeholder:text-muted-foreground focus-visible:border-primary focus-visible:ring-primary/20"
               />
             </div>
+
+            {!inviteToken && (
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="brandName" className="text-muted-foreground">
+                  Clinic / brand name{" "}
+                  <span className="text-xs font-normal text-muted-foreground/70">(optional)</span>
+                </Label>
+                <Input
+                  id="brandName"
+                  type="text"
+                  placeholder="Clínica Cruz"
+                  value={brandName}
+                  onChange={(e) => setBrandName(e.target.value)}
+                  className="border-border bg-muted text-foreground placeholder:text-muted-foreground focus-visible:border-primary focus-visible:ring-primary/20"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Teammates you invite later join under this name instead of yours. You can
+                  change it anytime in Settings.
+                </p>
+              </div>
+            )}
 
             <div className="flex flex-col gap-2">
               <Label htmlFor="email" className="text-muted-foreground">
