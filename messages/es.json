@@ -716,16 +716,7 @@
       "created": "Disponibilidad agregada",
       "deleted": "Disponibilidad eliminada",
       "saveFailed": "No se pudo guardar la disponibilidad",
-      "endBeforeStart": "La hora de fin debe ser posterior a la de inicio",
-      "googleTitle": "Google Calendar",
-      "googleConnectedHint": "Tus citas confirmadas se crean automáticamente en tu Google Calendar.",
-      "googleDisconnectedHint": "Conecta tu Google Calendar para ver tus citas ahí también.",
-      "googleConnect": "Conectar",
-      "googleDisconnect": "Desconectar",
-      "googleConnected": "Google Calendar conectado",
-      "googleDisconnected": "Google Calendar desconectado",
-      "googleConnectFailed": "No se pudo conectar Google Calendar",
-      "googleDisconnectFailed": "No se pudo desconectar Google Calendar"
+      "endBeforeStart": "La hora de fin debe ser posterior a la de inicio"
     }
   },
   "Broadcasts": {
@@ -1817,6 +1808,15 @@
       "profileSaved": "Perfil guardado",
       "emailChangeFailed": "Error al cambiar el correo: {message}",
       "profileSavedEmailCheck": "Perfil guardado — revisa tu correo para confirmar el cambio de dirección",
+      "googleTitle": "Google Calendar",
+      "googleConnectedHint": "Tus citas confirmadas de esta cuenta se crean automáticamente en tu Google Calendar.",
+      "googleDisconnectedHint": "Conecta tu Google Calendar para ver ahí las citas de la clínica.",
+      "googleConnect": "Conectar",
+      "googleDisconnect": "Desconectar",
+      "googleConnected": "Google Calendar conectado",
+      "googleDisconnected": "Google Calendar desconectado",
+      "googleConnectFailed": "No se pudo conectar Google Calendar",
+      "googleDisconnectFailed": "No se pudo desconectar Google Calendar",
       "passwordTitle": "Contraseña",
       "passwordDesc": "Usa al menos {min} caracteres. Permanecerás con la sesión iniciada en este dispositivo después de cambiarla.",
       "currentPassword": "Contraseña actual",

@@ -6,10 +6,13 @@
 // appointment (POST /api/appointments, PATCH and DELETE
 // /api/appointments/[id]) — see those routes for the call sites.
 //
-// Deliberately re-fetches the doctor row narrowly (not reusing the
-// wildcard `doctor:doctors(*)` embed those routes already return to
-// the client) — that embed would otherwise ship the doctor's
-// encrypted refresh_token in the JSON response.
+// Any account member can connect their own Google Calendar (not just
+// a linked doctor — 045_google_calendar_per_user.sql), and every
+// appointment fans out to EVERY connected member's calendar, not just
+// the assigned doctor's. That's a 1:many relationship between one
+// appointment and many Google events, tracked in
+// appointment_google_events (one row per appointment × connected
+// user) rather than a single event id column on the appointment.
 // ============================================================
 
 import type { SupabaseClient } from "@supabase/supabase-js";
@@ -24,56 +27,46 @@ import {
 
 interface SyncableAppointment {
   id: string;
-  doctor_id: string | null;
   contact_id: string | null;
   start_at: string;
   end_at: string;
   status: string;
   notes: string | null;
-  google_calendar_event_id?: string | null;
 }
 
-async function resolveConnectedDoctor(supabase: SupabaseClient, doctorId: string) {
-  const { data: doctor } = await supabase
-    .from("doctors")
-    .select("google_calendar_connected, google_calendar_id, google_refresh_token")
-    .eq("id", doctorId)
-    .maybeSingle();
+interface ConnectedProfile {
+  user_id: string;
+  google_calendar_id: string | null;
+  google_refresh_token: string;
+}
 
-  if (!doctor?.google_calendar_connected || !doctor.google_refresh_token) return null;
-  return doctor;
+async function getConnectedProfiles(
+  supabase: SupabaseClient,
+  accountId: string,
+): Promise<ConnectedProfile[]> {
+  const { data } = await supabase
+    .from("profiles")
+    .select("user_id, google_calendar_id, google_refresh_token")
+    .eq("account_id", accountId)
+    .eq("google_calendar_connected", true)
+    .not("google_refresh_token", "is", null);
+  return (data ?? []) as ConnectedProfile[];
 }
 
 /**
- * Create/update/cancel the Google Calendar event that mirrors this
- * appointment, based on its current `status`. No-ops silently (not
- * an error) when the appointment has no doctor, or the doctor hasn't
- * connected Google Calendar — the overwhelming majority of calls,
- * since most accounts never touch this feature.
+ * Create/update/cancel the Google Calendar event mirroring this
+ * appointment, for every account member who has connected their own
+ * calendar. No-ops silently when nobody in the account is connected —
+ * the overwhelming majority of calls.
  */
 export async function syncAppointmentToGoogle(
   supabase: SupabaseClient,
+  accountId: string,
   appointment: SyncableAppointment,
 ): Promise<void> {
   try {
-    if (!appointment.doctor_id) return;
-
-    const doctor = await resolveConnectedDoctor(supabase, appointment.doctor_id);
-    if (!doctor) return;
-
-    const accessToken = await refreshAccessToken(decrypt(doctor.google_refresh_token!));
-    const calendarId = doctor.google_calendar_id || "primary";
-
-    if (appointment.status === "cancelled") {
-      if (appointment.google_calendar_event_id) {
-        await deleteCalendarEvent(accessToken, calendarId, appointment.google_calendar_event_id);
-        await supabase
-          .from("appointments")
-          .update({ google_calendar_event_id: null })
-          .eq("id", appointment.id);
-      }
-      return;
-    }
+    const connected = await getConnectedProfiles(supabase, accountId);
+    if (connected.length === 0) return;
 
     let summary = "Cita";
     if (appointment.contact_id) {
@@ -92,14 +85,44 @@ export async function syncAppointmentToGoogle(
       endAt: appointment.end_at,
     };
 
-    if (appointment.google_calendar_event_id) {
-      await updateCalendarEvent(accessToken, calendarId, appointment.google_calendar_event_id, eventInput);
-    } else {
-      const eventId = await createCalendarEvent(accessToken, calendarId, eventInput);
-      await supabase
-        .from("appointments")
-        .update({ google_calendar_event_id: eventId })
-        .eq("id", appointment.id);
+    for (const profile of connected) {
+      try {
+        const accessToken = await refreshAccessToken(decrypt(profile.google_refresh_token));
+        const calendarId = profile.google_calendar_id || "primary";
+
+        const { data: link } = await supabase
+          .from("appointment_google_events")
+          .select("id, google_event_id")
+          .eq("appointment_id", appointment.id)
+          .eq("user_id", profile.user_id)
+          .maybeSingle();
+
+        if (appointment.status === "cancelled") {
+          if (link) {
+            await deleteCalendarEvent(accessToken, calendarId, link.google_event_id);
+            await supabase.from("appointment_google_events").delete().eq("id", link.id);
+          }
+          continue;
+        }
+
+        if (link) {
+          await updateCalendarEvent(accessToken, calendarId, link.google_event_id, eventInput);
+        } else {
+          const eventId = await createCalendarEvent(accessToken, calendarId, eventInput);
+          await supabase.from("appointment_google_events").insert({
+            appointment_id: appointment.id,
+            user_id: profile.user_id,
+            google_event_id: eventId,
+          });
+        }
+      } catch (err) {
+        // One user's expired/revoked grant shouldn't stop the sync
+        // for everyone else connected.
+        console.error(
+          `[syncAppointmentToGoogle] failed for user ${profile.user_id}:`,
+          err,
+        );
+      }
     }
   } catch (err) {
     console.error("[syncAppointmentToGoogle] failed (never throws):", err);
@@ -107,24 +130,41 @@ export async function syncAppointmentToGoogle(
 }
 
 /**
- * Removes the Google Calendar event for an appointment that's about
- * to be hard-deleted (DELETE /api/appointments/[id]) — called BEFORE
- * the row is deleted, since it needs doctor_id / google_calendar_event_id
- * off of it.
+ * Removes every connected user's Google Calendar event for an
+ * appointment that's about to be hard-deleted (DELETE
+ * /api/appointments/[id]) — called BEFORE the row is deleted, since
+ * it needs to read appointment_google_events first (which cascade-
+ * deletes with the appointment).
  */
 export async function removeAppointmentFromGoogle(
   supabase: SupabaseClient,
-  appointment: { doctor_id: string | null; google_calendar_event_id: string | null },
+  accountId: string,
+  appointmentId: string,
 ): Promise<void> {
   try {
-    if (!appointment.doctor_id || !appointment.google_calendar_event_id) return;
+    const { data: links } = await supabase
+      .from("appointment_google_events")
+      .select("user_id, google_event_id")
+      .eq("appointment_id", appointmentId);
+    if (!links || links.length === 0) return;
 
-    const doctor = await resolveConnectedDoctor(supabase, appointment.doctor_id);
-    if (!doctor) return;
+    const connected = await getConnectedProfiles(supabase, accountId);
+    const byUserId = new Map(connected.map((p) => [p.user_id, p]));
 
-    const accessToken = await refreshAccessToken(decrypt(doctor.google_refresh_token!));
-    const calendarId = doctor.google_calendar_id || "primary";
-    await deleteCalendarEvent(accessToken, calendarId, appointment.google_calendar_event_id);
+    for (const link of links) {
+      const profile = byUserId.get(link.user_id);
+      if (!profile) continue;
+      try {
+        const accessToken = await refreshAccessToken(decrypt(profile.google_refresh_token));
+        const calendarId = profile.google_calendar_id || "primary";
+        await deleteCalendarEvent(accessToken, calendarId, link.google_event_id);
+      } catch (err) {
+        console.error(
+          `[removeAppointmentFromGoogle] failed for user ${link.user_id}:`,
+          err,
+        );
+      }
+    }
   } catch (err) {
     console.error("[removeAppointmentFromGoogle] failed (never throws):", err);
   }

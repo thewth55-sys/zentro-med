@@ -3,12 +3,16 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 
 /**
- * POST /api/google-calendar/disconnect — clears the doctor's stored
+ * POST /api/google-calendar/disconnect — clears the caller's stored
  * tokens. Does NOT revoke the grant on Google's side (Google keeps
- * showing Zentro Med under the doctor's "Third-party access" until
+ * showing Zentro Med under the user's "Third-party access" until
  * they revoke it there themselves) — deleting our copy of the
  * refresh token is what actually stops future sync calls, which is
- * the part that matters for this app.
+ * the part that matters for this app. Existing
+ * appointment_google_events rows for this user are left as-is
+ * (harmless orphans — nothing reads them once disconnected) rather
+ * than bulk-deleting the events from Google, which would need a
+ * still-valid token to do reliably.
  */
 export async function POST() {
   const supabase = await createClient();
@@ -21,7 +25,7 @@ export async function POST() {
   }
 
   const { error } = await supabase
-    .from("doctors")
+    .from("profiles")
     .update({
       google_calendar_connected: false,
       google_calendar_id: null,

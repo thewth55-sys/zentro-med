@@ -91,9 +91,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Failed to create appointment' }, { status: 500 });
     }
 
-    await syncAppointmentToGoogle(supabase, {
+    await syncAppointmentToGoogle(supabase, accountId, {
       id: data.id,
-      doctor_id: data.doctor_id,
       contact_id: data.contact_id,
       start_at: data.start_at,
       end_at: data.end_at,

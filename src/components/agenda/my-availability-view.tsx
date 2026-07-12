@@ -1,9 +1,8 @@
 "use client";
 
-import { Suspense, useEffect, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { CalendarClock, Link2, Link2Off, Loader2, Plus, Trash2 } from "lucide-react";
+import { CalendarClock, Loader2, Plus, Trash2 } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 import { createClient } from "@/lib/supabase/client";
@@ -13,28 +12,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import type { Doctor, DoctorAvailabilityBlock } from "@/types";
 
-// `useSearchParams` (for the ?google=connected|error toast after the
-// OAuth round-trip) opts the component out of static prerendering
-// unless wrapped in Suspense — same pattern as /login and /signup.
 export function MyAvailabilityView() {
-  return (
-    <Suspense fallback={null}>
-      <MyAvailabilityViewInner />
-    </Suspense>
-  );
-}
-
-function MyAvailabilityViewInner() {
   const t = useTranslations("Agenda.mine");
   const { user, loading: authLoading } = useAuth();
   const supabase = createClient();
-  const router = useRouter();
-  const searchParams = useSearchParams();
 
   const [loading, setLoading] = useState(true);
   const [doctor, setDoctor] = useState<Doctor | null>(null);
   const [blocks, setBlocks] = useState<DoctorAvailabilityBlock[]>([]);
-  const [disconnecting, setDisconnecting] = useState(false);
 
   const [startAt, setStartAt] = useState("");
   const [endAt, setEndAt] = useState("");
@@ -63,34 +48,6 @@ function MyAvailabilityViewInner() {
       setLoading(false);
     })();
   }, [authLoading, user, supabase]);
-
-  useEffect(() => {
-    const google = searchParams.get("google");
-    if (!google) return;
-    if (google === "connected") {
-      toast.success(t("googleConnected"));
-      setDoctor((d) => (d ? { ...d, google_calendar_connected: true } : d));
-    } else if (google === "error") {
-      toast.error(t("googleConnectFailed"));
-    }
-    router.replace("/agenda/mine");
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchParams]);
-
-  async function handleDisconnectGoogle() {
-    setDisconnecting(true);
-    try {
-      const res = await fetch("/api/google-calendar/disconnect", { method: "POST" });
-      if (!res.ok) {
-        toast.error(t("googleDisconnectFailed"));
-        return;
-      }
-      setDoctor((d) => (d ? { ...d, google_calendar_connected: false } : d));
-      toast.success(t("googleDisconnected"));
-    } finally {
-      setDisconnecting(false);
-    }
-  }
 
   async function refreshBlocks(doctorId: string) {
     const { data } = await supabase
@@ -174,36 +131,6 @@ function MyAvailabilityViewInner() {
           {t("title")}
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">{t("subtitle")}</p>
-      </div>
-
-      <div className="flex items-center justify-between gap-4 rounded-lg border border-border bg-card p-4">
-        <div className="min-w-0">
-          <p className="text-sm font-medium text-foreground">{t("googleTitle")}</p>
-          <p className="mt-0.5 text-xs text-muted-foreground">
-            {doctor.google_calendar_connected ? t("googleConnectedHint") : t("googleDisconnectedHint")}
-          </p>
-        </div>
-        {doctor.google_calendar_connected ? (
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={handleDisconnectGoogle}
-            disabled={disconnecting}
-            className="shrink-0 text-xs"
-          >
-            {disconnecting ? <Loader2 className="size-3.5 animate-spin" /> : <Link2Off className="size-3.5" />}
-            {t("googleDisconnect")}
-          </Button>
-        ) : (
-          <a
-            href="/api/google-calendar/connect"
-            className="inline-flex shrink-0 items-center gap-1.5 rounded-md border border-border bg-muted px-3 py-1.5 text-xs font-medium text-foreground hover:bg-muted/70"
-          >
-            <Link2 className="size-3.5" />
-            {t("googleConnect")}
-          </a>
-        )}
       </div>
 
       <div className="space-y-3 rounded-lg border border-border bg-card p-4">

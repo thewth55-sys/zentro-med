@@ -716,16 +716,7 @@
       "created": "Availability added",
       "deleted": "Availability removed",
       "saveFailed": "Failed to save availability",
-      "endBeforeStart": "End time must be after start time",
-      "googleTitle": "Google Calendar",
-      "googleConnectedHint": "Your confirmed appointments are created automatically on your Google Calendar.",
-      "googleDisconnectedHint": "Connect your Google Calendar to see your appointments there too.",
-      "googleConnect": "Connect",
-      "googleDisconnect": "Disconnect",
-      "googleConnected": "Google Calendar connected",
-      "googleDisconnected": "Google Calendar disconnected",
-      "googleConnectFailed": "Failed to connect Google Calendar",
-      "googleDisconnectFailed": "Failed to disconnect Google Calendar"
+      "endBeforeStart": "End time must be after start time"
     }
   },
   "Broadcasts": {
@@ -1817,6 +1808,15 @@
       "profileSaved": "Profile saved",
       "emailChangeFailed": "Email change failed: {message}",
       "profileSavedEmailCheck": "Profile saved — check your email to confirm the address change",
+      "googleTitle": "Google Calendar",
+      "googleConnectedHint": "This account's confirmed appointments are created automatically on your Google Calendar.",
+      "googleDisconnectedHint": "Connect your Google Calendar to see the clinic's appointments there.",
+      "googleConnect": "Connect",
+      "googleDisconnect": "Disconnect",
+      "googleConnected": "Google Calendar connected",
+      "googleDisconnected": "Google Calendar disconnected",
+      "googleConnectFailed": "Failed to connect Google Calendar",
+      "googleDisconnectFailed": "Failed to disconnect Google Calendar",
       "passwordTitle": "Password",
       "passwordDesc": "Use at least {min} characters. You will stay signed in on this device after changing it.",
       "currentPassword": "Current password",

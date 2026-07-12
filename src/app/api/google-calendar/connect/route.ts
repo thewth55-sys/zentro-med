@@ -6,10 +6,11 @@ import { getBaseUrl } from "@/lib/site-url";
 
 /**
  * GET /api/google-calendar/connect — starts the OAuth consent flow.
- * Only a doctor connects THEIR OWN calendar (no admin-on-behalf-of
- * flow — Google's consent screen has to be completed by the actual
- * account owner), so this resolves the doctor row from the caller's
- * own session rather than taking a doctorId param.
+ * Any signed-in account member connects THEIR OWN calendar (no
+ * admin-on-behalf-of flow — Google's consent screen has to be
+ * completed by the actual account owner). `state` carries the user
+ * id; the callback re-verifies it against the session that returns
+ * from Google rather than trusting it outright.
  */
 export async function GET(request: Request) {
   const supabase = await createClient();
@@ -21,18 +22,5 @@ export async function GET(request: Request) {
     return NextResponse.redirect(`${getBaseUrl(request)}/login`);
   }
 
-  const { data: doctor } = await supabase
-    .from("doctors")
-    .select("id")
-    .eq("user_id", user.id)
-    .maybeSingle();
-
-  if (!doctor) {
-    return NextResponse.json(
-      { error: "No hay un perfil de doctor vinculado a tu cuenta" },
-      { status: 403 },
-    );
-  }
-
-  return NextResponse.redirect(buildAuthUrl(doctor.id));
+  return NextResponse.redirect(buildAuthUrl(user.id));
 }

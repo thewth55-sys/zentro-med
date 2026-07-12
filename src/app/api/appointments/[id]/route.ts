@@ -71,15 +71,13 @@ export async function PATCH(
       return NextResponse.json({ error: 'Failed to update appointment' }, { status: 500 });
     }
 
-    await syncAppointmentToGoogle(supabase, {
+    await syncAppointmentToGoogle(supabase, accountId, {
       id: data.id,
-      doctor_id: data.doctor_id,
       contact_id: data.contact_id,
       start_at: data.start_at,
       end_at: data.end_at,
       status: data.status,
       notes: data.notes,
-      google_calendar_event_id: data.google_calendar_event_id,
     });
 
     return NextResponse.json({ appointment: data });
@@ -96,12 +94,9 @@ export async function DELETE(
     const { supabase, accountId } = await requireRole('agent');
     const { id } = await params;
 
-    const { data: existing } = await supabase
-      .from('appointments')
-      .select('doctor_id, google_calendar_event_id')
-      .eq('id', id)
-      .eq('account_id', accountId)
-      .maybeSingle();
+    // Read Google links BEFORE deleting — appointment_google_events
+    // cascade-deletes with the appointment row.
+    await removeAppointmentFromGoogle(supabase, accountId, id);
 
     const { error } = await supabase
       .from('appointments')
@@ -112,10 +107,6 @@ export async function DELETE(
     if (error) {
       console.error('[appointments DELETE] error:', error);
       return NextResponse.json({ error: 'Failed to delete appointment' }, { status: 500 });
-    }
-
-    if (existing) {
-      await removeAppointmentFromGoogle(supabase, existing);
     }
 
     return NextResponse.json({ success: true });

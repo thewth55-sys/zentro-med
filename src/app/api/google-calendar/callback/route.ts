@@ -5,23 +5,24 @@ import { exchangeCodeForTokens } from "@/lib/google-calendar/client";
 import { encrypt } from "@/lib/whatsapp/encryption";
 import { getBaseUrl } from "@/lib/site-url";
 
+const REDIRECT_PATH = "/settings?tab=profile";
+
 /**
  * GET /api/google-calendar/callback — Google redirects here after
- * consent. `state` carries the doctor id from connect/route.ts, but
- * isn't trusted on its own: the callback re-checks that the doctor
- * row it names actually belongs to whoever is logged in right now
- * (state can't be forged into a valid Supabase session, so this
- * closes the only gap that would matter).
+ * consent. `state` carries the user id from connect/route.ts, but
+ * isn't trusted on its own: the callback re-checks it against
+ * whoever is logged in right now (state can't be forged into a valid
+ * Supabase session, so this closes the only gap that would matter).
  */
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const code = searchParams.get("code");
-  const doctorId = searchParams.get("state");
+  const stateUserId = searchParams.get("state");
   const oauthError = searchParams.get("error");
   const baseUrl = getBaseUrl(request);
 
-  if (oauthError || !code || !doctorId) {
-    return NextResponse.redirect(`${baseUrl}/agenda/mine?google=error`);
+  if (oauthError || !code || !stateUserId) {
+    return NextResponse.redirect(`${baseUrl}${REDIRECT_PATH}&google=error`);
   }
 
   const supabase = await createClient();
@@ -31,15 +32,8 @@ export async function GET(request: Request) {
   if (!user) {
     return NextResponse.redirect(`${baseUrl}/login`);
   }
-
-  const { data: doctor } = await supabase
-    .from("doctors")
-    .select("id")
-    .eq("id", doctorId)
-    .eq("user_id", user.id)
-    .maybeSingle();
-  if (!doctor) {
-    return NextResponse.redirect(`${baseUrl}/agenda/mine?google=error`);
+  if (user.id !== stateUserId) {
+    return NextResponse.redirect(`${baseUrl}${REDIRECT_PATH}&google=error`);
   }
 
   try {
@@ -49,27 +43,27 @@ export async function GET(request: Request) {
       // which forces Google to issue one — but fail loud rather than
       // silently "connecting" with nothing to refresh later.
       console.error("[google-calendar callback] no refresh_token in response");
-      return NextResponse.redirect(`${baseUrl}/agenda/mine?google=error`);
+      return NextResponse.redirect(`${baseUrl}${REDIRECT_PATH}&google=error`);
     }
 
     const { error } = await supabase
-      .from("doctors")
+      .from("profiles")
       .update({
         google_calendar_connected: true,
         google_calendar_id: "primary",
         google_refresh_token: encrypt(tokens.refreshToken),
         google_calendar_connected_at: new Date().toISOString(),
       })
-      .eq("id", doctorId);
+      .eq("user_id", user.id);
 
     if (error) {
       console.error("[google-calendar callback] update error:", error);
-      return NextResponse.redirect(`${baseUrl}/agenda/mine?google=error`);
+      return NextResponse.redirect(`${baseUrl}${REDIRECT_PATH}&google=error`);
     }
   } catch (err) {
     console.error("[google-calendar callback] token exchange failed:", err);
-    return NextResponse.redirect(`${baseUrl}/agenda/mine?google=error`);
+    return NextResponse.redirect(`${baseUrl}${REDIRECT_PATH}&google=error`);
   }
 
-  return NextResponse.redirect(`${baseUrl}/agenda/mine?google=connected`);
+  return NextResponse.redirect(`${baseUrl}${REDIRECT_PATH}&google=connected`);
 }
