@@ -414,7 +414,8 @@
       "dupSimilar": "Ya existe un paciente con un número muy similar.",
       "loadingTags": "Cargando etiquetas...",
       "noTagsAvailable": "No hay etiquetas disponibles. Créalas en Ajustes.",
-      "phoneRequired": "El número de teléfono es obligatorio"
+      "phoneRequired": "El número de teléfono es obligatorio",
+      "toastPatientLimit": "Alcanzaste el límite de pacientes de tu plan. Sube de plan en Ajustes → Suscripción para agregar más."
     },
     "detailView": {
       "tabs": {

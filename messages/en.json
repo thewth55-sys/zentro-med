@@ -414,7 +414,8 @@
       "dupSimilar": "A patient with a very similar number already exists.",
       "loadingTags": "Loading tags...",
       "noTagsAvailable": "No tags available. Create tags in Settings.",
-      "phoneRequired": "Phone number is required"
+      "phoneRequired": "Phone number is required",
+      "toastPatientLimit": "You've reached your plan's patient limit. Upgrade in Settings → Subscription to add more."
     },
     "detailView": {
       "tabs": {

@@ -23,6 +23,7 @@ import {
   Zap,
   type LucideIcon,
 } from "lucide-react";
+import type { GatedFeature } from "@/lib/billing-platform/features";
 
 export interface NavItem {
   href: string;
@@ -33,6 +34,14 @@ export interface NavItem {
    * Purely informational — doesn't affect routing or access.
    */
   beta?: boolean;
+  /**
+   * Plan-gated feature this item's destination requires (see
+   * lib/billing-platform/features.ts) — the sidebar renders a lock
+   * icon next to the label when the account's plan doesn't include
+   * it. The link still navigates; the destination page itself
+   * enforces the gate via <PlanGate>, this is just a visual signal.
+   */
+  feature?: GatedFeature;
 }
 
 export const navItems: NavItem[] = [
@@ -44,9 +53,9 @@ export const navItems: NavItem[] = [
   { href: "/agenda", labelKey: "agenda", icon: CalendarClock },
   { href: "/billing", labelKey: "billing", icon: Receipt },
   { href: "/broadcasts", labelKey: "broadcasts", icon: Radio },
-  { href: "/automations", labelKey: "automations", icon: Zap },
-  { href: "/flows", labelKey: "flows", icon: Workflow, beta: true },
-  { href: "/agents", labelKey: "aiAgents", icon: Bot },
+  { href: "/automations", labelKey: "automations", icon: Zap, feature: "automations" },
+  { href: "/flows", labelKey: "flows", icon: Workflow, beta: true, feature: "automations" },
+  { href: "/agents", labelKey: "aiAgents", icon: Bot, feature: "ai_autoreply" },
 ];
 
 /**

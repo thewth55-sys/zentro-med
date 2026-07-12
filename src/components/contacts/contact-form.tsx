@@ -220,6 +220,13 @@ export function ContactForm({
         }
         return;
       }
+      // The 049 trigger raises this specific marker when the account
+      // hit its plan's patient cap — surface an upgrade prompt instead
+      // of the raw Postgres exception text.
+      if (err instanceof Error && err.message.includes('ZENTRO_PATIENT_LIMIT')) {
+        toast.error(t('toastPatientLimit'));
+        return;
+      }
       const message = err instanceof Error ? err.message : t('toastError');
       toast.error(message);
     } finally {

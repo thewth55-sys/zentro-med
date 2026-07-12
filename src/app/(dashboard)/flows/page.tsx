@@ -33,6 +33,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { PlanGate } from "@/components/billing-platform/plan-gate";
 
 /**
  * Flows list page.
@@ -200,6 +201,7 @@ export default function FlowsPage() {
   }
 
   return (
+    <PlanGate feature="automations" featureLabel="Automatizaciones y Flows">
     <div className="space-y-6 p-6">
       <header className="flex flex-wrap items-end justify-between gap-3">
         <div>
@@ -320,6 +322,7 @@ export default function FlowsPage() {
         </DialogContent>
       </Dialog>
     </div>
+    </PlanGate>
   );
 }
 

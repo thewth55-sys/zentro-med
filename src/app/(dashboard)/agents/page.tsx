@@ -8,6 +8,7 @@ import { AiUsageCard } from '@/components/agents/ai-usage';
 import { AiConfig } from '@/components/settings/ai-config';
 import { useAuth } from '@/hooks/use-auth';
 import { canEditSettings } from '@/lib/auth/roles';
+import { PlanGate } from '@/components/billing-platform/plan-gate';
 
 type Tab = 'playground' | 'setup' | 'usage';
 
@@ -37,6 +38,7 @@ export default function AgentsPage() {
   }, []);
 
   return (
+    <PlanGate feature="ai_autoreply" featureLabel="WhatsApp IA">
     <div>
       <div className="flex items-center gap-2">
         <Bot className="h-6 w-6 text-primary" />
@@ -85,5 +87,6 @@ export default function AgentsPage() {
         </Tabs>
       )}
     </div>
+    </PlanGate>
   );
 }

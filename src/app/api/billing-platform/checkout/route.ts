@@ -52,13 +52,8 @@ export async function POST(request: Request) {
     if (config.stripeBasePriceId) {
       lineItems.push({ price: config.stripeBasePriceId, quantity: 1 });
     }
-    if (config.stripeSeatPriceId) {
-      // Standalone has no included seats, so quantity is the full seat
-      // count rather than an overage past a threshold.
-      const seatQuantity = config.includedSeats === 0 ? Math.max(1, seatCount ?? 1) : extraSeats;
-      if (seatQuantity > 0) {
-        lineItems.push({ price: config.stripeSeatPriceId, quantity: seatQuantity });
-      }
+    if (config.stripeSeatPriceId && extraSeats > 0) {
+      lineItems.push({ price: config.stripeSeatPriceId, quantity: extraSeats });
     }
 
     if (lineItems.length === 0) {
