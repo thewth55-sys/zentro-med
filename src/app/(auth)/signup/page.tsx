@@ -100,7 +100,7 @@ function SignupPageInner() {
         : "/dashboard";
     const emailRedirectTo = `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`;
 
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
@@ -114,6 +114,18 @@ function SignupPageInner() {
     if (error) {
       setError(error.message);
       setLoading(false);
+      return;
+    }
+
+    // If "Confirm email" is off in Supabase Auth settings, signUp()
+    // returns an already-active session instead of requiring a click
+    // on a confirmation link — the emailRedirectTo above then never
+    // fires, since there's no email round-trip. Without this check, a
+    // visitor who clicked a paid-plan CTA would land in the app fully
+    // signed in and never see Stripe Checkout. Send them where the
+    // redirect would have gone, right now, client-side.
+    if (data.session) {
+      window.location.href = next;
       return;
     }
 
