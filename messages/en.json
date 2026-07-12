@@ -1906,7 +1906,14 @@
       "cancel": "Cancel",
       "signingOut": "Signing out…",
       "signOutEverywhere": "Sign out everywhere",
-      "signOutFailed": "Sign-out failed: {message}"
+      "signOutFailed": "Sign-out failed: {message}",
+      "navOrderTitle": "Sidebar menu order",
+      "navOrderDesc": "Drag to arrange the left-hand menu to your liking. Only affects your own view.",
+      "navOrderDrag": "Drag to reorder",
+      "navOrderSave": "Save order",
+      "navOrderReset": "Reset",
+      "navOrderSaved": "Menu order saved",
+      "navOrderSaveFailed": "Could not save the menu order"
     },
     "appearance": {
       "title": "Appearance",

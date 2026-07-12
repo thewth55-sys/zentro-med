@@ -1906,7 +1906,14 @@
       "cancel": "Cancelar",
       "signingOut": "Cerrando sesión…",
       "signOutEverywhere": "Cerrar sesión en todas partes",
-      "signOutFailed": "Error al cerrar sesión: {message}"
+      "signOutFailed": "Error al cerrar sesión: {message}",
+      "navOrderTitle": "Orden del menú lateral",
+      "navOrderDesc": "Arrastra para acomodar el menú de la izquierda a tu gusto. Solo afecta tu propia vista.",
+      "navOrderDrag": "Arrastrar para reordenar",
+      "navOrderSave": "Guardar orden",
+      "navOrderReset": "Restablecer",
+      "navOrderSaved": "Orden del menú guardado",
+      "navOrderSaveFailed": "No se pudo guardar el orden del menú"
     },
     "appearance": {
       "title": "Apariencia",

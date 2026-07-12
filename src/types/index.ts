@@ -45,6 +45,13 @@ export interface Profile {
    * `@/lib/auth/roles` rather than comparing this string directly.
    */
   account_role?: AccountRole;
+  /**
+   * User's own preferred sidebar nav order — an array of hrefs, e.g.
+   * ["/agenda", "/dashboard", ...]. Null means "use the default
+   * order" (see 048_profile_nav_order.sql). A per-person preference,
+   * not an account-wide setting.
+   */
+  nav_order?: string[] | null;
   created_at: string;
 }
 

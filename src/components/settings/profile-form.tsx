@@ -18,6 +18,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { useTranslations } from 'next-intl';
 import { SettingsPanelHead } from './settings-panel-head';
 import { GoogleCalendarCard } from './google-calendar-card';
+import { NavOrderEditor } from './nav-order-editor';
 
 const MAX_AVATAR_BYTES = 2 * 1024 * 1024;
 const ALLOWED_MIME = new Set([
@@ -354,8 +355,9 @@ export function ProfileForm() {
         </div>
       </form>
 
-      <div className="mt-4">
+      <div className="mt-4 space-y-4">
         <GoogleCalendarCard />
+        <NavOrderEditor />
       </div>
     </section>
   );
