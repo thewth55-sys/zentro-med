@@ -1,15 +1,17 @@
 import { NextResponse } from 'next/server';
 
 import { requireRole, toErrorResponse } from '@/lib/auth/account';
+import { syncAppointmentToGoogle } from '@/lib/scheduling/google-calendar-sync';
 
 /**
  * GET  /api/appointments  — list appointments (filtered), used by the
  *                            deal-form Cita panel and conflict checks.
  * POST /api/appointments  — create an appointment for a deal/contact.
  *
- * Phase A: manual only — no Cal.com/Google Calendar dispatch here yet
- * (that lands in Phases B/C at the single PATCH choke point in
- * [id]/route.ts, per the plan).
+ * Google Calendar dispatch (Phase C) also lives here (creation) and
+ * at the PATCH/DELETE choke points in [id]/route.ts — every path that
+ * changes an appointment's doctor/room/time/status goes through one
+ * of these three, per the plan.
  */
 export async function GET(request: Request) {
   try {
@@ -88,6 +90,16 @@ export async function POST(request: Request) {
       console.error('[appointments POST] error:', error);
       return NextResponse.json({ error: 'Failed to create appointment' }, { status: 500 });
     }
+
+    await syncAppointmentToGoogle(supabase, {
+      id: data.id,
+      doctor_id: data.doctor_id,
+      contact_id: data.contact_id,
+      start_at: data.start_at,
+      end_at: data.end_at,
+      status: data.status,
+      notes: data.notes,
+    });
 
     return NextResponse.json({ appointment: data }, { status: 201 });
   } catch (err) {

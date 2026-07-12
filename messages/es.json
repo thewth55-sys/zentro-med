@@ -716,7 +716,16 @@
       "created": "Disponibilidad agregada",
       "deleted": "Disponibilidad eliminada",
       "saveFailed": "No se pudo guardar la disponibilidad",
-      "endBeforeStart": "La hora de fin debe ser posterior a la de inicio"
+      "endBeforeStart": "La hora de fin debe ser posterior a la de inicio",
+      "googleTitle": "Google Calendar",
+      "googleConnectedHint": "Tus citas confirmadas se crean automáticamente en tu Google Calendar.",
+      "googleDisconnectedHint": "Conecta tu Google Calendar para ver tus citas ahí también.",
+      "googleConnect": "Conectar",
+      "googleDisconnect": "Desconectar",
+      "googleConnected": "Google Calendar conectado",
+      "googleDisconnected": "Google Calendar desconectado",
+      "googleConnectFailed": "No se pudo conectar Google Calendar",
+      "googleDisconnectFailed": "No se pudo desconectar Google Calendar"
     }
   },
   "Broadcasts": {
