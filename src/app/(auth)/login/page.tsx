@@ -15,7 +15,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { MessageSquare, UsersRound } from "lucide-react";
+import { UsersRound } from "lucide-react";
 
 // `useSearchParams` opts the component out of static prerendering
 // unless it sits under a Suspense boundary. We split the form into
@@ -85,7 +85,8 @@ function LoginPageInner() {
             {inviteToken ? (
               <UsersRound className="h-6 w-6 text-primary" />
             ) : (
-              <MessageSquare className="h-6 w-6 text-primary" />
+              // eslint-disable-next-line @next/next/no-img-element -- static brand asset
+              <img src="/zentro-isotipo.png" alt="" className="h-7 w-7" />
             )}
           </div>
           <CardTitle className="text-xl text-foreground">

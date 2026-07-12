@@ -14,6 +14,7 @@
  */
 
 export const THEME_IDS = [
+  "zentro",
   "violet",
   "emerald",
   "cobalt",
@@ -23,7 +24,7 @@ export const THEME_IDS = [
 
 export type ThemeId = (typeof THEME_IDS)[number];
 
-export const DEFAULT_THEME: ThemeId = "violet";
+export const DEFAULT_THEME: ThemeId = "zentro";
 
 export const STORAGE_KEY = "zentro-med.theme";
 
@@ -67,6 +68,12 @@ export interface ThemeMeta {
 }
 
 export const THEMES: ReadonlyArray<ThemeMeta> = [
+  {
+    id: "zentro",
+    name: "Zentro",
+    tagline: "The brand default — straight from the Zentro Labs identity.",
+    swatch: "oklch(0.795 0.214 144.9)",
+  },
   {
     id: "violet",
     name: "Violet",

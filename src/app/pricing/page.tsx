@@ -31,6 +31,14 @@ export default function PricingPage() {
     <div className="min-h-screen bg-background px-4 py-16 text-foreground">
       <div className="mx-auto max-w-5xl">
         <div className="text-center">
+          {/* The wordmark PNG bakes in black text, which disappears against
+              the app's dark-mode default — an isotipo (color, mode-agnostic)
+              plus real text (follows --foreground) works in both modes. */}
+          <div className="mb-8 flex items-center justify-center gap-2">
+            {/* eslint-disable-next-line @next/next/no-img-element -- static brand asset */}
+            <img src="/zentro-isotipo.png" alt="" className="h-7 w-7" />
+            <span className="text-lg font-semibold text-foreground">Zentro</span>
+          </div>
           <h1 className="text-3xl font-bold sm:text-4xl">Un CRM médico. Un solo proveedor.</h1>
           <p className="mx-auto mt-3 max-w-xl text-muted-foreground">
             30 días de prueba sin tarjeta. Después, elige el CRM solo o el bundle
