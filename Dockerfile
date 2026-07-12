@@ -51,6 +51,19 @@ ENV STRIPE_PRICE_ZENTRO_SALUD_PRO=$STRIPE_PRICE_ZENTRO_SALUD_PRO
 ENV STRIPE_PRICE_SEAT_ADDON=$STRIPE_PRICE_SEAT_ADDON
 ENV BILLING_CRON_SECRET=$BILLING_CRON_SECRET
 
+# Caps V8's heap during `next build`'s TypeScript-checking step.
+# Without this, V8 tries to grow memory unbounded on a constrained
+# host; the kernel OOM-kills the process with NO error output at all
+# (the build just stops dead after "Running TypeScript ..."), which
+# is exactly what happened on this VPS starting with the batch of
+# work that pushed the codebase's type-checking memory footprint over
+# the container's actual limit. An explicit, lower heap cap makes V8
+# garbage-collect more aggressively instead of getting killed.
+# Override via the NODE_BUILD_MEMORY_MB build arg if this host has
+# more RAM available and 1536 turns out to be too conservative.
+ARG NODE_BUILD_MEMORY_MB=1536
+ENV NODE_OPTIONS=--max-old-space-size=${NODE_BUILD_MEMORY_MB}
+
 # Build the project
 RUN npm run build
 
