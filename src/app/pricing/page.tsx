@@ -60,7 +60,7 @@ export default function PricingPage() {
             price={`$${standalone.seatPriceUsd} USD/usuario/mes`}
             description="Solo el CRM, sin servicio de marketing. Pensado como salida, no como punto de entrada."
             features={FEATURES_ALL}
-            cta={{ label: "Empezar gratis", href: "/signup" }}
+            cta={{ label: "Suscribirme", href: "/signup?plan=standalone" }}
           />
 
           <PlanCard
@@ -68,7 +68,7 @@ export default function PricingPage() {
             price={`$${starter.basePriceUsd} USD/mes`}
             description={`Incluye ${starter.includedSeats} usuarios · $${starter.seatPriceUsd} USD/usuario extra`}
             features={[...FEATURES_ALL, ...FEATURES_BUNDLE_STARTER]}
-            cta={{ label: "Empezar gratis", href: "/signup" }}
+            cta={{ label: "Suscribirme", href: "/signup?plan=zentro_salud_starter" }}
             highlight
           />
         </div>
@@ -79,7 +79,7 @@ export default function PricingPage() {
             price={`$${pro.basePriceUsd} USD/mes`}
             description={`Incluye ${pro.includedSeats} usuarios · $${pro.seatPriceUsd} USD/usuario extra`}
             features={[...FEATURES_ALL, ...FEATURES_BUNDLE_STARTER, ...FEATURES_BUNDLE_PRO]}
-            cta={{ label: "Empezar gratis", href: "/signup" }}
+            cta={{ label: "Suscribirme", href: "/signup?plan=zentro_salud_pro" }}
           />
         </div>
 

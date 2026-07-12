@@ -16,6 +16,26 @@ import {
 } from "@/components/ui/card";
 import { CheckCircle, UsersRound } from "lucide-react";
 
+// Plans a visitor can land here wanting to buy directly from
+// /pricing (the trial itself isn't in this list — that's the no-param
+// default path). Kept as a local literal rather than importing
+// PLAN_CONFIG from lib/billing-platform/plans: that module reads
+// server-only Stripe env vars at module scope, and this is a client
+// component — importing it would either bundle those reads uselessly
+// or (worse) tempt a future edit into leaking a price ID client-side.
+const PURCHASABLE_PLAN_IDS = ["standalone", "zentro_salud_starter", "zentro_salud_pro"] as const;
+type PurchasablePlan = (typeof PURCHASABLE_PLAN_IDS)[number];
+
+const PLAN_LABEL: Record<PurchasablePlan, string> = {
+  standalone: "Zentro Med independiente",
+  zentro_salud_starter: "Zentro Salud Starter",
+  zentro_salud_pro: "Zentro Salud Pro",
+};
+
+function isPurchasablePlan(value: string | null): value is PurchasablePlan {
+  return !!value && (PURCHASABLE_PLAN_IDS as readonly string[]).includes(value);
+}
+
 // `useSearchParams` opts the component out of static prerendering
 // unless wrapped in Suspense — same pattern as /login.
 export default function SignupPage() {
@@ -34,6 +54,12 @@ function SignupPageInner() {
   // points back at /join/<token> so the user lands on the redeem
   // step after verifying instead of being dropped on /dashboard.
   const inviteToken = searchParams.get("invite");
+  // Present when the visitor came from a /pricing "Suscribirme" CTA
+  // rather than "Empezar gratis" — after email confirmation we skip
+  // the trial-only dashboard landing and go straight into Stripe
+  // Checkout for this plan (see StartCheckoutRedirect).
+  const planParam = searchParams.get("plan");
+  const purchasePlan = isPurchasablePlan(planParam) ? planParam : null;
 
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
@@ -60,13 +86,19 @@ function SignupPageInner() {
 
     setLoading(true);
 
-    // If we have an invite token, point Supabase's verification
-    // email back at the join page so the user can accept after
-    // verifying. Without a token, Supabase uses its default
-    // redirect (the app root).
-    const emailRedirectTo = inviteToken
-      ? `${window.location.origin}/join/${encodeURIComponent(inviteToken)}`
-      : undefined;
+    // Every path now routes through /auth/callback, which exchanges
+    // the PKCE code for a session and then forwards to `next`:
+    //   - invite token  → /join/<token>, so they land on the accept step
+    //   - purchase plan → /dashboard?startCheckout=<plan>, so
+    //     StartCheckoutRedirect sends them straight into Stripe
+    //     Checkout instead of the empty trial dashboard
+    //   - plain trial   → /dashboard
+    const next = inviteToken
+      ? `/join/${encodeURIComponent(inviteToken)}`
+      : purchasePlan
+        ? `/dashboard?startCheckout=${purchasePlan}`
+        : "/dashboard";
+    const emailRedirectTo = `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`;
 
     const { error } = await supabase.auth.signUp({
       email,
@@ -75,7 +107,7 @@ function SignupPageInner() {
         data: {
           full_name: fullName,
         },
-        ...(emailRedirectTo ? { emailRedirectTo } : {}),
+        emailRedirectTo,
       },
     });
 
@@ -104,6 +136,13 @@ function SignupPageInner() {
               We&apos;ve sent a confirmation link to{" "}
               <span className="text-foreground">{email}</span>. Please check your
               inbox and click the link to verify your account.
+              {purchasePlan ? (
+                <>
+                  {" "}
+                  We&apos;ll take you straight to checkout for{" "}
+                  <span className="text-foreground">{PLAN_LABEL[purchasePlan]}</span> right after.
+                </>
+              ) : null}
             </CardDescription>
           </CardHeader>
           <CardContent>
