@@ -1149,6 +1149,11 @@
       "convertToInvoice": "Convert to invoice",
       "converted": "Converted to invoice",
       "convertFailed": "Failed to convert quote",
+      "downloadPdf": "Download PDF",
+      "sendWhatsapp": "Send via WhatsApp",
+      "pdfFailed": "Failed to generate the PDF",
+      "whatsappSendSuccess": "Quote sent via WhatsApp",
+      "whatsappSendFailed": "Failed to send via WhatsApp",
       "statusValues": {
         "draft": "Draft",
         "sent": "Sent",

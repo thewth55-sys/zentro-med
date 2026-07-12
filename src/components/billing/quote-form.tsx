@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { Loader2, Search, FileCheck2 } from "lucide-react";
+import { Loader2, Search, FileCheck2, Download, MessageCircle } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 import { createClient } from "@/lib/supabase/client";
@@ -51,6 +51,56 @@ export function QuoteForm({ open, onOpenChange, quote, contactId, dealId, onSave
   const [status, setStatus] = useState<QuoteStatus>("draft");
   const [saving, setSaving] = useState(false);
   const [converting, setConverting] = useState(false);
+  const [downloadingPdf, setDownloadingPdf] = useState(false);
+  const [sendingWhatsapp, setSendingWhatsapp] = useState(false);
+
+  async function generateQuotePdf(): Promise<{ url: string; filename: string } | null> {
+    if (!quote) return null;
+    const res = await fetch(`/api/billing/quotes/${quote.id}/pdf`, { method: "POST" });
+    const body = await res.json().catch(() => null);
+    if (!res.ok || !body?.url) {
+      toast.error(body?.error ?? t("pdfFailed"));
+      return null;
+    }
+    return { url: body.url, filename: body.filename };
+  }
+
+  async function handleDownloadPdf() {
+    setDownloadingPdf(true);
+    try {
+      const result = await generateQuotePdf();
+      if (result) window.open(result.url, "_blank");
+    } finally {
+      setDownloadingPdf(false);
+    }
+  }
+
+  async function handleSendWhatsapp() {
+    if (!quote?.contact_id) return;
+    setSendingWhatsapp(true);
+    try {
+      const result = await generateQuotePdf();
+      if (!result) return;
+      const res = await fetch("/api/whatsapp/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contact_id: quote.contact_id,
+          message_type: "document",
+          media_url: result.url,
+          filename: result.filename,
+        }),
+      });
+      const body = await res.json().catch(() => null);
+      if (!res.ok) {
+        toast.error(body?.error ?? t("whatsappSendFailed"));
+        return;
+      }
+      toast.success(t("whatsappSendSuccess"));
+    } finally {
+      setSendingWhatsapp(false);
+    }
+  }
 
   useEffect(() => {
     if (!open) return;
@@ -301,18 +351,57 @@ export function QuoteForm({ open, onOpenChange, quote, contactId, dealId, onSave
           </div>
 
           <DialogFooter className="border-t border-border/50 p-4">
-            {isEdit && quote?.status === "accepted" && (
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleConvert}
-                disabled={converting || saving}
-                className="mr-auto border-primary/40 text-primary hover:bg-primary/10"
-              >
-                {converting ? <Loader2 className="size-4 animate-spin" /> : <FileCheck2 className="size-4" />}
-                {t("convertToInvoice")}
-              </Button>
-            )}
+            <div className="mr-auto flex flex-wrap items-center gap-2">
+              {isEdit && (
+                <>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={handleDownloadPdf}
+                    disabled={downloadingPdf || sendingWhatsapp}
+                    className="border-border text-muted-foreground hover:bg-muted"
+                  >
+                    {downloadingPdf ? (
+                      <Loader2 className="size-3.5 animate-spin" />
+                    ) : (
+                      <Download className="size-3.5" />
+                    )}
+                    {t("downloadPdf")}
+                  </Button>
+                  {quote?.contact_id && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={handleSendWhatsapp}
+                      disabled={downloadingPdf || sendingWhatsapp}
+                      className="border-border text-muted-foreground hover:bg-muted"
+                    >
+                      {sendingWhatsapp ? (
+                        <Loader2 className="size-3.5 animate-spin" />
+                      ) : (
+                        <MessageCircle className="size-3.5" />
+                      )}
+                      {t("sendWhatsapp")}
+                    </Button>
+                  )}
+                </>
+              )}
+              {isEdit && quote?.status === "accepted" && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={handleConvert}
+                  disabled={converting || saving}
+                  className="border-primary/40 text-primary hover:bg-primary/10"
+                >
+                  {converting ? <Loader2 className="size-4 animate-spin" /> : <FileCheck2 className="size-4" />}
+                  {t("convertToInvoice")}
+                </Button>
+              )}
+            </div>
             {!isConverted && (
               <Button
                 type="button"

@@ -196,8 +196,14 @@ export function Sidebar({ open = false, onClose }: SidebarProps) {
             close button is hidden since the sidebar is always-visible. */}
         <div className="flex h-14 shrink-0 items-center justify-between gap-2 border-b border-border px-4">
           <Link href="/dashboard" className="flex items-center gap-2">
-            {/* eslint-disable-next-line @next/next/no-img-element -- static brand asset, no next/image config needed for a fixed-size sidebar mark */}
-            <img src="/zentro-isotipo.png" alt="" className="h-8 w-8" />
+            {/* White-labeled per account when logo_url is set (Settings →
+                Overview) — falls back to the Zentro Med isotipo otherwise. */}
+            {/* eslint-disable-next-line @next/next/no-img-element -- account-controlled upload, arbitrary remote host */}
+            <img
+              src={account?.logo_url || "/zentro-isotipo.png"}
+              alt=""
+              className="h-8 w-8 object-contain"
+            />
             <span className="text-sm font-semibold text-foreground">
               {t("title")}
             </span>

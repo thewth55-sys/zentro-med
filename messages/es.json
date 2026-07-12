@@ -1149,6 +1149,11 @@
       "convertToInvoice": "Convertir a factura",
       "converted": "Convertida a factura",
       "convertFailed": "No se pudo convertir la cotización",
+      "downloadPdf": "Descargar PDF",
+      "sendWhatsapp": "Enviar por WhatsApp",
+      "pdfFailed": "No se pudo generar el PDF",
+      "whatsappSendSuccess": "Cotización enviada por WhatsApp",
+      "whatsappSendFailed": "No se pudo enviar por WhatsApp",
       "statusValues": {
         "draft": "Borrador",
         "sent": "Enviada",

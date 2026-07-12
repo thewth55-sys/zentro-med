@@ -4,6 +4,7 @@ import { useTranslations } from 'next-intl';
 
 import { ProductManager } from './product-manager';
 import { TaxManager } from './tax-manager';
+import { QuoteBrandingPanel } from './quote-branding-panel';
 import { SettingsPanelHead } from './settings-panel-head';
 
 /**
@@ -21,6 +22,7 @@ export function BillingPanel() {
       <SettingsPanelHead title={t('title')} description={t('description')} />
       <ProductManager />
       <TaxManager />
+      <QuoteBrandingPanel />
     </section>
   );
 }

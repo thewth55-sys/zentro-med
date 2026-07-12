@@ -109,6 +109,9 @@ export interface AccountContext {
     trialEndsAt: string;
     includedSeats: number;
     stripeCustomerId: string | null;
+    logoUrl: string | null;
+    quoteTerms: string | null;
+    quoteAccentColor: string | null;
   };
 }
 
@@ -170,7 +173,9 @@ export async function getCurrentAccount(): Promise<AccountContext> {
   // RLS, so it stays robust against cache staleness and older schemas.
   const { data: account, error: accountErr } = await supabase
     .from("accounts")
-    .select("id, name, plan, subscription_status, trial_ends_at, included_seats, stripe_customer_id")
+    .select(
+      "id, name, plan, subscription_status, trial_ends_at, included_seats, stripe_customer_id, logo_url, quote_terms, quote_accent_color",
+    )
     .eq("id", data.account_id)
     .maybeSingle();
 
@@ -197,6 +202,9 @@ export async function getCurrentAccount(): Promise<AccountContext> {
       trialEndsAt: account.trial_ends_at,
       includedSeats: account.included_seats,
       stripeCustomerId: account.stripe_customer_id,
+      logoUrl: account.logo_url,
+      quoteTerms: account.quote_terms,
+      quoteAccentColor: account.quote_accent_color,
     },
   };
 }

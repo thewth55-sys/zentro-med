@@ -17,6 +17,7 @@ import { SECTION_META, type SettingsSection } from './settings-sections';
 import { SettingsChip, StatusDot } from './settings-chip';
 import { ROLE_META } from './role-meta';
 import { AccountNameEditor } from './account-name-editor';
+import { AccountLogoUploader } from './account-logo-uploader';
 
 interface OverviewCounts {
   members: number | null;
@@ -40,6 +41,7 @@ export function SettingsOverview({
   const { user, profile, account, accountId, accountRole, defaultCurrency, canManageMembers, refreshProfile } =
     useAuth();
   const [accountName, setAccountName] = useState<string | null>(null);
+  const [logoUrl, setLogoUrl] = useState<string | null | undefined>(undefined);
   const { mode, theme } = useTheme();
   const t = useTranslations('Settings.overview');
   const tRoles = useTranslations('roles');
@@ -270,6 +272,19 @@ export function SettingsOverview({
                 }}
               />
             </div>
+          </div>
+          <div className="shrink-0 border-l border-border pl-4">
+            <div className="mb-1 text-xs font-medium tracking-wide text-muted-foreground uppercase">
+              Logo de marca
+            </div>
+            <AccountLogoUploader
+              logoUrl={logoUrl === undefined ? account.logo_url : logoUrl}
+              editable={canManageMembers}
+              onSaved={(url) => {
+                setLogoUrl(url);
+                refreshProfile();
+              }}
+            />
           </div>
         </Card>
       ) : null}

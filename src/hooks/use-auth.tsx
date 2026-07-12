@@ -50,6 +50,11 @@ interface AccountSummary {
   trial_ends_at: string;
   included_seats: number;
   stripe_customer_id: string | null;
+  /** White-labels the sidebar app mark for this account's own users
+   *  when set — see 043_account_branding.sql. Also the quote-PDF header. */
+  logo_url: string | null;
+  quote_terms: string | null;
+  quote_accent_color: string | null;
 }
 
 interface AuthContextValue {
@@ -178,7 +183,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             .from("accounts")
             // default_currency added in migration 021; narrowed to the
             // USD fallback below for older schemas where it reads null.
-            .select("id, name, default_currency, plan, subscription_status, trial_ends_at, included_seats, stripe_customer_id")
+            .select(
+              "id, name, default_currency, plan, subscription_status, trial_ends_at, included_seats, stripe_customer_id, logo_url, quote_terms, quote_accent_color",
+            )
             .eq("id", data.account_id)
             .maybeSingle();
           if (accountErr) {
@@ -198,6 +205,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               trial_ends_at: account.trial_ends_at,
               included_seats: account.included_seats,
               stripe_customer_id: account.stripe_customer_id,
+              logo_url: account.logo_url,
+              quote_terms: account.quote_terms,
+              quote_accent_color: account.quote_accent_color,
             };
           }
         }
