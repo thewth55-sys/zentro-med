@@ -132,6 +132,15 @@ export function AppointmentEditorDialog({
           );
           if (hasConflict(others, { start_at: startIso, end_at: endIso })) {
             setConflictWarning(tAppt("conflictRoom"));
+            return;
+          }
+        }
+        if (dId) {
+          const params = new URLSearchParams({ doctor_id: dId, from: startIso, to: endIso });
+          const res = await fetch(`/api/google-calendar/freebusy?${params.toString()}`);
+          const data = await res.json().catch(() => null);
+          if (data?.busy) {
+            setConflictWarning(tAppt("conflictGoogleCalendar"));
           }
         }
       } catch (err) {

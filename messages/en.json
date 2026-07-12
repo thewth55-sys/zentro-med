@@ -738,7 +738,8 @@
       "created": "Appointment created",
       "updated": "Appointment updated",
       "cancelled": "Appointment cancelled",
-      "saveFailed": "Failed to save appointment"
+      "saveFailed": "Failed to save appointment",
+      "conflictGoogleCalendar": "The doctor already has a Google Calendar event at that time."
     }
   },
   "Agenda": {

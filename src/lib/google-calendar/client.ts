@@ -2,24 +2,36 @@
 // Google Calendar — plain fetch REST client, no `googleapis` SDK.
 // Mirrors the style of lib/whatsapp/meta-api.ts (single fetch per
 // call, throws on non-2xx) rather than pulling in Google's official
-// Node client, which drags in most of their API surface for the ~6
+// Node client, which drags in most of their API surface for the ~7
 // endpoints (auth code exchange, token refresh, events.insert/patch/
-// delete) this integration actually needs.
+// delete, freeBusy.query) this integration actually needs.
 //
-// One-way sync only (Zentro Med → Google Calendar) — Phase C per the
-// scheduling module's original design (037_clinic_scheduling_core.sql).
-// Each doctor connects THEIR OWN calendar; there is no read-back path,
-// so an edit made directly in Google never flows back into Zentro Med.
+// Sync direction: Zentro Med → Google Calendar is one-way (create/
+// update/delete events on each connected calendar) — an edit made
+// directly in Google never flows back as a Zentro Med appointment.
+// The ONE read-back exception is getFreeBusy(): it checks whether a
+// connected doctor already has something on their Google Calendar at
+// a candidate appointment time, to warn staff before double-booking.
+// It never reads event details and never creates a Zentro Med record
+// from what it finds — see appointment-editor-dialog.tsx.
 // ============================================================
 
 const OAUTH_AUTHORIZE_URL = "https://accounts.google.com/o/oauth2/v2/auth";
 const OAUTH_TOKEN_URL = "https://oauth2.googleapis.com/token";
 const CALENDAR_API_BASE = "https://www.googleapis.com/calendar/v3";
 
-// `calendar.events` (not the broader `calendar`) — create/read/update/
-// delete events only, no access to calendar settings or the ability
-// to list/modify OTHER calendars the doctor owns.
-const SCOPE = "https://www.googleapis.com/auth/calendar.events";
+// `calendar.events` — create/read/update/delete events. `calendar.freebusy`
+// — see busy/free time only, no event details, no access to calendar
+// settings or other calendars the doctor owns. Deliberately NOT the
+// broader `calendar`/`calendar.readonly` scopes, which would also expose
+// event titles/attendees/descriptions this app has no use for.
+//
+// Note: an already-connected profile's refresh token only carries the
+// scope(s) granted at connect time. Accounts that connected before
+// calendar.freebusy was added here will get a silent "not busy" result
+// from getFreeBusy (see the try/catch in the freebusy API route) until
+// they disconnect and reconnect.
+const SCOPE = "https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/calendar.freebusy";
 
 function getEnv(name: string): string {
   const value = process.env[name];
@@ -183,4 +195,45 @@ export async function deleteCalendarEvent(
     const data = await res.json().catch(() => ({}));
     throw new Error(`Google Calendar event delete failed: ${data.error?.message || res.status}`);
   }
+}
+
+export interface BusyPeriod {
+  start: string;
+  end: string;
+}
+
+/**
+ * freeBusy.query — the one read-back call this integration makes.
+ * Returns the busy intervals for `calendarId` within [timeMin,
+ * timeMax), with no event details (titles/attendees/descriptions
+ * aren't in the response at all, so there's nothing sensitive to
+ * accidentally surface in the Zentro Med UI).
+ */
+export async function getFreeBusy(
+  accessToken: string,
+  calendarId: string,
+  timeMin: string,
+  timeMax: string,
+): Promise<BusyPeriod[]> {
+  const res = await fetch(`${CALENDAR_API_BASE}/freeBusy`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      timeMin,
+      timeMax,
+      items: [{ id: calendarId }],
+    }),
+  });
+  const data = await res.json();
+  if (!res.ok) {
+    throw new Error(`Google Calendar freeBusy failed: ${data.error?.message || res.status}`);
+  }
+  const calendarResult = data.calendars?.[calendarId];
+  if (calendarResult?.errors?.length) {
+    throw new Error(`Google Calendar freeBusy failed: ${calendarResult.errors[0].reason}`);
+  }
+  return (calendarResult?.busy ?? []) as BusyPeriod[];
 }
