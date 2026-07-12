@@ -1761,12 +1761,15 @@
       "appearance": "Apariencia",
       "whatsapp": "WhatsApp",
       "templates": "Plantillas",
+      "quick-replies": "Respuestas rápidas",
       "fields": "Campos y etiquetas",
       "deals": "Negocios y moneda",
       "members": "Miembros del equipo",
       "api": "Claves de API",
       "conversions": "Conversiones",
-      "scheduling": "Agendamiento"
+      "scheduling": "Agendamiento",
+      "billing": "Facturación",
+      "billing-platform": "Suscripción"
     },
     "groups": {
       "account": "Cuenta",
