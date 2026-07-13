@@ -177,6 +177,18 @@ export default withSentryConfig(withNextIntl(nextConfig), {
   org: process.env.SENTRY_ORG,
   project: process.env.SENTRY_PROJECT,
   authToken: process.env.SENTRY_AUTH_TOKEN,
+  // This VPS's build container is memory-constrained enough that even
+  // WITHOUT an auth token (upload skipped), the plugin's source-map
+  // *generation* work alone was enough added memory pressure to get
+  // the build SIGKILLed — raising --max-old-space-size twice did not
+  // fix it, which points at total container memory (off-heap + V8
+  // heap together), not just V8's own heap ceiling. Explicitly
+  // disabling sourcemap generation removes that work entirely rather
+  // than relying on authToken's absence to (apparently insufficiently)
+  // skip it. Costs unminified stack traces in the Sentry UI; revisit
+  // once this host's actual memory ceiling is known, or once builds
+  // move to a less constrained box.
+  sourcemaps: { disable: true },
   // Avoids proxying Sentry's own telemetry ingest through this app's
   // own domain — no ad-blocker-evasion tunnel needed for an internal
   // clinic CRM, and it would add a permanent extra route.
