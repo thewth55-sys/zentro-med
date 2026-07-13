@@ -155,19 +155,26 @@ function LoginPageInner() {
             </Button>
           </form>
 
-          <p className="mt-6 text-center text-sm text-muted-foreground">
-            {t('noAccount')}{" "}
-            <Link
-              href={
-                inviteToken
-                  ? `/signup?invite=${encodeURIComponent(inviteToken)}`
-                  : "/signup"
-              }
-              className="text-primary hover:text-primary/80"
-            >
-              {t('createAccount')}
-            </Link>
-          </p>
+          {/* Public self-signup is deliberately not advertised here —
+              new accounts are meant to come from the marketing
+              landing page, not be self-discoverable from /login. The
+              one exception is a teammate accepting an invite: if they
+              land here via /join/<token> without an account yet, they
+              still need a way to create one with the invite attached,
+              so this stays visible only when an invite token is
+              present. /signup itself is unchanged and still reachable
+              directly (that's what the landing page links to). */}
+          {inviteToken && (
+            <p className="mt-6 text-center text-sm text-muted-foreground">
+              {t('noAccount')}{" "}
+              <Link
+                href={`/signup?invite=${encodeURIComponent(inviteToken)}`}
+                className="text-primary hover:text-primary/80"
+              >
+                {t('createAccount')}
+              </Link>
+            </p>
+          )}
         </CardContent>
       </Card>
     </div>
