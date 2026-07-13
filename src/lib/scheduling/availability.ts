@@ -47,3 +47,61 @@ export function unionRanges(ranges: TimeRange[]): TimeRange[] {
   }
   return merged;
 }
+
+/**
+ * Subtracts `busy` ranges from `base` ranges, returning the leftover
+ * free sub-ranges. Used by the public booking widget to turn a
+ * doctor's declared availability blocks into actual bookable slots
+ * once existing appointments and Google Calendar busy time are
+ * removed. `busy` is unioned first so overlapping busy ranges don't
+ * produce spurious tiny gaps between them.
+ */
+export function subtractRanges(base: TimeRange[], busy: TimeRange[]): TimeRange[] {
+  if (base.length === 0) return [];
+  const mergedBusy = unionRanges(busy);
+  if (mergedBusy.length === 0) return base.map((r) => ({ ...r }));
+
+  const result: TimeRange[] = [];
+  for (const range of base) {
+    let cursor = new Date(range.start_at);
+    const rangeEnd = new Date(range.end_at);
+    for (const b of mergedBusy) {
+      const busyStart = new Date(b.start_at);
+      const busyEnd = new Date(b.end_at);
+      if (busyEnd <= cursor || busyStart >= rangeEnd) continue;
+      if (busyStart > cursor) {
+        result.push({ start_at: cursor.toISOString(), end_at: busyStart.toISOString() });
+      }
+      if (busyEnd > cursor) cursor = busyEnd;
+      if (cursor >= rangeEnd) break;
+    }
+    if (cursor < rangeEnd) {
+      result.push({ start_at: cursor.toISOString(), end_at: rangeEnd.toISOString() });
+    }
+  }
+  return result;
+}
+
+/**
+ * Chops free ranges into discrete `slotMinutes`-long bookable slots,
+ * aligned to each range's own start (not wall-clock boundaries) —
+ * simplest correct behavior given availability blocks are declared
+ * by doctors themselves, not derived from fixed business hours.
+ * Partial trailing slots (shorter than `slotMinutes`) are dropped.
+ */
+export function chunkIntoSlots(free: TimeRange[], slotMinutes: number): TimeRange[] {
+  const slotMs = slotMinutes * 60_000;
+  const slots: TimeRange[] = [];
+  for (const range of free) {
+    let cursor = new Date(range.start_at).getTime();
+    const end = new Date(range.end_at).getTime();
+    while (cursor + slotMs <= end) {
+      slots.push({
+        start_at: new Date(cursor).toISOString(),
+        end_at: new Date(cursor + slotMs).toISOString(),
+      });
+      cursor += slotMs;
+    }
+  }
+  return slots;
+}

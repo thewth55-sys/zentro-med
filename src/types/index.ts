@@ -69,6 +69,9 @@ export interface Account {
   name: string;
   /** auth.users.id of the immutable owner. */
   owner_user_id: string;
+  /** URL segment for the public booking page (/agendar/[slug]). Null = not published. */
+  public_booking_slug?: string | null;
+  public_booking_enabled?: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -446,7 +449,7 @@ export interface DoctorAvailabilityBlock {
 }
 
 export type AppointmentStatus = 'pending' | 'confirmed' | 'completed' | 'cancelled' | 'no_show';
-export type AppointmentSource = 'cal_com' | 'manual';
+export type AppointmentSource = 'cal_com' | 'manual' | 'public_booking';
 
 export interface Appointment {
   id: string;

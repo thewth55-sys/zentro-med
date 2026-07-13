@@ -2158,6 +2158,20 @@
         "save": "Guardar",
         "updated": "Consultorio actualizado"
       },
+      "publicBooking": {
+        "title": "Agenda de citas online",
+        "description": "Publica una página pública donde tus pacientes pueden agendar cita sin llamar.",
+        "enableLabel": "Publicar página de agendamiento",
+        "enableHint": "Cuando está apagado, la página muestra \"no encontrado\".",
+        "slugLabel": "Dirección de tu página",
+        "slugRequired": "Escribe una dirección para tu página.",
+        "slugTaken": "Esa dirección ya está en uso, prueba otra.",
+        "saveError": "No se pudo guardar. Intenta de nuevo.",
+        "saved": "Guardado",
+        "linkCopied": "Enlace copiado",
+        "save": "Guardar",
+        "saving": "Guardando..."
+      },
       "serviceTypes": {
         "title": "Tipos de tratamiento",
         "description": "Servicios para los que se puede agendar a un paciente, con una duración estimada.",
