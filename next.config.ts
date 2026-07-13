@@ -62,9 +62,9 @@ const SECURITY_HEADERS = [
       // Meta's JS SDK, loaded only on Settings → WhatsApp when
       // NEXT_PUBLIC_META_APP_ID is set (WhatsApp Embedded Signup —
       // see whatsapp-embedded-signup-button.tsx).
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://challenges.cloudflare.com https://*.zoho.com https://*.zohostatic.com https://connect.facebook.net",
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://challenges.cloudflare.com https://*.zoho.com https://*.zohostatic.com https://*.zohopublic.com https://connect.facebook.net",
       // Tailwind + inline style attributes on lots of components.
-      "style-src 'self' 'unsafe-inline' https://*.zohostatic.com",
+      "style-src 'self' 'unsafe-inline' https://*.zohostatic.com https://*.zohopublic.com",
       // Supabase public-bucket avatars, contact avatars (arbitrary
       // https URLs paste-able from the UI), OG images, data URLs for
       // tiny inline assets.
@@ -72,7 +72,7 @@ const SECURITY_HEADERS = [
       // Outbound media previews (blob: from MediaRecorder + file picker)
       // and Supabase public-bucket audio/video the inbox renders.
       "media-src 'self' blob: https://*.supabase.co",
-      "font-src 'self' data: https://*.zohostatic.com",
+      "font-src 'self' data: https://*.zohostatic.com https://*.zohopublic.com",
       // Supabase REST + realtime (WSS). All Graph API calls (sending
       // messages, registering numbers, etc.) happen server-side, so
       // graph.facebook.com does not belong here — connect.facebook.net
@@ -86,7 +86,7 @@ const SECURITY_HEADERS = [
       // once NEXT_PUBLIC_SENTRY_DSN is set, but allowlisted
       // unconditionally so turning it on later doesn't also require
       // remembering to touch the CSP.
-      "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://www.googletagmanager.com https://www.google.com https://googleads.g.doubleclick.net https://challenges.cloudflare.com https://*.zoho.com wss://*.zoho.com https://*.sentry.io https://*.ingest.sentry.io https://*.ingest.us.sentry.io https://*.ingest.de.sentry.io https://connect.facebook.net https://www.facebook.com https://graph.facebook.com",
+      "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://www.googletagmanager.com https://www.google.com https://googleads.g.doubleclick.net https://challenges.cloudflare.com https://*.zoho.com wss://*.zoho.com https://*.zohopublic.com wss://*.zohopublic.com https://*.sentry.io https://*.ingest.sentry.io https://*.ingest.us.sentry.io https://*.ingest.de.sentry.io https://connect.facebook.net https://www.facebook.com https://graph.facebook.com",
       // Turnstile renders its interactive challenge inside an iframe
       // from this origin when it can't pass invisibly; Zoho Desk's
       // chat panel is also an iframe; WhatsApp Embedded Signup opens
