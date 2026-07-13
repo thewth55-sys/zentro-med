@@ -72,14 +72,22 @@ ENV SENTRY_AUTH_TOKEN=$SENTRY_AUTH_TOKEN
 # Caps V8's heap during `next build`'s TypeScript-checking step.
 # Without this, V8 tries to grow memory unbounded on a constrained
 # host; the kernel OOM-kills the process with NO error output at all
-# (the build just stops dead after "Running TypeScript ..."), which
-# is exactly what happened on this VPS starting with the batch of
-# work that pushed the codebase's type-checking memory footprint over
-# the container's actual limit. An explicit, lower heap cap makes V8
-# garbage-collect more aggressively instead of getting killed.
-# Override via the NODE_BUILD_MEMORY_MB build arg if this host has
-# more RAM available and 1536 turns out to be too conservative.
-ARG NODE_BUILD_MEMORY_MB=1536
+# (the build just stops dead after "Running TypeScript ..." or
+# "Creating an optimized production build ..." — same signature, just
+# a slightly different point in the pipeline depending on what's
+# heaviest that build), which is exactly what happened on this VPS
+# starting with the batch of work that pushed the codebase's build
+# memory footprint over the container's actual limit. An explicit,
+# lower heap cap makes V8 garbage-collect more aggressively instead of
+# getting killed. Raised from 1536 to 2048 once Sentry's webpack
+# plugin (source map processing, instrumentation wrapping) added
+# enough extra build-time memory pressure to reproduce the same
+# symptom again. Override via the NODE_BUILD_MEMORY_MB build arg —
+# this host reportedly has 4GB total, so 2048 still leaves headroom
+# for everything else running alongside the build; push higher only
+# if the host's actual free memory (not just its total) is confirmed
+# comfortably above that.
+ARG NODE_BUILD_MEMORY_MB=2048
 ENV NODE_OPTIONS=--max-old-space-size=${NODE_BUILD_MEMORY_MB}
 
 # Build the project
