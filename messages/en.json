@@ -131,12 +131,17 @@
       "description": "Live analytics across conversations, patients, deals, broadcasts, and automations.",
       "activeConversations": "Active Conversations",
       "newContactsToday": "New Patients Today",
-      "openDealsValue": "Open Deals Value",
-      "messagesSentToday": "Messages Sent Today",
       "newTodayVsYesterday": "new today vs yesterday",
       "vsYesterday": "vs yesterday",
-      "openDeals": "{count} open {count, plural, =1 {deal} other {deals}}",
-      "noChange": "No change {suffix}"
+      "noChange": "No change {suffix}",
+      "conversionRate": "Conversion Rate",
+      "conversionPtsSuffix": "pts vs previous period",
+      "revenueCollected": "Revenue Collected",
+      "revenueCollectedSubtitle": "{ratio}% of {quoted} quoted",
+      "noShowRate": "No-shows & Cancellations",
+      "noShowSubtitle": "{value}% previous period",
+      "newPatients": "New vs. Returning Patients",
+      "newPatientsSubtitle": "{newCount} new · {returningCount} returning"
     },
     "quickActions": {
       "newContact": "New Patient",

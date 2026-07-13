@@ -29,9 +29,21 @@ type DB = SupabaseClient
 
 // --- 1. Metric cards ---------------------------------------------------
 
+/** Rounds a fraction to a one-decimal percent; 0 when the denominator is 0. */
+function pct(numerator: number, denominator: number): number {
+  if (denominator === 0) return 0
+  return Math.round((numerator / denominator) * 1000) / 10
+}
+
 export async function loadMetrics(db: DB): Promise<MetricsBundle> {
   const todayStart = startOfLocalDay().toISOString()
   const yesterdayStart = daysAgoStart(1).toISOString()
+  // Rolling 30-day windows for the medical KPIs below — a daily window
+  // gives too few samples (conversion/no-show/new-vs-returning are all
+  // low-volume events for a single clinic), so these compare "last 30
+  // days" against the 30 days before that instead of today vs yesterday.
+  const period30Start = daysAgoStart(29).toISOString()
+  const period60Start = daysAgoStart(59).toISOString()
 
   const [
     openConvCur,
@@ -39,9 +51,14 @@ export async function loadMetrics(db: DB): Promise<MetricsBundle> {
     newConvYesterday,
     newContactsToday,
     newContactsYesterday,
-    openDeals,
-    messagesToday,
-    messagesYesterday,
+    closedDealsCurrent,
+    closedDealsPrevious,
+    paymentsCurrent,
+    paymentsPrevious,
+    quotesCurrent,
+    quotesPrevious,
+    apptsCurrentRes,
+    apptsPreviousRes,
   ] = await Promise.all([
     db.from('conversations').select('id', { count: 'exact', head: true }).eq('status', 'open'),
     db
@@ -61,22 +78,81 @@ export async function loadMetrics(db: DB): Promise<MetricsBundle> {
       .select('id', { count: 'exact', head: true })
       .gte('created_at', yesterdayStart)
       .lt('created_at', todayStart),
-    db.from('deals').select('value, status').eq('status', 'open'),
+    // Conversion rate: won / (won + lost) among deals closed in the window.
+    db.from('deals').select('status').in('status', ['won', 'lost']).gte('updated_at', period30Start),
     db
-      .from('messages')
-      .select('id', { count: 'exact', head: true })
-      .eq('sender_type', 'agent')
-      .gte('created_at', todayStart),
+      .from('deals')
+      .select('status')
+      .in('status', ['won', 'lost'])
+      .gte('updated_at', period60Start)
+      .lt('updated_at', period30Start),
+    // Revenue collected vs quoted: actual payments vs quotes issued.
+    db.from('payments').select('amount').gte('paid_at', period30Start),
+    db.from('payments').select('amount').gte('paid_at', period60Start).lt('paid_at', period30Start),
+    db.from('quotes').select('total').gte('issue_date', period30Start),
+    db.from('quotes').select('total').gte('issue_date', period60Start).lt('issue_date', period30Start),
+    // No-show/cancellation rate + new-vs-returning patients both derive
+    // from the same appointment window, so fetch it once per period.
+    db.from('appointments').select('contact_id, status, start_at').gte('start_at', period30Start),
     db
-      .from('messages')
-      .select('id', { count: 'exact', head: true })
-      .eq('sender_type', 'agent')
-      .gte('created_at', yesterdayStart)
-      .lt('created_at', todayStart),
+      .from('appointments')
+      .select('contact_id, status, start_at')
+      .gte('start_at', period60Start)
+      .lt('start_at', period30Start),
   ])
 
-  const openDealsRows = (openDeals.data ?? []) as { value: number | null }[]
-  const openDealsValue = openDealsRows.reduce((sum, d) => sum + (d.value ?? 0), 0)
+  const closedCur = (closedDealsCurrent.data ?? []) as { status: string }[]
+  const closedPrev = (closedDealsPrevious.data ?? []) as { status: string }[]
+  const conversionRate: MetricsBundle['conversionRate'] = {
+    current: pct(closedCur.filter((d) => d.status === 'won').length, closedCur.length),
+    previous: pct(closedPrev.filter((d) => d.status === 'won').length, closedPrev.length),
+  }
+
+  const collectedCur = ((paymentsCurrent.data ?? []) as { amount: number }[]).reduce(
+    (sum, p) => sum + p.amount,
+    0,
+  )
+  const collectedPrev = ((paymentsPrevious.data ?? []) as { amount: number }[]).reduce(
+    (sum, p) => sum + p.amount,
+    0,
+  )
+  const quotedCur = ((quotesCurrent.data ?? []) as { total: number }[]).reduce(
+    (sum, q) => sum + q.total,
+    0,
+  )
+  const quotedPrev = ((quotesPrevious.data ?? []) as { total: number }[]).reduce(
+    (sum, q) => sum + q.total,
+    0,
+  )
+  const revenueCollectedRatio: MetricsBundle['revenueCollectedRatio'] = {
+    current: quotedCur === 0 ? (collectedCur > 0 ? 100 : 0) : pct(collectedCur, quotedCur),
+    previous: quotedPrev === 0 ? (collectedPrev > 0 ? 100 : 0) : pct(collectedPrev, quotedPrev),
+  }
+
+  const apptsCur = (apptsCurrentRes.data ?? []) as {
+    contact_id: string | null
+    status: string
+    start_at: string
+  }[]
+  const apptsPrev = (apptsPreviousRes.data ?? []) as {
+    contact_id: string | null
+    status: string
+    start_at: string
+  }[]
+  const isNoShow = (a: { status: string }) => a.status === 'cancelled' || a.status === 'no_show'
+  const noShowRate: MetricsBundle['noShowRate'] = {
+    current: pct(apptsCur.filter(isNoShow).length, apptsCur.length),
+    previous: pct(apptsPrev.filter(isNoShow).length, apptsPrev.length),
+  }
+
+  // New vs returning: for every distinct patient seen in a window, check
+  // whether they had any appointment before that window started. Two
+  // small follow-up queries (one per window) since this depends on the
+  // contact IDs the window above just returned.
+  const [newPatientsCur, newPatientsPrev] = await Promise.all([
+    countNewPatients(db, apptsCur, period30Start),
+    countNewPatients(db, apptsPrev, period60Start),
+  ])
 
   return {
     activeConversations: {
@@ -90,13 +166,41 @@ export async function loadMetrics(db: DB): Promise<MetricsBundle> {
       current: newContactsToday.count ?? 0,
       previous: newContactsYesterday.count ?? 0,
     },
-    openDealsValue,
-    openDealsCount: openDealsRows.length,
-    messagesSentToday: {
-      current: messagesToday.count ?? 0,
-      previous: messagesYesterday.count ?? 0,
+    conversionRate,
+    revenueCollectedRatio,
+    revenueCollectedAmount: collectedCur,
+    revenueQuotedAmount: quotedCur,
+    noShowRate,
+    newPatientsRatio: {
+      current: pct(newPatientsCur.newCount, newPatientsCur.distinctCount),
+      previous: pct(newPatientsPrev.newCount, newPatientsPrev.distinctCount),
     },
+    newPatientsCount: newPatientsCur.newCount,
+    returningPatientsCount: newPatientsCur.distinctCount - newPatientsCur.newCount,
   }
+}
+
+async function countNewPatients(
+  db: DB,
+  appts: { contact_id: string | null }[],
+  windowStart: string,
+): Promise<{ distinctCount: number; newCount: number }> {
+  const contactIds = Array.from(
+    new Set(appts.map((a) => a.contact_id).filter((id): id is string => !!id)),
+  )
+  if (contactIds.length === 0) return { distinctCount: 0, newCount: 0 }
+
+  const { data } = await db
+    .from('appointments')
+    .select('contact_id')
+    .in('contact_id', contactIds)
+    .lt('start_at', windowStart)
+
+  const withPriorHistory = new Set(
+    ((data ?? []) as { contact_id: string | null }[]).map((r) => r.contact_id),
+  )
+  const newCount = contactIds.filter((id) => !withPriorHistory.has(id)).length
+  return { distinctCount: contactIds.length, newCount }
 }
 
 // --- 2. Conversations over time ---------------------------------------

@@ -7,8 +7,10 @@ import { formatCurrency } from '@/lib/currency'
 import {
   MessageSquare,
   UserPlus,
-  DollarSign,
-  Send,
+  TrendingUp,
+  Receipt,
+  CalendarX,
+  Users,
 } from 'lucide-react'
 
 import {
@@ -132,9 +134,9 @@ export default function DashboardPage() {
       </div>
 
       {/* Metric cards */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {metricsLoading || !metrics ? (
-          Array.from({ length: 4 }).map((_, i) => <SkeletonCard key={i} />)
+          Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} />)
         ) : (
           <>
             <MetricCard
@@ -165,24 +167,41 @@ export default function DashboardPage() {
               }}
             />
             <MetricCard
-              title={t('openDealsValue')}
-              value={formatCurrency(metrics.openDealsValue, defaultCurrency)}
-              icon={DollarSign}
-              subtitle={t('openDeals', { count: metrics.openDealsCount })}
-            />
-            <MetricCard
-              title={t('messagesSentToday')}
-              value={metrics.messagesSentToday.current.toLocaleString()}
-              icon={Send}
+              title={t('conversionRate')}
+              value={`${metrics.conversionRate.current}%`}
+              icon={TrendingUp}
               delta={{
-                sign:
-                  metrics.messagesSentToday.current - metrics.messagesSentToday.previous,
+                sign: metrics.conversionRate.current - metrics.conversionRate.previous,
                 label: deltaLabel(
-                  metrics.messagesSentToday.current - metrics.messagesSentToday.previous,
-                  t('vsYesterday'),
-                  t('noChange', { suffix: t('vsYesterday') })
+                  metrics.conversionRate.current - metrics.conversionRate.previous,
+                  t('conversionPtsSuffix'),
+                  t('noChange', { suffix: t('conversionPtsSuffix') })
                 ),
               }}
+            />
+            <MetricCard
+              title={t('revenueCollected')}
+              value={`${metrics.revenueCollectedRatio.current}%`}
+              icon={Receipt}
+              subtitle={t('revenueCollectedSubtitle', {
+                ratio: metrics.revenueCollectedRatio.current,
+                quoted: formatCurrency(metrics.revenueQuotedAmount, defaultCurrency),
+              })}
+            />
+            <MetricCard
+              title={t('noShowRate')}
+              value={`${metrics.noShowRate.current}%`}
+              icon={CalendarX}
+              subtitle={t('noShowSubtitle', { value: metrics.noShowRate.previous })}
+            />
+            <MetricCard
+              title={t('newPatients')}
+              value={`${metrics.newPatientsRatio.current}%`}
+              icon={Users}
+              subtitle={t('newPatientsSubtitle', {
+                newCount: metrics.newPatientsCount,
+                returningCount: metrics.returningPatientsCount,
+              })}
             />
           </>
         )}

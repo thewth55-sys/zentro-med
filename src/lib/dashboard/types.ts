@@ -10,9 +10,20 @@ export interface MetricDelta {
 export interface MetricsBundle {
   activeConversations: MetricDelta
   newContactsToday: MetricDelta
-  openDealsValue: number
-  openDealsCount: number
-  messagesSentToday: MetricDelta
+  /** Won / (won + lost) deals closed in the last 30 days, as a percent. */
+  conversionRate: MetricDelta
+  /** Payments collected / quotes issued in the last 30 days, as a percent. */
+  revenueCollectedRatio: MetricDelta
+  /** Raw amount collected in the current 30-day window (subtitle context). */
+  revenueCollectedAmount: number
+  /** Raw amount quoted in the current 30-day window (subtitle context). */
+  revenueQuotedAmount: number
+  /** cancelled + no_show / total appointments in the last 30 days, as a percent. */
+  noShowRate: MetricDelta
+  /** Share of distinct patients seen in the last 30 days with no prior appointment. */
+  newPatientsRatio: MetricDelta
+  newPatientsCount: number
+  returningPatientsCount: number
 }
 
 export interface ConversationsSeriesPoint {

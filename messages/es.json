@@ -131,12 +131,17 @@
       "description": "Analítica en vivo de conversaciones, pacientes, negocios, difusiones y automatizaciones.",
       "activeConversations": "Conversaciones activas",
       "newContactsToday": "Pacientes nuevos hoy",
-      "openDealsValue": "Valor de negocios abiertos",
-      "messagesSentToday": "Mensajes enviados hoy",
       "newTodayVsYesterday": "nuevos hoy vs. ayer",
       "vsYesterday": "vs. ayer",
-      "openDeals": "{count} {count, plural, =1 {negocio abierto} other {negocios abiertos}}",
-      "noChange": "Sin cambios {suffix}"
+      "noChange": "Sin cambios {suffix}",
+      "conversionRate": "Tasa de conversión",
+      "conversionPtsSuffix": "pts vs período anterior",
+      "revenueCollected": "Ingresos cobrados",
+      "revenueCollectedSubtitle": "{ratio}% de {quoted} cotizado",
+      "noShowRate": "Inasistencias y cancelaciones",
+      "noShowSubtitle": "{value}% período anterior",
+      "newPatients": "Pacientes nuevos vs. recurrentes",
+      "newPatientsSubtitle": "{newCount} nuevos · {returningCount} recurrentes"
     },
     "quickActions": {
       "newContact": "Nuevo paciente",
