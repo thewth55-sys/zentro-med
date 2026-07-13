@@ -178,6 +178,82 @@ export async function subscribeWabaToApp(
   }
 }
 
+export interface ExchangeEmbeddedSignupCodeArgs {
+  /** Authorization code the WhatsApp Embedded Signup JS SDK hands back after the customer completes the popup. */
+  code: string
+}
+
+/**
+ * Exchange the Embedded Signup authorization `code` for an access
+ * token. Meta's Facebook-Login-for-Business flow (which Embedded
+ * Signup rides on) returns a token that's already suitable for the
+ * Cloud API calls below (register / subscribeWabaToApp) — unlike a
+ * plain consumer Facebook Login, there's no separate "exchange for a
+ * long-lived token" step documented for this specific flow. If Meta's
+ * behavior differs for a given app configuration, the token this
+ * returns can be swapped for a long-lived one before storage the same
+ * way any other manually-pasted System User token is validated today
+ * (verifyPhoneNumber against it).
+ */
+export async function exchangeEmbeddedSignupCode(
+  args: ExchangeEmbeddedSignupCodeArgs
+): Promise<{ accessToken: string }> {
+  const appId = process.env.META_APP_ID
+  const appSecret = process.env.META_APP_SECRET
+  if (!appId || !appSecret) {
+    throw new Error('META_APP_ID / META_APP_SECRET are not configured')
+  }
+
+  const url = new URL(`${META_API_BASE}/oauth/access_token`)
+  url.searchParams.set('client_id', appId)
+  url.searchParams.set('client_secret', appSecret)
+  url.searchParams.set('code', args.code)
+
+  const response = await fetch(url.toString())
+  if (!response.ok) {
+    await throwMetaError(response, `Meta OAuth exchange failed: ${response.status}`)
+  }
+  const data = (await response.json()) as { access_token?: string }
+  if (!data.access_token) {
+    throw new Error('Meta OAuth exchange returned no access_token')
+  }
+  return { accessToken: data.access_token }
+}
+
+export interface GetWabaPhoneNumbersArgs {
+  wabaId: string
+  accessToken: string
+}
+
+export interface WabaPhoneNumber {
+  id: string
+  display_phone_number: string
+  verified_name?: string
+}
+
+/**
+ * Lists the phone numbers under a WABA — used right after Embedded
+ * Signup when the frontend event only reliably hands back the
+ * `waba_id` (the `phone_number_id` field in that event is present in
+ * most flows but not guaranteed by every Meta SDK version), so the
+ * backend resolves the number itself from the token's own access
+ * rather than trusting a client-supplied id it can't otherwise verify.
+ */
+export async function getWabaPhoneNumbers(
+  args: GetWabaPhoneNumbersArgs
+): Promise<WabaPhoneNumber[]> {
+  const { wabaId, accessToken } = args
+  const url = `${META_API_BASE}/${wabaId}/phone_numbers?fields=id,display_phone_number,verified_name`
+  const response = await fetch(url, {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  })
+  if (!response.ok) {
+    await throwMetaError(response, `Meta API error: ${response.status}`)
+  }
+  const data = (await response.json()) as { data?: WabaPhoneNumber[] }
+  return data.data ?? []
+}
+
 export interface GetSubscribedAppsArgs {
   wabaId: string
   accessToken: string

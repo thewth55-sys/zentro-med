@@ -1832,7 +1832,14 @@
       "step4_3": "Paste the <strong class=\"text-foreground\">Webhook Callback URL</strong> from above",
       "step4_4": "Enter the same <strong class=\"text-foreground\">Verify Token</strong> you set here",
       "step4_5": "Subscribe to \"messages\" webhook field",
-      "metaDocs": "Meta WhatsApp API Documentation"
+      "metaDocs": "Meta WhatsApp API Documentation",
+      "embeddedSignupTitle": "Connect WhatsApp (recommended)",
+      "embeddedSignupDescription": "Connect your WhatsApp Business number directly through Meta — no tokens or IDs to copy by hand.",
+      "embeddedSignupConnect": "Connect with Meta",
+      "embeddedSignupSuccess": "WhatsApp connected successfully",
+      "embeddedSignupFailed": "Could not complete the connection with Meta",
+      "embeddedSignupCanceled": "Connection canceled",
+      "embeddedSignupNoWaba": "Didn't receive the WhatsApp Business Account from Meta. Try again."
     },
     "sections": {
       "overview": "Overview",

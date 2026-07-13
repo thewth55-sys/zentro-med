@@ -1,15 +1,22 @@
 import type { NextConfig } from "next";
 import createNextIntlPlugin from "next-intl/plugin";
+import { withSentryConfig } from "@sentry/nextjs";
 
 const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
 
 /**
  * Baseline security headers applied to every response.
  *
- * CSP ships as `Content-Security-Policy-Report-Only` so the browser
- * surfaces violations in the console without blocking anything — once
- * we have confidence nothing legit trips it (two deploys, a pass on
- * every route), flip the key to `Content-Security-Policy` to enforce.
+ * CSP is enforced (not report-only) as of the production-readiness
+ * pass — audited every client-side external resource in the app
+ * first (no <iframe>, no client fetch() to external hosts, only two
+ * <Script> tags — theme-boot and the Zoho Desk widget — and Stripe
+ * Checkout/Portal are plain server-issued redirect URLs the browser
+ * navigates to, not an embedded Stripe.js/iframe, so they need
+ * nothing here). If a future integration trips this, the fix is
+ * either adding its host to the relevant directive below, or (for
+ * something to test broadly before enforcing) temporarily switching
+ * the header key back to `Content-Security-Policy-Report-Only`.
  *
  * The rest of the headers are straight blocks, safe to enforce today:
  *   - HSTS: only meaningful on HTTPS (no-op on http://localhost).
@@ -36,7 +43,7 @@ const SECURITY_HEADERS = [
     value: "camera=(), microphone=(self), geolocation=(), payment=(), usb=()",
   },
   {
-    key: "Content-Security-Policy-Report-Only",
+    key: "Content-Security-Policy",
     value: [
       "default-src 'self'",
       // Next.js needs 'unsafe-inline' for its inline hydration script
@@ -51,8 +58,11 @@ const SECURITY_HEADERS = [
       // zohostatic.com / zohopublic.com are the Zoho Desk support
       // chat widget (loaded on every page — see layout.tsx), covering
       // the whole family of subdomains it's known to reach for its
-      // static assets and chat backend.
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://challenges.cloudflare.com https://*.zoho.com https://*.zohostatic.com",
+      // static assets and chat backend. connect.facebook.net is
+      // Meta's JS SDK, loaded only on Settings → WhatsApp when
+      // NEXT_PUBLIC_META_APP_ID is set (WhatsApp Embedded Signup —
+      // see whatsapp-embedded-signup-button.tsx).
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://challenges.cloudflare.com https://*.zoho.com https://*.zohostatic.com https://connect.facebook.net",
       // Tailwind + inline style attributes on lots of components.
       "style-src 'self' 'unsafe-inline' https://*.zohostatic.com",
       // Supabase public-bucket avatars, contact avatars (arbitrary
@@ -63,16 +73,27 @@ const SECURITY_HEADERS = [
       // and Supabase public-bucket audio/video the inbox renders.
       "media-src 'self' blob: https://*.supabase.co",
       "font-src 'self' data: https://*.zohostatic.com",
-      // Supabase REST + realtime (WSS). All Meta API calls happen
-      // server-side, so graph.facebook.com does not belong here.
+      // Supabase REST + realtime (WSS). All Graph API calls (sending
+      // messages, registering numbers, etc.) happen server-side, so
+      // graph.facebook.com does not belong here — connect.facebook.net
+      // / www.facebook.com below are only the JS SDK's own bootstrap
+      // and login-status calls for Embedded Signup.
       // googletagmanager.com / google.com / doubleclick.net are the
       // Google Ads gtag conversion beacon (client-side, opt-in per
-      // account — see src/lib/conversions/gtag.ts).
-      "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://www.googletagmanager.com https://www.google.com https://googleads.g.doubleclick.net https://challenges.cloudflare.com https://*.zoho.com wss://*.zoho.com",
+      // account — see src/lib/conversions/gtag.ts). *.sentry.io /
+      // *.ingest.*.sentry.io is where the browser SDK (see
+      // src/instrumentation-client.ts) reports errors — only active
+      // once NEXT_PUBLIC_SENTRY_DSN is set, but allowlisted
+      // unconditionally so turning it on later doesn't also require
+      // remembering to touch the CSP.
+      "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://www.googletagmanager.com https://www.google.com https://googleads.g.doubleclick.net https://challenges.cloudflare.com https://*.zoho.com wss://*.zoho.com https://*.sentry.io https://*.ingest.sentry.io https://*.ingest.us.sentry.io https://*.ingest.de.sentry.io https://connect.facebook.net https://www.facebook.com https://graph.facebook.com",
       // Turnstile renders its interactive challenge inside an iframe
       // from this origin when it can't pass invisibly; Zoho Desk's
-      // chat panel is also an iframe.
-      "frame-src https://challenges.cloudflare.com https://*.zoho.com https://*.zohopublic.com",
+      // chat panel is also an iframe; WhatsApp Embedded Signup opens
+      // Meta's popup as a real window, not an iframe, but the JS SDK
+      // itself loads a small hidden iframe from facebook.com for
+      // login-status tracking.
+      "frame-src https://challenges.cloudflare.com https://*.zoho.com https://*.zohopublic.com https://www.facebook.com https://web.facebook.com",
       "frame-ancestors 'none'",
       "base-uri 'self'",
       "form-action 'self'",
@@ -146,4 +167,21 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default withNextIntl(nextConfig);
+export default withSentryConfig(withNextIntl(nextConfig), {
+  // Only matters for source-map upload (readable stack traces in the
+  // Sentry UI) — silently no-ops during `next build` when
+  // SENTRY_AUTH_TOKEN isn't set, so this is safe with zero Sentry
+  // configuration. Get an auth token + confirm org/project slugs from
+  // sentry.io → Settings → Auth Tokens once a project exists.
+  silent: true,
+  org: process.env.SENTRY_ORG,
+  project: process.env.SENTRY_PROJECT,
+  authToken: process.env.SENTRY_AUTH_TOKEN,
+  // Avoids proxying Sentry's own telemetry ingest through this app's
+  // own domain — no ad-blocker-evasion tunnel needed for an internal
+  // clinic CRM, and it would add a permanent extra route.
+  tunnelRoute: false,
+  webpack: {
+    treeshake: { removeDebugLogging: true },
+  },
+});
