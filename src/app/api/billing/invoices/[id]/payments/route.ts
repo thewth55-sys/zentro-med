@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 
 import { requireRole, toErrorResponse } from '@/lib/auth/account';
+import { notifyAccountTeam } from '@/lib/email/notify-team';
+import { fmtMoney } from '@/lib/billing/pdf-theme';
 
 const VALID_METHODS = ['cash', 'card', 'transfer', 'other'] as const;
 
@@ -54,7 +56,7 @@ export async function POST(
 
     const { data: invoice, error: invoiceError } = await supabase
       .from('invoices')
-      .select('id, status')
+      .select('id, status, invoice_number, currency, contact:contacts(name, phone)')
       .eq('id', id)
       .eq('account_id', accountId)
       .maybeSingle();
@@ -83,6 +85,14 @@ export async function POST(
       console.error('[payments POST] error:', error);
       return NextResponse.json({ error: 'Failed to record payment' }, { status: 500 });
     }
+
+    const contact = Array.isArray(invoice.contact) ? invoice.contact[0] : invoice.contact;
+    void notifyAccountTeam(supabase, {
+      accountId,
+      subject: `Pago recibido — Factura ${invoice.invoice_number}`,
+      heading: 'Pago recibido',
+      bodyHtml: `<p>Se registró un pago de <strong>${fmtMoney(amount, invoice.currency)}</strong> en la factura <strong>${invoice.invoice_number}</strong>${contact?.name ? ` de ${contact.name}` : ''}.</p>`,
+    });
 
     return NextResponse.json({ payment }, { status: 201 });
   } catch (err) {

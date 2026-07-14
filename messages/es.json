@@ -1227,6 +1227,9 @@
       "pdfFailed": "No se pudo generar el PDF",
       "whatsappSendSuccess": "Cotización enviada por WhatsApp",
       "whatsappSendFailed": "No se pudo enviar por WhatsApp",
+      "sendEmail": "Enviar por correo",
+      "emailSendSuccess": "Cotización enviada por correo",
+      "emailSendFailed": "No se pudo enviar por correo",
       "statusValues": {
         "draft": "Borrador",
         "sent": "Enviada",
@@ -1266,7 +1269,10 @@
       "sendWhatsapp": "Enviar por WhatsApp",
       "pdfFailed": "No se pudo generar el PDF",
       "whatsappSendSuccess": "Factura enviada por WhatsApp",
-      "whatsappSendFailed": "No se pudo enviar por WhatsApp"
+      "whatsappSendFailed": "No se pudo enviar por WhatsApp",
+      "sendEmail": "Enviar por correo",
+      "emailSendSuccess": "Factura enviada por correo",
+      "emailSendFailed": "No se pudo enviar por correo"
     },
     "payments": {
       "empty": "Aún no hay pagos registrados.",

@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { Loader2, Search, FileCheck2, Download, MessageCircle } from "lucide-react";
+import { Loader2, Search, FileCheck2, Download, MessageCircle, Mail } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 import { createClient } from "@/lib/supabase/client";
@@ -55,6 +55,7 @@ export function QuoteForm({ open, onOpenChange, quote, contactId, dealId, onSave
   const [converting, setConverting] = useState(false);
   const [downloadingPdf, setDownloadingPdf] = useState(false);
   const [sendingWhatsapp, setSendingWhatsapp] = useState(false);
+  const [sendingEmail, setSendingEmail] = useState(false);
 
   async function generateQuotePdf(): Promise<{ url: string; filename: string } | null> {
     if (!quote) return null;
@@ -101,6 +102,22 @@ export function QuoteForm({ open, onOpenChange, quote, contactId, dealId, onSave
       toast.success(t("whatsappSendSuccess"));
     } finally {
       setSendingWhatsapp(false);
+    }
+  }
+
+  async function handleSendEmail() {
+    if (!quote?.id) return;
+    setSendingEmail(true);
+    try {
+      const res = await fetch(`/api/billing/quotes/${quote.id}/send-email`, { method: "POST" });
+      const body = await res.json().catch(() => null);
+      if (!res.ok) {
+        toast.error(body?.error ?? t("emailSendFailed"));
+        return;
+      }
+      toast.success(t("emailSendSuccess"));
+    } finally {
+      setSendingEmail(false);
     }
   }
 
@@ -407,6 +424,23 @@ export function QuoteForm({ open, onOpenChange, quote, contactId, dealId, onSave
                         <MessageCircle className="size-3.5" />
                       )}
                       {t("sendWhatsapp")}
+                    </Button>
+                  )}
+                  {quote?.contact?.email && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={handleSendEmail}
+                      disabled={downloadingPdf || sendingWhatsapp || sendingEmail}
+                      className="border-border text-muted-foreground hover:bg-muted"
+                    >
+                      {sendingEmail ? (
+                        <Loader2 className="size-3.5 animate-spin" />
+                      ) : (
+                        <Mail className="size-3.5" />
+                      )}
+                      {t("sendEmail")}
                     </Button>
                   )}
                 </>

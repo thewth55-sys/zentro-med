@@ -3,6 +3,7 @@ import { supabaseAdmin } from "@/lib/billing-platform/admin-client";
 import { findExistingContact, isUniqueViolation } from "@/lib/contacts/dedupe";
 import { normalizePhone } from "@/lib/whatsapp/phone-utils";
 import { computeAvailableSlots } from "@/lib/scheduling/public-booking";
+import { notifyAccountTeam } from "@/lib/email/notify-team";
 
 interface BookBody {
   doctor_id?: string;
@@ -57,14 +58,14 @@ export async function POST(
   const [{ data: doctor }, { data: serviceType }] = await Promise.all([
     admin
       .from("doctors")
-      .select("id")
+      .select("id, name")
       .eq("id", body.doctor_id)
       .eq("account_id", account.id)
       .eq("is_active", true)
       .maybeSingle(),
     admin
       .from("service_types")
-      .select("id, duration_minutes")
+      .select("id, name, duration_minutes")
       .eq("id", body.service_type_id)
       .eq("account_id", account.id)
       .eq("is_active", true)
@@ -153,6 +154,17 @@ export async function POST(
     console.error("[public booking] appointment create failed:", apptError);
     return NextResponse.json({ error: "Could not create appointment" }, { status: 500 });
   }
+
+  const startLabel = new Intl.DateTimeFormat("es-MX", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(startAt);
+  void notifyAccountTeam(admin, {
+    accountId: account.id,
+    subject: `Nueva cita agendada — ${body.name}`,
+    heading: "Nueva cita agendada en línea",
+    bodyHtml: `<p><strong>${body.name}</strong> agendó una cita para <strong>${startLabel}</strong> con ${doctor.name} (${serviceType.name}).</p><p>Teléfono: ${body.phone}</p>`,
+  });
 
   return NextResponse.json({ appointment });
 }

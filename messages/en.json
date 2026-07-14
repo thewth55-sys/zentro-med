@@ -1227,6 +1227,9 @@
       "pdfFailed": "Failed to generate the PDF",
       "whatsappSendSuccess": "Quote sent via WhatsApp",
       "whatsappSendFailed": "Failed to send via WhatsApp",
+      "sendEmail": "Send by email",
+      "emailSendSuccess": "Quote sent by email",
+      "emailSendFailed": "Failed to send by email",
       "statusValues": {
         "draft": "Draft",
         "sent": "Sent",
@@ -1266,7 +1269,10 @@
       "sendWhatsapp": "Send via WhatsApp",
       "pdfFailed": "Could not generate the PDF",
       "whatsappSendSuccess": "Invoice sent via WhatsApp",
-      "whatsappSendFailed": "Could not send via WhatsApp"
+      "whatsappSendFailed": "Could not send via WhatsApp",
+      "sendEmail": "Send by email",
+      "emailSendSuccess": "Invoice sent by email",
+      "emailSendFailed": "Could not send by email"
     },
     "payments": {
       "empty": "No payments recorded yet.",
