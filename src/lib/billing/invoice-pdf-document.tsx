@@ -6,7 +6,8 @@
 // money owed.
 // ============================================================
 
-import { Document, Page, View, Text, Image, StyleSheet } from "@react-pdf/renderer";
+import { Document, Page, View, Text, Image } from "@react-pdf/renderer";
+import { createPdfStyles, fmtMoney, ZENTRO_GREEN, ZENTRO_GREEN_DARK } from "./pdf-theme";
 
 export interface InvoicePdfLineItem {
   description: string;
@@ -39,8 +40,6 @@ export interface InvoicePdfProps {
   notes: string | null;
 }
 
-const DEFAULT_ACCENT = "#0F3D1E";
-
 const STATUS_LABEL: Record<string, string> = {
   draft: "Borrador",
   sent: "Enviada",
@@ -50,73 +49,23 @@ const STATUS_LABEL: Record<string, string> = {
   void: "Anulada",
 };
 
-function fmtMoney(value: number, currency: string): string {
-  try {
-    return new Intl.NumberFormat("en-US", { style: "currency", currency }).format(value);
-  } catch {
-    return `${currency} ${value.toFixed(2)}`;
-  }
-}
-
 export function InvoicePdfDocument(props: InvoicePdfProps) {
-  const accent = props.accentColor || DEFAULT_ACCENT;
+  const accent = props.accentColor || ZENTRO_GREEN;
   const balanceDue = Math.max(0, props.total - props.amountPaid);
-  const styles = StyleSheet.create({
-    page: { padding: 40, fontSize: 10, fontFamily: "Helvetica", color: "#1a1a1a" },
-    header: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 24 },
-    logo: { width: 64, height: 64, objectFit: "contain" },
-    accountName: { fontSize: 16, fontWeight: 700, color: accent },
-    title: { fontSize: 20, fontWeight: 700, textAlign: "right" },
-    meta: { fontSize: 9, color: "#666", textAlign: "right", marginTop: 4 },
-    statusBadge: {
-      alignSelf: "flex-end",
-      marginTop: 6,
-      paddingVertical: 3,
-      paddingHorizontal: 8,
-      borderRadius: 3,
-      backgroundColor: balanceDue > 0 ? "#fef3c7" : "#d1fae5",
-    },
-    statusBadgeText: { fontSize: 8, fontWeight: 700, color: balanceDue > 0 ? "#92400e" : "#065f46" },
-    section: { marginBottom: 16 },
-    label: { fontSize: 8, color: "#888", textTransform: "uppercase", marginBottom: 2 },
-    value: { fontSize: 11 },
-    table: { marginTop: 8, borderTop: "1 solid #ddd" },
-    tableHeaderRow: { flexDirection: "row", backgroundColor: accent, paddingVertical: 6, paddingHorizontal: 6 },
-    tableHeaderCell: { fontSize: 8, color: "#fff", textTransform: "uppercase" },
-    tableRow: { flexDirection: "row", paddingVertical: 6, paddingHorizontal: 6, borderBottom: "1 solid #eee" },
-    tableCell: { fontSize: 9 },
-    totalsBlock: { marginTop: 12, alignSelf: "flex-end", width: 220 },
-    totalsRow: { flexDirection: "row", justifyContent: "space-between", paddingVertical: 3 },
-    grandTotalRow: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      paddingVertical: 6,
-      marginTop: 4,
-      borderTop: `1 solid ${accent}`,
-    },
-    grandTotalLabel: { fontSize: 11, fontWeight: 700 },
-    grandTotalValue: { fontSize: 13, fontWeight: 700, color: accent },
-    balanceRow: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      paddingVertical: 6,
-      marginTop: 4,
-      borderTop: "1 solid #ddd",
-    },
-    balanceLabel: { fontSize: 11, fontWeight: 700 },
-    balanceValue: { fontSize: 13, fontWeight: 700, color: balanceDue > 0 ? "#b45309" : accent },
-    terms: { marginTop: 28, paddingTop: 12, borderTop: "1 solid #ddd", fontSize: 8, color: "#666" },
-    issuerMeta: { fontSize: 8, color: "#888", marginTop: 2 },
-  });
+  const styles = createPdfStyles(accent);
+  const statusBg = balanceDue > 0 ? "#fef3c7" : "#d1fae5";
+  const statusColor = balanceDue > 0 ? "#92400e" : "#065f46";
+  const balanceColor = balanceDue > 0 ? "#b45309" : ZENTRO_GREEN_DARK;
 
   return (
     <Document>
       <Page size="A4" style={styles.page}>
+        <View style={styles.topBar} fixed />
         <View style={styles.header}>
           <View>
             {/* eslint-disable-next-line jsx-a11y/alt-text -- @react-pdf/renderer's Image, not an HTML <img>; has no alt prop */}
             {props.logoUrl ? <Image src={props.logoUrl} style={styles.logo} /> : null}
-            <Text style={[styles.accountName, { marginTop: props.logoUrl ? 6 : 0 }]}>
+            <Text style={[styles.accountName, { marginTop: props.logoUrl ? 8 : 0 }]}>
               {props.accountName}
             </Text>
             {props.address ? <Text style={styles.issuerMeta}>{props.address}</Text> : null}
@@ -124,16 +73,19 @@ export function InvoicePdfDocument(props: InvoicePdfProps) {
           </View>
           <View>
             <Text style={styles.title}>Factura</Text>
+            <View style={styles.titleUnderline} />
             <Text style={styles.meta}>{props.invoiceNumber}</Text>
             <Text style={styles.meta}>Fecha: {props.issueDate}</Text>
             {props.dueDate ? <Text style={styles.meta}>Vence: {props.dueDate}</Text> : null}
-            <View style={styles.statusBadge}>
-              <Text style={styles.statusBadgeText}>{(STATUS_LABEL[props.status] ?? props.status).toUpperCase()}</Text>
+            <View style={[styles.statusBadge, { backgroundColor: statusBg }]}>
+              <Text style={[styles.statusBadgeText, { color: statusColor }]}>
+                {(STATUS_LABEL[props.status] ?? props.status).toUpperCase()}
+              </Text>
             </View>
           </View>
         </View>
 
-        <View style={styles.section}>
+        <View style={styles.infoBox}>
           <Text style={styles.label}>Para</Text>
           <Text style={styles.value}>{props.contactName}</Text>
           {props.contactPhone ? <Text style={styles.value}>{props.contactPhone}</Text> : null}
@@ -147,7 +99,7 @@ export function InvoicePdfDocument(props: InvoicePdfProps) {
             <Text style={[styles.tableHeaderCell, { width: "20%", textAlign: "right" }]}>Total</Text>
           </View>
           {props.items.map((item, i) => (
-            <View key={i} style={styles.tableRow}>
+            <View key={i} style={[styles.tableRow, i % 2 === 1 ? styles.tableRowAlt : {}]}>
               <Text style={[styles.tableCell, { width: "46%" }]}>{item.description}</Text>
               <Text style={[styles.tableCell, { width: "14%", textAlign: "right" }]}>{item.quantity}</Text>
               <Text style={[styles.tableCell, { width: "20%", textAlign: "right" }]}>
@@ -160,19 +112,21 @@ export function InvoicePdfDocument(props: InvoicePdfProps) {
           ))}
         </View>
 
-        <View style={styles.totalsBlock}>
+        <View style={styles.totalsCard}>
           <View style={styles.totalsRow}>
-            <Text>Subtotal</Text>
+            <Text style={styles.totalsRowLabel}>Subtotal</Text>
             <Text>{fmtMoney(props.subtotal, props.currency)}</Text>
           </View>
           {props.discountAmount > 0 ? (
             <View style={styles.totalsRow}>
-              <Text>Descuento{props.discountLabel ? ` (${props.discountLabel})` : ""}</Text>
+              <Text style={styles.totalsRowLabel}>
+                Descuento{props.discountLabel ? ` (${props.discountLabel})` : ""}
+              </Text>
               <Text>-{fmtMoney(props.discountAmount, props.currency)}</Text>
             </View>
           ) : null}
           <View style={styles.totalsRow}>
-            <Text>Impuestos</Text>
+            <Text style={styles.totalsRowLabel}>Impuestos</Text>
             <Text>{fmtMoney(props.taxTotal, props.currency)}</Text>
           </View>
           <View style={styles.grandTotalRow}>
@@ -180,12 +134,14 @@ export function InvoicePdfDocument(props: InvoicePdfProps) {
             <Text style={styles.grandTotalValue}>{fmtMoney(props.total, props.currency)}</Text>
           </View>
           <View style={styles.totalsRow}>
-            <Text>Pagado</Text>
+            <Text style={styles.totalsRowLabel}>Pagado</Text>
             <Text>{fmtMoney(props.amountPaid, props.currency)}</Text>
           </View>
           <View style={styles.balanceRow}>
             <Text style={styles.balanceLabel}>Saldo pendiente</Text>
-            <Text style={styles.balanceValue}>{fmtMoney(balanceDue, props.currency)}</Text>
+            <Text style={[styles.grandTotalValue, { color: balanceColor }]}>
+              {fmtMoney(balanceDue, props.currency)}
+            </Text>
           </View>
         </View>
 

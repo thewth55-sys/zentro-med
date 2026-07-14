@@ -8,6 +8,7 @@
 // ============================================================
 
 import { Document, Page, View, Text, Image, StyleSheet } from "@react-pdf/renderer";
+import { createPdfStyles, fmtMoney, ZENTRO_GREEN, ZENTRO_GREEN_DARK } from "./pdf-theme";
 
 export interface ReceiptPdfProps {
   accountName: string;
@@ -27,8 +28,6 @@ export interface ReceiptPdfProps {
   notes: string | null;
 }
 
-const DEFAULT_ACCENT = "#0F3D1E";
-
 const METHOD_LABELS: Record<string, string> = {
   cash: "Efectivo",
   card: "Tarjeta",
@@ -36,58 +35,35 @@ const METHOD_LABELS: Record<string, string> = {
   other: "Otro",
 };
 
-function fmtMoney(value: number, currency: string): string {
-  try {
-    return new Intl.NumberFormat("en-US", { style: "currency", currency }).format(value);
-  } catch {
-    return `${currency} ${value.toFixed(2)}`;
-  }
-}
-
 export function ReceiptPdfDocument(props: ReceiptPdfProps) {
-  const accent = props.accentColor || DEFAULT_ACCENT;
+  const accent = props.accentColor || ZENTRO_GREEN;
   const remaining = Math.max(0, props.invoiceTotal - props.amountPaid);
-  const styles = StyleSheet.create({
-    page: { padding: 40, fontSize: 10, fontFamily: "Helvetica", color: "#1a1a1a" },
-    header: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 24 },
-    logo: { width: 64, height: 64, objectFit: "contain" },
-    accountName: { fontSize: 16, fontWeight: 700, color: accent },
-    title: { fontSize: 20, fontWeight: 700, textAlign: "right" },
-    meta: { fontSize: 9, color: "#666", textAlign: "right", marginTop: 4 },
-    section: { marginBottom: 16 },
-    label: { fontSize: 8, color: "#888", textTransform: "uppercase", marginBottom: 2 },
-    value: { fontSize: 11 },
-    issuerMeta: { fontSize: 8, color: "#888", marginTop: 2 },
+  const styles = createPdfStyles(accent);
+  const receiptStyles = StyleSheet.create({
     amountBlock: {
-      marginTop: 8,
+      marginTop: 4,
+      marginBottom: 18,
       alignItems: "center",
-      paddingVertical: 20,
-      borderTop: `1 solid ${accent}`,
-      borderBottom: `1 solid ${accent}`,
+      paddingVertical: 24,
+      borderRadius: 6,
+      backgroundColor: "#f7f7f7",
     },
-    amountLabel: { fontSize: 9, color: "#888", textTransform: "uppercase" },
-    amountValue: { fontSize: 28, fontWeight: 700, color: accent, marginTop: 4 },
+    amountLabel: { fontSize: 9, color: "#999", textTransform: "uppercase", letterSpacing: 0.5 },
+    amountValue: { fontSize: 30, fontWeight: 700, color: ZENTRO_GREEN_DARK, marginTop: 6 },
+    amountMethod: { fontSize: 9, color: "#888", marginTop: 4 },
     summaryRow: { flexDirection: "row", justifyContent: "space-between", paddingVertical: 4 },
     summaryLabel: { color: "#666" },
-    balanceRow: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      paddingVertical: 6,
-      marginTop: 4,
-      borderTop: "1 solid #ddd",
-    },
-    balanceLabel: { fontSize: 11, fontWeight: 700 },
-    balanceValue: { fontSize: 13, fontWeight: 700 },
   });
 
   return (
     <Document>
       <Page size="A4" style={styles.page}>
+        <View style={styles.topBar} fixed />
         <View style={styles.header}>
           <View>
             {/* eslint-disable-next-line jsx-a11y/alt-text -- @react-pdf/renderer's Image, not an HTML <img>; has no alt prop */}
             {props.logoUrl ? <Image src={props.logoUrl} style={styles.logo} /> : null}
-            <Text style={[styles.accountName, { marginTop: props.logoUrl ? 6 : 0 }]}>
+            <Text style={[styles.accountName, { marginTop: props.logoUrl ? 8 : 0 }]}>
               {props.accountName}
             </Text>
             {props.address ? <Text style={styles.issuerMeta}>{props.address}</Text> : null}
@@ -95,35 +71,38 @@ export function ReceiptPdfDocument(props: ReceiptPdfProps) {
           </View>
           <View>
             <Text style={styles.title}>Recibo de pago</Text>
+            <View style={styles.titleUnderline} />
             <Text style={styles.meta}>Factura {props.invoiceNumber}</Text>
             <Text style={styles.meta}>Fecha: {props.paidAt}</Text>
           </View>
         </View>
 
-        <View style={styles.section}>
+        <View style={styles.infoBox}>
           <Text style={styles.label}>Recibido de</Text>
           <Text style={styles.value}>{props.contactName}</Text>
           {props.contactPhone ? <Text style={styles.value}>{props.contactPhone}</Text> : null}
         </View>
 
-        <View style={styles.amountBlock}>
-          <Text style={styles.amountLabel}>Monto recibido</Text>
-          <Text style={styles.amountValue}>{fmtMoney(props.paymentAmount, props.currency)}</Text>
-          <Text style={styles.issuerMeta}>{METHOD_LABELS[props.paymentMethod] ?? props.paymentMethod}</Text>
+        <View style={receiptStyles.amountBlock}>
+          <Text style={receiptStyles.amountLabel}>Monto recibido</Text>
+          <Text style={receiptStyles.amountValue}>{fmtMoney(props.paymentAmount, props.currency)}</Text>
+          <Text style={receiptStyles.amountMethod}>
+            {METHOD_LABELS[props.paymentMethod] ?? props.paymentMethod}
+          </Text>
         </View>
 
         <View style={styles.section}>
-          <View style={styles.summaryRow}>
-            <Text style={styles.summaryLabel}>Total de la factura</Text>
+          <View style={receiptStyles.summaryRow}>
+            <Text style={receiptStyles.summaryLabel}>Total de la factura</Text>
             <Text>{fmtMoney(props.invoiceTotal, props.currency)}</Text>
           </View>
-          <View style={styles.summaryRow}>
-            <Text style={styles.summaryLabel}>Pagado a la fecha</Text>
+          <View style={receiptStyles.summaryRow}>
+            <Text style={receiptStyles.summaryLabel}>Pagado a la fecha</Text>
             <Text>{fmtMoney(props.amountPaid, props.currency)}</Text>
           </View>
           <View style={styles.balanceRow}>
             <Text style={styles.balanceLabel}>Saldo pendiente</Text>
-            <Text style={[styles.balanceValue, { color: remaining > 0 ? "#b45309" : accent }]}>
+            <Text style={[styles.grandTotalValue, { color: remaining > 0 ? "#b45309" : ZENTRO_GREEN_DARK }]}>
               {fmtMoney(remaining, props.currency)}
             </Text>
           </View>
