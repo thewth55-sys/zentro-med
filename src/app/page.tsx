@@ -460,44 +460,13 @@ const LANDING_CSS = `
   .zm-landing .hw-sub   { font-size: 10px; color: rgba(255,255,255,.38); font-family: 'JetBrains Mono', monospace; white-space: nowrap; }
   @media(max-width:640px) { .zm-landing .hero-widgets { gap: 8px; } .zm-landing .hw-card { padding: 9px 12px; } .zm-landing .hw-title { font-size: 11.5px; } }
 
-  .zm-landing .hero-illus-slot {
-    margin-top: 36px; border-radius: 22px;
-    background: rgba(255,255,255,.03);
-    border: 1.5px dashed rgba(74,222,90,.2);
-    min-height: 300px; max-width: 900px; margin-left: auto; margin-right: auto;
-    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px;
-    position: relative; overflow: hidden;
+  .zm-landing .hero-illus-img {
+    display: block; width: 100%; height: auto;
+    max-width: 900px; margin: 36px auto 0;
     animation: zm-fadeUp .7s ease both; animation-delay: .85s;
   }
-  .zm-landing .hero-illus-slot::before {
-    content: ''; position: absolute; inset: 0;
-    background: repeating-linear-gradient(45deg,
-      rgba(74,222,90,.012) 0px, rgba(74,222,90,.012) 1px,
-      transparent 1px, transparent 14px);
-  }
-  .zm-landing .hero-illus-slot::after {
-    content: '●  ●  ●';
-    position: absolute; top: 14px; left: 18px;
-    font-size: 9px; letter-spacing: 3px;
-    color: rgba(74,222,90,.18);
-    font-family: monospace;
-  }
-  .zm-landing .hero-illus-label {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 10px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase;
-    color: rgba(74,222,90,.4); position: relative; z-index: 1;
-    background: rgba(74,222,90,.07); border: 1px solid rgba(74,222,90,.14);
-    padding: 4px 12px; border-radius: 20px;
-  }
-  .zm-landing .hero-illus-ico {
-    width: 64px; height: 64px; background: rgba(74,222,90,.08);
-    border: 1px solid rgba(74,222,90,.15); border-radius: 18px;
-    display: flex; align-items: center; justify-content: center;
-    position: relative; z-index: 1;
-  }
-  .zm-landing .hero-illus-ico svg { width: 28px; height: 28px; stroke: var(--zm-g); stroke-width: 1.5; fill: none; }
-  .zm-landing .hero-illus-text { font-size: 13px; color: rgba(255,255,255,.25); text-align: center; position: relative; z-index: 1; max-width: 340px; line-height: 1.6; }
-  @media(max-width:640px) { .zm-landing .hero-illus-slot { min-height: 200px; margin-top: 24px; } }
+  @media(max-width:640px) { .zm-landing .hero-illus-img { margin-top: 24px; } }
+  .zm-landing .illus-img { display: block; width: 100%; height: auto; border-radius: 12px; }
 
   .zm-landing .illus-slot {
     border-radius: 16px;
@@ -741,15 +710,7 @@ const LANDING_BODY_HTML = `
       </div>
     </div>
 
-    <div class="hero-illus-slot">
-      <span class="hero-illus-label">// Ilustración del producto</span>
-      <div class="hero-illus-ico">
-        <i data-lucide="monitor-smartphone"></i>
-      </div>
-      <p class="hero-illus-text">Mockup del CRM + Dashboard de campañas en desktop y móvil<br>
-        <span style="font-size:11px;color:rgba(255,255,255,.15);">Formato recomendado: 900×300px · PNG o SVG · Fondo transparente</span>
-      </p>
-    </div>
+    <img class="hero-illus-img" src="/landing/hero-product.png" alt="Equipo completo de Zentro Med: estratega, ads manager, content creator, CRM y agenda, WhatsApp IA" width="1672" height="941" />
   </div>
 </section>
 
@@ -883,12 +844,7 @@ const LANDING_BODY_HTML = `
   <div class="wrap">
     <div class="solution-grid">
       <div class="solution-visual">
-        <div class="illus-slot">
-          <span class="illus-badge">// Captura de pantalla</span>
-          <div class="illus-icon-wrap"><i data-lucide="layout-dashboard"></i></div>
-          <p class="illus-label">Dashboard CRM · Vista de pipeline</p>
-          <p class="illus-hint">Reemplazar con screenshot o mockup del CRM (formato 16:9 recomendado)</p>
-        </div>
+        <img class="illus-img" src="/landing/crm-dashboard.png" alt="Dashboard del CRM de Zentro Med: citas de la semana, no-shows, pacientes nuevos y agenda semanal" width="1672" height="941" />
         <div>
           <p class="sol-tag">// Zentro Med CRM</p>
           <p class="sol-title">La operación de tu consultorio, organizada</p>
@@ -928,12 +884,7 @@ const LANDING_BODY_HTML = `
         </div>
       </div>
       <div class="solution-visual" style="background:var(--zm-night2);">
-        <div class="illus-slot">
-          <span class="illus-badge">// Captura de pantalla</span>
-          <div class="illus-icon-wrap"><i data-lucide="bar-chart-2"></i></div>
-          <p class="illus-label">Dashboard de campañas · Meta + Google</p>
-          <p class="illus-hint">Reemplazar con screenshot de resultados de campaña o reporte de captación</p>
-        </div>
+        <img class="illus-img" src="/landing/marketing-dashboard.png" alt="Dashboard de campañas de marketing de Zentro Med: ROAS, pacientes nuevos y costo por lead en Meta y Google Ads" width="1672" height="941" />
         <div>
           <p class="sol-tag">// Zentro Salud — Marketing gestionado</p>
           <p class="sol-title">Captación digital para tu especialidad</p>
