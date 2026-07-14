@@ -122,6 +122,25 @@ const nextConfig: NextConfig = {
      */
     cpus: 2,
   },
+  webpack: (config, { dev }) => {
+    if (!dev) {
+      // Webpack 5's persistent filesystem cache serializes the whole
+      // compilation graph to disk after every build, to speed up the
+      // *next* build. In this Docker build every deploy is a fresh
+      // checkout with nothing to reuse, and the cache directory never
+      // makes it into the final image anyway (only .next/standalone +
+      // .next/static get copied — see the Dockerfile), so the write
+      // is 100% wasted work. It's also the single most memory-hungry
+      // moment of an already-constrained build: the deploy that
+      // exposed this failed with no further output right after
+      // "Serializing big strings (250kiB) ..." — the same silent-OOM
+      // signature as the earlier Sentry-sourcemap and worker-count
+      // issues (see those comments above/below). Disabling the cache
+      // removes that cost entirely instead of trying to out-budget it.
+      config.cache = false;
+    }
+    return config;
+  },
   /**
    * Cache-Control policy.
    *
