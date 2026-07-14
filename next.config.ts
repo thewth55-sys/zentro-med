@@ -93,7 +93,11 @@ const SECURITY_HEADERS = [
       // once NEXT_PUBLIC_SENTRY_DSN is set, but allowlisted
       // unconditionally so turning it on later doesn't also require
       // remembering to touch the CSP.
-      "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://www.googletagmanager.com https://www.google.com https://googleads.g.doubleclick.net https://challenges.cloudflare.com https://*.zoho.com wss://*.zoho.com https://*.zohopublic.com wss://*.zohopublic.com https://*.zohocdn.com https://*.sentry.io https://*.ingest.sentry.io https://*.ingest.us.sentry.io https://*.ingest.de.sentry.io https://connect.facebook.net https://www.facebook.com https://graph.facebook.com",
+      // ipwho.is / open.er-api.com back the /pricing page's
+      // local-currency estimate (src/lib/currency/geo-estimate.ts) —
+      // client-side, best-effort, display-only (billing always stays
+      // USD via Stripe).
+      "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://www.googletagmanager.com https://www.google.com https://googleads.g.doubleclick.net https://challenges.cloudflare.com https://*.zoho.com wss://*.zoho.com https://*.zohopublic.com wss://*.zohopublic.com https://*.zohocdn.com https://*.sentry.io https://*.ingest.sentry.io https://*.ingest.us.sentry.io https://*.ingest.de.sentry.io https://connect.facebook.net https://www.facebook.com https://graph.facebook.com https://ipwho.is https://open.er-api.com",
       // Turnstile renders its interactive challenge inside an iframe
       // from this origin when it can't pass invisibly; Zoho Desk's
       // chat panel is also an iframe; WhatsApp Embedded Signup opens

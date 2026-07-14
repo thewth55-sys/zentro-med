@@ -4,6 +4,7 @@ import { Check, Sparkles, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { PLAN_CONFIG } from "@/lib/billing-platform/plans";
+import { LocalPriceEstimate } from "@/components/pricing/local-price-estimate";
 
 export const metadata: Metadata = {
   title: "Precios — Zentro Med",
@@ -25,6 +26,8 @@ interface PlanCardProps {
   badge: { label: string; className: string };
   title: string;
   price: string;
+  /** Raw USD monthly price, for the local-currency estimate. Omit for $0. */
+  priceUsd?: number;
   priceNote: string;
   features: string[];
   excluded?: ExcludedFeature[];
@@ -77,6 +80,7 @@ export default function PricingPage() {
             badge={{ label: "SOLO CRM", className: "border-border bg-muted text-muted-foreground" }}
             title="Zentro Med"
             price={`$${standalone.basePriceUsd}`}
+            priceUsd={standalone.basePriceUsd}
             priceNote={`+$${standalone.seatPriceUsd} USD por usuario adicional`}
             features={[
               "Todo lo del plan gratuito",
@@ -93,6 +97,7 @@ export default function PricingPage() {
             badge={{ label: "★ MÁS POPULAR", className: "border-primary/40 bg-primary/10 text-primary" }}
             title="Zentro Salud Starter"
             price={`$${starter.basePriceUsd}`}
+            priceUsd={starter.basePriceUsd}
             priceNote={`${starter.includedSeats} usuarios incluidos · +$${starter.seatPriceUsd}/usuario extra`}
             features={[
               "Todo lo de Zentro Med",
@@ -111,6 +116,7 @@ export default function PricingPage() {
             badge={{ label: "PRO", className: "border-emerald-400/40 bg-emerald-400/10 text-emerald-300" }}
             title="Zentro Salud Pro"
             price={`$${pro.basePriceUsd}`}
+            priceUsd={pro.basePriceUsd}
             priceNote={`${pro.includedSeats} usuarios incluidos · +$${pro.seatPriceUsd}/usuario extra`}
             features={[
               "Todo lo de Starter",
@@ -138,7 +144,7 @@ export default function PricingPage() {
   );
 }
 
-function PlanCard({ badge, title, price, priceNote, features, excluded, cta, variant = "default" }: PlanCardProps) {
+function PlanCard({ badge, title, price, priceUsd, priceNote, features, excluded, cta, variant = "default" }: PlanCardProps) {
   const isDark = variant === "dark";
   const isHighlight = variant === "highlight";
 
@@ -162,6 +168,7 @@ function PlanCard({ badge, title, price, priceNote, features, excluded, cta, var
         {price}
         <span className={`text-sm font-normal ${isDark ? "text-neutral-400" : "text-muted-foreground"}`}>/mes</span>
       </p>
+      {priceUsd ? <LocalPriceEstimate usd={priceUsd} /> : null}
       <p className={`mt-2 text-sm ${isDark ? "text-neutral-400" : "text-muted-foreground"}`}>{priceNote}</p>
       <ul className="mt-4 flex-1 space-y-2 border-t pt-4 border-inherit">
         {features.map((f) => (
