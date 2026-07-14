@@ -163,7 +163,10 @@ const nextConfig: NextConfig = {
      * trades the most build speed for the most headroom; combined
      * with the raised NODE_BUILD_MEMORY_MB below, the single worker
      * also gets more heap to itself since it's no longer contending
-     * with a sibling.
+     * with a SIBLING worker. It still runs alongside its PARENT
+     * `next build` process though, which stays resident the whole
+     * time — see the Dockerfile's NODE_BUILD_MEMORY_MB comment for
+     * why that distinction matters and how the cap is sized for it.
      */
     cpus: 1,
   },

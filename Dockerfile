@@ -90,13 +90,23 @@ ENV SENTRY_AUTH_TOKEN=$SENTRY_AUTH_TOKEN
 # Previous cap raises alone never fixed anything, because with
 # multiple parallel workers the SUM of their heaps could still exceed
 # the container's real memory regardless of each one's individual
-# cap. Now that next.config.ts forces `experimental.cpus: 1` (fully
-# serial, no sibling workers), that multiplication problem is gone,
-# so raising this single worker's cap should map directly to usable
-# memory instead. This host reportedly has 4GB total; 2560 leaves
-# ~1.5GB for the OS/everything else running alongside the build.
-# Override via the NODE_BUILD_MEMORY_MB build arg.
-ARG NODE_BUILD_MEMORY_MB=2560
+# cap. next.config.ts forces `experimental.cpus: 1`, which removes
+# SIBLING workers contending with each other — but it does NOT mean
+# only one Node process is alive during "Collecting page data" /
+# "Generating static pages": Next spawns that one worker as a CHILD
+# of the main `next build` process, which stays resident (and, with
+# webpack's cache disabled, still holding whatever it hasn't
+# GC'd from compiling) while the worker runs. NODE_OPTIONS is
+# inherited by the child, so BOTH processes could independently grow
+# toward this same cap — raising it to "map directly to usable
+# memory" assumed a single process and silently doubled the real
+# ceiling instead. Confirmed this host has 4GB total. 2 processes ×
+# 2560MB each could reach ~5GB combined, over the real limit — which
+# is consistent with the build hanging at exactly this phase even
+# after that raise. Lowered so 2 processes at cap (~3GB) leaves ~1GB
+# for the OS/container overhead instead of assuming only one process
+# is ever resident. Override via the NODE_BUILD_MEMORY_MB build arg.
+ARG NODE_BUILD_MEMORY_MB=1536
 ENV NODE_OPTIONS=--max-old-space-size=${NODE_BUILD_MEMORY_MB}
 
 # Build the project
