@@ -21,8 +21,10 @@ import { MembersTab } from '@/components/settings/members-tab';
 import { ApiKeysSettings } from '@/components/settings/api-keys-settings';
 import { ConversionTrackingConfig } from '@/components/settings/conversion-tracking-config';
 import { SchedulingPanel } from '@/components/settings/scheduling-panel';
+import { LandingPageEditor } from '@/components/settings/landing-page-editor';
 import { BillingPanel } from '@/components/settings/billing-panel';
 import { SubscriptionPanel } from '@/components/settings/subscription-panel';
+import { PlanGate } from '@/components/billing-platform/plan-gate';
 import {
   resolveSection,
   type SettingsSection,
@@ -77,6 +79,11 @@ export default function SettingsPage() {
     api: <ApiKeysSettings />,
     conversions: <ConversionTrackingConfig />,
     scheduling: <SchedulingPanel />,
+    landing: (
+      <PlanGate feature="landing_builder" featureLabel={t('landingFeatureLabel')}>
+        <LandingPageEditor />
+      </PlanGate>
+    ),
     billing: <BillingPanel />,
     'billing-platform': <SubscriptionPanel />,
   };

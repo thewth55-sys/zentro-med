@@ -12,9 +12,11 @@
 // ============================================================
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import {
   Ban,
+  Globe,
   KeyRound,
   Layers,
   Loader2,
@@ -95,6 +97,7 @@ export function AccountActionsMenu({
   subscriptionStatus,
   onChanged,
 }: AccountActionsMenuProps) {
+  const router = useRouter();
   const [busyAction, setBusyAction] = useState<string | null>(null);
   const [impersonateOpen, setImpersonateOpen] = useState(false);
   const [planDialogOpen, setPlanDialogOpen] = useState(false);
@@ -227,6 +230,10 @@ export function AccountActionsMenu({
           >
             <KeyRound className="size-4" />
             Restablecer contraseña
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => router.push(`/admin/accounts/${accountId}/landing`)}>
+            <Globe className="size-4" />
+            Editar landing
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem
