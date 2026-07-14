@@ -174,14 +174,14 @@
       "tooltipOutgoing": "{count} salientes",
       "ariaLabel": "Conversaciones por día"
     },
-    "pipelineDonut": {
-      "title": "Valor del pipeline",
-      "description": "Negocios abiertos por etapa",
-      "noOpenDeals": "Aún no hay negocios abiertos",
-      "noOpenDealsHint": "Crea negocios en Pipelines para ver el desglose por etapa aquí.",
-      "dealCount": "{count} {count, plural, =1 {negocio} other {negocios}}",
-      "total": "Total",
-      "ariaLabel": "Valor del pipeline por etapa"
+    "todayAppointments": {
+      "title": "Citas de hoy",
+      "description": "Consultas agendadas para el día en curso",
+      "viewAgenda": "Ver agenda",
+      "empty": "No hay citas agendadas para hoy",
+      "emptyHint": "Las citas que se agenden para hoy aparecerán aquí.",
+      "noPatient": "Paciente sin nombre",
+      "noDetails": "Sin doctor ni tratamiento asignado"
     },
     "responseTimeChart": {
       "title": "Tiempo promedio de primera respuesta",

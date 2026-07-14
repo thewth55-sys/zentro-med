@@ -17,14 +17,14 @@ import {
   loadActivity,
   loadConversationsSeries,
   loadMetrics,
-  loadPipelineDonut,
+  loadTodayAppointments,
   loadResponseTime,
 } from '@/lib/dashboard/queries'
 import type {
   ActivityItem,
   ConversationsSeriesPoint,
   MetricsBundle,
-  PipelineDonutData,
+  TodayAppointmentItem,
   ResponseTimeSummary,
 } from '@/lib/dashboard/types'
 
@@ -32,7 +32,7 @@ import { MetricCard } from '@/components/dashboard/metric-card'
 import { SkeletonCard } from '@/components/dashboard/skeleton'
 import { QuickActions } from '@/components/dashboard/quick-actions'
 import { ConversationsChart } from '@/components/dashboard/conversations-chart'
-import { PipelineDonut } from '@/components/dashboard/pipeline-donut'
+import { TodayAppointments } from '@/components/dashboard/today-appointments'
 import { ResponseTimeChart } from '@/components/dashboard/response-time-chart'
 import { ActivityFeed } from '@/components/dashboard/activity-feed'
 
@@ -57,8 +57,8 @@ export default function DashboardPage() {
   })
   const [seriesLoading, setSeriesLoading] = useState(true)
 
-  const [pipeline, setPipeline] = useState<PipelineDonutData | null>(null)
-  const [pipelineLoading, setPipelineLoading] = useState(true)
+  const [todayAppointments, setTodayAppointments] = useState<TodayAppointmentItem[] | null>(null)
+  const [todayAppointmentsLoading, setTodayAppointmentsLoading] = useState(true)
 
   const [responseTime, setResponseTime] = useState<ResponseTimeSummary | null>(null)
   const [responseTimeLoading, setResponseTimeLoading] = useState(true)
@@ -82,10 +82,10 @@ export default function DashboardPage() {
       .catch((err) => console.error('[dashboard] series failed:', err))
       .finally(() => setSeriesLoading(false))
 
-    void loadPipelineDonut(db)
-      .then((p) => setPipeline(p))
-      .catch((err) => console.error('[dashboard] pipeline failed:', err))
-      .finally(() => setPipelineLoading(false))
+    void loadTodayAppointments(db)
+      .then((a) => setTodayAppointments(a))
+      .catch((err) => console.error('[dashboard] today appointments failed:', err))
+      .finally(() => setTodayAppointmentsLoading(false))
 
     void loadResponseTime(db)
       .then((r) => setResponseTime(r))
@@ -215,7 +215,7 @@ export default function DashboardPage() {
           match the tallest sibling; adding h-full on each wrapper and
           on the inner panels makes both cards actually fill that
           stretched height so their rounded borders line up. Without
-          this, the pipeline card rendered at its natural (shorter)
+          this, the appointments card rendered at its natural (shorter)
           height while the line chart drove the row height. */}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-5">
         <div className="h-full lg:col-span-3">
@@ -227,11 +227,7 @@ export default function DashboardPage() {
           />
         </div>
         <div className="h-full lg:col-span-2">
-          <PipelineDonut
-            data={pipeline}
-            loading={pipelineLoading}
-            currency={defaultCurrency}
-          />
+          <TodayAppointments items={todayAppointments} loading={todayAppointmentsLoading} />
         </div>
       </div>
 

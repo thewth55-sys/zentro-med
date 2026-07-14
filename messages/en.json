@@ -174,14 +174,14 @@
       "tooltipOutgoing": "{count} outgoing",
       "ariaLabel": "Conversations per day"
     },
-    "pipelineDonut": {
-      "title": "Pipeline Value",
-      "description": "Open deals by stage",
-      "noOpenDeals": "No open deals yet",
-      "noOpenDealsHint": "Create deals in Pipelines to see stage breakdowns here.",
-      "dealCount": "{count} {count, plural, =1 {deal} other {deals}}",
-      "total": "Total",
-      "ariaLabel": "Pipeline value by stage"
+    "todayAppointments": {
+      "title": "Today's Appointments",
+      "description": "Consultations scheduled for today",
+      "viewAgenda": "View agenda",
+      "empty": "No appointments scheduled for today",
+      "emptyHint": "Appointments booked for today will appear here.",
+      "noPatient": "Unnamed patient",
+      "noDetails": "No doctor or treatment assigned"
     },
     "responseTimeChart": {
       "title": "Average First Response Time",

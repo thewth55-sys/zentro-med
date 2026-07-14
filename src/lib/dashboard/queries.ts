@@ -11,10 +11,9 @@ import type {
   ActivityItem,
   ConversationsSeriesPoint,
   MetricsBundle,
-  PipelineDonutData,
-  PipelineStageSlice,
   ResponseTimeBucket,
   ResponseTimeSummary,
+  TodayAppointmentItem,
 } from './types'
 
 // ------------------------------------------------------------
@@ -232,43 +231,44 @@ export async function loadConversationsSeries(
   return keys.map((day) => ({ day, ...(buckets.get(day) ?? { incoming: 0, outgoing: 0 }) }))
 }
 
-// --- 3. Pipeline donut -------------------------------------------------
+// --- 3. Today's appointments --------------------------------------------
 
-export async function loadPipelineDonut(db: DB): Promise<PipelineDonutData> {
-  const [stagesRes, dealsRes] = await Promise.all([
-    db.from('pipeline_stages').select('id, name, color, pipeline_id, position').order('position'),
-    db.from('deals').select('stage_id, value, status').eq('status', 'open'),
-  ])
+export async function loadTodayAppointments(db: DB): Promise<TodayAppointmentItem[]> {
+  const todayStart = startOfLocalDay().toISOString()
+  const tomorrowStart = new Date(startOfLocalDay().getTime() + 86_400_000).toISOString()
 
-  const stages =
-    (stagesRes.data ?? []) as { id: string; name: string; color: string }[]
-  const deals = (dealsRes.data ?? []) as { stage_id: string; value: number | null }[]
+  const { data, error } = await db
+    .from('appointments')
+    .select(
+      'id, start_at, end_at, status, contact:contacts(name, phone), doctor:doctors(name), service_type:service_types(name)',
+    )
+    .gte('start_at', todayStart)
+    .lt('start_at', tomorrowStart)
+    .order('start_at', { ascending: true })
+  if (error) throw error
 
-  const byStage = new Map<string, { count: number; total: number }>()
-  for (const d of deals) {
-    const row = byStage.get(d.stage_id) ?? { count: 0, total: 0 }
-    row.count += 1
-    row.total += d.value ?? 0
-    byStage.set(d.stage_id, row)
-  }
-
-  const slices: PipelineStageSlice[] = stages
-    .map((s) => ({
-      id: s.id,
-      name: s.name,
-      color: s.color || '#64748b',
-      dealCount: byStage.get(s.id)?.count ?? 0,
-      totalValue: byStage.get(s.id)?.total ?? 0,
-    }))
-    // Hide empty stages from the ring (but we'd still show them in the
-    // legend if the user wanted a full breakdown — trimming keeps the
-    // visual clean for the common case).
-    .filter((s) => s.totalValue > 0 || s.dealCount > 0)
-
-  return {
-    stages: slices,
-    totalValue: slices.reduce((sum, s) => sum + s.totalValue, 0),
-  }
+  return ((data ?? []) as unknown as Array<{
+    id: string
+    start_at: string
+    end_at: string
+    status: TodayAppointmentItem['status']
+    contact: { name: string | null; phone: string }[] | { name: string | null; phone: string } | null
+    doctor: { name: string }[] | { name: string } | null
+    service_type: { name: string }[] | { name: string } | null
+  }>).map((row) => {
+    const contact = Array.isArray(row.contact) ? row.contact[0] : row.contact
+    const doctor = Array.isArray(row.doctor) ? row.doctor[0] : row.doctor
+    const serviceType = Array.isArray(row.service_type) ? row.service_type[0] : row.service_type
+    return {
+      id: row.id,
+      startAt: row.start_at,
+      endAt: row.end_at,
+      status: row.status,
+      patientName: contact?.name || contact?.phone || null,
+      doctorName: doctor?.name ?? null,
+      serviceTypeName: serviceType?.name ?? null,
+    }
+  })
 }
 
 // --- 4. Response time by day of week ----------------------------------

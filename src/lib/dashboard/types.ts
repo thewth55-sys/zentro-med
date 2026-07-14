@@ -32,17 +32,14 @@ export interface ConversationsSeriesPoint {
   outgoing: number
 }
 
-export interface PipelineStageSlice {
+export interface TodayAppointmentItem {
   id: string
-  name: string
-  color: string
-  dealCount: number
-  totalValue: number
-}
-
-export interface PipelineDonutData {
-  stages: PipelineStageSlice[]
-  totalValue: number
+  startAt: string
+  endAt: string
+  status: 'pending' | 'confirmed' | 'completed' | 'cancelled' | 'no_show'
+  patientName: string | null
+  doctorName: string | null
+  serviceTypeName: string | null
 }
 
 export interface ResponseTimeBucket {
