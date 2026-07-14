@@ -101,6 +101,14 @@ const SECURITY_HEADERS = [
       // itself loads a small hidden iframe from facebook.com for
       // login-status tracking.
       "frame-src https://challenges.cloudflare.com https://*.zoho.com https://*.zohopublic.com https://www.facebook.com https://web.facebook.com",
+      // Zoho Desk's SDK spins up a background Web Worker from a
+      // blob: URL (its "visitor container") — without an explicit
+      // worker-src, browsers fall back to script-src, which doesn't
+      // allow blob:, so the worker (and possibly the chat bubble
+      // that depends on it finishing setup) silently failed to
+      // start. Confirmed live via a securitypolicyviolation naming
+      // this exact blob: worker URL.
+      "worker-src 'self' blob:",
       "frame-ancestors 'none'",
       "base-uri 'self'",
       "form-action 'self'",
