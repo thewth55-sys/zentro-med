@@ -103,6 +103,25 @@ const SECURITY_HEADERS = [
 
 const nextConfig: NextConfig = {
   output: "standalone",
+  experimental: {
+    /**
+     * Caps the number of parallel build workers (webpack compile +
+     * the "Running TypeScript ..." type-check step both use this
+     * pool). Next's default is `os.cpus().length - 1` — on this
+     * build host that reads the HOST's core count, not this
+     * container's actual memory allotment, so the default can spawn
+     * far more workers than the VPS's 4GB total can hold at once
+     * (each worker gets its own heap, on top of webpack's own
+     * process). That's the same "off-heap + V8 heap together exceed
+     * container memory" shape as the earlier Sentry-sourcemap OOM
+     * (see the sourcemaps.disable comment below), just triggered this
+     * time by the landing-page builder (Puck — dnd-kit/react,
+     * zustand, ~15 @tiptap/* packages) growing the type-checking
+     * surface enough to tip it over. Trades build speed for staying
+     * inside the container's memory ceiling.
+     */
+    cpus: 2,
+  },
   /**
    * Cache-Control policy.
    *
