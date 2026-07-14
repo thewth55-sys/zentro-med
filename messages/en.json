@@ -86,6 +86,7 @@
     "automations": "Automations",
     "flows": "Flows",
     "aiAgents": "AI Agents",
+    "landing": "Web page",
     "settings": "Settings",
     "beta": "Beta",
     "unreadConversations": "{count} unread {count, plural, =1 {conversation} other {conversations}}",
@@ -1556,7 +1557,6 @@
   "Settings": {
     "pageTitle": "Settings",
     "pageDesc": "Everything in one place — your account and your workspace. Pick a section to manage it.",
-    "landingFeatureLabel": "My web page",
     "landing": {
       "title": "My web page",
       "description": "Build a simple page for your clinic: who you are, what services you offer, and how to reach you.",

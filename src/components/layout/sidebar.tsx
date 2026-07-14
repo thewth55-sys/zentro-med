@@ -105,8 +105,6 @@ export function Sidebar({ open = false, onClose }: SidebarProps) {
     ai_autoreply: useHasFeature("ai_autoreply"),
     whatsapp_inbox: useHasFeature("whatsapp_inbox"),
     broadcasts: useHasFeature("broadcasts"),
-    // Not a sidebar nav item (it's a Settings tab — see settings/page.tsx),
-    // but every GatedFeature needs an entry here for the Record type.
     landing_builder: useHasFeature("landing_builder"),
   };
   // Only surface the account-name strip when it actually carries

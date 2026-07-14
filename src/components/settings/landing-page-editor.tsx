@@ -14,16 +14,19 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { basicConfig } from '@/lib/landing-builder/puck-config';
 import { useTranslations } from 'next-intl';
 
 const EMPTY_DATA: Data = { content: [], root: {} };
 
 /**
- * Self-serve landing editor (Settings → Mi página). Uses `basicConfig`
- * — a deliberately small block palette — the wider `fullConfig` is
- * only ever used from the staff-only platform-admin editor, not here.
+ * Self-serve landing editor, mounted on its own top-level page
+ * (/landing) rather than a Settings tab — it needs the dashboard's
+ * full content width for the Puck canvas, which Settings' narrow
+ * column doesn't give it. Uses `basicConfig` — a deliberately small
+ * block palette — the wider `fullConfig` is only ever used from the
+ * staff-only platform-admin editor, not here.
  */
 export function LandingPageEditor() {
   const t = useTranslations('Settings.landing');
@@ -124,11 +127,7 @@ export function LandingPageEditor() {
   return (
     <div className="space-y-4">
       <Card>
-        <CardHeader>
-          <CardTitle>{t('title')}</CardTitle>
-          <CardDescription>{t('description')}</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-4 pt-6">
           <div className="flex items-center justify-between rounded-lg border border-border p-3">
             <div>
               <p className="text-sm font-medium text-foreground">{t('publishLabel')}</p>

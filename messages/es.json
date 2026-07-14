@@ -86,6 +86,7 @@
     "automations": "Automatizaciones",
     "flows": "Flujos",
     "aiAgents": "Agentes IA",
+    "landing": "Página web",
     "settings": "Ajustes",
     "beta": "Beta",
     "unreadConversations": "{count} {count, plural, =1 {conversación sin leer} other {conversaciones sin leer}}",
@@ -1556,7 +1557,6 @@
   "Settings": {
     "pageTitle": "Ajustes",
     "pageDesc": "Todo en un solo lugar — tu cuenta y tu espacio de trabajo. Elige una sección para gestionarla.",
-    "landingFeatureLabel": "Mi página web",
     "landing": {
       "title": "Mi página web",
       "description": "Crea una página sencilla para tu consultorio: quiénes son, qué servicios ofrecen y cómo contactarte.",
