@@ -468,50 +468,6 @@ const LANDING_CSS = `
   @media(max-width:640px) { .zm-landing .hero-illus-img { margin-top: 24px; } }
   .zm-landing .illus-img { display: block; width: 100%; height: auto; border-radius: 12px; }
 
-  .zm-landing .illus-slot {
-    border-radius: 16px;
-    background: rgba(255,255,255,.03);
-    border: 1.5px dashed rgba(74,222,90,.18);
-    min-height: 200px;
-    display: flex; flex-direction: column;
-    align-items: center; justify-content: center; gap: 12px;
-    position: relative; overflow: hidden;
-    flex-shrink: 0;
-  }
-  .zm-landing .illus-slot::before {
-    content: '';
-    position: absolute; inset: 0;
-    background: repeating-linear-gradient(45deg,
-      rgba(74,222,90,.012) 0px, rgba(74,222,90,.012) 1px,
-      transparent 1px, transparent 14px);
-  }
-  .zm-landing .illus-badge {
-    position: absolute; top: 12px; left: 12px;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 9px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
-    color: rgba(74,222,90,.45); background: rgba(74,222,90,.07);
-    border: 1px solid rgba(74,222,90,.12); padding: 3px 8px; border-radius: 4px;
-  }
-  .zm-landing .illus-icon-wrap {
-    width: 56px; height: 56px;
-    background: rgba(74,222,90,.08); border: 1px solid rgba(74,222,90,.14);
-    border-radius: 16px;
-    display: flex; align-items: center; justify-content: center;
-    position: relative; z-index: 1;
-  }
-  .zm-landing .illus-icon-wrap svg { width: 26px; height: 26px; stroke: var(--zm-g); stroke-width: 1.5; fill: none; }
-  .zm-landing .illus-label {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 10.5px; font-weight: 600; letter-spacing: .06em;
-    color: rgba(255,255,255,.3); text-align: center;
-    position: relative; z-index: 1;
-  }
-  .zm-landing .illus-hint {
-    font-size: 11px; color: rgba(255,255,255,.15);
-    text-align: center; position: relative; z-index: 1;
-    max-width: 220px; line-height: 1.5;
-  }
-
   .zm-landing .diff-section { padding: clamp(60px,8vw,90px) 0; background: var(--zm-night); }
   .zm-landing .diff-header { text-align: center; margin-bottom: 48px; }
   .zm-landing .diff-header .section-title { color: var(--zm-white); }
@@ -796,12 +752,7 @@ const LANDING_BODY_HTML = `
         </ul>
       </div>
     </div>
-    <div class="illus-slot reveal" style="max-width:860px;margin:32px auto 0;min-height:180px;">
-      <span class="illus-badge">// Imagen comparativa</span>
-      <div class="illus-icon-wrap"><i data-lucide="columns-2"></i></div>
-      <p class="illus-label">Vista "Sin Zentro vs Con Zentro"</p>
-      <p class="illus-hint">Reemplazar con imagen comparativa estilo before/after (860×340px)</p>
-    </div>
+    <img class="illus-img reveal" src="/landing/vs-comparison.png" alt="Comparación: consultorio sin Zentro Med (caos, sin seguimiento) vs. con Zentro Med (equipo médico, WhatsApp, agenda y campañas activas)" width="1672" height="941" style="max-width:860px;margin:32px auto 0;" />
     <div class="diff-bottom reveal">
       <a href="/signup" class="btn btn-green btn-lg" onclick="if(typeof fbq!=='undefined')fbq('track','Lead');if(typeof gtag!=='undefined')gtag('event','generate_lead',{event_category:'cta',event_label:'differentiator'});">Probar 30 días gratis →</a>
       <p class="diff-price-note">// Sin tarjeta · Setup en 24h · Cancela cuando quieras</p>
