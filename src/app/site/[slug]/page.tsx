@@ -1,5 +1,4 @@
 import { notFound } from "next/navigation";
-import type { Metadata } from "next";
 import type { Data } from "@puckeditor/core";
 import { Render } from "@puckeditor/core/rsc";
 
@@ -25,15 +24,11 @@ async function loadPage(slug: string) {
   return data.content as Data<LandingProps>;
 }
 
-export async function generateMetadata({
-  params,
-}: {
-  params: Promise<{ slug: string }>;
-}): Promise<Metadata> {
-  const { slug } = await params;
-  const content = await loadPage(slug);
-  return { title: content ? undefined : "Página no encontrada" };
-}
+// Deliberately no dynamic generateMetadata here (see the identical
+// note in agendar/[slug]/page.tsx) — Next's build-time route analysis
+// can invoke it speculatively, and a live Supabase call there hung
+// the build indefinitely on a container that apparently can't reach
+// Supabase at build time.
 
 export default async function PublicLandingPage({
   params,
