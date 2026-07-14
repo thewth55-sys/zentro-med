@@ -613,7 +613,8 @@ const LANDING_BODY_HTML = `
   <div class="wrap">
     <div class="nav-i">
       <a href="/" class="logo">
-        <img src="/zentro-logo.png" alt="Zentro" style="height:26px;width:auto;filter:brightness(10);">
+        <img src="/zentro-isotipo.png" alt="" style="height:26px;width:26px;">
+        <span class="logo-text">zentro</span>
         <span class="logo-badge">Med</span>
       </a>
       <div class="nav-r">
@@ -950,7 +951,6 @@ const LANDING_BODY_HTML = `
           <div class="pf"><div class="pf-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>Perfil del contacto (citas + notas)</div>
           <div class="pf"><div class="pf-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>Cotizaciones y cobros</div>
           <div class="pf"><div class="pf-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>1 usuario incluido</div>
-          <div class="pf" style="color:var(--zm-muted2);"><div class="pf-check pf-check-ai" style="opacity:.45"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div><span class="pf-ai-num" style="opacity:.55">50 mensajes IA</span> <span style="font-size:11px;color:var(--zm-muted2);">durante los 30 días de prueba</span></div>
         </div>
         <a href="/signup" class="plan-btn btn-plan-free" onclick="if(typeof fbq!=='undefined')fbq('track','InitiateCheckout');if(typeof gtag!=='undefined')gtag('event','generate_lead',{event_category:'plan',event_label:'free_trial'});">Empezar gratis →</a>
         <p class="plan-fine">// Sin tarjeta · Cancela cuando quieras</p>

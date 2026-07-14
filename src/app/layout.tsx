@@ -7,6 +7,7 @@ import "./globals.css";
 import { ThemeProvider } from "@/hooks/use-theme";
 import { ThemedToaster } from "@/components/themed-toaster";
 import { PwaRegister } from "@/components/pwa-register";
+import { ZohoDeskWidget } from "@/components/zoho-desk-widget";
 import {
   DEFAULT_MODE,
   DEFAULT_THEME,
@@ -91,28 +92,6 @@ const THEME_BOOT_SCRIPT = `
 })();
 `;
 
-// Zoho Desk chat widget (customer support), on every page including
-// the public marketing/auth pages, not just the authenticated
-// dashboard. The nonce Zoho's snippet expects is dropped — this app's
-// CSP ships as Content-Security-Policy-Report-Only (see
-// next.config.ts) with no nonce-issuing machinery, so a literal
-// '{place_your_nonce_value_here}' placeholder would just be dead
-// weight, not a working nonce. im.zoho.com is allowlisted in
-// next.config.ts's script-src/connect-src for when that CSP is
-// eventually flipped to enforced.
-const ZOHO_DESK_WIDGET_SCRIPT = `
-window.ZOHOIM = window.ZOHOIM || function(a, b) { ZOHOIM[a] = b; };
-window.ZOHOIM.prefilledMessage = "";
-(function() {
-  var d = document;
-  var s = d.createElement('script');
-  s.type = 'text/javascript';
-  s.defer = true;
-  s.src = "https://im.zoho.com/api/v1/public/channel/fbfb7e1887b655f1bbbff99948f9b2aa/widget";
-  d.getElementsByTagName('head')[0].appendChild(s);
-})();
-`;
-
 export default async function RootLayout({
   children,
 }: Readonly<{
@@ -151,11 +130,7 @@ export default async function RootLayout({
             <PwaRegister />
           </ThemeProvider>
         </NextIntlClientProvider>
-        <Script
-          id="zoho-desk-widget"
-          strategy="afterInteractive"
-          dangerouslySetInnerHTML={{ __html: ZOHO_DESK_WIDGET_SCRIPT }}
-        />
+        <ZohoDeskWidget />
       </body>
     </html>
   );
