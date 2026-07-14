@@ -69,9 +69,14 @@ const SECURITY_HEADERS = [
       // blocked the whole widget even after the zohopublic.com fix
       // (confirmed live via a securitypolicyviolation event naming
       // this exact URL — see commit history for that investigation).
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://challenges.cloudflare.com https://*.zoho.com https://*.zohostatic.com https://*.zohopublic.com https://*.zohocdn.com https://connect.facebook.net",
+      // unpkg.com serves the Lucide icon UMD bundle used by the
+      // public marketing landing (src/app/page.tsx), which renders
+      // outside the app's normal lucide-react import graph.
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://challenges.cloudflare.com https://*.zoho.com https://*.zohostatic.com https://*.zohopublic.com https://*.zohocdn.com https://connect.facebook.net https://unpkg.com",
       // Tailwind + inline style attributes on lots of components.
-      "style-src 'self' 'unsafe-inline' https://*.zohostatic.com https://*.zohopublic.com https://*.zohocdn.com",
+      // fonts.googleapis.com serves the landing page's Google Fonts
+      // stylesheet (Manrope / JetBrains Mono).
+      "style-src 'self' 'unsafe-inline' https://*.zohostatic.com https://*.zohopublic.com https://*.zohocdn.com https://fonts.googleapis.com",
       // Supabase public-bucket avatars, contact avatars (arbitrary
       // https URLs paste-able from the UI), OG images, data URLs for
       // tiny inline assets.
@@ -79,7 +84,9 @@ const SECURITY_HEADERS = [
       // Outbound media previews (blob: from MediaRecorder + file picker)
       // and Supabase public-bucket audio/video the inbox renders.
       "media-src 'self' blob: https://*.supabase.co",
-      "font-src 'self' data: https://*.zohostatic.com https://*.zohopublic.com https://*.zohocdn.com",
+      // fonts.gstatic.com serves the actual Manrope/JetBrains Mono
+      // font files referenced by the landing page's Google Fonts CSS.
+      "font-src 'self' data: https://*.zohostatic.com https://*.zohopublic.com https://*.zohocdn.com https://fonts.gstatic.com",
       // Supabase REST + realtime (WSS). All Graph API calls (sending
       // messages, registering numbers, etc.) happen server-side, so
       // graph.facebook.com does not belong here — connect.facebook.net
