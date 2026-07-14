@@ -103,6 +103,24 @@ const SECURITY_HEADERS = [
 
 const nextConfig: NextConfig = {
   output: "standalone",
+  /**
+   * Skips the "Running TypeScript ..." check inside `next build`
+   * (Next 16 no longer runs ESLint during build at all — this log
+   * never showed a lint step, only the TS one — so there's nothing
+   * to disable there). Safe ONLY because this project's actual
+   * workflow always runs `npx tsc --noEmit` and `npx eslint` locally
+   * as a hard gate before every push (every batch of work this
+   * session went through that exact ritual before committing) —
+   * re-running the type check again on this memory-constrained VPS
+   * is redundant work, and it was the build's OOM/hang point three
+   * deploys in a row even after capping worker parallelism
+   * (experimental.cpus above) and disabling webpack's persistent
+   * cache (below). User-authorized trade-off: if a change is ever
+   * pushed WITHOUT running the local checks first, a real type error
+   * could reach production unnoticed. Revisit if/when this deploys
+   * from a bigger box.
+   */
+  typescript: { ignoreBuildErrors: true },
   experimental: {
     /**
      * Caps the number of parallel build workers (webpack compile +
