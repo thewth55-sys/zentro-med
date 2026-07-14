@@ -71,25 +71,28 @@ ENV SENTRY_ORG=$SENTRY_ORG
 ENV SENTRY_PROJECT=$SENTRY_PROJECT
 ENV SENTRY_AUTH_TOKEN=$SENTRY_AUTH_TOKEN
 
-# Caps V8's heap during `next build`'s TypeScript-checking step.
-# Without this, V8 tries to grow memory unbounded on a constrained
-# host; the kernel OOM-kills the process with NO error output at all
-# (the build just stops dead after "Running TypeScript ..." or
-# "Creating an optimized production build ..." — same signature, just
-# a slightly different point in the pipeline depending on what's
-# heaviest that build), which is exactly what happened on this VPS
-# starting with the batch of work that pushed the codebase's build
-# memory footprint over the container's actual limit. An explicit,
-# lower heap cap makes V8 garbage-collect more aggressively instead of
-# getting killed. Raised from 1536 to 2048 once Sentry's webpack
-# plugin (source map processing, instrumentation wrapping) added
-# enough extra build-time memory pressure to reproduce the same
-# symptom again. Override via the NODE_BUILD_MEMORY_MB build arg —
-# this host reportedly has 4GB total, so 2048 still leaves headroom
-# for everything else running alongside the build; push higher only
-# if the host's actual free memory (not just its total) is confirmed
-# comfortably above that.
-ARG NODE_BUILD_MEMORY_MB=2048
+# Caps V8's heap during `next build`. Without this, V8 tries to grow
+# memory unbounded on a constrained host; the kernel OOM-kills the
+# process with NO error output at all (the build just stops dead —
+# at "Running TypeScript ...", "Creating an optimized production
+# build ...", or "Collecting page data ...", same signature, just a
+# different point in the pipeline depending on what's heaviest that
+# build), which is what happened repeatedly on this VPS as the
+# codebase's build weight grew (Sentry, then the Puck-based landing
+# builder). History: 1536 → 2048 (Sentry) did not fix it alone;
+# disabling Sentry sourcemaps, webpack's persistent cache, and the
+# TypeScript check all reduced the WORK done and helped, but the
+# build still hung at "Collecting page data" with 2 parallel workers.
+# Previous cap raises alone never fixed anything, because with
+# multiple parallel workers the SUM of their heaps could still exceed
+# the container's real memory regardless of each one's individual
+# cap. Now that next.config.ts forces `experimental.cpus: 1` (fully
+# serial, no sibling workers), that multiplication problem is gone,
+# so raising this single worker's cap should map directly to usable
+# memory instead. This host reportedly has 4GB total; 2560 leaves
+# ~1.5GB for the OS/everything else running alongside the build.
+# Override via the NODE_BUILD_MEMORY_MB build arg.
+ARG NODE_BUILD_MEMORY_MB=2560
 ENV NODE_OPTIONS=--max-old-space-size=${NODE_BUILD_MEMORY_MB}
 
 # Build the project

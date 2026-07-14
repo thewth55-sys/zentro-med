@@ -130,22 +130,23 @@ const nextConfig: NextConfig = {
   typescript: { ignoreBuildErrors: true },
   experimental: {
     /**
-     * Caps the number of parallel build workers (webpack compile +
-     * the "Running TypeScript ..." type-check step both use this
-     * pool). Next's default is `os.cpus().length - 1` — on this
-     * build host that reads the HOST's core count, not this
-     * container's actual memory allotment, so the default can spawn
-     * far more workers than the VPS's 4GB total can hold at once
+     * Caps the number of parallel build workers — used by webpack
+     * compile, the (now-skipped) type-check step, AND "Collecting
+     * page data", which is where the build hung next even at cpus:2.
+     * Next's default is `os.cpus().length - 1`, which on this build
+     * host reads the HOST's core count, not this container's actual
+     * memory allotment, so the default (and even 2) can spawn more
+     * parallel workers than the VPS's 4GB total can hold at once
      * (each worker gets its own heap, on top of webpack's own
-     * process). That's the same "off-heap + V8 heap together exceed
-     * container memory" shape as the earlier Sentry-sourcemap OOM
-     * (see the sourcemaps.disable comment below), just triggered this
-     * time by the landing-page builder (Puck — dnd-kit/react,
-     * zustand, ~15 @tiptap/* packages) growing the type-checking
-     * surface enough to tip it over. Trades build speed for staying
-     * inside the container's memory ceiling.
+     * process) — same "off-heap + V8 heap together exceed container
+     * memory" shape as the earlier Sentry-sourcemap OOM (see the
+     * sourcemaps.disable comment below). Forcing fully serial (1)
+     * trades the most build speed for the most headroom; combined
+     * with the raised NODE_BUILD_MEMORY_MB below, the single worker
+     * also gets more heap to itself since it's no longer contending
+     * with a sibling.
      */
-    cpus: 2,
+    cpus: 1,
   },
   webpack: (config, { dev }) => {
     if (!dev) {
