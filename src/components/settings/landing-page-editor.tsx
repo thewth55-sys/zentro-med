@@ -172,7 +172,19 @@ export function LandingPageEditor() {
 
       {canEdit ? (
         <div className="overflow-hidden rounded-xl border border-border">
-          <Puck config={basicConfig} data={data} onPublish={handlePublishContent} height="70vh" />
+          <Puck
+            config={basicConfig}
+            data={data}
+            onPublish={handlePublishContent}
+            height="70vh"
+            // See admin-landing-editor.tsx's identical option for why:
+            // Puck's default srcdoc-iframe canvas has an opaque origin
+            // that this app's strict CSP 'self' source can't match,
+            // blocking the canvas's own stylesheets. Disabling iframe
+            // isolation avoids that entirely (cosmetic-only tradeoff;
+            // never affects the published /site/[slug] page).
+            iframe={{ enabled: false }}
+          />
         </div>
       ) : null}
     </div>

@@ -131,7 +131,23 @@ export function AdminLandingEditor({ accountId }: { accountId: string }) {
       </Card>
 
       <div className="overflow-hidden rounded-xl border border-border">
-        <Puck config={fullConfig} data={data} onPublish={handlePublishContent} height="70vh" />
+        <Puck
+          config={fullConfig}
+          data={data}
+          onPublish={handlePublishContent}
+          height="70vh"
+          // Puck's default live-preview canvas renders inside a srcdoc
+          // iframe, which has an opaque/null origin — this app's CSP
+          // 'self' source doesn't match anything loaded from inside
+          // it, so the canvas's own stylesheets (including its Inter
+          // font CDN reference) get blocked. Disabling iframe
+          // isolation renders the canvas directly in the main
+          // document instead — same CSP context, no more violations.
+          // Cosmetic-only tradeoff (this editor's own chrome styles
+          // can now bleed into the live-preview canvas); the actual
+          // published page at /site/[slug] never uses this editor.
+          iframe={{ enabled: false }}
+        />
       </div>
     </div>
   );
