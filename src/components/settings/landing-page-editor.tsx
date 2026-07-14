@@ -15,7 +15,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Card, CardContent } from '@/components/ui/card';
-import { basicConfig } from '@/lib/landing-builder/puck-config';
+import { basicConfig } from '@/lib/landing-builder/editor-config';
 import { useTranslations } from 'next-intl';
 
 const EMPTY_DATA: Data = { content: [], root: {} };

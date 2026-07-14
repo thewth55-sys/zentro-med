@@ -27,23 +27,15 @@ export interface LandingProps {
 }
 
 /**
- * Self-serve tier (Zentro Med / "solo CRM" plan and up): a doctor
- * builds their own page. Deliberately just 3 blocks — enough for a
- * one-page "who we are + how to reach us" site without the surface
- * area to produce something that looks broken or off-brand
- * unsupervised.
- */
-export const basicConfig: Config<Pick<LandingProps, "Hero" | "ServiceList" | "ContactCTA">> = {
-  components: { Hero, ServiceList, ContactCTA },
-};
-
-/**
- * Full tier: everything, used exclusively by Zentro's internal
- * design team from the platform-admin editor (see
- * /admin/accounts/[accountId]/landing) to fulfil the "Landing de
- * especialidad" line item on the Starter/Pro plans as a white-glove
- * service — clients on those plans don't get self-serve access to
- * this wider palette, staff builds it for them.
+ * Server-safe, render-only config for the public `/site/[slug]` page
+ * (uses Puck's RSC-safe `Render`, which only ever calls each
+ * component's `render` — never reads `fields`). The editable configs
+ * WITH fields (including the hook-based image-upload/color pickers)
+ * live in editor-config.tsx, a "use client" module used only by the
+ * two Puck editor components — importing it here would pull hooks
+ * into this server component's module graph and fail the build. This
+ * config is always the full block set: it's a rendering superset, so
+ * it renders a page built with either tier's editor identically.
  */
 export const fullConfig: Config<LandingProps> = {
   components: { Hero, ServiceList, ContactCTA, Testimonial, DoctorBio, Gallery, MapAddress },
