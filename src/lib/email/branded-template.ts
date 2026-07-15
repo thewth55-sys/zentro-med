@@ -11,6 +11,25 @@
 const ZENTRO_GREEN = "#4ade5a";
 const ZENTRO_GREEN_DARK = "#1b5a2e";
 
+/**
+ * Escapes the 5 characters HTML gives special meaning, for any
+ * user-controlled string (a patient's name, phone, a WhatsApp
+ * message) interpolated into a `bodyHtml` string before it's handed
+ * to `renderBrandedEmail`. Without this, a patient could name
+ * themselves `<a href="https://evil">...` on the public booking form
+ * and have that render as a live link/markup in the internal team
+ * notification email — no script execution (mail clients strip
+ * `<script>`), but real HTML/link injection into a trusted email.
+ */
+export function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 export interface BrandedEmailParams {
   /** Shown as the big heading inside the email body. */
   heading: string;

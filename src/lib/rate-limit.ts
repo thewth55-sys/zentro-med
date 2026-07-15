@@ -22,6 +22,23 @@
 
 import { NextResponse } from 'next/server';
 
+/**
+ * Best-effort client IP. The `x-forwarded-for` header is what every
+ * reverse proxy (Vercel, Hostinger, Cloudflare) sets when forwarding
+ * a request; we take the leftmost entry, which is the original
+ * client. Falls back to a constant when no proxy is in front (e.g.
+ * `localhost` during development) so rate-limit keys still exist —
+ * the limit then effectively applies "globally," which is fine for
+ * dev.
+ */
+export function getClientIp(request: Request): string {
+  const xff = request.headers.get('x-forwarded-for');
+  if (xff) return xff.split(',')[0].trim();
+  const xri = request.headers.get('x-real-ip');
+  if (xri) return xri.trim();
+  return 'unknown';
+}
+
 export interface RateLimitOptions {
   /** Max requests allowed in `windowMs`. */
   limit: number;
@@ -167,6 +184,15 @@ export const RATE_LIMITS = {
    *  capping a stampede; excess inbounds simply don't get an auto-reply
    *  (they still land in the inbox for a human). */
   aiAutoReplyAccount: { limit: 30, windowMs: 60_000 },
+  /** Public booking widget, read endpoints (config + slots), per IP.
+   *  Called a handful of times per real visitor as they pick a
+   *  doctor/date; generous enough for that while bounding scraping. */
+  publicBookingRead: { limit: 60, windowMs: 60_000 },
+  /** Public booking widget, the actual booking submit, per IP. A real
+   *  visitor books once (maybe retries once or twice on a transient
+   *  error); tight because a successful call creates a real Contact +
+   *  Appointment row with no other abuse gate in front of it. */
+  publicBookingCreate: { limit: 5, windowMs: 60_000 },
 } as const;
 
 /** Test-only helper. Clears the in-memory state so unit tests don't

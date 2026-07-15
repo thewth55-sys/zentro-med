@@ -14,9 +14,10 @@ import crypto from "node:crypto";
  *
  * Contract: `secret` is required and passed in by the caller rather
  * than read here directly — the current caller (the webhook route)
- * uses one shared `CAL_COM_WEBHOOK_SECRET` env var for every account
- * on this deployment, a deliberate MVP simplification documented
- * there. Fails closed on a missing or mismatched signature.
+ * looks up each account's own `cal_com_webhook_secret` (migration
+ * 054), so this function has no idea whether the secret is shared or
+ * per-account; that's the caller's job. Fails closed on a missing or
+ * mismatched signature.
  */
 export function verifyCalComWebhookSignature(
   rawBody: string,

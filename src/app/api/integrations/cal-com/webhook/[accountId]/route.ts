@@ -15,12 +15,13 @@ import { verifyCalComWebhookSignature } from "@/lib/cal-com/webhook-signature";
  *   1. In Cal.com → Settings → Developer → Webhooks, add an endpoint
  *      pointing at this route with this account's id in the URL,
  *      subscribed to Booking Created / Cancelled / Rescheduled.
- *   2. Set the webhook's secret to this deployment's
- *      CAL_COM_WEBHOOK_SECRET value (see .env.local.example) — every
- *      account on this deployment currently shares one secret. A
- *      later pass could move this to a per-account column +
+ *   2. Set the webhook's secret to this account's own
+ *      `accounts.cal_com_webhook_secret` value (migration 054 —
+ *      server-generated per account, never derived from anything the
+ *      client controls). A later pass could surface this in a
  *      Settings → Scheduling card (mirroring public-booking-settings)
- *      once there's a real customer asking for it.
+ *      once there's a real customer asking for it; for now, read it
+ *      directly from the accounts table.
  *
  * WHAT THIS DOES vs. DOESN'T DO:
  *   Does: verify the signature, create/update/cancel an Appointment
@@ -64,14 +65,31 @@ export async function POST(
   const { accountId } = await params;
   const rawBody = await request.text();
 
-  const secret = process.env.CAL_COM_WEBHOOK_SECRET;
-  if (!secret) {
-    console.error("[cal.com webhook] CAL_COM_WEBHOOK_SECRET is not set — rejecting request.");
-    return NextResponse.json({ error: "Not configured" }, { status: 503 });
-  }
+  // Look up the account's OWN secret before verifying anything — each
+  // account has a distinct, server-generated cal_com_webhook_secret
+  // (migration 054). A single shared secret used to let anyone who
+  // knew it forge a valid signature for a DIFFERENT account's URL and
+  // write appointments cross-tenant; per-account secrets close that.
+  //
+  // Both "account doesn't exist" and "signature doesn't match" return
+  // the exact same generic 401 below — returning a distinct 404 for a
+  // missing account would let an unauthenticated caller enumerate
+  // valid account ids with zero knowledge of any secret.
+  const admin = supabaseAdmin();
+  const { data: account } = await admin
+    .from("accounts")
+    .select("id, cal_com_webhook_secret")
+    .eq("id", accountId)
+    .maybeSingle();
+
+  const genericAuthFailure = () =>
+    NextResponse.json({ error: "Invalid signature" }, { status: 401 });
+
+  if (!account) return genericAuthFailure();
+
   const signature = request.headers.get("x-cal-signature-256");
-  if (!verifyCalComWebhookSignature(rawBody, signature, secret)) {
-    return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
+  if (!verifyCalComWebhookSignature(rawBody, signature, account.cal_com_webhook_secret)) {
+    return genericAuthFailure();
   }
 
   let body: CalComWebhookBody;
@@ -86,12 +104,6 @@ export async function POST(
     // Event type we don't care about, or a malformed payload — ack
     // it anyway so Cal.com doesn't retry forever.
     return NextResponse.json({ ok: true });
-  }
-
-  const admin = supabaseAdmin();
-  const { data: account } = await admin.from("accounts").select("id").eq("id", accountId).maybeSingle();
-  if (!account) {
-    return NextResponse.json({ error: "Account not found" }, { status: 404 });
   }
 
   if (triggerEvent === "BOOKING_CANCELLED") {

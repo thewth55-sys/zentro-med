@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { supabaseAdmin } from "@/lib/billing-platform/admin-client";
+import { timingSafeSecretEqual } from "@/lib/cron/verify-secret";
 
 /**
  * Marks trial accounts as expired once `trial_ends_at` has passed
@@ -19,7 +20,7 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "cron not configured" }, { status: 503 });
   }
   const supplied = request.headers.get("x-cron-secret");
-  if (supplied !== expected) {
+  if (!timingSafeSecretEqual(supplied, expected)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 

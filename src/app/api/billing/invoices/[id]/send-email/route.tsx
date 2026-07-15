@@ -5,7 +5,7 @@ import { requireRole, toErrorResponse } from "@/lib/auth/account";
 import { InvoicePdfDocument, type InvoicePdfLineItem } from "@/lib/billing/invoice-pdf-document";
 import { fmtMoney } from "@/lib/billing/pdf-theme";
 import { sendEmail } from "@/lib/email/resend-client";
-import { renderBrandedEmail } from "@/lib/email/branded-template";
+import { renderBrandedEmail, escapeHtml } from "@/lib/email/branded-template";
 
 /**
  * POST /api/billing/invoices/[id]/send-email — same PDF render as
@@ -83,7 +83,7 @@ export async function POST(
 
     const html = renderBrandedEmail({
       heading: `Factura ${invoice.invoice_number}`,
-      bodyHtml: `<p>Hola ${invoice.contact.name || ""},</p><p>Adjuntamos tu factura por un total de <strong>${fmtMoney(invoice.total, invoice.currency)}</strong>.</p>${balanceLine}`,
+      bodyHtml: `<p>Hola ${escapeHtml(invoice.contact.name || "")},</p><p>Adjuntamos tu factura por un total de <strong>${fmtMoney(invoice.total, invoice.currency)}</strong>.</p>${balanceLine}`,
       brandName: account.name,
       logoUrl: account.logoUrl,
       accentColor: account.quoteAccentColor,

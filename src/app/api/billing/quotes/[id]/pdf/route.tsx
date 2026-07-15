@@ -90,12 +90,18 @@ export async function POST(
       return NextResponse.json({ error: "Failed to generate PDF" }, { status: 500 });
     }
 
-    const {
-      data: { publicUrl },
-    } = admin.storage.from(BUCKET).getPublicUrl(path);
+    // Signed, not public — see the identical comment on the invoice
+    // PDF route (same BUCKET, same rationale).
+    const { data: signed, error: signErr } = await admin.storage
+      .from(BUCKET)
+      .createSignedUrl(path, 60 * 60 * 48);
+    if (signErr || !signed) {
+      console.error("[POST /api/billing/quotes/[id]/pdf] sign error:", signErr);
+      return NextResponse.json({ error: "Failed to generate PDF" }, { status: 500 });
+    }
 
     return NextResponse.json({
-      url: publicUrl,
+      url: signed.signedUrl,
       filename: `Cotizacion-${quote.quote_number}.pdf`,
     });
   } catch (err) {

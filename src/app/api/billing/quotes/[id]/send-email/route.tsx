@@ -5,7 +5,7 @@ import { requireRole, toErrorResponse } from "@/lib/auth/account";
 import { QuotePdfDocument, type QuotePdfLineItem } from "@/lib/billing/quote-pdf-document";
 import { fmtMoney } from "@/lib/billing/pdf-theme";
 import { sendEmail } from "@/lib/email/resend-client";
-import { renderBrandedEmail } from "@/lib/email/branded-template";
+import { renderBrandedEmail, escapeHtml } from "@/lib/email/branded-template";
 
 /**
  * POST /api/billing/quotes/[id]/send-email — same PDF render as the
@@ -77,7 +77,7 @@ export async function POST(
 
     const html = renderBrandedEmail({
       heading: `Cotización ${quote.quote_number}`,
-      bodyHtml: `<p>Hola ${quote.contact.name || ""},</p><p>Adjuntamos tu cotización por un total de <strong>${fmtMoney(quote.total, quote.currency)}</strong>.</p>${expiryLine}`,
+      bodyHtml: `<p>Hola ${escapeHtml(quote.contact.name || "")},</p><p>Adjuntamos tu cotización por un total de <strong>${fmtMoney(quote.total, quote.currency)}</strong>.</p>${expiryLine}`,
       brandName: account.name,
       logoUrl: account.logoUrl,
       accentColor: account.quoteAccentColor,

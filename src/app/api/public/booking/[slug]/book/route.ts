@@ -4,6 +4,8 @@ import { findExistingContact, isUniqueViolation } from "@/lib/contacts/dedupe";
 import { normalizePhone } from "@/lib/whatsapp/phone-utils";
 import { computeAvailableSlots } from "@/lib/scheduling/public-booking";
 import { notifyAccountTeam } from "@/lib/email/notify-team";
+import { escapeHtml } from "@/lib/email/branded-template";
+import { checkRateLimit, getClientIp, rateLimitResponse, RATE_LIMITS } from "@/lib/rate-limit";
 
 interface BookBody {
   doctor_id?: string;
@@ -30,6 +32,10 @@ export async function POST(
   request: Request,
   { params }: { params: Promise<{ slug: string }> },
 ) {
+  const ip = getClientIp(request);
+  const limit = checkRateLimit(`public-booking-create:${ip}`, RATE_LIMITS.publicBookingCreate);
+  if (!limit.success) return rateLimitResponse(limit);
+
   const { slug } = await params;
   const body = (await request.json().catch(() => null)) as BookBody | null;
 
@@ -163,7 +169,7 @@ export async function POST(
     accountId: account.id,
     subject: `Nueva cita agendada — ${body.name}`,
     heading: "Nueva cita agendada en línea",
-    bodyHtml: `<p><strong>${body.name}</strong> agendó una cita para <strong>${startLabel}</strong> con ${doctor.name} (${serviceType.name}).</p><p>Teléfono: ${body.phone}</p>`,
+    bodyHtml: `<p><strong>${escapeHtml(body.name)}</strong> agendó una cita para <strong>${escapeHtml(startLabel)}</strong> con ${escapeHtml(doctor.name)} (${escapeHtml(serviceType.name)}).</p><p>Teléfono: ${escapeHtml(body.phone)}</p>`,
   });
 
   return NextResponse.json({ appointment });

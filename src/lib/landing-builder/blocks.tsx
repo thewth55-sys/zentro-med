@@ -1,4 +1,5 @@
 import type { ComponentConfig } from "@puckeditor/core";
+import { sanitizeHref } from "./safe-url";
 
 /**
  * The block catalog for the landing page builder — VISUAL OUTPUT ONLY
@@ -51,9 +52,9 @@ export const Hero: ComponentConfig<HeroProps> = {
       ) : null}
       <h1 className="text-3xl font-bold text-foreground sm:text-4xl">{headline}</h1>
       {subheadline ? <p className="max-w-xl text-lg text-muted-foreground">{subheadline}</p> : null}
-      {ctaText && ctaHref ? (
+      {ctaText && sanitizeHref(ctaHref) ? (
         <a
-          href={ctaHref}
+          href={sanitizeHref(ctaHref)}
           className="rounded-lg px-6 py-3 font-medium text-primary-foreground hover:opacity-90"
           style={{ backgroundColor: buttonColor || "var(--primary)" }}
         >
@@ -202,8 +203,8 @@ export const MapAddress: ComponentConfig<MapAddressProps> = {
   render: ({ address, mapsUrl }) => (
     <section className="mx-auto max-w-xl px-6 py-8 text-center">
       {address ? <p className="text-sm text-muted-foreground">{address}</p> : null}
-      {address && mapsUrl ? (
-        <a href={mapsUrl} target="_blank" rel="noreferrer" className="mt-2 inline-block text-sm text-primary hover:underline">
+      {address && sanitizeHref(mapsUrl) ? (
+        <a href={sanitizeHref(mapsUrl)} target="_blank" rel="noreferrer" className="mt-2 inline-block text-sm text-primary hover:underline">
           Ver en Google Maps
         </a>
       ) : null}

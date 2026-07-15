@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/billing-platform/admin-client";
 import { computeAvailableSlots } from "@/lib/scheduling/public-booking";
+import { checkRateLimit, getClientIp, rateLimitResponse, RATE_LIMITS } from "@/lib/rate-limit";
 
 /**
  * GET /api/public/booking/[slug]/slots?doctor_id=&service_type_id=&date=YYYY-MM-DD
@@ -16,6 +17,10 @@ export async function GET(
   request: Request,
   { params }: { params: Promise<{ slug: string }> },
 ) {
+  const ip = getClientIp(request);
+  const limit = checkRateLimit(`public-booking-slots:${ip}`, RATE_LIMITS.publicBookingRead);
+  if (!limit.success) return rateLimitResponse(limit);
+
   const { slug } = await params;
   const url = new URL(request.url);
   const doctorId = url.searchParams.get("doctor_id");

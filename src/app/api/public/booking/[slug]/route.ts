@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/billing-platform/admin-client";
 import { getPublicBookingConfig } from "@/lib/scheduling/public-booking";
+import { checkRateLimit, getClientIp, rateLimitResponse, RATE_LIMITS } from "@/lib/rate-limit";
 
 /**
  * GET /api/public/booking/[slug] — config for the public booking
@@ -11,9 +12,13 @@ import { getPublicBookingConfig } from "@/lib/scheduling/public-booking";
  * posture as the WhatsApp webhook.
  */
 export async function GET(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ slug: string }> },
 ) {
+  const ip = getClientIp(request);
+  const limit = checkRateLimit(`public-booking-config:${ip}`, RATE_LIMITS.publicBookingRead);
+  if (!limit.success) return rateLimitResponse(limit);
+
   const { slug } = await params;
   const config = await getPublicBookingConfig(supabaseAdmin(), slug);
 

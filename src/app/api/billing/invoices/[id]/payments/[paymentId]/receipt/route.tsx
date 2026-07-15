@@ -84,12 +84,18 @@ export async function POST(
       return NextResponse.json({ error: "Failed to generate receipt" }, { status: 500 });
     }
 
-    const {
-      data: { publicUrl },
-    } = admin.storage.from(BUCKET).getPublicUrl(path);
+    // Signed, not public — same rationale as the invoice/quote PDF
+    // routes (identical BUCKET, same financial-document exposure).
+    const { data: signed, error: signErr } = await admin.storage
+      .from(BUCKET)
+      .createSignedUrl(path, 60 * 60 * 48);
+    if (signErr || !signed) {
+      console.error("[POST /payments/[paymentId]/receipt] sign error:", signErr);
+      return NextResponse.json({ error: "Failed to generate receipt" }, { status: 500 });
+    }
 
     return NextResponse.json({
-      url: publicUrl,
+      url: signed.signedUrl,
       filename: `Recibo-${invoice.invoice_number}.pdf`,
     });
   } catch (err) {

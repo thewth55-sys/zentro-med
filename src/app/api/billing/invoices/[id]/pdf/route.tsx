@@ -83,12 +83,24 @@ export async function POST(
       return NextResponse.json({ error: "Failed to generate PDF" }, { status: 500 });
     }
 
-    const {
-      data: { publicUrl },
-    } = admin.storage.from(BUCKET).getPublicUrl(path);
+    // Signed, not public — `chat-media` is a public bucket (Meta needs
+    // to fetch WhatsApp attachments with no auth), but this file is a
+    // financial document with a patient's name/phone/pricing. A public
+    // URL never expires and this link gets sent to the patient
+    // directly (see "Enviar por WhatsApp"/"Enviar por correo"), so
+    // anyone who ever sees that message would otherwise have permanent,
+    // unauthenticated access to it. 48h covers immediate download plus
+    // Meta's WhatsApp media fetch with room to spare.
+    const { data: signed, error: signErr } = await admin.storage
+      .from(BUCKET)
+      .createSignedUrl(path, 60 * 60 * 48);
+    if (signErr || !signed) {
+      console.error("[POST /api/billing/invoices/[id]/pdf] sign error:", signErr);
+      return NextResponse.json({ error: "Failed to generate PDF" }, { status: 500 });
+    }
 
     return NextResponse.json({
-      url: publicUrl,
+      url: signed.signedUrl,
       filename: `Factura-${invoice.invoice_number}.pdf`,
     });
   } catch (err) {
