@@ -1,20 +1,43 @@
 # Config as code para Supabase — ver:
 # https://supabase.com/docs/guides/local-development/cli/config
 #
-# Este archivo está deliberadamente ACOTADO solo a las 6 plantillas de
-# correo de Auth (`auth.email.template.*`). No declara `[auth]` general
-# (site_url, redirect URLs, proveedores OAuth, SMTP, MFA, rate limits),
-# `[db]`, `[api]`, `[storage]`, etc. a propósito, para minimizar lo que
-# `supabase config push` puede tocar en el proyecto real.
+# El objetivo real de este archivo son las 6 plantillas de correo de
+# Auth (`auth.email.template.*`) al final. Las secciones [auth],
+# [auth.email] y [auth.mfa.totp] de arriba NO son cambios que
+# queramos — son los valores EXACTOS que ya están en el proyecto real
+# (confirmados contra el diff de un primer intento de
+# `supabase config push`, cancelado antes de aplicar). Sin declararlos
+# aquí, el CLI los compara contra sus defaults de desarrollo local
+# (site_url=127.0.0.1, MFA/confirmaciones desactivadas, otp_length=6)
+# y los REEMPLAZA — eso habría roto el login en producción. Las
+# declaramos explícitamente solo para que el diff quede en cero ahí.
+#
+# Si en algún momento cambias alguno de estos valores desde el
+# Dashboard de Supabase (Authentication → URL Configuration, etc.),
+# actualiza también aquí — si no, el próximo `config push` los
+# revertiría al valor que quedó escrito en este archivo.
 #
 # IMPORTANTE antes de correr `supabase config push`:
 #   1. `supabase link --project-ref <tu-project-ref>`
 #   2. El CLI muestra un diff local vs. remoto antes de aplicar nada.
-#   3. Verifica que el diff solo muestre cambios en las 6 plantillas de
-#      abajo. Si aparece cualquier otro cambio (site_url, proveedores,
-#      SMTP, etc.), CANCELA (Ctrl+C / responde "no") — significa que el
-#      proyecto remoto tiene configuración que este archivo no declara.
+#   3. Verifica que el diff SOLO muestre cambios en las 6 plantillas de
+#      correo. Si aparece cualquier otro cambio (site_url, proveedores,
+#      SMTP, rate limits, etc.), CANCELA (Ctrl+C / responde "no") —
+#      significa que el proyecto remoto cambió algo que este archivo
+#      todavía no refleja.
 project_id = "zentro-med"
+
+[auth]
+site_url = "https://med.zentrolabs.com/"
+additional_redirect_urls = ["https://med.zentrolabs.com/**", "https://med.zentrolabs.com/auth/callback"]
+
+[auth.email]
+enable_confirmations = true
+otp_length = 8
+
+[auth.mfa.totp]
+enroll_enabled = true
+verify_enabled = true
 
 [auth.email.template.confirmation]
 subject = "Confirma tu cuenta en Zentro Med"
