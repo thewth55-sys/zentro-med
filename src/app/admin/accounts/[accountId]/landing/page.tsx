@@ -18,7 +18,7 @@ export default async function AdminAccountLandingPage({
   return (
     <div className="space-y-4">
       <Link
-        href="/admin"
+        href="/admin/accounts"
         className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
       >
         <ArrowLeft className="size-4" /> Cuentas
