@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import { AlertTriangle, Loader2 } from "lucide-react";
 
+import Link from "next/link";
+
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import {
@@ -138,7 +140,11 @@ export default function AdminAccountsPage() {
             <TableBody>
               {(filteredAccounts ?? []).map((account) => (
                 <TableRow key={account.id}>
-                  <TableCell className="font-medium text-foreground">{account.name}</TableCell>
+                  <TableCell className="font-medium text-foreground">
+                    <Link href={`/admin/accounts/${account.id}`} className="hover:underline">
+                      {account.name}
+                    </Link>
+                  </TableCell>
                   <TableCell>
                     <div className="flex flex-col">
                       <span className="text-foreground">{account.ownerName ?? "—"}</span>
