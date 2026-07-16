@@ -29,7 +29,37 @@ export interface AiConfig {
    *  knowledge base is embedded and semantic retrieval turns on; when
    *  null, retrieval falls back to lexical full-text search. */
   embeddingsApiKey: string | null
+  /** When true, the auto-reply assistant is given the agenda tools
+   *  (check real availability, book an appointment) — see
+   *  lib/ai/tools/agenda.ts. Off by default, same as autoReplyEnabled. */
+  agendaAccessEnabled: boolean
 }
+
+/**
+ * Provider-agnostic tool/function definition, translated to each
+ * provider's own wire format inside its adapter (OpenAI's
+ * `{type:'function', function:{...}}` vs Anthropic's flatter
+ * `{name, description, input_schema}`).
+ */
+export interface ToolDefinition {
+  name: string
+  description: string
+  parameters: {
+    type: 'object'
+    properties: Record<string, unknown>
+    required?: string[]
+  }
+}
+
+/**
+ * Executes one tool call by name and returns its result as a plain
+ * string (JSON-stringified for structured data) to feed back to the
+ * model. Thrown errors are caught by the provider adapter and turned
+ * into a string result too, so a tool failure becomes something the
+ * model can react to ("I couldn't check availability") rather than
+ * aborting the whole generation.
+ */
+export type ToolExecutor = (name: string, args: Record<string, unknown>) => Promise<string>
 
 /** A single conversation turn in the shape both providers accept. */
 export interface ChatMessage {

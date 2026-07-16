@@ -4,6 +4,8 @@ import {
   type AiUsage,
   type ChatMessage,
   type GenerateResult,
+  type ToolDefinition,
+  type ToolExecutor,
 } from './types'
 import { HANDOFF_SENTINEL, aiRequestTimeoutMs } from './defaults'
 import { generateOpenAi } from './providers/openai'
@@ -15,6 +17,13 @@ export interface GenerateArgs {
   systemPrompt: string
   /** Recent conversation turns, oldest first. */
   messages: ChatMessage[]
+  /** Agenda tools + executor — only passed when
+   *  config.agendaAccessEnabled is true (caller's responsibility; this
+   *  function doesn't check the flag itself so the Playground can
+   *  exercise tool-calling without flipping the account's real
+   *  setting). Omit both to run a plain no-tools generation. */
+  tools?: ToolDefinition[]
+  executeTool?: ToolExecutor
 }
 
 /**
@@ -23,7 +32,7 @@ export interface GenerateArgs {
  * of the raw text. Throws `AiError` on any provider/network failure.
  */
 export async function generateReply(args: GenerateArgs): Promise<GenerateResult> {
-  const { config, systemPrompt, messages } = args
+  const { config, systemPrompt, messages, tools, executeTool } = args
   const timeoutMs = aiRequestTimeoutMs()
   const providerArgs = {
     apiKey: config.apiKey,
@@ -31,6 +40,8 @@ export async function generateReply(args: GenerateArgs): Promise<GenerateResult>
     systemPrompt,
     messages,
     timeoutMs,
+    tools,
+    executeTool,
   }
 
   let result: { text: string; usage: AiUsage | null }

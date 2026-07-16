@@ -1,4 +1,10 @@
-import { AiError, type AiUsage, type ChatMessage } from '../types'
+import {
+  AiError,
+  type AiUsage,
+  type ChatMessage,
+  type ToolDefinition,
+  type ToolExecutor,
+} from '../types'
 
 // ============================================================
 // Bits shared by the OpenAI + Anthropic adapters.
@@ -10,7 +16,19 @@ export interface ProviderArgs {
   systemPrompt: string
   messages: ChatMessage[]
   timeoutMs: number
+  /** When present (with `executeTool`), the model may call these
+   *  instead of/before answering. Each adapter runs its own
+   *  provider-native tool-call loop internally and only returns once
+   *  the model produces a final plain-text answer — see
+   *  MAX_TOOL_ROUNDS in each adapter for the loop cap. */
+  tools?: ToolDefinition[]
+  executeTool?: ToolExecutor
 }
+
+/** Loop cap shared by both adapters' internal tool-call round trips —
+ *  a model that keeps calling tools forever (buggy prompt, provider
+ *  quirk) still terminates instead of running up token spend. */
+export const MAX_TOOL_ROUNDS = 4
 
 /**
  * Coerce a provider's usage block into our normalized `AiUsage`, tolerant

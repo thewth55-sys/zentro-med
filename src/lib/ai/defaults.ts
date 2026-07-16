@@ -54,8 +54,12 @@ export function buildSystemPrompt(args: {
   mode: 'draft' | 'auto_reply'
   /** Knowledge-base excerpts retrieved for the current question. */
   knowledge?: string[]
+  /** True when the agenda tools (list_doctors_and_services,
+   *  check_availability, book_appointment) are attached to this call —
+   *  see ai_configs.agenda_access_enabled. */
+  hasAgendaAccess?: boolean
 }): string {
-  const { userPrompt, mode, knowledge } = args
+  const { userPrompt, mode, knowledge, hasAgendaAccess } = args
   const parts: string[] = [
     'You are a customer-messaging assistant for a business that uses a WhatsApp CRM. ' +
       'You are shown the recent WhatsApp conversation between the business (assistant) and a customer (user). ' +
@@ -69,6 +73,15 @@ export function buildSystemPrompt(args: {
   if (mode === 'auto_reply') {
     parts.push(
       `You are replying automatically with no human in the loop. If you cannot confidently and safely help — the customer explicitly asks for a human, is upset or complaining, or the request needs information you do not have — reply with exactly ${HANDOFF_SENTINEL} and nothing else. A human agent will then take over. Prefer handing off over guessing.`,
+    )
+  }
+
+  if (hasAgendaAccess) {
+    parts.push(
+      'You have tools to check real appointment availability and book an appointment for the customer you are currently talking to. ' +
+        "Call list_doctors_and_services first if the customer hasn't specified a doctor or service, then check_availability with real ids and a date, then book_appointment with an exact slot from that result — never invent or guess a time. " +
+        'A booking you make is created as pending, not confirmed — always tell the customer their appointment is provisional and staff will confirm it, never say it is fully confirmed. ' +
+        'If a tool call fails or returns an error, tell the customer you could not complete that step rather than making something up.',
     )
   }
 

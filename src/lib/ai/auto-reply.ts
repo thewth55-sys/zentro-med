@@ -7,6 +7,7 @@ import { buildSystemPrompt } from './defaults'
 import { buildHandoffSummary } from './handoff'
 import { logAiUsage } from './usage'
 import { latestUserMessage } from './query'
+import { AGENDA_TOOLS, createAgendaToolExecutor } from './tools/agenda'
 import { engineSendText } from '@/lib/flows/meta-send'
 import { checkRateLimit, RATE_LIMITS } from '@/lib/rate-limit'
 
@@ -110,12 +111,19 @@ export async function dispatchInboundToAiReply(
       userPrompt: config.systemPrompt,
       mode: 'auto_reply',
       knowledge,
+      hasAgendaAccess: config.agendaAccessEnabled,
     })
 
     const { text, handoff, usage } = await generateReply({
       config,
       systemPrompt,
       messages,
+      ...(config.agendaAccessEnabled
+        ? {
+            tools: AGENDA_TOOLS,
+            executeTool: createAgendaToolExecutor({ db, accountId, contactId }),
+          }
+        : {}),
     })
 
     // Record token spend on the account's BYO key. Fire-and-forget so it

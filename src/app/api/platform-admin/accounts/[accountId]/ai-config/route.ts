@@ -50,6 +50,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ ac
         autoReplyMaxPerConversation: 3,
         handoffAgentId: null,
         embeddingsApiKey: null,
+        agendaAccessEnabled: false,
       });
     } catch {
       return NextResponse.json(
