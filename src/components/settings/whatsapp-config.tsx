@@ -187,6 +187,46 @@ export function WhatsAppConfig() {
       toast.error('Phone Number ID is required');
       return;
     }
+
+    // Verify-token-only change: this is a purely local secret (compared
+    // against Meta's hub.verify_token challenge in our own webhook GET
+    // handler, never sent to Meta), so it doesn't need the access-token
+    // re-entry the full save below requires to re-verify credentials with
+    // Meta. Route it through the lighter dedicated endpoint instead —
+    // otherwise a connection made via Embedded Signup (which never shows
+    // the token's plaintext to paste back in) can never set/rotate this
+    // field at all.
+    if (
+      config &&
+      !tokenEdited &&
+      verifyToken.trim() &&
+      phoneNumberId.trim() === (config.phone_number_id || '') &&
+      wabaId.trim() === (config.waba_id || '')
+    ) {
+      try {
+        setSaving(true);
+        const res = await fetch('/api/whatsapp/config/verify-token', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ verify_token: verifyToken.trim() }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          toast.error(data.error || 'Failed to save verify token');
+          return;
+        }
+        toast.success('Webhook verify token saved.');
+        setVerifyToken('');
+        if (accountId) await fetchConfig(accountId);
+      } catch (err) {
+        console.error('Verify token save error:', err);
+        toast.error('Failed to save verify token');
+      } finally {
+        setSaving(false);
+      }
+      return;
+    }
+
     if (!config && (!accessToken.trim() || !tokenEdited)) {
       toast.error('Access Token is required for initial setup');
       return;
