@@ -22,7 +22,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ acc
     const { data: account, error: accountErr } = await db
       .from("accounts")
       .select(
-        "id, name, owner_user_id, plan, subscription_status, trial_ends_at, included_seats, stripe_customer_id, created_at, feature_overrides",
+        "id, name, owner_user_id, plan, subscription_status, trial_ends_at, included_seats, stripe_customer_id, created_at, feature_overrides, logo_url",
       )
       .eq("id", accountId)
       .maybeSingle();
@@ -37,7 +37,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ acc
 
     const { data: members, error: membersErr } = await db
       .from("profiles")
-      .select("user_id, full_name, email, account_role, google_calendar_connected")
+      .select("user_id, full_name, email, phone, account_role, google_calendar_connected, avatar_url")
       .eq("account_id", accountId)
       .order("account_role", { ascending: true });
 
@@ -151,12 +151,15 @@ export async function GET(_request: Request, { params }: { params: Promise<{ acc
         hasStripeCustomer: !!account.stripe_customer_id,
         createdAt: account.created_at,
         featureOverrides: account.feature_overrides ?? {},
+        logoUrl: account.logo_url,
       },
       members: (members ?? []).map((m) => ({
         userId: m.user_id,
         fullName: m.full_name,
         email: m.email,
+        phone: m.phone,
         role: m.account_role,
+        avatarUrl: m.avatar_url,
       })),
       payments,
       integrations: {

@@ -19,6 +19,7 @@ import {
   Notebook,
   Plug,
   Plus,
+  ShieldCheck,
   Users,
   X,
 } from "lucide-react";
@@ -26,6 +27,16 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AccountActionsMenu } from "@/components/admin/account-actions-menu";
 import type { Plan, SubscriptionStatus } from "@/lib/billing-platform/plans";
 import {
@@ -46,13 +57,16 @@ interface AccountDetail {
   hasStripeCustomer: boolean;
   createdAt: string;
   featureOverrides: FeatureOverrides;
+  logoUrl: string | null;
 }
 
 interface Member {
   userId: string;
   fullName: string | null;
   email: string | null;
+  phone: string | null;
   role: string;
+  avatarUrl: string | null;
 }
 
 interface Payment {
@@ -78,6 +92,13 @@ interface Session {
   browser: string | null;
   device: string | null;
   country: string | null;
+  createdAt: string;
+}
+
+interface HistoryEvent {
+  type: "login" | "admin_action";
+  description: string;
+  detail: string | null;
   createdAt: string;
 }
 
@@ -153,6 +174,23 @@ export function AccountDetailPanel({ accountId }: { accountId: string }) {
   const [newNote, setNewNote] = useState("");
   const [addingNote, setAddingNote] = useState(false);
   const [savingFeature, setSavingFeature] = useState<string | null>(null);
+  const [editingMember, setEditingMember] = useState<Member | null>(null);
+  const [editEmail, setEditEmail] = useState("");
+  const [editPhone, setEditPhone] = useState("");
+  const [savingMember, setSavingMember] = useState(false);
+
+  const [aiDialogOpen, setAiDialogOpen] = useState(false);
+  const [aiProvider, setAiProvider] = useState<"openai" | "anthropic">("openai");
+  const [aiModel, setAiModel] = useState("");
+  const [aiApiKey, setAiApiKey] = useState("");
+  const [aiIsActive, setAiIsActive] = useState(true);
+  const [savingAi, setSavingAi] = useState(false);
+
+  const [revokeTarget, setRevokeTarget] = useState<Member | null>(null);
+  const [revokingSession, setRevokingSession] = useState(false);
+
+  const [historyTarget, setHistoryTarget] = useState<Member | null>(null);
+  const [historyEvents, setHistoryEvents] = useState<HistoryEvent[] | null>(null);
 
   async function load() {
     try {
@@ -249,6 +287,91 @@ export function AccountDetailPanel({ accountId }: { accountId: string }) {
     }
   }
 
+  function openEditMember(member: Member) {
+    setEditingMember(member);
+    setEditEmail(member.email ?? "");
+    setEditPhone(member.phone ?? "");
+  }
+
+  async function handleSaveMember() {
+    if (!editingMember) return;
+    setSavingMember(true);
+    try {
+      const res = await fetch(`/api/platform-admin/accounts/${accountId}/members/${editingMember.userId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: editEmail.trim(), phone: editPhone.trim() }),
+      });
+      const body = await res.json().catch(() => null);
+      if (!res.ok) throw new Error(body?.error ?? "No se pudo actualizar");
+      setMembers((prev) =>
+        prev.map((m) => (m.userId === editingMember.userId ? { ...m, email: editEmail.trim(), phone: editPhone.trim() } : m)),
+      );
+      toast.success("Datos del usuario actualizados");
+      setEditingMember(null);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "No se pudo actualizar");
+    } finally {
+      setSavingMember(false);
+    }
+  }
+
+  async function handleSaveAiConfig() {
+    if (!aiModel.trim() || !aiApiKey.trim()) return;
+    setSavingAi(true);
+    try {
+      const res = await fetch(`/api/platform-admin/accounts/${accountId}/ai-config`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ provider: aiProvider, model: aiModel.trim(), apiKey: aiApiKey.trim(), isActive: aiIsActive }),
+      });
+      const body = await res.json().catch(() => null);
+      if (!res.ok) throw new Error(body?.error ?? "No se pudo guardar");
+      setIntegrations((prev) =>
+        prev ? { ...prev, ai: { provider: body.provider, model: body.model, isActive: body.isActive, autoReplyEnabled: prev.ai?.autoReplyEnabled ?? false } } : prev,
+      );
+      toast.success("Configuración de IA guardada");
+      setAiDialogOpen(false);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "No se pudo guardar");
+    } finally {
+      setSavingAi(false);
+    }
+  }
+
+  async function handleRevokeSession() {
+    if (!revokeTarget) return;
+    setRevokingSession(true);
+    try {
+      const res = await fetch(
+        `/api/platform-admin/accounts/${accountId}/members/${revokeTarget.userId}/revoke-session`,
+        { method: "POST" },
+      );
+      const body = await res.json().catch(() => null);
+      if (!res.ok) throw new Error(body?.error ?? "No se pudo cerrar la sesión");
+      toast.success(`Sesión de ${revokeTarget.fullName ?? revokeTarget.email} bloqueada por 1 minuto`);
+      setRevokeTarget(null);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "No se pudo cerrar la sesión");
+    } finally {
+      setRevokingSession(false);
+    }
+  }
+
+  async function openHistory(member: Member) {
+    setHistoryTarget(member);
+    setHistoryEvents(null);
+    try {
+      const res = await fetch(`/api/platform-admin/accounts/${accountId}/members/${member.userId}/history`);
+      const body = await res.json().catch(() => null);
+      if (!res.ok) throw new Error(body?.error ?? "No se pudo cargar el historial");
+      setHistoryEvents(body.events);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "No se pudo cargar el historial");
+      setHistoryEvents([]);
+    }
+  }
+
   if (error) {
     return (
       <div className="flex items-center gap-2 rounded-lg border border-destructive/20 bg-destructive/10 px-4 py-3 text-sm text-destructive">
@@ -272,7 +395,12 @@ export function AccountDetailPanel({ accountId }: { accountId: string }) {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-4">
-        <div>
+        <div className="flex items-start gap-3">
+          <Avatar size="lg">
+            <AvatarImage src={account.logoUrl ?? undefined} alt={account.name} />
+            <AvatarFallback>{account.name.slice(0, 2).toUpperCase()}</AvatarFallback>
+          </Avatar>
+          <div>
           <div className="flex items-center gap-2">
             <h1 className="text-xl font-semibold text-foreground">{account.name}</h1>
             <Badge variant={STATUS_VARIANT[account.subscriptionStatus]}>
@@ -307,6 +435,7 @@ export function AccountDetailPanel({ accountId }: { accountId: string }) {
               disabled={addingTag}
               className="h-6 w-28 rounded-full border-dashed px-2.5 text-xs"
             />
+          </div>
           </div>
         </div>
         <AccountActionsMenu
@@ -377,16 +506,190 @@ export function AccountDetailPanel({ accountId }: { accountId: string }) {
           <div className="mb-3 flex items-center gap-2 text-sm font-medium text-foreground">
             <Users className="size-4" /> Usuarios internos
           </div>
-          <div className="space-y-2">
+          <div className="space-y-3">
             {members.map((member) => (
               <div key={member.userId} className="flex items-center justify-between text-sm">
-                <span className="text-foreground">{member.fullName ?? member.email ?? "—"}</span>
-                <span className="text-muted-foreground">{ROLE_LABEL[member.role] ?? member.role}</span>
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <Avatar size="sm">
+                    <AvatarImage src={member.avatarUrl ?? undefined} alt={member.fullName ?? ""} />
+                    <AvatarFallback>{(member.fullName ?? member.email ?? "?").slice(0, 2).toUpperCase()}</AvatarFallback>
+                  </Avatar>
+                  <div className="min-w-0">
+                    <div className="truncate text-foreground">{member.fullName ?? member.email ?? "—"}</div>
+                    <div className="truncate text-xs text-muted-foreground">
+                      {member.email ?? "—"}
+                      {member.phone ? ` · ${member.phone}` : ""}
+                    </div>
+                  </div>
+                </div>
+                <div className="flex shrink-0 items-center gap-2">
+                  <span className="text-muted-foreground">{ROLE_LABEL[member.role] ?? member.role}</span>
+                  <button
+                    type="button"
+                    onClick={() => openEditMember(member)}
+                    className="text-xs text-accent-foreground underline decoration-dotted hover:text-foreground"
+                  >
+                    Editar
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setRevokeTarget(member)}
+                    className="text-xs text-destructive underline decoration-dotted hover:text-destructive/80"
+                  >
+                    Cerrar sesión
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => openHistory(member)}
+                    className="text-xs text-muted-foreground underline decoration-dotted hover:text-foreground"
+                  >
+                    Historial
+                  </button>
+                </div>
               </div>
             ))}
           </div>
         </div>
       </div>
+
+      <Dialog open={!!editingMember} onOpenChange={(open) => !open && setEditingMember(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Editar contacto de {editingMember?.fullName ?? editingMember?.email}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div className="space-y-1.5">
+              <Label htmlFor="member-email">Correo</Label>
+              <Input id="member-email" type="email" value={editEmail} onChange={(e) => setEditEmail(e.target.value)} />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="member-phone">Teléfono</Label>
+              <Input id="member-phone" value={editPhone} onChange={(e) => setEditPhone(e.target.value)} />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditingMember(null)}>
+              Cancelar
+            </Button>
+            <Button onClick={handleSaveMember} disabled={savingMember}>
+              {savingMember ? <Loader2 className="size-4 animate-spin" /> : null}
+              Guardar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!historyTarget} onOpenChange={(open) => !open && setHistoryTarget(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Historial de {historyTarget?.fullName ?? historyTarget?.email}</DialogTitle>
+          </DialogHeader>
+          {historyEvents === null ? (
+            <div className="flex items-center gap-2 py-6 text-sm text-muted-foreground">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Cargando…
+            </div>
+          ) : historyEvents.length === 0 ? (
+            <p className="py-6 text-sm text-muted-foreground">Sin actividad registrada todavía.</p>
+          ) : (
+            <div className="max-h-96 space-y-3 overflow-y-auto">
+              {historyEvents.map((event, i) => (
+                <div key={i} className="flex items-start gap-2.5 text-sm">
+                  {event.type === "login" ? (
+                    <Laptop className="mt-0.5 size-3.5 shrink-0 text-muted-foreground" />
+                  ) : (
+                    <ShieldCheck className="mt-0.5 size-3.5 shrink-0 text-muted-foreground" />
+                  )}
+                  <div className="min-w-0">
+                    <div className="text-foreground">{event.description}</div>
+                    <div className="text-xs text-muted-foreground">
+                      {new Date(event.createdAt).toLocaleString()}
+                      {event.detail ? ` · ${event.detail}` : ""}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!revokeTarget} onOpenChange={(open) => !open && setRevokeTarget(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Cerrar sesión de {revokeTarget?.fullName ?? revokeTarget?.email}</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            Bloquea que este usuario inicie sesión o refresque su sesión durante 1 minuto. Si tiene una
+            pestaña abierta con un token de acceso todavía vigente, puede seguir usándola hasta que ese
+            token expire por sí solo (normalmente hasta 1 hora) — Supabase no permite invalidar un token
+            ya emitido al instante. Esto corta accesos nuevos, no es una desconexión instantánea garantizada.
+          </p>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setRevokeTarget(null)}>
+              Cancelar
+            </Button>
+            <Button variant="destructive" onClick={handleRevokeSession} disabled={revokingSession}>
+              {revokingSession ? <Loader2 className="size-4 animate-spin" /> : null}
+              Cerrar sesión
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={aiDialogOpen} onOpenChange={setAiDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Configurar Agentes IA</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div className="space-y-1.5">
+              <Label>Proveedor</Label>
+              <Select value={aiProvider} onValueChange={(v) => v && setAiProvider(v as "openai" | "anthropic")}>
+                <SelectTrigger className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="openai">OpenAI</SelectItem>
+                  <SelectItem value="anthropic">Anthropic</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="ai-model">Modelo</Label>
+              <Input
+                id="ai-model"
+                value={aiModel}
+                onChange={(e) => setAiModel(e.target.value)}
+                placeholder={aiProvider === "openai" ? "gpt-4o-mini" : "claude-haiku-4-5"}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="ai-key">Clave de API</Label>
+              <Input
+                id="ai-key"
+                type="password"
+                value={aiApiKey}
+                onChange={(e) => setAiApiKey(e.target.value)}
+                placeholder="Se valida contra el proveedor antes de guardar"
+              />
+            </div>
+            <label className="flex items-center gap-2 text-sm text-foreground">
+              <input type="checkbox" checked={aiIsActive} onChange={(e) => setAiIsActive(e.target.checked)} />
+              Activa
+            </label>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setAiDialogOpen(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={handleSaveAiConfig} disabled={savingAi || !aiModel.trim() || !aiApiKey.trim()}>
+              {savingAi ? <Loader2 className="size-4 animate-spin" /> : null}
+              Guardar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <div className="rounded-lg border border-border p-4">
         <div className="mb-3 flex items-center gap-2 text-sm font-medium text-foreground">
@@ -397,14 +700,29 @@ export function AccountDetailPanel({ accountId }: { accountId: string }) {
             <span className="flex items-center gap-1.5 text-foreground">
               <Bot className="size-3.5 text-muted-foreground" /> Agentes IA
             </span>
-            {integrations?.ai ? (
-              <span className="text-muted-foreground">
-                {integrations.ai.provider} · {integrations.ai.model} ·{" "}
-                {integrations.ai.isActive ? "Activo" : "Inactivo"}
-              </span>
-            ) : (
-              <span className="text-muted-foreground">Sin configurar</span>
-            )}
+            <span className="flex items-center gap-2">
+              {integrations?.ai ? (
+                <span className="text-muted-foreground">
+                  {integrations.ai.provider} · {integrations.ai.model} ·{" "}
+                  {integrations.ai.isActive ? "Activo" : "Inactivo"}
+                </span>
+              ) : (
+                <span className="text-muted-foreground">Sin configurar</span>
+              )}
+              <button
+                type="button"
+                onClick={() => {
+                  setAiProvider(integrations?.ai?.provider === "anthropic" ? "anthropic" : "openai");
+                  setAiModel(integrations?.ai?.model ?? "");
+                  setAiApiKey("");
+                  setAiIsActive(integrations?.ai?.isActive ?? true);
+                  setAiDialogOpen(true);
+                }}
+                className="text-xs text-accent-foreground underline decoration-dotted hover:text-foreground"
+              >
+                {integrations?.ai ? "Editar" : "Configurar"}
+              </button>
+            </span>
           </div>
           <div className="flex items-center justify-between">
             <span className="text-foreground">WhatsApp Business</span>
