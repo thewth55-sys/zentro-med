@@ -24,6 +24,25 @@ export type GatedFeature =
   | "broadcasts"
   | "landing_builder";
 
+export const GATED_FEATURES: GatedFeature[] = [
+  "automations",
+  "ai_autoreply",
+  "whatsapp_inbox",
+  "broadcasts",
+  "landing_builder",
+];
+
+export const FEATURE_LABEL: Record<GatedFeature, string> = {
+  automations: "Automatizaciones y Flows",
+  ai_autoreply: "WhatsApp IA",
+  whatsapp_inbox: "Bandeja de WhatsApp",
+  broadcasts: "Difusiones",
+  landing_builder: "Constructor de landing",
+};
+
+/** `accounts.feature_overrides` — absent key falls back to the plan default. */
+export type FeatureOverrides = Partial<Record<GatedFeature, boolean>>;
+
 const FEATURE_MIN_PLAN: Record<GatedFeature, Plan[]> = {
   // "Automatizaciones y flows" — trial doesn't get it per /pricing;
   // every paid plan (standalone included) does.
@@ -43,4 +62,19 @@ const FEATURE_MIN_PLAN: Record<GatedFeature, Plan[]> = {
 
 export function planHasFeature(plan: Plan, feature: GatedFeature): boolean {
   return FEATURE_MIN_PLAN[feature].includes(plan);
+}
+
+/**
+ * Plan default, unless a platform admin explicitly overrode this
+ * feature for the account (see 057_account_feature_overrides.sql) —
+ * an override always wins, in either direction.
+ */
+export function resolveFeatureAccess(
+  plan: Plan,
+  feature: GatedFeature,
+  overrides: FeatureOverrides | null | undefined,
+): boolean {
+  const override = overrides?.[feature];
+  if (override !== undefined) return override;
+  return planHasFeature(plan, feature);
 }

@@ -22,7 +22,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ acc
     const { data: account, error: accountErr } = await db
       .from("accounts")
       .select(
-        "id, name, owner_user_id, plan, subscription_status, trial_ends_at, included_seats, stripe_customer_id, created_at",
+        "id, name, owner_user_id, plan, subscription_status, trial_ends_at, included_seats, stripe_customer_id, created_at, feature_overrides",
       )
       .eq("id", accountId)
       .maybeSingle();
@@ -143,6 +143,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ acc
         includedSeats: account.included_seats,
         hasStripeCustomer: !!account.stripe_customer_id,
         createdAt: account.created_at,
+        featureOverrides: account.feature_overrides ?? {},
       },
       members: (members ?? []).map((m) => ({
         userId: m.user_id,

@@ -9,13 +9,19 @@
 
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { AlertTriangle, Bot, CreditCard, Loader2, Notebook, Plug, Plus, Users, X } from "lucide-react";
+import { AlertTriangle, Bot, CreditCard, Lock, Loader2, Notebook, Plug, Plus, Users, X } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { AccountActionsMenu } from "@/components/admin/account-actions-menu";
 import type { Plan, SubscriptionStatus } from "@/lib/billing-platform/plans";
+import {
+  GATED_FEATURES,
+  FEATURE_LABEL,
+  resolveFeatureAccess,
+  type FeatureOverrides,
+} from "@/lib/billing-platform/features";
 
 interface AccountDetail {
   id: string;
@@ -27,6 +33,7 @@ interface AccountDetail {
   includedSeats: number;
   hasStripeCustomer: boolean;
   createdAt: string;
+  featureOverrides: FeatureOverrides;
 }
 
 interface Member {
@@ -123,6 +130,7 @@ export function AccountDetailPanel({ accountId }: { accountId: string }) {
   const [addingTag, setAddingTag] = useState(false);
   const [newNote, setNewNote] = useState("");
   const [addingNote, setAddingNote] = useState(false);
+  const [savingFeature, setSavingFeature] = useState<string | null>(null);
 
   async function load() {
     try {
@@ -197,6 +205,24 @@ export function AccountDetailPanel({ accountId }: { accountId: string }) {
       toast.error(err instanceof Error ? err.message : "No se pudo agregar la nota");
     } finally {
       setAddingNote(false);
+    }
+  }
+
+  async function handleSetFeatureOverride(feature: string, enabled: boolean | null) {
+    setSavingFeature(feature);
+    try {
+      const res = await fetch(`/api/platform-admin/accounts/${accountId}/feature-overrides`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ feature, enabled }),
+      });
+      const body = await res.json().catch(() => null);
+      if (!res.ok) throw new Error(body?.error ?? "No se pudo actualizar");
+      setAccount((prev) => (prev ? { ...prev, featureOverrides: body.featureOverrides } : prev));
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "No se pudo actualizar");
+    } finally {
+      setSavingFeature(null);
     }
   }
 
@@ -378,6 +404,53 @@ export function AccountDetailPanel({ accountId }: { accountId: string }) {
             )}
           </div>
         </div>
+      </div>
+
+      <div className="rounded-lg border border-border p-4">
+        <div className="mb-3 flex items-center gap-2 text-sm font-medium text-foreground">
+          <Lock className="size-4" /> Funciones de la cuenta
+        </div>
+        <div className="space-y-2 text-sm">
+          {GATED_FEATURES.map((feature) => {
+            const isOverridden = account.featureOverrides[feature] !== undefined;
+            const effective = resolveFeatureAccess(account.plan, feature, account.featureOverrides);
+            const saving = savingFeature === feature;
+            return (
+              <div key={feature} className="flex items-center justify-between">
+                <span className="text-foreground">{FEATURE_LABEL[feature]}</span>
+                <div className="flex items-center gap-2">
+                  {isOverridden && (
+                    <button
+                      type="button"
+                      className="text-xs text-muted-foreground hover:text-foreground hover:underline"
+                      onClick={() => handleSetFeatureOverride(feature, null)}
+                      disabled={saving}
+                    >
+                      Usar el del plan
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => handleSetFeatureOverride(feature, !effective)}
+                    disabled={saving}
+                    className={
+                      "rounded-full px-2.5 py-0.5 text-xs " +
+                      (effective
+                        ? "bg-green-100 text-green-800 dark:bg-green-950 dark:text-green-300"
+                        : "bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-300")
+                    }
+                  >
+                    {saving ? "…" : effective ? "Activo" : "Bloqueado"}
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+        <p className="mt-3 text-xs text-muted-foreground">
+          Un bloqueo aquí anula el plan, pero solo oculta la función en la interfaz — no bloquea llamadas
+          directas a la API todavía.
+        </p>
       </div>
 
       <div className="rounded-lg border border-border p-4">
