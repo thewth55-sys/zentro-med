@@ -15,6 +15,16 @@ if (process.env.NEXT_PUBLIC_SENTRY_DSN) {
     // that to a third party by default, which needs an explicit
     // privacy decision this project hasn't made yet, not a default-on
     // integration.
+
+    // `app://` frames are scripts injected by the native shell hosting
+    // the page (Instagram/Facebook's in-app browser bridge on iOS is
+    // the one we've actually seen — sendDataToNative/sendPageHideMessage
+    // throwing on a missing window.webkit.messageHandlers entry). Never
+    // our own bundle, never fixable from here — the injected script
+    // runs before our code and calls a native handler that may or may
+    // not exist depending on the host app's version.
+    denyUrls: [/^app:\/\//],
+    ignoreErrors: ["window.webkit.messageHandlers"],
   });
 }
 
