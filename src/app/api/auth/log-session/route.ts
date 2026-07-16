@@ -10,6 +10,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getClientIp, checkRateLimit, rateLimitResponse, RATE_LIMITS } from "@/lib/rate-limit";
 import { parseBrowser, parseDevice } from "@/lib/auth/parse-user-agent";
+import { lookupCountry } from "@/lib/auth/geo-ip";
 
 export async function POST(request: Request) {
   const supabase = await createClient();
@@ -32,13 +33,8 @@ export async function POST(request: Request) {
 
   const ip = getClientIp(request);
   const userAgent = request.headers.get("user-agent");
+  const country = await lookupCountry(ip);
 
-  // `country` is intentionally left unset — resolving it needs an IP
-  // geolocation lookup, and that means sending every user's IP to
-  // some third party on every login. Not wiring that up without an
-  // explicit, approved provider first (see the "Sesiones recientes"
-  // card in Cuenta 360, which shows "—" for country until this is
-  // revisited).
   const { error } = await supabase.from("login_events").insert({
     user_id: user.id,
     account_id: profile?.account_id ?? null,
@@ -46,6 +42,7 @@ export async function POST(request: Request) {
     user_agent: userAgent,
     browser: parseBrowser(userAgent),
     device: parseDevice(userAgent),
+    country,
   });
 
   if (error) {
