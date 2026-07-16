@@ -65,6 +65,13 @@ export async function GET(_request: Request, { params }: { params: Promise<{ acc
           .in("user_id", memberUserIds)
       : { data: [] as { user_id: string; status: string; connected_at: string | null }[] };
 
+    const { data: loginEvents } = await db
+      .from("login_events")
+      .select("user_id, ip_address, browser, device, country, created_at")
+      .eq("account_id", accountId)
+      .order("created_at", { ascending: false })
+      .limit(5);
+
     let payments: {
       id: string;
       status: string;
@@ -173,6 +180,17 @@ export async function GET(_request: Request, { params }: { params: Promise<{ acc
           .filter((m) => m.google_calendar_connected)
           .map((m) => m.full_name ?? m.email ?? "—"),
       },
+      sessions: (loginEvents ?? []).map((s) => {
+        const member = (members ?? []).find((m) => m.user_id === s.user_id);
+        return {
+          memberName: member?.full_name ?? member?.email ?? "—",
+          ipAddress: s.ip_address,
+          browser: s.browser,
+          device: s.device,
+          country: s.country,
+          createdAt: s.created_at,
+        };
+      }),
       tags: (tags ?? []).map((t) => ({ id: t.id, label: t.label })),
       notes: (notes ?? []).map((n) => ({
         id: n.id,

@@ -9,7 +9,19 @@
 
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { AlertTriangle, Bot, CreditCard, Lock, Loader2, Notebook, Plug, Plus, Users, X } from "lucide-react";
+import {
+  AlertTriangle,
+  Bot,
+  CreditCard,
+  Laptop,
+  Lock,
+  Loader2,
+  Notebook,
+  Plug,
+  Plus,
+  Users,
+  X,
+} from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -58,6 +70,15 @@ interface Integrations {
   ai: { provider: string; model: string; isActive: boolean; autoReplyEnabled: boolean } | null;
   whatsapp: { memberName: string; status: string; connectedAt: string | null }[];
   googleCalendar: string[];
+}
+
+interface Session {
+  memberName: string;
+  ipAddress: string | null;
+  browser: string | null;
+  device: string | null;
+  country: string | null;
+  createdAt: string;
 }
 
 interface Tag {
@@ -124,6 +145,7 @@ export function AccountDetailPanel({ accountId }: { accountId: string }) {
   const [tags, setTags] = useState<Tag[]>([]);
   const [notes, setNotes] = useState<Note[]>([]);
   const [integrations, setIntegrations] = useState<Integrations | null>(null);
+  const [sessions, setSessions] = useState<Session[]>([]);
   const [error, setError] = useState<string | null>(null);
 
   const [newTag, setNewTag] = useState("");
@@ -143,6 +165,7 @@ export function AccountDetailPanel({ accountId }: { accountId: string }) {
       setTags(body.tags ?? []);
       setNotes(body.notes ?? []);
       setIntegrations(body.integrations ?? null);
+      setSessions(body.sessions ?? []);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error desconocido");
     }
@@ -404,6 +427,42 @@ export function AccountDetailPanel({ accountId }: { accountId: string }) {
             )}
           </div>
         </div>
+      </div>
+
+      <div className="rounded-lg border border-border p-4">
+        <div className="mb-3 flex items-center gap-2 text-sm font-medium text-foreground">
+          <Laptop className="size-4" /> Sesiones recientes
+        </div>
+        {sessions.length === 0 ? (
+          <p className="text-sm text-muted-foreground">Sin inicios de sesión registrados todavía.</p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="text-left text-xs text-muted-foreground">
+                  <th className="pb-2 pr-4 font-normal">Usuario</th>
+                  <th className="pb-2 pr-4 font-normal">Fecha</th>
+                  <th className="pb-2 pr-4 font-normal">IP</th>
+                  <th className="pb-2 pr-4 font-normal">País</th>
+                  <th className="pb-2 pr-4 font-normal">Navegador</th>
+                  <th className="pb-2 font-normal">Dispositivo</th>
+                </tr>
+              </thead>
+              <tbody>
+                {sessions.map((s, i) => (
+                  <tr key={i} className="border-t border-border">
+                    <td className="py-2 pr-4 text-foreground">{s.memberName}</td>
+                    <td className="py-2 pr-4 text-muted-foreground">{new Date(s.createdAt).toLocaleString()}</td>
+                    <td className="py-2 pr-4 text-muted-foreground">{s.ipAddress ?? "—"}</td>
+                    <td className="py-2 pr-4 text-muted-foreground">{s.country ?? "—"}</td>
+                    <td className="py-2 pr-4 text-muted-foreground">{s.browser ?? "—"}</td>
+                    <td className="py-2 text-muted-foreground">{s.device ?? "—"}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
 
       <div className="rounded-lg border border-border p-4">

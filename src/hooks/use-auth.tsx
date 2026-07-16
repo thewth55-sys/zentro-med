@@ -318,7 +318,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange((event, session) => {
       if (!mounted) return;
       const currentUser = session?.user ?? null;
       setUser(currentUser);
@@ -326,6 +326,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (currentUser) {
         if (currentUser.id !== lastFetchedUserIdRef.current) {
           fetchProfile(currentUser.id);
+        }
+        // Only a genuine new sign-in (password, magic link, OAuth,
+        // platform-admin impersonation) — not the INITIAL_SESSION
+        // replay on page load or a background TOKEN_REFRESHED, both
+        // of which would otherwise log a "new session" every reload.
+        // Fire-and-forget: this must never block or fail the sign-in
+        // it's piggybacking on.
+        if (event === "SIGNED_IN") {
+          void fetch("/api/auth/log-session", { method: "POST" }).catch(() => {});
         }
       } else {
         lastFetchedUserIdRef.current = null;
