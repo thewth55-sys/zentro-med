@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { AlertTriangle, Loader2 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -58,6 +59,7 @@ const STATUS_LABEL: Record<SubscriptionStatus, string> = {
 export default function AdminAccountsPage() {
   const [accounts, setAccounts] = useState<AdminAccount[] | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
 
   async function loadAccounts() {
     try {
@@ -74,13 +76,31 @@ export default function AdminAccountsPage() {
     void loadAccounts();
   }, []);
 
+  const query = search.trim().toLowerCase();
+  const filteredAccounts =
+    accounts && query
+      ? accounts.filter((account) =>
+          [account.name, account.ownerName, account.ownerEmail]
+            .filter(Boolean)
+            .some((field) => field!.toLowerCase().includes(query)),
+        )
+      : accounts;
+
   return (
     <div>
-      <div className="mb-6">
-        <h1 className="text-xl font-semibold text-foreground">Cuentas</h1>
-        <p className="text-sm text-muted-foreground">
-          Todas las cuentas de Zentro Med — plan, estado de suscripción y asientos.
-        </p>
+      <div className="mb-6 flex items-end justify-between gap-4">
+        <div>
+          <h1 className="text-xl font-semibold text-foreground">Cuentas</h1>
+          <p className="text-sm text-muted-foreground">
+            Todas las cuentas de Zentro Med — plan, estado de suscripción y asientos.
+          </p>
+        </div>
+        <Input
+          placeholder="Buscar por nombre, dueño o correo"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="max-w-xs"
+        />
       </div>
 
       {error ? (
@@ -97,6 +117,10 @@ export default function AdminAccountsPage() {
         <p className="py-12 text-center text-sm text-muted-foreground">
           Todavía no hay cuentas registradas.
         </p>
+      ) : filteredAccounts && filteredAccounts.length === 0 ? (
+        <p className="py-12 text-center text-sm text-muted-foreground">
+          Ninguna cuenta coincide con &ldquo;{search}&rdquo;.
+        </p>
       ) : (
         <div className="rounded-lg border border-border">
           <Table>
@@ -112,7 +136,7 @@ export default function AdminAccountsPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {accounts.map((account) => (
+              {(filteredAccounts ?? []).map((account) => (
                 <TableRow key={account.id}>
                   <TableCell className="font-medium text-foreground">{account.name}</TableCell>
                   <TableCell>

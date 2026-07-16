@@ -41,6 +41,12 @@ export default async function AdminLayout({ children }: { children: React.ReactN
               >
                 Log de auditoría
               </Link>
+              <Link
+                href="/admin/team"
+                className="rounded-md px-3 py-1.5 text-muted-foreground hover:bg-muted hover:text-foreground"
+              >
+                Equipo interno
+              </Link>
             </nav>
           </div>
           <Link
