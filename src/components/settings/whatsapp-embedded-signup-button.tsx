@@ -102,56 +102,67 @@ export function WhatsAppEmbeddedSignupButton() {
     return () => window.removeEventListener('message', onMessage);
   }, [appId]);
 
-  async function handleConnect() {
+  // Split out from the FB.login() call below on purpose: some
+  // FB SDK builds (and/or Sentry's DOM-callback instrumentation
+  // wrapping it) reject an `async function` passed directly as the
+  // login callback with a cryptic "Expression is of type
+  // asyncfunction, not function" — the callback itself must be a
+  // plain synchronous function; this is where the actual async work
+  // happens instead, fired-and-forgotten from that plain wrapper.
+  async function processLoginResponse(response: { authResponse?: { code?: string } }) {
+    const code = response.authResponse?.code;
+    if (!code) {
+      toast.error(t('embeddedSignupCanceled'));
+      setConnecting(false);
+      return;
+    }
+
+    // The postMessage event usually lands before FB.login's own
+    // callback, but give it a brief window in case it hasn't yet.
+    for (let i = 0; i < 10 && !signupDataRef.current.wabaId; i++) {
+      await new Promise((r) => setTimeout(r, 200));
+    }
+
+    if (!signupDataRef.current.wabaId) {
+      toast.error(t('embeddedSignupNoWaba'));
+      setConnecting(false);
+      return;
+    }
+
+    try {
+      const res = await fetch('/api/whatsapp/embedded-signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          code,
+          waba_id: signupDataRef.current.wabaId,
+          phone_number_id: signupDataRef.current.phoneNumberId,
+        }),
+      });
+      const body = await res.json().catch(() => null);
+      if (!res.ok || body?.success === false) {
+        toast.error(body?.error ?? body?.registration_error ?? t('embeddedSignupFailed'));
+        return;
+      }
+      toast.success(t('embeddedSignupSuccess'));
+      router.refresh();
+      window.location.reload();
+    } catch (err) {
+      console.error('Embedded Signup provisioning error:', err);
+      toast.error(t('embeddedSignupFailed'));
+    } finally {
+      setConnecting(false);
+    }
+  }
+
+  function handleConnect() {
     if (!window.FB || !configId) return;
     signupDataRef.current = {};
     setConnecting(true);
 
     window.FB.login(
-      async (response) => {
-        const code = response.authResponse?.code;
-        if (!code) {
-          toast.error(t('embeddedSignupCanceled'));
-          setConnecting(false);
-          return;
-        }
-
-        // The postMessage event usually lands before FB.login's own
-        // callback, but give it a brief window in case it hasn't yet.
-        for (let i = 0; i < 10 && !signupDataRef.current.wabaId; i++) {
-          await new Promise((r) => setTimeout(r, 200));
-        }
-
-        if (!signupDataRef.current.wabaId) {
-          toast.error(t('embeddedSignupNoWaba'));
-          setConnecting(false);
-          return;
-        }
-
-        try {
-          const res = await fetch('/api/whatsapp/embedded-signup', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              code,
-              waba_id: signupDataRef.current.wabaId,
-              phone_number_id: signupDataRef.current.phoneNumberId,
-            }),
-          });
-          const body = await res.json().catch(() => null);
-          if (!res.ok || body?.success === false) {
-            toast.error(body?.error ?? body?.registration_error ?? t('embeddedSignupFailed'));
-            return;
-          }
-          toast.success(t('embeddedSignupSuccess'));
-          router.refresh();
-          window.location.reload();
-        } catch (err) {
-          console.error('Embedded Signup provisioning error:', err);
-          toast.error(t('embeddedSignupFailed'));
-        } finally {
-          setConnecting(false);
-        }
+      (response) => {
+        void processLoginResponse(response);
       },
       {
         config_id: configId,
