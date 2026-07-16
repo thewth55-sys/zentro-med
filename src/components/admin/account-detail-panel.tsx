@@ -82,8 +82,23 @@ interface Payment {
 
 interface Integrations {
   ai: { provider: string; model: string; isActive: boolean; autoReplyEnabled: boolean } | null;
-  whatsapp: { memberName: string; status: string; connectedAt: string | null }[];
+  whatsapp: {
+    phoneNumberId: string | null;
+    wabaId: string | null;
+    status: string;
+    connectedAt: string | null;
+    registeredAt: string | null;
+    lastRegistrationError: string | null;
+  } | null;
   googleCalendar: string[];
+  metaCapi: {
+    hasPixelId: boolean;
+    trackLeadCreated: boolean;
+    trackDealWon: boolean;
+    trackFirstReply: boolean;
+    trackAutomations: boolean;
+    hasGoogleAdsId: boolean;
+  } | null;
 }
 
 interface Session {
@@ -185,6 +200,25 @@ export function AccountDetailPanel({ accountId }: { accountId: string }) {
   const [aiApiKey, setAiApiKey] = useState("");
   const [aiIsActive, setAiIsActive] = useState(true);
   const [savingAi, setSavingAi] = useState(false);
+
+  const [waDialogOpen, setWaDialogOpen] = useState(false);
+  const [waPhoneNumberId, setWaPhoneNumberId] = useState("");
+  const [waWabaId, setWaWabaId] = useState("");
+  const [waAccessToken, setWaAccessToken] = useState("");
+  const [waVerifyToken, setWaVerifyToken] = useState("");
+  const [waPin, setWaPin] = useState("");
+  const [savingWa, setSavingWa] = useState(false);
+
+  const [capiDialogOpen, setCapiDialogOpen] = useState(false);
+  const [capiPixelId, setCapiPixelId] = useState("");
+  const [capiAccessToken, setCapiAccessToken] = useState("");
+  const [capiTestEventCode, setCapiTestEventCode] = useState("");
+  const [capiTrackLead, setCapiTrackLead] = useState(false);
+  const [capiTrackDeal, setCapiTrackDeal] = useState(false);
+  const [capiTrackReply, setCapiTrackReply] = useState(false);
+  const [capiTrackAutomations, setCapiTrackAutomations] = useState(false);
+  const [capiGoogleAdsId, setCapiGoogleAdsId] = useState("");
+  const [savingCapi, setSavingCapi] = useState(false);
 
   const [revokeTarget, setRevokeTarget] = useState<Member | null>(null);
   const [revokingSession, setRevokingSession] = useState(false);
@@ -336,6 +370,66 @@ export function AccountDetailPanel({ accountId }: { accountId: string }) {
       toast.error(err instanceof Error ? err.message : "No se pudo guardar");
     } finally {
       setSavingAi(false);
+    }
+  }
+
+  async function handleSaveWhatsApp() {
+    if (!waPhoneNumberId.trim() || !waAccessToken.trim()) return;
+    setSavingWa(true);
+    try {
+      const res = await fetch(`/api/platform-admin/accounts/${accountId}/whatsapp-config`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          phoneNumberId: waPhoneNumberId.trim(),
+          wabaId: waWabaId.trim() || null,
+          accessToken: waAccessToken.trim(),
+          verifyToken: waVerifyToken.trim() || null,
+          pin: waPin.trim() || null,
+        }),
+      });
+      const body = await res.json().catch(() => null);
+      if (!res.ok) throw new Error(body?.error ?? "No se pudo guardar");
+      if (body.registrationError) {
+        toast.error(`Guardado, pero el webhook no quedó registrado: ${body.registrationError}`);
+      } else {
+        toast.success("WhatsApp configurado");
+      }
+      setWaDialogOpen(false);
+      void load();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "No se pudo guardar");
+    } finally {
+      setSavingWa(false);
+    }
+  }
+
+  async function handleSaveCapi() {
+    setSavingCapi(true);
+    try {
+      const res = await fetch(`/api/platform-admin/accounts/${accountId}/conversions-config`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          metaPixelId: capiPixelId.trim() || undefined,
+          metaAccessToken: capiAccessToken.trim() || undefined,
+          metaTestEventCode: capiTestEventCode.trim() || undefined,
+          metaTrackLeadCreated: capiTrackLead,
+          metaTrackDealWon: capiTrackDeal,
+          metaTrackFirstReply: capiTrackReply,
+          metaTrackAutomations: capiTrackAutomations,
+          googleAdsConversionId: capiGoogleAdsId.trim() || undefined,
+        }),
+      });
+      const body = await res.json().catch(() => null);
+      if (!res.ok) throw new Error(body?.error ?? "No se pudo guardar");
+      toast.success("Meta CAPI / Google Ads guardado");
+      setCapiDialogOpen(false);
+      void load();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "No se pudo guardar");
+    } finally {
+      setSavingCapi(false);
     }
   }
 
@@ -691,6 +785,114 @@ export function AccountDetailPanel({ accountId }: { accountId: string }) {
         </DialogContent>
       </Dialog>
 
+      <Dialog open={waDialogOpen} onOpenChange={setWaDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Configurar WhatsApp Business</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div className="space-y-1.5">
+              <Label htmlFor="wa-phone-id">Phone number ID</Label>
+              <Input id="wa-phone-id" value={waPhoneNumberId} onChange={(e) => setWaPhoneNumberId(e.target.value)} />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="wa-waba-id">WABA ID</Label>
+              <Input id="wa-waba-id" value={waWabaId} onChange={(e) => setWaWabaId(e.target.value)} />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="wa-token">Access token</Label>
+              <Input
+                id="wa-token"
+                type="password"
+                value={waAccessToken}
+                onChange={(e) => setWaAccessToken(e.target.value)}
+                placeholder="Se verifica contra Meta antes de guardar"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="wa-verify-token">Verify token (webhook)</Label>
+              <Input id="wa-verify-token" value={waVerifyToken} onChange={(e) => setWaVerifyToken(e.target.value)} />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="wa-pin">PIN de 2 pasos (6 dígitos, opcional)</Label>
+              <Input id="wa-pin" value={waPin} onChange={(e) => setWaPin(e.target.value)} placeholder="Solo si vas a registrar el webhook ahora" />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setWaDialogOpen(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={handleSaveWhatsApp} disabled={savingWa || !waPhoneNumberId.trim() || !waAccessToken.trim()}>
+              {savingWa ? <Loader2 className="size-4 animate-spin" /> : null}
+              Guardar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={capiDialogOpen} onOpenChange={setCapiDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Configurar Meta CAPI / Google Ads</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div className="space-y-1.5">
+              <Label htmlFor="capi-pixel">Meta Pixel ID</Label>
+              <Input id="capi-pixel" value={capiPixelId} onChange={(e) => setCapiPixelId(e.target.value)} />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="capi-token">Meta CAPI access token</Label>
+              <Input
+                id="capi-token"
+                type="password"
+                value={capiAccessToken}
+                onChange={(e) => setCapiAccessToken(e.target.value)}
+                placeholder="Deja vacío para conservar el actual"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="capi-test-code">Test event code (opcional)</Label>
+              <Input id="capi-test-code" value={capiTestEventCode} onChange={(e) => setCapiTestEventCode(e.target.value)} />
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <label className="flex items-center gap-2 text-sm text-foreground">
+                <input type="checkbox" checked={capiTrackLead} onChange={(e) => setCapiTrackLead(e.target.checked)} />
+                Lead creado
+              </label>
+              <label className="flex items-center gap-2 text-sm text-foreground">
+                <input type="checkbox" checked={capiTrackDeal} onChange={(e) => setCapiTrackDeal(e.target.checked)} />
+                Deal ganado
+              </label>
+              <label className="flex items-center gap-2 text-sm text-foreground">
+                <input type="checkbox" checked={capiTrackReply} onChange={(e) => setCapiTrackReply(e.target.checked)} />
+                Primera respuesta
+              </label>
+              <label className="flex items-center gap-2 text-sm text-foreground">
+                <input
+                  type="checkbox"
+                  checked={capiTrackAutomations}
+                  onChange={(e) => setCapiTrackAutomations(e.target.checked)}
+                />
+                Automatizaciones
+              </label>
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="capi-gads">Google Ads Conversion ID (opcional)</Label>
+              <Input id="capi-gads" value={capiGoogleAdsId} onChange={(e) => setCapiGoogleAdsId(e.target.value)} />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setCapiDialogOpen(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={handleSaveCapi} disabled={savingCapi}>
+              {savingCapi ? <Loader2 className="size-4 animate-spin" /> : null}
+              Guardar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <div className="rounded-lg border border-border p-4">
         <div className="mb-3 flex items-center gap-2 text-sm font-medium text-foreground">
           <Plug className="size-4" /> Integraciones
@@ -726,15 +928,30 @@ export function AccountDetailPanel({ accountId }: { accountId: string }) {
           </div>
           <div className="flex items-center justify-between">
             <span className="text-foreground">WhatsApp Business</span>
-            {integrations?.whatsapp.length ? (
-              <span className="text-muted-foreground">
-                {integrations.whatsapp
-                  .map((w) => `${w.memberName} (${w.status === "connected" ? "conectado" : "desconectado"})`)
-                  .join(", ")}
-              </span>
-            ) : (
-              <span className="text-muted-foreground">Sin configurar</span>
-            )}
+            <span className="flex items-center gap-2">
+              {integrations?.whatsapp ? (
+                <span className="text-muted-foreground">
+                  {integrations.whatsapp.status === "connected" ? "Conectado" : "Desconectado"}
+                  {integrations.whatsapp.lastRegistrationError ? " · sin registrar webhook" : ""}
+                </span>
+              ) : (
+                <span className="text-muted-foreground">Sin configurar</span>
+              )}
+              <button
+                type="button"
+                onClick={() => {
+                  setWaPhoneNumberId(integrations?.whatsapp?.phoneNumberId ?? "");
+                  setWaWabaId(integrations?.whatsapp?.wabaId ?? "");
+                  setWaAccessToken("");
+                  setWaVerifyToken("");
+                  setWaPin("");
+                  setWaDialogOpen(true);
+                }}
+                className="text-xs text-accent-foreground underline decoration-dotted hover:text-foreground"
+              >
+                {integrations?.whatsapp ? "Editar" : "Configurar"}
+              </button>
+            </span>
           </div>
           <div className="flex items-center justify-between">
             <span className="text-foreground">Google Calendar</span>
@@ -743,6 +960,33 @@ export function AccountDetailPanel({ accountId }: { accountId: string }) {
             ) : (
               <span className="text-muted-foreground">Sin conectar</span>
             )}
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-foreground">Meta CAPI / Google Ads</span>
+            <span className="flex items-center gap-2">
+              {integrations?.metaCapi?.hasPixelId ? (
+                <span className="text-muted-foreground">Pixel configurado</span>
+              ) : (
+                <span className="text-muted-foreground">Sin configurar</span>
+              )}
+              <button
+                type="button"
+                onClick={() => {
+                  setCapiPixelId("");
+                  setCapiAccessToken("");
+                  setCapiTestEventCode("");
+                  setCapiTrackLead(integrations?.metaCapi?.trackLeadCreated ?? false);
+                  setCapiTrackDeal(integrations?.metaCapi?.trackDealWon ?? false);
+                  setCapiTrackReply(integrations?.metaCapi?.trackFirstReply ?? false);
+                  setCapiTrackAutomations(integrations?.metaCapi?.trackAutomations ?? false);
+                  setCapiGoogleAdsId("");
+                  setCapiDialogOpen(true);
+                }}
+                className="text-xs text-accent-foreground underline decoration-dotted hover:text-foreground"
+              >
+                {integrations?.metaCapi ? "Editar" : "Configurar"}
+              </button>
+            </span>
           </div>
         </div>
       </div>

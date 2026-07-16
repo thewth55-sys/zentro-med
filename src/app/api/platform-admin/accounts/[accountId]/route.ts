@@ -46,8 +46,6 @@ export async function GET(_request: Request, { params }: { params: Promise<{ acc
       return NextResponse.json({ error: "Failed to load account" }, { status: 500 });
     }
 
-    const memberUserIds = (members ?? []).map((m) => m.user_id);
-
     // Never decrypt secrets here — same write-only posture as the
     // account's own Settings UI (MASKED_KEY in ai-config.tsx): the
     // admin panel shows *whether* something is configured, not the
@@ -58,12 +56,20 @@ export async function GET(_request: Request, { params }: { params: Promise<{ acc
       .eq("account_id", accountId)
       .maybeSingle();
 
-    const { data: whatsappConfigs } = memberUserIds.length
-      ? await db
-          .from("whatsapp_config")
-          .select("user_id, status, connected_at")
-          .in("user_id", memberUserIds)
-      : { data: [] as { user_id: string; status: string; connected_at: string | null }[] };
+    // whatsapp_config is account-scoped (UNIQUE(account_id) since
+    // 017_account_sharing.sql) — one connection per account, not per
+    // member, despite the `user_id` audit column on the row.
+    const { data: whatsappConfig } = await db
+      .from("whatsapp_config")
+      .select("phone_number_id, waba_id, status, connected_at, registered_at, last_registration_error")
+      .eq("account_id", accountId)
+      .maybeSingle();
+
+    const { data: conversionConfig } = await db
+      .from("conversion_tracking_config")
+      .select("meta_pixel_id, meta_track_lead_created, meta_track_deal_won, meta_track_first_reply, meta_track_automations, google_ads_conversion_id")
+      .eq("account_id", accountId)
+      .maybeSingle();
 
     const { data: loginEvents } = await db
       .from("login_events")
@@ -171,17 +177,29 @@ export async function GET(_request: Request, { params }: { params: Promise<{ acc
               autoReplyEnabled: aiConfig.auto_reply_enabled,
             }
           : null,
-        whatsapp: (whatsappConfigs ?? []).map((w) => {
-          const member = (members ?? []).find((m) => m.user_id === w.user_id);
-          return {
-            memberName: member?.full_name ?? member?.email ?? "—",
-            status: w.status,
-            connectedAt: w.connected_at,
-          };
-        }),
+        whatsapp: whatsappConfig
+          ? {
+              phoneNumberId: whatsappConfig.phone_number_id,
+              wabaId: whatsappConfig.waba_id,
+              status: whatsappConfig.status,
+              connectedAt: whatsappConfig.connected_at,
+              registeredAt: whatsappConfig.registered_at,
+              lastRegistrationError: whatsappConfig.last_registration_error,
+            }
+          : null,
         googleCalendar: (members ?? [])
           .filter((m) => m.google_calendar_connected)
           .map((m) => m.full_name ?? m.email ?? "—"),
+        metaCapi: conversionConfig
+          ? {
+              hasPixelId: !!conversionConfig.meta_pixel_id,
+              trackLeadCreated: conversionConfig.meta_track_lead_created,
+              trackDealWon: conversionConfig.meta_track_deal_won,
+              trackFirstReply: conversionConfig.meta_track_first_reply,
+              trackAutomations: conversionConfig.meta_track_automations,
+              hasGoogleAdsId: !!conversionConfig.google_ads_conversion_id,
+            }
+          : null,
       },
       sessions: (loginEvents ?? []).map((s) => {
         const member = (members ?? []).find((m) => m.user_id === s.user_id);
