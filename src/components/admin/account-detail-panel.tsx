@@ -8,9 +8,12 @@
 // ============================================================
 
 import { useEffect, useState } from "react";
-import { AlertTriangle, CreditCard, Loader2, Users } from "lucide-react";
+import { toast } from "sonner";
+import { AlertTriangle, CreditCard, Loader2, Notebook, Plus, Users, X } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { AccountActionsMenu } from "@/components/admin/account-actions-menu";
 import type { Plan, SubscriptionStatus } from "@/lib/billing-platform/plans";
 
@@ -42,6 +45,18 @@ interface Payment {
   created: number;
   description: string | null;
   hostedInvoiceUrl: string | null;
+}
+
+interface Tag {
+  id: string;
+  label: string;
+}
+
+interface Note {
+  id: string;
+  body: string;
+  authorName: string | null;
+  createdAt: string;
 }
 
 const PLAN_LABEL: Record<Plan, string> = {
@@ -93,7 +108,14 @@ export function AccountDetailPanel({ accountId }: { accountId: string }) {
   const [account, setAccount] = useState<AccountDetail | null>(null);
   const [members, setMembers] = useState<Member[]>([]);
   const [payments, setPayments] = useState<Payment[]>([]);
+  const [tags, setTags] = useState<Tag[]>([]);
+  const [notes, setNotes] = useState<Note[]>([]);
   const [error, setError] = useState<string | null>(null);
+
+  const [newTag, setNewTag] = useState("");
+  const [addingTag, setAddingTag] = useState(false);
+  const [newNote, setNewNote] = useState("");
+  const [addingNote, setAddingNote] = useState(false);
 
   async function load() {
     try {
@@ -103,6 +125,8 @@ export function AccountDetailPanel({ accountId }: { accountId: string }) {
       setAccount(body.account);
       setMembers(body.members);
       setPayments(body.payments);
+      setTags(body.tags ?? []);
+      setNotes(body.notes ?? []);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error desconocido");
     }
@@ -112,6 +136,61 @@ export function AccountDetailPanel({ accountId }: { accountId: string }) {
     void load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [accountId]);
+
+  async function handleAddTag() {
+    const label = newTag.trim();
+    if (!label) return;
+    setAddingTag(true);
+    try {
+      const res = await fetch(`/api/platform-admin/accounts/${accountId}/tags`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ label }),
+      });
+      const body = await res.json().catch(() => null);
+      if (!res.ok) throw new Error(body?.error ?? "No se pudo agregar la etiqueta");
+      setTags((prev) => [...prev, body.tag]);
+      setNewTag("");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "No se pudo agregar la etiqueta");
+    } finally {
+      setAddingTag(false);
+    }
+  }
+
+  async function handleRemoveTag(tagId: string) {
+    setTags((prev) => prev.filter((t) => t.id !== tagId));
+    try {
+      const res = await fetch(`/api/platform-admin/accounts/${accountId}/tags/${tagId}`, {
+        method: "DELETE",
+      });
+      if (!res.ok) throw new Error();
+    } catch {
+      toast.error("No se pudo quitar la etiqueta");
+      void load();
+    }
+  }
+
+  async function handleAddNote() {
+    const text = newNote.trim();
+    if (!text) return;
+    setAddingNote(true);
+    try {
+      const res = await fetch(`/api/platform-admin/accounts/${accountId}/notes`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ body: text }),
+      });
+      const body = await res.json().catch(() => null);
+      if (!res.ok) throw new Error(body?.error ?? "No se pudo agregar la nota");
+      setNotes((prev) => [body.note, ...prev]);
+      setNewNote("");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "No se pudo agregar la nota");
+    } finally {
+      setAddingNote(false);
+    }
+  }
 
   if (error) {
     return (
@@ -146,6 +225,32 @@ export function AccountDetailPanel({ accountId }: { accountId: string }) {
           <p className="text-sm text-muted-foreground">
             {owner?.fullName ?? "Sin dueño resuelto"} · {owner?.email ?? "—"}
           </p>
+          <div className="mt-2 flex flex-wrap items-center gap-1.5">
+            {tags.map((tag) => (
+              <span
+                key={tag.id}
+                className="inline-flex items-center gap-1 rounded-full bg-secondary px-2.5 py-0.5 text-xs text-secondary-foreground"
+              >
+                {tag.label}
+                <button
+                  type="button"
+                  onClick={() => handleRemoveTag(tag.id)}
+                  aria-label={`Quitar etiqueta ${tag.label}`}
+                  className="text-muted-foreground hover:text-foreground"
+                >
+                  <X className="size-3" />
+                </button>
+              </span>
+            ))}
+            <Input
+              value={newTag}
+              onChange={(e) => setNewTag(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleAddTag()}
+              placeholder="+ Etiqueta"
+              disabled={addingTag}
+              className="h-6 w-28 rounded-full border-dashed px-2.5 text-xs"
+            />
+          </div>
         </div>
         <AccountActionsMenu
           accountId={account.id}
@@ -224,6 +329,42 @@ export function AccountDetailPanel({ accountId }: { accountId: string }) {
             ))}
           </div>
         </div>
+      </div>
+
+      <div className="rounded-lg border border-border p-4">
+        <div className="mb-3 flex items-center gap-2 text-sm font-medium text-foreground">
+          <Notebook className="size-4" /> Notas internas
+        </div>
+        <div className="mb-4 flex gap-2">
+          <Input
+            value={newNote}
+            onChange={(e) => setNewNote(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && handleAddNote()}
+            placeholder="Agregar una nota sobre esta cuenta"
+            disabled={addingNote}
+          />
+          <Button onClick={handleAddNote} disabled={addingNote || !newNote.trim()}>
+            {addingNote ? <Loader2 className="size-4 animate-spin" /> : <Plus className="size-4" />}
+            Agregar
+          </Button>
+        </div>
+        {notes.length === 0 ? (
+          <p className="text-sm text-muted-foreground">Todavía no hay notas.</p>
+        ) : (
+          <div className="space-y-3">
+            {notes.map((note) => (
+              <div key={note.id} className="text-sm">
+                <div className="flex items-center justify-between">
+                  <span className="font-medium text-foreground">{note.authorName ?? "—"}</span>
+                  <span className="text-xs text-muted-foreground">
+                    {new Date(note.createdAt).toLocaleString()}
+                  </span>
+                </div>
+                <p className="mt-0.5 text-muted-foreground">{note.body}</p>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

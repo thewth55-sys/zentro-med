@@ -80,6 +80,39 @@ export async function GET(_request: Request, { params }: { params: Promise<{ acc
       }
     }
 
+    const { data: tags, error: tagsErr } = await db
+      .from("account_tags")
+      .select("id, label")
+      .eq("account_id", accountId)
+      .order("created_at", { ascending: true });
+
+    if (tagsErr) {
+      console.error("[GET /api/platform-admin/accounts/:id] tags fetch error:", tagsErr);
+    }
+
+    const { data: notes, error: notesErr } = await db
+      .from("account_notes")
+      .select("id, body, author_user_id, created_at")
+      .eq("account_id", accountId)
+      .order("created_at", { ascending: false })
+      .limit(20);
+
+    if (notesErr) {
+      console.error("[GET /api/platform-admin/accounts/:id] notes fetch error:", notesErr);
+    }
+
+    const authorIds = [...new Set((notes ?? []).map((n) => n.author_user_id).filter(Boolean))] as string[];
+    const authorNames = new Map<string, string | null>();
+    await Promise.all(
+      authorIds.map(async (id) => {
+        const { data } = await db.auth.admin.getUserById(id);
+        authorNames.set(
+          id,
+          (data?.user?.user_metadata?.full_name as string | undefined) ?? data?.user?.email ?? null,
+        );
+      }),
+    );
+
     return NextResponse.json({
       account: {
         id: account.id,
@@ -99,6 +132,13 @@ export async function GET(_request: Request, { params }: { params: Promise<{ acc
         role: m.account_role,
       })),
       payments,
+      tags: (tags ?? []).map((t) => ({ id: t.id, label: t.label })),
+      notes: (notes ?? []).map((n) => ({
+        id: n.id,
+        body: n.body,
+        authorName: n.author_user_id ? (authorNames.get(n.author_user_id) ?? null) : null,
+        createdAt: n.created_at,
+      })),
     });
   } catch (err) {
     return toErrorResponse(err);
