@@ -103,8 +103,19 @@ ENV SENTRY_AUTH_TOKEN=$SENTRY_AUTH_TOKEN
 # is consistent with the build hanging at exactly this phase even
 # after that raise. Lowered so 2 processes at cap (~3GB) leaves ~1GB
 # for the OS/container overhead instead of assuming only one process
-# is ever resident. Override via the NODE_BUILD_MEMORY_MB build arg.
-ARG NODE_BUILD_MEMORY_MB=1536
+# is ever resident.
+#
+# Lowered again 2026-07-16: the codebase grew enough (AI agenda tool
+# calling batch) that 1536MB × 2 processes hung at this same phase a
+# second time. This value isn't a one-time constant — it needs
+# revisiting as the app grows, since the real constraint is the fixed
+# 4GB container ceiling, not this number. If it recurs again, the more
+# durable fix is raising the container's actual memory limit rather
+# than continuing to shrink this cap toward the point a single
+# process can't fit the build at all. Verified locally that a full
+# build still completes at this value before lowering.
+# Override via the NODE_BUILD_MEMORY_MB build arg.
+ARG NODE_BUILD_MEMORY_MB=1024
 ENV NODE_OPTIONS=--max-old-space-size=${NODE_BUILD_MEMORY_MB}
 
 # Build the project
