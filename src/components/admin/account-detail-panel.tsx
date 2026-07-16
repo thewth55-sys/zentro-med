@@ -9,7 +9,7 @@
 
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { AlertTriangle, CreditCard, Loader2, Notebook, Plus, Users, X } from "lucide-react";
+import { AlertTriangle, Bot, CreditCard, Loader2, Notebook, Plug, Plus, Users, X } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -45,6 +45,12 @@ interface Payment {
   created: number;
   description: string | null;
   hostedInvoiceUrl: string | null;
+}
+
+interface Integrations {
+  ai: { provider: string; model: string; isActive: boolean; autoReplyEnabled: boolean } | null;
+  whatsapp: { memberName: string; status: string; connectedAt: string | null }[];
+  googleCalendar: string[];
 }
 
 interface Tag {
@@ -110,6 +116,7 @@ export function AccountDetailPanel({ accountId }: { accountId: string }) {
   const [payments, setPayments] = useState<Payment[]>([]);
   const [tags, setTags] = useState<Tag[]>([]);
   const [notes, setNotes] = useState<Note[]>([]);
+  const [integrations, setIntegrations] = useState<Integrations | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const [newTag, setNewTag] = useState("");
@@ -127,6 +134,7 @@ export function AccountDetailPanel({ accountId }: { accountId: string }) {
       setPayments(body.payments);
       setTags(body.tags ?? []);
       setNotes(body.notes ?? []);
+      setIntegrations(body.integrations ?? null);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error desconocido");
     }
@@ -327,6 +335,47 @@ export function AccountDetailPanel({ accountId }: { accountId: string }) {
                 <span className="text-muted-foreground">{ROLE_LABEL[member.role] ?? member.role}</span>
               </div>
             ))}
+          </div>
+        </div>
+      </div>
+
+      <div className="rounded-lg border border-border p-4">
+        <div className="mb-3 flex items-center gap-2 text-sm font-medium text-foreground">
+          <Plug className="size-4" /> Integraciones
+        </div>
+        <div className="space-y-2 text-sm">
+          <div className="flex items-center justify-between">
+            <span className="flex items-center gap-1.5 text-foreground">
+              <Bot className="size-3.5 text-muted-foreground" /> Agentes IA
+            </span>
+            {integrations?.ai ? (
+              <span className="text-muted-foreground">
+                {integrations.ai.provider} · {integrations.ai.model} ·{" "}
+                {integrations.ai.isActive ? "Activo" : "Inactivo"}
+              </span>
+            ) : (
+              <span className="text-muted-foreground">Sin configurar</span>
+            )}
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-foreground">WhatsApp Business</span>
+            {integrations?.whatsapp.length ? (
+              <span className="text-muted-foreground">
+                {integrations.whatsapp
+                  .map((w) => `${w.memberName} (${w.status === "connected" ? "conectado" : "desconectado"})`)
+                  .join(", ")}
+              </span>
+            ) : (
+              <span className="text-muted-foreground">Sin configurar</span>
+            )}
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-foreground">Google Calendar</span>
+            {integrations?.googleCalendar.length ? (
+              <span className="text-muted-foreground">{integrations.googleCalendar.join(", ")}</span>
+            ) : (
+              <span className="text-muted-foreground">Sin conectar</span>
+            )}
           </div>
         </div>
       </div>

@@ -37,7 +37,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ acc
 
     const { data: members, error: membersErr } = await db
       .from("profiles")
-      .select("user_id, full_name, email, account_role")
+      .select("user_id, full_name, email, account_role, google_calendar_connected")
       .eq("account_id", accountId)
       .order("account_role", { ascending: true });
 
@@ -45,6 +45,25 @@ export async function GET(_request: Request, { params }: { params: Promise<{ acc
       console.error("[GET /api/platform-admin/accounts/:id] members fetch error:", membersErr);
       return NextResponse.json({ error: "Failed to load account" }, { status: 500 });
     }
+
+    const memberUserIds = (members ?? []).map((m) => m.user_id);
+
+    // Never decrypt secrets here — same write-only posture as the
+    // account's own Settings UI (MASKED_KEY in ai-config.tsx): the
+    // admin panel shows *whether* something is configured, not the
+    // value, even partially.
+    const { data: aiConfig } = await db
+      .from("ai_configs")
+      .select("provider, model, is_active, auto_reply_enabled")
+      .eq("account_id", accountId)
+      .maybeSingle();
+
+    const { data: whatsappConfigs } = memberUserIds.length
+      ? await db
+          .from("whatsapp_config")
+          .select("user_id, status, connected_at")
+          .in("user_id", memberUserIds)
+      : { data: [] as { user_id: string; status: string; connected_at: string | null }[] };
 
     let payments: {
       id: string;
@@ -132,6 +151,27 @@ export async function GET(_request: Request, { params }: { params: Promise<{ acc
         role: m.account_role,
       })),
       payments,
+      integrations: {
+        ai: aiConfig
+          ? {
+              provider: aiConfig.provider,
+              model: aiConfig.model,
+              isActive: aiConfig.is_active,
+              autoReplyEnabled: aiConfig.auto_reply_enabled,
+            }
+          : null,
+        whatsapp: (whatsappConfigs ?? []).map((w) => {
+          const member = (members ?? []).find((m) => m.user_id === w.user_id);
+          return {
+            memberName: member?.full_name ?? member?.email ?? "—",
+            status: w.status,
+            connectedAt: w.connected_at,
+          };
+        }),
+        googleCalendar: (members ?? [])
+          .filter((m) => m.google_calendar_connected)
+          .map((m) => m.full_name ?? m.email ?? "—"),
+      },
       tags: (tags ?? []).map((t) => ({ id: t.id, label: t.label })),
       notes: (notes ?? []).map((n) => ({
         id: n.id,
