@@ -1865,7 +1865,8 @@
       "embeddedSignupSuccess": "WhatsApp conectado correctamente",
       "embeddedSignupFailed": "No se pudo completar la conexión con Meta",
       "embeddedSignupCanceled": "Conexión cancelada",
-      "embeddedSignupNoWaba": "No se recibió la cuenta de WhatsApp Business de Meta. Intenta de nuevo."
+      "embeddedSignupNoWaba": "No se recibió la cuenta de WhatsApp Business de Meta. Intenta de nuevo.",
+      "advancedSetupToggle": "Configuración manual o avanzada (mi propia app de Meta)"
     },
     "sections": {
       "overview": "Resumen",

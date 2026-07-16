@@ -13,6 +13,9 @@ import {
   Zap,
   AlertTriangle,
   RotateCcw,
+  ChevronDown,
+  ChevronRight,
+  Settings2,
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/hooks/use-auth';
@@ -69,6 +72,14 @@ export function WhatsAppConfig() {
   const [verifyToken, setVerifyToken] = useState('');
   const [pin, setPin] = useState('');
   const [tokenEdited, setTokenEdited] = useState(false);
+
+  // Collapsed by default — this manual credentials form + the Meta
+  // Dashboard setup steps are a technical fallback for a customer who
+  // brings their own separate Meta app; a clinic connecting via
+  // Embedded Signup above never needs to see any of it. Auto-opens
+  // once a config actually loads, so an account already using this
+  // manual path keeps seeing its own fields without an extra click.
+  const [showAdvanced, setShowAdvanced] = useState(false);
 
   // True once /register has succeeded on Meta's side (timestamp set
   // in the row). When false, the saved config is metadata-only and
@@ -164,6 +175,10 @@ export function WhatsAppConfig() {
       setLoading(false);
     }
   }, [supabase]);
+
+  useEffect(() => {
+    if (config) setShowAdvanced(true);
+  }, [config]);
 
   useEffect(() => {
     // Need both the auth session (`!authLoading`) AND the profile
@@ -433,7 +448,7 @@ export function WhatsAppConfig() {
         title={t("title")}
         description={t("description")}
       />
-      <div className="grid gap-6 lg:grid-cols-[1fr_380px]">
+      <div className={showAdvanced ? 'grid gap-6 lg:grid-cols-[1fr_380px]' : 'grid gap-6'}>
       {/* Main config form */}
       <div className="space-y-6">
         {/* Corrupted-token reset banner */}
@@ -594,6 +609,23 @@ export function WhatsAppConfig() {
           </Alert>
         )}
 
+        {/* Manual/advanced setup toggle — collapsed by default since
+            the button above (Embedded Signup) is the self-service path
+            for a clinic staff member with no technical background. This
+            whole disclosure is the fallback for a customer bringing
+            their own separate Meta app. */}
+        <button
+          type="button"
+          onClick={() => setShowAdvanced((prev) => !prev)}
+          className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
+        >
+          {showAdvanced ? <ChevronDown className="size-4" /> : <ChevronRight className="size-4" />}
+          <Settings2 className="size-4" />
+          {t('advancedSetupToggle')}
+        </button>
+
+        {showAdvanced && (
+        <>
         {/* API Credentials */}
         <Card>
           <CardHeader>
@@ -778,10 +810,13 @@ export function WhatsAppConfig() {
             </Button>
           )}
         </div>
+        </>
+        )}
       </div>
 
-      {/* Setup Instructions Sidebar */}
+      {showAdvanced && (
       <div>
+        {/* Setup Instructions Sidebar */}
         <Card>
           <CardHeader>
             <CardTitle className="text-foreground text-base">{t('setupInstructions')}</CardTitle>
@@ -874,6 +909,7 @@ export function WhatsAppConfig() {
           </CardContent>
         </Card>
       </div>
+      )}
     </div>
     </section>
   );

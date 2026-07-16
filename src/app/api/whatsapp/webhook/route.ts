@@ -5,6 +5,7 @@ import { getMediaUrl, downloadMedia } from '@/lib/whatsapp/meta-api'
 import { normalizePhone } from '@/lib/whatsapp/phone-utils'
 import { findExistingContact, isUniqueViolation } from '@/lib/contacts/dedupe'
 import { verifyMetaWebhookSignature } from '@/lib/whatsapp/webhook-signature'
+import { timingSafeSecretEqual } from '@/lib/cron/verify-secret'
 import { runAutomationsForTrigger } from '@/lib/automations/engine'
 import { dispatchInboundToFlows } from '@/lib/flows/engine'
 import { dispatchInboundToAiReply } from '@/lib/ai/auto-reply'
@@ -100,6 +101,24 @@ export async function GET(request: Request) {
         { error: 'Missing verification parameters' },
         { status: 400 }
       )
+    }
+
+    // Platform-wide default: with the shared "Zentro Labs runs one Meta
+    // app, every client connects via Embedded Signup" model, the webhook
+    // verify token never actually varies per account — it's configured
+    // ONCE in Meta's dashboard for the one app everyone shares. Checking
+    // this first makes that the zero-config default; the per-account DB
+    // loop below only still matters for the rare technical customer who
+    // brought their own separate Meta app (manual credentials form) and
+    // therefore needs their own token to match their own webhook config.
+    if (
+      process.env.WHATSAPP_WEBHOOK_VERIFY_TOKEN &&
+      timingSafeSecretEqual(verifyToken, process.env.WHATSAPP_WEBHOOK_VERIFY_TOKEN)
+    ) {
+      return new Response(challenge, {
+        status: 200,
+        headers: { 'Content-Type': 'text/plain' },
+      })
     }
 
     // Fetch all whatsapp configs to check verify tokens
