@@ -15,17 +15,17 @@ export const STRUCTURED_DATA = {
       "@id": "https://med.zentrolabs.com/#organization",
       name: "Zentro Med",
       url: "https://med.zentrolabs.com",
-      description: "CRM de WhatsApp con IA para consultorios y clínicas en Latinoamérica.",
+      description: "CRM comercial y marketing digital para consultorios médicos en Latinoamérica.",
       areaServed: ["CO", "MX", "AR", "CL", "PE", "ES"],
     },
     {
       "@type": "Service",
       "@id": "https://med.zentrolabs.com/#service",
-      name: "CRM para Consultorios y Clínicas",
+      name: "CRM y Marketing Digital para Consultorios",
       provider: { "@id": "https://med.zentrolabs.com/#organization" },
       description:
-        "CRM de gestión comercial para consultorios: WhatsApp compartido con IA, agenda online 24/7, seguimiento y reactivación de pacientes. Marketing gestionado disponible como upgrade opcional.",
-      serviceType: "Software CRM para Salud",
+        "Plataforma de gestión comercial y marketing para consultorios: CRM de contactos, agenda online 24/7, WhatsApp automatizado y campañas de captación digital gestionadas.",
+      serviceType: "Software CRM y Marketing para Salud",
       areaServed: ["CO", "MX", "AR", "CL", "PE", "ES"],
     },
     {
@@ -91,11 +91,11 @@ export const LANDING_BODY_HTML = `
 <section class="hero">
   <div class="wrap">
     <div class="hero-eyebrow">
-      <span class="pill-dark"><span class="dot-green"></span>CRM de WhatsApp + IA para consultorios</span>
+      <span class="pill-dark"><span class="dot-green"></span>CRM + equipo de marketing · Todo en uno</span>
       <span class="pill-dark" style="background:rgba(245,158,11,.1);color:#fcd34d;border-color:rgba(245,158,11,.2);">⚡ 30 días gratis · sin tarjeta</span>
     </div>
     <h1>Más pacientes.<br><span class="green">Sin caos administrativo.</span></h1>
-    <p class="hero-sub">El CRM que organiza tu consultorio: <strong style="color:rgba(255,255,255,.85);">WhatsApp compartido con IA</strong>, <strong style="color:rgba(255,255,255,.85);">agenda online 24/7</strong> y <strong style="color:rgba(255,255,255,.85);">seguimiento automático de pacientes</strong> — sin hojas de cálculo, sin cuadernos, sin citas que se pierden por WhatsApp.</p>
+    <p class="hero-sub">El único sistema que combina un <strong style="color:rgba(255,255,255,.85);">CRM para consultorios</strong> y un <strong style="color:rgba(255,255,255,.85);">equipo de marketing gestionado</strong> en una sola suscripción — sin contratar personal extra, sin coordinar agencias.</p>
     <div class="hero-proof">
       <div class="proof-avatars">
         <div class="proof-av" style="background:#dcfce7;color:#15803d;">DR</div>
@@ -127,8 +127,8 @@ export const LANDING_BODY_HTML = `
           <svg viewBox="0 0 24 24" stroke="#60a5fa"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
         </div>
         <div>
-          <div class="hw-title">Paciente reactivado</div>
-          <div class="hw-sub">90 días sin venir · Mensaje automático</div>
+          <div class="hw-title">+3 pacientes nuevos</div>
+          <div class="hw-sub">Esta semana · Meta Ads · $18 c/u</div>
         </div>
       </div>
       <div class="hw-card">
@@ -142,7 +142,7 @@ export const LANDING_BODY_HTML = `
       </div>
     </div>
 
-    <img class="hero-illus-img" src="/landing/hero-product.png" alt="CRM de Zentro Med: WhatsApp compartido con IA, agenda de citas y pipeline de pacientes" width="1672" height="941" />
+    <img class="hero-illus-img" src="/landing/hero-product.png" alt="Equipo completo de Zentro Med: estratega, ads manager, content creator, CRM y agenda, WhatsApp IA" width="1672" height="941" />
   </div>
 </section>
 
@@ -163,12 +163,12 @@ export const LANDING_BODY_HTML = `
         <div class="stat-l2">activación del CRM y agenda†</div>
       </div>
       <div class="stat-item">
-        <div class="stat-n2"><span>+38%</span></div>
-        <div class="stat-l2">pacientes reactivados con seguimiento automático*</div>
+        <div class="stat-n2"><span>3.2x</span></div>
+        <div class="stat-l2">retorno promedio en pauta digital*</div>
       </div>
     </div>
   </div>
-  <p class="stats-note">* Promedio de clientes activos en los primeros 90 días. Resultados individuales varían según especialidad, ciudad y volumen de pacientes. No garantizamos métricas específicas.<br>† Activación del CRM, agenda y WhatsApp básico.</p>
+  <p class="stats-note">* Promedio de clientes activos en los primeros 90 días. Resultados individuales varían según especialidad, ciudad y presupuesto de pauta. No garantizamos métricas específicas.<br>† Activación del CRM, agenda y WhatsApp básico. Campañas de ads sujetas a aprobación de plataformas (Meta/Google): 5–14 días adicionales.</p>
 </div>
 
 <!-- TRUST STRIP -->
@@ -191,42 +191,43 @@ export const LANDING_BODY_HTML = `
   </div>
 </div>
 
-<!-- DIFERENCIADOR -->
+<!-- DIFERENCIADOR 2-EN-1 -->
 <section class="diff-section">
   <div class="wrap">
     <div class="diff-header reveal">
       <p class="section-label" style="color:rgba(74,222,90,.6);">// Por qué Zentro Med</p>
-      <h2 class="section-title" style="color:var(--zm-white);">Tu consultorio merece más<br>que un WhatsApp personal.</h2>
-      <p class="section-sub" style="color:rgba(255,255,255,.45);margin:12px auto 0;">La mayoría de consultorios administra citas por WhatsApp normal, una libreta y la memoria de la recepcionista. Zentro Med reemplaza eso por un sistema real — y te cuesta menos que un asistente administrativo.</p>
+      <h2 class="section-title" style="color:var(--zm-white);">No es solo un CRM.<br>No es solo una agencia de marketing.</h2>
+      <p class="section-sub" style="color:rgba(255,255,255,.45);margin:12px auto 0;">La mayoría de consultorios tiene que elegir uno o el otro. Zentro Med elimina esa decisión — y te cuesta menos que un asistente administrativo.</p>
     </div>
     <div class="diff-cols reveal-group">
       <div class="diff-col diff-col-bad">
         <div class="diff-col-label">
           <div class="diff-icon">❌</div>
-          <span>Cómo funciona sin CRM</span>
+          <span>Las alternativas típicas</span>
         </div>
         <ul class="diff-list">
-          <li class="diff-item"><div class="diff-dot">✕</div><span class="diff-item-text">WhatsApp personal del consultorio — nadie más puede ver ni responder si la recepcionista no está</span></li>
-          <li class="diff-item"><div class="diff-dot">✕</div><span class="diff-item-text">Citas anotadas en libreta o Excel — sin historial de contacto, sin recordatorios automáticos</span></li>
-          <li class="diff-item"><div class="diff-dot">✕</div><span class="diff-item-text">Confirmaciones y recordatorios uno a uno, a mano, todos los días</span></li>
-          <li class="diff-item"><div class="diff-dot">✕</div><span class="diff-item-text">El paciente que no agenda su próxima cita simplemente se pierde — nadie lo vuelve a contactar</span></li>
-          <li class="diff-item"><div class="diff-dot">✕</div><span class="diff-item-text">Sin visibilidad real: no sabes cuántos pacientes activos tienes ni cuántas citas se confirman</span></li>
+          <li class="diff-item"><div class="diff-dot">✕</div><span class="diff-item-text">Agencia de marketing: $800–$2.000/mes — sin CRM, sin seguimiento de citas</span></li>
+          <li class="diff-item"><div class="diff-dot">✕</div><span class="diff-item-text">CRM genérico (HubSpot, Zoho): gestiona contactos pero no tiene equipo que ejecute campañas</span></li>
+          <li class="diff-item"><div class="diff-dot">✕</div><span class="diff-item-text">Asistente administrativo: gestiona el WhatsApp pero no puede hacer anuncios ni trackear resultados</span></li>
+          <li class="diff-item"><div class="diff-dot">✕</div><span class="diff-item-text">Lead de campaña y agenda de citas en sistemas separados — los prospectos se pierden en el camino</span></li>
+          <li class="diff-item"><div class="diff-dot">✕</div><span class="diff-item-text">No sabes qué canal genera más citas reales ni cuánto cuesta cada paciente nuevo</span></li>
         </ul>
       </div>
       <div class="diff-col diff-col-good">
         <div class="diff-col-label">
           <div class="diff-icon">✓</div>
-          <span>Con Zentro Med</span>
+          <span>Zentro Med — 2 en 1</span>
         </div>
         <ul class="diff-list">
-          <li class="diff-item"><div class="diff-dot">✓</div><span class="diff-item-text">Desde <strong>$49/mes</strong> — un CRM completo, no un contrato de agencia</span></li>
-          <li class="diff-item"><div class="diff-dot">✓</div><span class="diff-item-text"><strong>WhatsApp compartido</strong> — todo tu equipo ve la misma bandeja, sin depender de un solo celular</span></li>
-          <li class="diff-item"><div class="diff-dot">✓</div><span class="diff-item-text"><strong>IA que responde y agenda sola</strong> — confirma citas y contesta preguntas frecuentes 24/7</span></li>
-          <li class="diff-item"><div class="diff-dot">✓</div><span class="diff-item-text"><strong>Reactivación automática</strong> de pacientes que no han vuelto en 30, 60 o 90 días</span></li>
-          <li class="diff-item"><div class="diff-dot">✓</div><span class="diff-item-text">¿Además quieres conseguir pacientes nuevos? Suma <strong>marketing gestionado</strong> (Meta Ads, contenido, SEO local) cuando lo necesites</span></li>
+          <li class="diff-item"><div class="diff-dot">✓</div><span class="diff-item-text"><strong>CRM + equipo de marketing</strong> desde $299/mes — un solo cobro, una sola plataforma</span></li>
+          <li class="diff-item"><div class="diff-dot">✓</div><span class="diff-item-text"><strong>Estratega + diseñador + ads manager</strong> dedicados, sin que tú los contrates ni coordines</span></li>
+          <li class="diff-item"><div class="diff-dot">✓</div><span class="diff-item-text"><strong>WhatsApp IA</strong> convierte el lead de tu campaña en cita confirmada — automáticamente</span></li>
+          <li class="diff-item"><div class="diff-dot">✓</div><span class="diff-item-text"><strong>Dashboard unificado</strong>: costo por cita, tasa de retención y ROI de pauta en un solo lugar</span></li>
+          <li class="diff-item"><div class="diff-dot">✓</div><span class="diff-item-text">El dinero de los anuncios va directo a tu cuenta de Meta/Google — <strong>tú controlas el presupuesto</strong></span></li>
         </ul>
       </div>
     </div>
+    <img class="illus-img reveal" src="/landing/vs-comparison.png" alt="Comparación: consultorio sin Zentro Med (caos, sin seguimiento) vs. con Zentro Med (equipo médico, WhatsApp, agenda y campañas activas)" width="1672" height="941" style="max-width:860px;margin:32px auto 0;" />
     <div class="diff-bottom reveal">
       <a href="/signup" class="btn btn-green btn-lg" onclick="if(typeof fbq!=='undefined')fbq('track','Lead');if(typeof gtag!=='undefined')gtag('event','generate_lead',{event_category:'cta',event_label:'differentiator'});">Probar 30 días gratis →</a>
       <p class="diff-price-note">// Sin tarjeta · Setup en 24h · Cancela cuando quieras</p>
@@ -257,9 +258,9 @@ export const LANDING_BODY_HTML = `
       </div>
       <div class="prob-card">
         <div class="prob-icon"><i data-lucide="eye-off"></i></div>
-        <div class="prob-title">Cero visibilidad del negocio</div>
-        <div class="prob-desc">Sin un sistema central, no sabes cuántos pacientes activos tienes, cuántas citas se confirman ni cuántos no regresaron. Decides a ojo, no con datos.</div>
-        <span class="prob-tag">Sin trazabilidad</span>
+        <div class="prob-title">Invisible en Google y redes</div>
+        <div class="prob-desc">Tu competencia aparece primero cuando alguien busca tu especialidad en tu ciudad. Sin presencia digital activa, los pacientes nuevos van con quien se ve.</div>
+        <span class="prob-tag">Sin captación digital</span>
       </div>
     </div>
   </div>
@@ -295,18 +296,35 @@ export const LANDING_BODY_HTML = `
   </div>
 </section>
 
-<!-- BONUS: MARKETING OPCIONAL -->
-<div class="mid-cta reveal" style="background:var(--zm-surface);border-top-color:var(--zm-line);border-bottom-color:var(--zm-line);">
+<!-- SOLUTION: MARKETING -->
+<section class="solution" style="background:var(--zm-surface);padding-top:0;padding-bottom:clamp(64px,9vw,100px);">
   <div class="wrap">
-    <div class="mid-cta-inner">
-      <div>
-        <p class="mid-cta-pre" style="color:#16a34a;">// Extra opcional — Zentro Salud</p>
-        <p class="mid-cta-head">¿Además quieres pacientes nuevos? Suma un equipo de marketing gestionado (Meta Ads, contenido y SEO local) a tu CRM cuando quieras — sin cambiar de plataforma.</p>
+    <div class="solution-grid reverse">
+      <div class="solution-copy">
+        <p class="section-label">// Equipo de marketing incluido</p>
+        <h2 class="section-title">Tu equipo de marketing completo,<br>incluido en la suscripción</h2>
+        <p class="section-sub">Estratega, diseñador y ads manager ya están en tu plan — gestionan campañas, contenido y SEO local para que aparezcas primero cuando alguien busca tu especialidad en tu ciudad.</p>
+        <div class="benefit-list">
+          <div class="benefit-item"><div class="benefit-num">1</div><div class="benefit-text"><h4>Campañas en Meta Ads y Google</h4><p>Anuncios dirigidos a pacientes en tu ciudad y especialidad. Gestionados y optimizados cada semana.</p></div></div>
+          <div class="benefit-item"><div class="benefit-num">2</div><div class="benefit-text"><h4>Landing de especialidad</h4><p>Página de aterrizaje optimizada para tu especialidad y ciudad. No una página genérica — una pensada para convertir visitas en citas.</p></div></div>
+          <div class="benefit-item"><div class="benefit-num">3</div><div class="benefit-text"><h4>Reporte de captación vs. retención</h4><p>Sabes exactamente cuántos pacientes nuevos llegaron, de dónde, y cuánto costó cada uno. Sin suposiciones.</p></div></div>
+        </div>
       </div>
-      <a href="#planes" class="btn btn-green" style="flex-shrink:0;">Ver planes con marketing →</a>
+      <div class="solution-visual" style="background:var(--zm-night2);">
+        <img class="illus-img" src="/landing/marketing-dashboard.png" alt="Dashboard de campañas de marketing de Zentro Med: ROAS, pacientes nuevos y costo por lead en Meta y Google Ads" width="1672" height="941" />
+        <div>
+          <p class="sol-tag">// Zentro Salud — Marketing gestionado</p>
+          <p class="sol-title">Captación digital para tu especialidad</p>
+        </div>
+        <div class="feature-row"><div class="feat-check"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div><div class="feat-text"><strong>Contenido mensual</strong> — Piezas para Instagram, Facebook y Google My Business creadas por tu equipo.</div></div>
+        <div class="feature-row"><div class="feat-check"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div><div class="feat-text"><strong>Meta Ads gestionado</strong> — Campañas en Facebook e Instagram segmentadas por especialidad, ciudad y perfil de paciente.</div></div>
+        <div class="feature-row"><div class="feat-check"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div><div class="feat-text"><strong>SEO local</strong> — Aparece en los primeros resultados cuando buscan tu especialidad en tu ciudad. <span style="color:var(--zm-g);">(Solo en Pro)</span></div></div>
+        <div class="feature-row"><div class="feat-check"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div><div class="feat-text"><strong>Dashboard en tiempo real</strong> — Métricas de pacientes nuevos, costo por cita generada y retorno de pauta.</div></div>
+        <div class="feature-row"><div class="feat-check"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div><div class="feat-text"><strong>Presupuesto de pauta tuyo</strong> — El dinero de los anuncios va directo a Meta y Google desde tu cuenta. Zentro gestiona, tú controlas.</div></div>
+      </div>
     </div>
   </div>
-</div>
+</section>
 
 <!-- MID-PAGE CTA STRIP -->
 <div class="mid-cta reveal">
@@ -314,7 +332,7 @@ export const LANDING_BODY_HTML = `
     <div class="mid-cta-inner">
       <div>
         <p class="mid-cta-pre">// ¿Convencido hasta aquí?</p>
-        <p class="mid-cta-head">Tu CRM de WhatsApp con IA — activo en 24 horas.</p>
+        <p class="mid-cta-head">CRM + equipo de marketing — activo en 24 horas.</p>
       </div>
       <a href="/signup" class="btn btn-green btn-lg" style="flex-shrink:0;" onclick="if(typeof fbq!=='undefined')fbq('track','Lead');if(typeof gtag!=='undefined')gtag('event','generate_lead',{event_category:'cta',event_label:'mid_page'});">Empezar gratis →</a>
     </div>
@@ -331,8 +349,8 @@ export const LANDING_BODY_HTML = `
     <div class="how-steps reveal-group">
       <div class="how-step"><div class="step-num">1</div><div class="step-title">Prueba gratis</div><div class="step-desc">Activa tu cuenta en 2 minutos. 30 días con todas las funciones, sin tarjeta.</div></div>
       <div class="how-step"><div class="step-num">2</div><div class="step-title">Setup en 24h</div><div class="step-desc">Tu estratega configura WhatsApp, agenda y CRM. Tú solo nos dices cómo funciona tu consultorio.</div></div>
-      <div class="how-step"><div class="step-num">3</div><div class="step-title">El equipo lo usa desde el día 1</div><div class="step-desc">Recepción, médicos y administrativos ven la misma bandeja y la misma agenda en tiempo real.</div></div>
-      <div class="how-step"><div class="step-num">4</div><div class="step-title">Menos no-shows, más retención</div><div class="step-desc">Los recordatorios y la reactivación automática empiezan a trabajar solos desde la primera semana.</div></div>
+      <div class="how-step"><div class="step-num">3</div><div class="step-title">Primeras citas</div><div class="step-desc">Las campañas se activan y los primeros pacientes nuevos empiezan a llegar en la semana 1–2.</div></div>
+      <div class="how-step"><div class="step-num">4</div><div class="step-title">Crecimiento continuo</div><div class="step-desc">Optimizamos cada mes con datos reales. Sabes exactamente qué funciona y cuánto cuesta cada paciente.</div></div>
     </div>
   </div>
 </section>
@@ -343,9 +361,8 @@ export const LANDING_BODY_HTML = `
     <div class="pricing-header reveal">
       <p class="section-label">// Planes</p>
       <h2 class="section-title">Empieza gratis. Crece con tu ritmo.</h2>
-      <p class="section-sub">El CRM solo, o con marketing gestionado sumado cuando lo necesites — tú decides.</p>
     </div>
-    <p class="pricing-sub-note">// Setup único <span class="price-sym">$</span><span class="price-amt" data-usd="99">99</span> <span class="price-curr-label">USD</span> · El presupuesto de pauta (si activas marketing) va aparte y lo defines tú</p>
+    <p class="pricing-sub-note">// Setup único <span class="price-sym">$</span><span class="price-amt" data-usd="99">99</span> <span class="price-curr-label">USD</span> · El presupuesto de pauta va aparte y lo defines tú</p>
     <div class="plans-grid reveal-group">
 
       <div class="plan-card">
@@ -426,9 +443,9 @@ export const LANDING_BODY_HTML = `
 
     </div>
     <p style="text-align:center;margin-top:24px;font-size:12px;color:var(--zm-muted2);font-family:'JetBrains Mono',monospace;line-height:1.8;">
-      * En los planes Zentro Salud, el presupuesto de pauta (Meta/Google Ads) va directo a tu cuenta — Zentro gestiona las campañas, tú controlas el dinero.<br>
+      * El presupuesto de pauta (Meta/Google Ads) va directo a tu cuenta — Zentro gestiona las campañas, tú controlas el dinero.<br>
       † <span style="color:rgba(167,139,250,.7);">Mensajes IA</span> = auto-respuestas + redacción asistida generadas por el agente de IA en WhatsApp. Incluidos en tu plan — Zentro gestiona la infraestructura de IA, no necesitas crear cuentas en OpenAI ni Anthropic.<br>
-      Zentro Med es una plataforma de gestión comercial (CRM). No es un software de historia clínica ni de facturación tributaria.
+      Zentro Med es una plataforma de gestión comercial y marketing. No es un software de historia clínica ni de facturación tributaria.
     </p>
   </div>
 </section>
@@ -449,14 +466,14 @@ export const LANDING_BODY_HTML = `
       </div>
       <div class="testi-card">
         <div class="testi-stars">★★★★★</div>
-        <p class="testi-quote">"Antes se me olvidaba dar seguimiento a pacientes que dejaban de venir. Ahora el sistema los detecta solo y les manda un mensaje de reactivación — recuperé pacientes que ya daba por perdidos."</p>
-        <div class="testi-result"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>+34% pacientes reactivados · Mes 3</div>
+        <p class="testi-quote">"Pasamos de 12 consultas nuevas al mes a 41 en el tercer mes. El equipo de Zentro maneja todo — yo solo reviso el reporte los lunes."</p>
+        <div class="testi-result"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>+241% pacientes nuevos · Mes 3</div>
         <div class="testi-author"><div class="testi-av" style="background:#dbeafe;color:#1d4ed8;">DL</div><div><div class="testi-name">Dra. Lucía V.</div><div class="testi-role">Dermatóloga · Medellín</div></div></div>
       </div>
       <div class="testi-card">
         <div class="testi-stars">★★★★★</div>
-        <p class="testi-quote">"Teníamos las citas en un cuaderno y el WhatsApp en el celular de mi asistente. Con Zentro Med todo el equipo ve lo mismo, y los pacientes que no volvían en meses ahora reciben un mensaje automático."</p>
-        <div class="testi-result"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>+29% pacientes reactivados · Mes 2</div>
+        <p class="testi-quote">"La auditoría gratuita me mostró que 3 competidores aparecían antes que yo en Google. En 6 semanas ya estábamos en el primer lugar para mi especialidad en Cali."</p>
+        <div class="testi-result"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>#1 en búsquedas locales · Semana 6</div>
         <div class="testi-author"><div class="testi-av" style="background:#f3e8ff;color:#7e22ce;">CE</div><div><div class="testi-name">Dr. Carlos E.</div><div class="testi-role">Ortopedista · Cali</div></div></div>
       </div>
     </div>
@@ -484,16 +501,16 @@ export const LANDING_BODY_HTML = `
         <div class="faq-a"><div class="faq-a-inner">Sí. Trabajamos con dermatología, ortopedia, odontología, psicología, oftalmología, medicina estética y más. El CRM y las campañas se adaptan a tu especialidad y a tu ciudad específica.</div></div>
       </div>
       <div class="faq-item" onclick="zmToggleFaq(this)">
-        <div class="faq-q">¿Puedo usar solo el CRM, sin marketing?
+        <div class="faq-q">¿El presupuesto de anuncios está incluido?
           <svg class="faq-chevron" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
         </div>
-        <div class="faq-a"><div class="faq-a-inner">Sí. El plan Zentro Med es el CRM completo — WhatsApp compartido, IA, agenda y automatizaciones — sin marketing. Si más adelante quieres sumar campañas gestionadas, subes a un plan Zentro Salud cuando quieras; el presupuesto de pauta va directo a tu cuenta de Meta/Google, tú controlas el dinero.</div></div>
+        <div class="faq-a"><div class="faq-a-inner">No. El presupuesto de pauta va directo a Meta o Google desde tu cuenta — tú tienes el control total del dinero. La suscripción cubre la gestión, estrategia y creación de contenido. Así no hay conflicto de interés.</div></div>
       </div>
       <div class="faq-item" onclick="zmToggleFaq(this)">
-        <div class="faq-q">¿Cuánto tarda en estar funcionando el CRM?
+        <div class="faq-q">¿Cuánto tiempo hasta ver los primeros pacientes nuevos?
           <svg class="faq-chevron" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
         </div>
-        <div class="faq-a"><div class="faq-a-inner">24 horas: tu estratega configura WhatsApp, agenda, automatizaciones e IA. Si además activas marketing gestionado, las campañas suelen generar los primeros contactos en la semana 1–2 (sujeto a aprobación de Meta, 2–5 días adicionales).</div></div>
+        <div class="faq-a"><div class="faq-a-inner">El CRM se activa en 24h. Las campañas de Meta Ads suelen generar los primeros contactos en la semana 1–2 (sujeto a aprobación de Meta, que puede tomar 2–5 días adicionales). Resultados sostenibles al mes 2–3.</div></div>
       </div>
       <div class="faq-item" onclick="zmToggleFaq(this)">
         <div class="faq-q">¿Puedo cancelar cuando quiera?
@@ -519,7 +536,7 @@ export const LANDING_BODY_HTML = `
     <p>30 días con todas las funciones. Sin tarjeta. Configuración en 24 horas.</p>
     <div class="cta-btns">
       <a href="/signup" class="btn btn-green btn-lg" onclick="if(typeof fbq!=='undefined')fbq('track','Lead');if(typeof gtag!=='undefined')gtag('event','generate_lead',{event_category:'cta',event_label:'cta_final'});">Probar gratis 30 días →</a>
-      <a href="https://wa.me/15752137020" target="_blank" rel="noopener" class="btn btn-ghost-light btn-lg">Hablar con nuestro equipo</a>
+      <a href="https://wa.me/15752137020" target="_blank" rel="noopener" class="btn btn-ghost-light btn-lg">Hablar con un estratega</a>
     </div>
     <p class="cta-note">// Sin tarjeta · Sin contratos · Cancela cuando quieras</p>
   </div>
@@ -544,7 +561,7 @@ export const LANDING_BODY_HTML = `
 <div class="mob-cta">
   <div class="mob-cta-info">
     <span class="mob-cta-price">30 días gratis</span>
-    <span class="mob-cta-sub">sin tarjeta · CRM médico con WhatsApp + IA</span>
+    <span class="mob-cta-sub">sin tarjeta · CRM + marketing médico</span>
   </div>
   <a href="/signup" class="btn btn-green" style="font-size:13px;padding:10px 16px;flex-shrink:0;" onclick="if(typeof gtag!=='undefined')gtag('event','mobile_sticky_cta_click',{event_category:'cta',event_label:'sticky_bar_mobile'});">Empezar →</a>
 </div>

@@ -18,7 +18,7 @@ import { STRUCTURED_DATA, LANDING_BODY_HTML, LANDING_BEHAVIOR_SCRIPT } from "./l
 export const metadata: Metadata = {
   title: "Zentro Med — Más pacientes. Sin caos administrativo.",
   description:
-    "CRM de WhatsApp con IA para consultorios y clínicas en Latinoamérica: agenda online 24/7, seguimiento y reactivación de pacientes. Marketing gestionado disponible como upgrade. Prueba 30 días gratis, sin tarjeta.",
+    "CRM de gestión comercial con WhatsApp + marketing digital gestionado para consultorios y clínicas en Latinoamérica. Prueba 30 días gratis, sin tarjeta.",
   robots: { index: true, follow: true },
   alternates: { canonical: "https://med.zentrolabs.com" },
 };
