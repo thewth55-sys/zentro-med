@@ -14,6 +14,7 @@ import { Switch } from '@/components/ui/switch';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { SettingsPanelHead } from './settings-panel-head';
+import { MetaAdsEmbeddedSignupButton } from './meta-ads-embedded-signup-button';
 
 const MASKED_TOKEN = '••••••••••••••••';
 
@@ -185,6 +186,11 @@ export function ConversionTrackingConfig() {
           <CardDescription className="text-muted-foreground">{t('metaSectionDesc')}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
+          <div className="flex flex-wrap items-center gap-3 rounded-md border border-border bg-muted/40 p-3">
+            <p className="flex-1 text-sm text-muted-foreground">{t('adsEmbeddedSignupHint')}</p>
+            <MetaAdsEmbeddedSignupButton onConnected={() => void fetchConfig()} />
+          </div>
+
           <div className="space-y-2">
             <Label className="text-muted-foreground">{t('metaPixelId')}</Label>
             <Input

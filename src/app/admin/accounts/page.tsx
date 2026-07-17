@@ -90,7 +90,7 @@ export default function AdminAccountsPage() {
 
   return (
     <div>
-      <div className="mb-6 flex items-end justify-between gap-4">
+      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h1 className="text-xl font-semibold text-foreground">Cuentas</h1>
           <p className="text-sm text-muted-foreground">
@@ -101,7 +101,7 @@ export default function AdminAccountsPage() {
           placeholder="Buscar por nombre, dueño o correo"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="max-w-xs"
+          className="sm:max-w-xs"
         />
       </div>
 

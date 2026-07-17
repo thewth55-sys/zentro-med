@@ -23,7 +23,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ acc
     const { data: account, error: accountErr } = await db
       .from("accounts")
       .select(
-        "id, name, owner_user_id, plan, subscription_status, trial_ends_at, included_seats, stripe_customer_id, created_at, feature_overrides, logo_url, ai_access_blocked, ai_token_limit_override",
+        "id, name, owner_user_id, plan, subscription_status, trial_ends_at, included_seats, stripe_customer_id, stripe_subscription_id, created_at, feature_overrides, logo_url, ai_access_blocked, ai_token_limit_override",
       )
       .eq("id", accountId)
       .maybeSingle();
@@ -169,6 +169,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ acc
         trialEndsAt: account.trial_ends_at,
         includedSeats: account.included_seats,
         hasStripeCustomer: !!account.stripe_customer_id,
+        hasStripeSubscription: !!account.stripe_subscription_id,
         createdAt: account.created_at,
         featureOverrides: account.feature_overrides ?? {},
         logoUrl: account.logo_url,

@@ -11,7 +11,6 @@ import { usePlatformAdmin } from "@/hooks/use-platform-admin";
 import {
   CalendarClock,
   Crown,
-  HelpCircle,
   Lock,
   LogOut,
   Settings,
@@ -405,20 +404,6 @@ export function Sidebar({ open = false, onClose }: SidebarProps) {
               >
                 <Settings className="size-4" />
                 {t("menuSettings")}
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                render={
-                  <a
-                    href="https://zentrolatam.zohodesk.com/portal/es/home"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    onClick={onClose}
-                    className="text-popover-foreground focus:bg-accent focus:text-accent-foreground"
-                  />
-                }
-              >
-                <HelpCircle className="size-4" />
-                {t("menuHelp")}
               </DropdownMenuItem>
               <DropdownMenuSeparator className="bg-border" />
               <DropdownMenuItem

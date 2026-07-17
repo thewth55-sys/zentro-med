@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 
 import { requirePlatformAdmin } from "@/lib/auth/platform-admin";
 import { UnauthorizedError, ForbiddenError } from "@/lib/auth/account";
-import { AdminSidebar } from "@/components/admin/admin-sidebar";
+import { AdminShell } from "@/components/admin/admin-shell";
 
 // Server-side gate for the whole /admin surface — mirrors the
 // UnauthorizedError/ForbiddenError split requirePlatformAdmin()
@@ -18,10 +18,5 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     throw err;
   }
 
-  return (
-    <div className="flex min-h-screen bg-background text-foreground">
-      <AdminSidebar />
-      <main className="flex-1 overflow-x-hidden px-8 py-8">{children}</main>
-    </div>
-  );
+  return <AdminShell>{children}</AdminShell>;
 }

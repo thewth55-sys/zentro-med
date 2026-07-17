@@ -72,6 +72,10 @@ export async function POST(request: Request) {
       customer: customerId,
       mode: "subscription",
       line_items: lineItems,
+      // Lets a customer type in a staff-generated promo code
+      // (/admin/coupons) themselves at Stripe's hosted page — no admin
+      // action needed for the self-service discount path.
+      allow_promotion_codes: true,
       success_url: `${siteUrl}/settings?tab=billing-platform&checkout=success`,
       cancel_url: `${siteUrl}/settings?tab=billing-platform&checkout=canceled`,
       subscription_data: {

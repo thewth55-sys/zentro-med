@@ -20,6 +20,7 @@ import {
   Plug,
   Plus,
   ShieldCheck,
+  Ticket,
   Users,
   X,
 } from "lucide-react";
@@ -55,6 +56,7 @@ interface AccountDetail {
   trialEndsAt: string;
   includedSeats: number;
   hasStripeCustomer: boolean;
+  hasStripeSubscription: boolean;
   createdAt: string;
   featureOverrides: FeatureOverrides;
   logoUrl: string | null;
@@ -75,6 +77,13 @@ interface IntegrationError {
   code: string | null;
   message: string;
   createdAt: string;
+}
+
+interface CouponOption {
+  id: string;
+  code: string;
+  description: string | null;
+  active: boolean;
 }
 
 interface Member {
@@ -208,6 +217,9 @@ export function AccountDetailPanel({ accountId }: { accountId: string }) {
   const [recentErrors, setRecentErrors] = useState<IntegrationError[]>([]);
   const [tokenLimitDraft, setTokenLimitDraft] = useState("");
   const [savingAiQuota, setSavingAiQuota] = useState(false);
+  const [coupons, setCoupons] = useState<CouponOption[]>([]);
+  const [selectedCouponId, setSelectedCouponId] = useState("");
+  const [applyingCoupon, setApplyingCoupon] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const [newTag, setNewTag] = useState("");
@@ -278,6 +290,33 @@ export function AccountDetailPanel({ accountId }: { accountId: string }) {
     void load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [accountId]);
+
+  useEffect(() => {
+    fetch("/api/platform-admin/coupons", { cache: "no-store" })
+      .then((res) => res.json())
+      .then((body) => setCoupons(((body.coupons ?? []) as CouponOption[]).filter((c) => c.active)))
+      .catch(() => {});
+  }, []);
+
+  async function handleApplyCoupon() {
+    if (!selectedCouponId) return;
+    setApplyingCoupon(true);
+    try {
+      const res = await fetch(`/api/platform-admin/accounts/${accountId}/apply-coupon`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ couponId: selectedCouponId }),
+      });
+      const body = await res.json().catch(() => null);
+      if (!res.ok) throw new Error(body?.error ?? "No se pudo aplicar el cupón");
+      toast.success("Cupón aplicado a la suscripción");
+      setSelectedCouponId("");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "No se pudo aplicar el cupón");
+    } finally {
+      setApplyingCoupon(false);
+    }
+  }
 
   async function handleAddTag() {
     const label = newTag.trim();
@@ -621,7 +660,7 @@ export function AccountDetailPanel({ accountId }: { accountId: string }) {
         />
       </div>
 
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
         <div className="rounded-lg bg-muted p-4">
           <div className="text-xs text-muted-foreground">Plan</div>
           <div className="mt-1 text-sm font-medium text-foreground">{PLAN_LABEL[account.plan]}</div>
@@ -640,7 +679,7 @@ export function AccountDetailPanel({ accountId }: { accountId: string }) {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
         <div className="rounded-lg border border-border p-4">
           <div className="mb-3 flex items-center gap-2 text-sm font-medium text-foreground">
             <CreditCard className="size-4" /> Pagos recientes
@@ -723,6 +762,44 @@ export function AccountDetailPanel({ accountId }: { accountId: string }) {
             ))}
           </div>
         </div>
+      </div>
+
+      <div className="rounded-lg border border-border p-4">
+        <div className="mb-3 flex items-center gap-2 text-sm font-medium text-foreground">
+          <Ticket className="size-4" /> Aplicar cupón de descuento
+        </div>
+        {!account.hasStripeSubscription ? (
+          <p className="text-sm text-muted-foreground">
+            Esta cuenta no tiene una suscripción de Stripe activa — usa &ldquo;Establecer plan&rdquo; para
+            una cortesía completa en su lugar.
+          </p>
+        ) : (
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+            <Select value={selectedCouponId} onValueChange={(v) => setSelectedCouponId(v ?? "")}>
+              <SelectTrigger className="sm:w-64">
+                <SelectValue placeholder="Elige un cupón activo" />
+              </SelectTrigger>
+              <SelectContent>
+                {coupons.length === 0 ? (
+                  <SelectItem value="__none" disabled>
+                    No hay cupones activos
+                  </SelectItem>
+                ) : (
+                  coupons.map((c) => (
+                    <SelectItem key={c.id} value={c.id}>
+                      {c.code}
+                      {c.description ? ` — ${c.description}` : ""}
+                    </SelectItem>
+                  ))
+                )}
+              </SelectContent>
+            </Select>
+            <Button size="sm" disabled={!selectedCouponId || applyingCoupon} onClick={handleApplyCoupon}>
+              {applyingCoupon ? <Loader2 className="size-4 animate-spin" /> : null}
+              Aplicar a esta cuenta
+            </Button>
+          </div>
+        )}
       </div>
 
       <Dialog open={!!editingMember} onOpenChange={(open) => !open && setEditingMember(null)}>
