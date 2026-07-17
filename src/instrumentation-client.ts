@@ -17,14 +17,18 @@ if (process.env.NEXT_PUBLIC_SENTRY_DSN) {
     // integration.
 
     // `app://` frames are scripts injected by the native shell hosting
-    // the page (Instagram/Facebook's in-app browser bridge on iOS is
-    // the one we've actually seen — sendDataToNative/sendPageHideMessage
-    // throwing on a missing window.webkit.messageHandlers entry). Never
-    // our own bundle, never fixable from here — the injected script
-    // runs before our code and calls a native handler that may or may
-    // not exist depending on the host app's version.
+    // the page — Instagram/Facebook's in-app browser bridge, on both
+    // iOS (sendDataToNative/sendPageHideMessage throwing on a missing
+    // window.webkit.messageHandlers entry) and Android (their
+    // navigation_performance_logger_android script throwing "Java
+    // object is gone" when the WebView tears down its JS-to-Java
+    // bridge mid-navigation). Never our own bundle, never fixable from
+    // here — the injected script runs before our code and calls a
+    // native handler that may or may not exist depending on the host
+    // app's version. The message-text entries below are a fallback for
+    // when a frame's URL doesn't get picked up by denyUrls.
     denyUrls: [/^app:\/\//],
-    ignoreErrors: ["window.webkit.messageHandlers"],
+    ignoreErrors: ["window.webkit.messageHandlers", "Java object is gone"],
   });
 }
 
