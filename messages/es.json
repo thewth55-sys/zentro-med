@@ -2053,6 +2053,8 @@
       "autoReplyDesc": "El bot responde mensajes entrantes nuevos automáticamente (solo cuando ningún flujo los maneja y no hay un agente asignado). Deriva a un humano cuando no puede ayudar.",
       "agendaAccess": "Acceso a la agenda",
       "agendaAccessDesc": "El asistente puede consultar horarios reales y crear citas (quedan pendientes de confirmar) directamente en la conversación de WhatsApp.",
+      "quotaUsage": "Uso de IA este mes: {used} / {limit} tokens",
+      "quotaExceeded": "límite alcanzado, se reinicia el próximo mes",
       "maxAutoReplies": "Máximo de respuestas automáticas por conversación",
       "maxAutoRepliesDesc": "Después de esta cantidad de respuestas del bot en un mismo hilo, el bot se queda en silencio.",
       "handoffTo": "Derivar a",

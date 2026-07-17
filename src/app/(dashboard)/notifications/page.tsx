@@ -5,11 +5,13 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import type { Notification } from "@/types";
-import { Bell, CheckCheck, Loader2, UserPlus } from "lucide-react";
+import { Bell, BellRing, CheckCheck, Loader2, UserPlus, Volume2 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { useNotificationSoundPref } from "@/hooks/use-notification-sound-pref";
 
 // Icon per notification type. Only one type exists today
 // (conversation_assigned) but this keeps future types a one-line add.
@@ -25,6 +27,24 @@ export default function NotificationsPage() {
   );
   const [error, setError] = useState<string | null>(null);
   const [markingAll, setMarkingAll] = useState(false);
+  const [soundEnabled, setSoundEnabled] = useNotificationSoundPref();
+  const [browserPermission, setBrowserPermission] =
+    useState<NotificationPermission | "unsupported">("default");
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setBrowserPermission(
+      typeof window !== "undefined" && "Notification" in window
+        ? window.Notification.permission
+        : "unsupported",
+    );
+  }, []);
+
+  const requestBrowserPermission = useCallback(async () => {
+    if (typeof window === "undefined" || !("Notification" in window)) return;
+    const result = await window.Notification.requestPermission();
+    setBrowserPermission(result);
+  }, []);
 
   const load = useCallback(async () => {
     if (!accountId) return;
@@ -183,6 +203,51 @@ export default function NotificationsPage() {
           )}
           Mark all as read
         </Button>
+      </div>
+
+      <div className="flex flex-col gap-4 rounded-xl border border-border bg-card p-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center gap-3">
+          <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-muted">
+            <Volume2 className="h-4 w-4 text-muted-foreground" />
+          </div>
+          <div>
+            <p className="text-sm font-medium text-foreground">
+              Notification sounds
+            </p>
+            <p className="text-xs text-muted-foreground">
+              Play a chime for new messages and assignments
+            </p>
+          </div>
+          <Switch
+            checked={soundEnabled}
+            onCheckedChange={setSoundEnabled}
+            className="ml-2"
+          />
+        </div>
+        <div className="flex items-center gap-3">
+          <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-muted">
+            <BellRing className="h-4 w-4 text-muted-foreground" />
+          </div>
+          <div className="flex-1">
+            <p className="text-sm font-medium text-foreground">
+              Browser notifications
+            </p>
+            <p className="text-xs text-muted-foreground">
+              {browserPermission === "granted"
+                ? "Enabled for this browser"
+                : browserPermission === "denied"
+                  ? "Blocked — enable in your browser's site settings"
+                  : browserPermission === "unsupported"
+                    ? "Not supported in this browser"
+                    : "Get a popup when a new tab isn't focused"}
+            </p>
+          </div>
+          {browserPermission === "default" && (
+            <Button variant="outline" size="sm" onClick={requestBrowserPermission}>
+              Enable
+            </Button>
+          )}
+        </div>
       </div>
 
       {notifications.length === 0 ? (

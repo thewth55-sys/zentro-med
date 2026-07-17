@@ -72,6 +72,7 @@ export function AiConfig() {
   const [isActive, setIsActive] = useState(false);
   const [autoReplyEnabled, setAutoReplyEnabled] = useState(false);
   const [agendaAccessEnabled, setAgendaAccessEnabled] = useState(false);
+  const [quota, setQuota] = useState<{ used: number; limit: number | null; exceeded: boolean } | null>(null);
   const [maxPerConversation, setMaxPerConversation] = useState(3);
   // Empty string = leave unassigned (shared queue).
   const [handoffAgentId, setHandoffAgentId] = useState('');
@@ -92,6 +93,7 @@ export function AiConfig() {
         toast.error(data.error ?? t('loadFailed'));
         return;
       }
+      setQuota(data.quota ?? null);
       if (data.configured) {
         setConfigured(true);
         setProvider(data.provider);
@@ -255,6 +257,22 @@ export function AiConfig() {
         <p className="mb-4 rounded-md border border-border bg-muted/40 px-3 py-2 text-sm text-muted-foreground">
           {t('adminOnlyConfig')}
         </p>
+      )}
+
+      {quota && quota.limit !== null && (
+        <div
+          className={`mb-4 rounded-md border px-3 py-2 text-sm ${
+            quota.exceeded
+              ? 'border-red-900 bg-red-950/30 text-red-300'
+              : 'border-border bg-muted/40 text-muted-foreground'
+          }`}
+        >
+          {t('quotaUsage', {
+            used: quota.used.toLocaleString(),
+            limit: quota.limit.toLocaleString(),
+          })}
+          {quota.exceeded ? ` — ${t('quotaExceeded')}` : ''}
+        </div>
       )}
 
       <div className="space-y-6">

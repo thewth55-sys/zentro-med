@@ -6,6 +6,7 @@ import { AuthProvider, useAuth } from "@/hooks/use-auth";
 import { Sidebar } from "@/components/layout/sidebar";
 import { Header } from "@/components/layout/header";
 import { PresenceHeartbeat } from "@/components/presence/presence-heartbeat";
+import { NotificationAlerts } from "@/components/notifications/notification-alerts";
 import { AccessBanner } from "@/components/billing-platform/access-banner";
 import { AccessLockOverlay } from "@/components/billing-platform/access-lock-overlay";
 import { StartCheckoutRedirect } from "@/components/billing-platform/start-checkout-redirect";
@@ -47,6 +48,9 @@ function DashboardShellInner({ children }: { children: React.ReactNode }) {
       {/* Reports this tab's online/away presence once we know a user is
           signed in. Headless — renders nothing. */}
       <PresenceHeartbeat />
+      {/* Plays a chime / fires a native popup on new messages or
+          assignments while this tab is open. Headless — renders nothing. */}
+      <NotificationAlerts />
       <StartCheckoutRedirect />
       <AccessLockOverlay />
       <Sidebar open={sidebarOpen} onClose={closeSidebar} />

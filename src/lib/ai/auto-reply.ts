@@ -6,6 +6,7 @@ import { generateReply } from './generate'
 import { buildSystemPrompt } from './defaults'
 import { buildHandoffSummary } from './handoff'
 import { logAiUsage } from './usage'
+import { getAiTokenQuotaStatus } from './quota'
 import { latestUserMessage } from './query'
 import { AGENDA_TOOLS, createAgendaToolExecutor } from './tools/agenda'
 import { engineSendText } from '@/lib/flows/meta-send'
@@ -50,6 +51,14 @@ export async function dispatchInboundToAiReply(
 
     const config = await loadAiConfig(db, accountId)
     if (!config || !config.autoReplyEnabled) return
+
+    const quota = await getAiTokenQuotaStatus(db, accountId)
+    if (quota.exceeded) {
+      console.warn(
+        `[ai auto-reply] account ${accountId} hit its plan's monthly AI token limit (${quota.used}/${quota.limit}) — skipping this inbound.`,
+      )
+      return
+    }
 
     // Deterministic, user-configured responders win over the LLM — the
     // caller already excludes messages a Flow consumed. Message-level

@@ -2053,6 +2053,8 @@
       "autoReplyDesc": "The bot answers new inbound messages automatically (only when no flow handles them and no agent is assigned). Hands off to a human when it can’t help.",
       "agendaAccess": "Agenda access",
       "agendaAccessDesc": "The assistant can check real availability and create appointments (left pending confirmation) directly in the WhatsApp conversation.",
+      "quotaUsage": "AI usage this month: {used} / {limit} tokens",
+      "quotaExceeded": "limit reached, resets next month",
       "maxAutoReplies": "Max auto-replies per conversation",
       "maxAutoRepliesDesc": "After this many bot replies in one thread, the bot goes quiet.",
       "handoffTo": "Hand off to",

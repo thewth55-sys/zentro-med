@@ -8,6 +8,7 @@ import { generateReply } from '@/lib/ai/generate'
 import { buildSystemPrompt } from '@/lib/ai/defaults'
 import { latestUserMessage } from '@/lib/ai/query'
 import { logAiUsage } from '@/lib/ai/usage'
+import { getAiTokenQuotaStatus } from '@/lib/ai/quota'
 import { supabaseAdmin } from '@/lib/ai/admin-client'
 import { AiError } from '@/lib/ai/types'
 
@@ -73,6 +74,17 @@ export async function POST(request: Request) {
           code: 'ai_not_configured',
         },
         { status: 400 },
+      )
+    }
+
+    const quota = await getAiTokenQuotaStatus(supabase, accountId)
+    if (quota.exceeded) {
+      return NextResponse.json(
+        {
+          error: `Your plan's monthly AI usage limit has been reached (${quota.used.toLocaleString()}/${quota.limit?.toLocaleString()} tokens). It resets next month, or upgrade your plan for more.`,
+          code: 'ai_quota_exceeded',
+        },
+        { status: 429 },
       )
     }
 

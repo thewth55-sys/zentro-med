@@ -39,6 +39,16 @@ export interface PlanDefinition {
    * enforcement point itself.
    */
   patientLimit: number | null;
+  /**
+   * Max AI tokens (prompt + completion, across auto-reply and draft)
+   * this plan allows per calendar month. null = unlimited. Enforced in
+   * application code (lib/ai/quota.ts), not a DB trigger like
+   * patientLimit — the check has to run BEFORE the provider call, not
+   * after logging usage, since by then the (BYO-key) cost is already
+   * incurred. Placeholder numbers — adjust freely, this is a one-line
+   * change same as every other plan constant here.
+   */
+  aiTokenLimitMonthly: number | null;
   /** Stripe Price IDs — undefined until the corresponding env var is set. */
   stripeBasePriceId?: string;
   stripeSeatPriceId?: string;
@@ -55,6 +65,10 @@ export const PLAN_CONFIG: Record<Plan, PlanDefinition> = {
     // Not capped by patient count — the 30-day window is the real
     // constraint on a free trial, not volume.
     patientLimit: null,
+    // A trial account still using AI needs SOME cap on someone else's
+    // BYO key spend during evaluation, even though the tokens aren't
+    // Zentro's cost — bounds runaway usage from a misconfigured loop.
+    aiTokenLimitMonthly: 20_000,
     purchasable: false,
   },
   standalone: {
@@ -63,6 +77,7 @@ export const PLAN_CONFIG: Record<Plan, PlanDefinition> = {
     seatPriceUsd: 25,
     includedSeats: 1,
     patientLimit: 1000,
+    aiTokenLimitMonthly: 100_000,
     stripeBasePriceId: process.env.STRIPE_PRICE_STANDALONE_BASE,
     stripeSeatPriceId: process.env.STRIPE_PRICE_STANDALONE_SEAT,
     purchasable: true,
@@ -73,6 +88,7 @@ export const PLAN_CONFIG: Record<Plan, PlanDefinition> = {
     seatPriceUsd: 25,
     includedSeats: DEFAULT_INCLUDED_SEATS,
     patientLimit: 5000,
+    aiTokenLimitMonthly: 500_000,
     stripeBasePriceId: process.env.STRIPE_PRICE_ZENTRO_SALUD_STARTER,
     stripeSeatPriceId: process.env.STRIPE_PRICE_SEAT_ADDON,
     purchasable: true,
@@ -83,6 +99,7 @@ export const PLAN_CONFIG: Record<Plan, PlanDefinition> = {
     seatPriceUsd: 25,
     includedSeats: DEFAULT_INCLUDED_SEATS,
     patientLimit: null,
+    aiTokenLimitMonthly: null,
     stripeBasePriceId: process.env.STRIPE_PRICE_ZENTRO_SALUD_PRO,
     stripeSeatPriceId: process.env.STRIPE_PRICE_SEAT_ADDON,
     purchasable: true,
