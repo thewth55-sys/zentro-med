@@ -35,6 +35,7 @@ import {
   type InteractiveMessagePayload,
 } from '@/lib/whatsapp/interactive';
 import { decrypt, encrypt, isLegacyFormat } from '@/lib/whatsapp/encryption';
+import { logIntegrationError } from '@/lib/integration-errors/log';
 import { supabaseAdmin } from '@/lib/flows/admin-client';
 import { dispatchConversionEvent, getGoogleAdsConversionParams } from '@/lib/conversions/dispatch';
 import {
@@ -436,6 +437,17 @@ export async function sendMessageToConversation(
     const message =
       err instanceof Error ? err.message : 'Unknown Meta API error';
     console.error('[send-message] Meta send failed for all variants:', message);
+    // Fire-and-forget, via the service-role client — `integration_errors`
+    // has no INSERT policy for authenticated sessions, and `db` here may
+    // be the caller's RLS-scoped client, not the admin one. Surfaced
+    // per-account in /admin so staff can see e.g. "display name needs
+    // approval" without digging through logs.
+    void logIntegrationError(supabaseAdmin(), {
+      accountId,
+      source: 'whatsapp_send',
+      code: message.match(/\(#(\d+)\)/)?.[1] ?? null,
+      message,
+    });
     throw new SendMessageError('meta_error', `Meta API error: ${message}`, 502);
   }
 

@@ -7,6 +7,7 @@ import { buildSystemPrompt } from './defaults'
 import { buildHandoffSummary } from './handoff'
 import { logAiUsage } from './usage'
 import { getAiTokenQuotaStatus } from './quota'
+import { logIntegrationError } from '@/lib/integration-errors/log'
 import { latestUserMessage } from './query'
 import { AGENDA_TOOLS, createAgendaToolExecutor } from './tools/agenda'
 import { engineSendText } from '@/lib/flows/meta-send'
@@ -53,6 +54,10 @@ export async function dispatchInboundToAiReply(
     if (!config || !config.autoReplyEnabled) return
 
     const quota = await getAiTokenQuotaStatus(db, accountId)
+    if (quota.blocked) {
+      console.warn(`[ai auto-reply] account ${accountId} has AI access blocked by a platform admin — skipping this inbound.`)
+      return
+    }
     if (quota.exceeded) {
       console.warn(
         `[ai auto-reply] account ${accountId} hit its plan's monthly AI token limit (${quota.used}/${quota.limit}) — skipping this inbound.`,
@@ -206,5 +211,11 @@ export async function dispatchInboundToAiReply(
     })
   } catch (err) {
     console.error('[ai auto-reply] dispatch failed:', err)
+    void logIntegrationError(supabaseAdmin(), {
+      accountId,
+      source: 'ai_auto_reply',
+      code: null,
+      message: err instanceof Error ? err.message : 'Unknown auto-reply dispatch error',
+    })
   }
 }

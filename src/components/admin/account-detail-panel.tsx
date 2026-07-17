@@ -58,6 +58,23 @@ interface AccountDetail {
   createdAt: string;
   featureOverrides: FeatureOverrides;
   logoUrl: string | null;
+  aiAccessBlocked: boolean;
+  aiTokenLimitOverride: number | null;
+}
+
+interface AiQuota {
+  used: number;
+  limit: number | null;
+  exceeded: boolean;
+  blocked: boolean;
+}
+
+interface IntegrationError {
+  id: string;
+  source: "whatsapp_send" | "ai_auto_reply";
+  code: string | null;
+  message: string;
+  createdAt: string;
 }
 
 interface Member {
@@ -161,6 +178,11 @@ const ROLE_LABEL: Record<string, string> = {
   viewer: "Solo lectura",
 };
 
+const ERROR_SOURCE_LABEL: Record<IntegrationError["source"], string> = {
+  whatsapp_send: "Envío WhatsApp",
+  ai_auto_reply: "Auto-respuesta IA",
+};
+
 const PAYMENT_STATUS_LABEL: Record<string, string> = {
   paid: "Pagado",
   open: "Pendiente",
@@ -182,6 +204,10 @@ export function AccountDetailPanel({ accountId }: { accountId: string }) {
   const [notes, setNotes] = useState<Note[]>([]);
   const [integrations, setIntegrations] = useState<Integrations | null>(null);
   const [sessions, setSessions] = useState<Session[]>([]);
+  const [aiQuota, setAiQuota] = useState<AiQuota | null>(null);
+  const [recentErrors, setRecentErrors] = useState<IntegrationError[]>([]);
+  const [tokenLimitDraft, setTokenLimitDraft] = useState("");
+  const [savingAiQuota, setSavingAiQuota] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const [newTag, setNewTag] = useState("");
@@ -238,6 +264,11 @@ export function AccountDetailPanel({ accountId }: { accountId: string }) {
       setNotes(body.notes ?? []);
       setIntegrations(body.integrations ?? null);
       setSessions(body.sessions ?? []);
+      setAiQuota(body.aiQuota ?? null);
+      setRecentErrors(body.recentErrors ?? []);
+      setTokenLimitDraft(
+        body.account?.aiTokenLimitOverride != null ? String(body.account.aiTokenLimitOverride) : "",
+      );
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error desconocido");
     }
@@ -318,6 +349,54 @@ export function AccountDetailPanel({ accountId }: { accountId: string }) {
       toast.error(err instanceof Error ? err.message : "No se pudo actualizar");
     } finally {
       setSavingFeature(null);
+    }
+  }
+
+  async function handleToggleAiBlock() {
+    if (!account) return;
+    const nextBlocked = !account.aiAccessBlocked;
+    setSavingAiQuota(true);
+    try {
+      const res = await fetch(`/api/platform-admin/accounts/${accountId}/ai-quota`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ blocked: nextBlocked }),
+      });
+      const body = await res.json().catch(() => null);
+      if (!res.ok) throw new Error(body?.error ?? "No se pudo actualizar");
+      setAccount((prev) => (prev ? { ...prev, aiAccessBlocked: nextBlocked } : prev));
+      toast.success(nextBlocked ? "Acceso a IA bloqueado" : "Acceso a IA restaurado");
+      void load();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "No se pudo actualizar");
+    } finally {
+      setSavingAiQuota(false);
+    }
+  }
+
+  async function handleSaveTokenLimitOverride() {
+    const trimmed = tokenLimitDraft.trim();
+    const tokenLimitOverride = trimmed === "" ? null : Number(trimmed);
+    if (tokenLimitOverride !== null && (!Number.isInteger(tokenLimitOverride) || tokenLimitOverride < 0)) {
+      toast.error("Ingresa un número entero de 0 o más, o deja el campo vacío");
+      return;
+    }
+    setSavingAiQuota(true);
+    try {
+      const res = await fetch(`/api/platform-admin/accounts/${accountId}/ai-quota`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tokenLimitOverride }),
+      });
+      const body = await res.json().catch(() => null);
+      if (!res.ok) throw new Error(body?.error ?? "No se pudo actualizar");
+      setAccount((prev) => (prev ? { ...prev, aiTokenLimitOverride: tokenLimitOverride } : prev));
+      toast.success("Límite de tokens actualizado");
+      void load();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "No se pudo actualizar");
+    } finally {
+      setSavingAiQuota(false);
     }
   }
 
@@ -1024,6 +1103,96 @@ export function AccountDetailPanel({ accountId }: { accountId: string }) {
               </tbody>
             </table>
           </div>
+        )}
+      </div>
+
+      <div className="rounded-lg border border-border p-4">
+        <div className="mb-3 flex items-center gap-2 text-sm font-medium text-foreground">
+          <Bot className="size-4" /> Cuota de IA
+        </div>
+        <div className="space-y-3 text-sm">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-foreground">Consumo este mes</p>
+              <p className="text-xs text-muted-foreground">
+                {aiQuota
+                  ? aiQuota.limit === null
+                    ? `${aiQuota.used.toLocaleString()} tokens · sin límite`
+                    : `${aiQuota.used.toLocaleString()} / ${aiQuota.limit.toLocaleString()} tokens`
+                  : "Cargando…"}
+              </p>
+            </div>
+            {aiQuota?.blocked ? (
+              <Badge variant="destructive">Bloqueado por admin</Badge>
+            ) : aiQuota?.exceeded ? (
+              <Badge variant="destructive">Límite alcanzado</Badge>
+            ) : null}
+          </div>
+          <div className="flex items-center justify-between border-t border-border pt-3">
+            <div>
+              <p className="text-foreground">Bloquear acceso a IA</p>
+              <p className="text-xs text-muted-foreground">
+                Corta el auto-reply y los borradores de IA para esta cuenta, sin importar su plan.
+              </p>
+            </div>
+            <Button
+              variant={account.aiAccessBlocked ? "destructive" : "outline"}
+              size="sm"
+              disabled={savingAiQuota}
+              onClick={handleToggleAiBlock}
+            >
+              {savingAiQuota ? <Loader2 className="size-4 animate-spin" /> : null}
+              {account.aiAccessBlocked ? "Desbloquear" : "Bloquear"}
+            </Button>
+          </div>
+          <div className="flex items-center justify-between gap-3 border-t border-border pt-3">
+            <div className="flex-1">
+              <p className="text-foreground">Límite mensual (override)</p>
+              <p className="text-xs text-muted-foreground">
+                Reemplaza el límite del plan para esta cuenta. Vacío = usar el del plan.
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <Input
+                type="number"
+                min={0}
+                step={1}
+                value={tokenLimitDraft}
+                onChange={(e) => setTokenLimitDraft(e.target.value)}
+                placeholder="Del plan"
+                className="w-28"
+              />
+              <Button size="sm" disabled={savingAiQuota} onClick={handleSaveTokenLimitOverride}>
+                Guardar
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="rounded-lg border border-border p-4">
+        <div className="mb-3 flex items-center gap-2 text-sm font-medium text-foreground">
+          <AlertTriangle className="size-4" /> Errores recientes
+        </div>
+        {recentErrors.length === 0 ? (
+          <p className="text-sm text-muted-foreground">Sin errores registrados.</p>
+        ) : (
+          <ul className="space-y-2">
+            {recentErrors.map((e) => (
+              <li key={e.id} className="rounded-md border border-border bg-muted/30 p-2.5 text-sm">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="font-medium text-foreground">
+                    {ERROR_SOURCE_LABEL[e.source] ?? e.source}
+                    {e.code ? ` · #${e.code}` : ""}
+                  </span>
+                  <span className="shrink-0 text-xs text-muted-foreground">
+                    {new Date(e.createdAt).toLocaleString()}
+                  </span>
+                </div>
+                <p className="mt-1 text-xs text-muted-foreground">{e.message}</p>
+              </li>
+            ))}
+          </ul>
         )}
       </div>
 

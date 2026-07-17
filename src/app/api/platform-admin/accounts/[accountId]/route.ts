@@ -11,6 +11,7 @@ import { requirePlatformAdmin } from "@/lib/auth/platform-admin";
 import { toErrorResponse } from "@/lib/auth/account";
 import { supabaseAdmin } from "@/lib/billing-platform/admin-client";
 import { getStripeClient } from "@/lib/billing-platform/stripe";
+import { getAiTokenQuotaStatus } from "@/lib/ai/quota";
 
 export async function GET(_request: Request, { params }: { params: Promise<{ accountId: string }> }) {
   try {
@@ -22,7 +23,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ acc
     const { data: account, error: accountErr } = await db
       .from("accounts")
       .select(
-        "id, name, owner_user_id, plan, subscription_status, trial_ends_at, included_seats, stripe_customer_id, created_at, feature_overrides, logo_url",
+        "id, name, owner_user_id, plan, subscription_status, trial_ends_at, included_seats, stripe_customer_id, created_at, feature_overrides, logo_url, ai_access_blocked, ai_token_limit_override",
       )
       .eq("id", accountId)
       .maybeSingle();
@@ -133,6 +134,19 @@ export async function GET(_request: Request, { params }: { params: Promise<{ acc
       console.error("[GET /api/platform-admin/accounts/:id] notes fetch error:", notesErr);
     }
 
+    const quota = await getAiTokenQuotaStatus(db, accountId);
+
+    const { data: recentErrors, error: errorsErr } = await db
+      .from("integration_errors")
+      .select("id, source, code, message, created_at")
+      .eq("account_id", accountId)
+      .order("created_at", { ascending: false })
+      .limit(10);
+
+    if (errorsErr) {
+      console.error("[GET /api/platform-admin/accounts/:id] integration_errors fetch error:", errorsErr);
+    }
+
     const authorIds = [...new Set((notes ?? []).map((n) => n.author_user_id).filter(Boolean))] as string[];
     const authorNames = new Map<string, string | null>();
     await Promise.all(
@@ -158,7 +172,17 @@ export async function GET(_request: Request, { params }: { params: Promise<{ acc
         createdAt: account.created_at,
         featureOverrides: account.feature_overrides ?? {},
         logoUrl: account.logo_url,
+        aiAccessBlocked: account.ai_access_blocked,
+        aiTokenLimitOverride: account.ai_token_limit_override,
       },
+      aiQuota: quota,
+      recentErrors: (recentErrors ?? []).map((e) => ({
+        id: e.id,
+        source: e.source,
+        code: e.code,
+        message: e.message,
+        createdAt: e.created_at,
+      })),
       members: (members ?? []).map((m) => ({
         userId: m.user_id,
         fullName: m.full_name,

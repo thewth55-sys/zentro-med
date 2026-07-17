@@ -78,6 +78,12 @@ export async function POST(request: Request) {
     }
 
     const quota = await getAiTokenQuotaStatus(supabase, accountId)
+    if (quota.blocked) {
+      return NextResponse.json(
+        { error: 'AI access has been disabled for this account by an administrator.', code: 'ai_access_blocked' },
+        { status: 403 },
+      )
+    }
     if (quota.exceeded) {
       return NextResponse.json(
         {

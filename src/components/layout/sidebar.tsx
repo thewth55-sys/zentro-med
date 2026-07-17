@@ -415,6 +415,11 @@ export function Sidebar({ open = false, onClose }: SidebarProps) {
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
+          {process.env.NEXT_PUBLIC_APP_VERSION ? (
+            <p className="mt-2 px-3 text-center text-[10px] text-muted-foreground/60">
+              v{process.env.NEXT_PUBLIC_APP_VERSION}
+            </p>
+          ) : null}
         </div>
       </aside>
     </>

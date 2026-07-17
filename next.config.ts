@@ -1,6 +1,7 @@
 import type { NextConfig } from "next";
 import createNextIntlPlugin from "next-intl/plugin";
 import { withSentryConfig } from "@sentry/nextjs";
+import { version as appVersion } from "./package.json";
 
 const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
 
@@ -129,6 +130,11 @@ const SECURITY_HEADERS = [
 
 const nextConfig: NextConfig = {
   output: "standalone",
+  // Surfaced in the sidebar footer so support can tell at a glance
+  // which build a client is running.
+  env: {
+    NEXT_PUBLIC_APP_VERSION: appVersion,
+  },
   /**
    * Skips the "Running TypeScript ..." check inside `next build`
    * (Next 16 no longer runs ESLint during build at all — this log
