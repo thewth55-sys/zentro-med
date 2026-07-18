@@ -28,15 +28,41 @@ window.ZOHOIM.prefilledMessage = "";
 })();
 `;
 
+// Zoho's own launcher bubble renders as a plain (non-shadow-DOM) <div>
+// with a near-max z-index (2147483645) fixed to the bottom-right
+// corner — confirmed live via devtools: `[data-id="im-bm-bubble"]`
+// inside `#im-visitor-components`. Those data-* attributes are
+// semantic/product-code-driven (not the accompanying `zim<hash>...`
+// CSS module classes, which are build-hash-derived and would break on
+// Zoho's next widget deploy), so they're the stable hook to override
+// position from our own CSS. On /inbox this bubble sits directly over
+// the message composer's send button — moved to the opposite corner
+// there rather than hidden outright, so staff can still reach support
+// chat from the busiest page in the app; every other route is
+// unaffected. There's no documented JS config for this in Zoho's IM
+// widget embed (unlike SalesIQ's), so a scoped CSS override is the
+// only lever available short of hiding the widget entirely.
+const INBOX_BUBBLE_REPOSITION_CSS = `
+  [data-id="im-bm-bubble"] {
+    right: auto !important;
+    left: 16px !important;
+  }
+`;
+
 export function ZohoDeskWidget() {
   const pathname = usePathname();
   if (pathname === "/") return null;
 
   return (
-    <Script
-      id="zoho-desk-widget"
-      strategy="afterInteractive"
-      dangerouslySetInnerHTML={{ __html: ZOHO_DESK_WIDGET_SCRIPT }}
-    />
+    <>
+      <Script
+        id="zoho-desk-widget"
+        strategy="afterInteractive"
+        dangerouslySetInnerHTML={{ __html: ZOHO_DESK_WIDGET_SCRIPT }}
+      />
+      {pathname?.startsWith("/inbox") && (
+        <style id="zoho-desk-widget-inbox-override">{INBOX_BUBBLE_REPOSITION_CSS}</style>
+      )}
+    </>
   );
 }
