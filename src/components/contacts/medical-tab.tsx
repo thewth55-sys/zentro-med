@@ -129,6 +129,15 @@ export function MedicalTab({ contactId }: MedicalTabProps) {
       setProfile(data as PatientProfile);
       toast.success(t("profileCreated"));
     } catch (err) {
+      // Migration 064: converting a contact into a patient is what the
+      // plan's patient-limit trigger now checks (moved off `contacts`
+      // inserts, which should never be capped — see the migration's
+      // doc comment) — surface an upgrade prompt instead of the raw
+      // Postgres exception text.
+      if (err instanceof Error && err.message.includes("ZENTRO_PATIENT_LIMIT")) {
+        toast.error(t("profileLimitReached"));
+        return;
+      }
       console.error("Create patient profile error:", err);
       toast.error(t("profileCreateFailed"));
     } finally {

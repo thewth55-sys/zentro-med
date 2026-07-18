@@ -48,6 +48,7 @@ import {
   ChevronRight,
   SlidersHorizontal,
   Filter,
+  UserCheck,
   X,
 } from 'lucide-react';
 import { ContactForm } from '@/components/contacts/contact-form';
@@ -77,6 +78,11 @@ export default function ContactsPage() {
   const [totalCount, setTotalCount] = useState(0);
   // Tag filter — contacts shown must have ANY of these tags (OR).
   const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
+  // "Solo convertidos" — contacts that have a patient_profiles row
+  // (migration 038: "a contact becomes a patient when this row is
+  // created"). Off by default so the list still shows every WhatsApp
+  // lead, not just converted patients.
+  const [convertedOnly, setConvertedOnly] = useState(false);
 
   // Modals
   const [formOpen, setFormOpen] = useState(false);
@@ -143,6 +149,7 @@ export default function ContactsPage() {
         p_search: term || null,
         p_limit: PAGE_SIZE,
         p_offset: from,
+        p_converted_only: convertedOnly,
       });
       if (seq !== fetchSeq.current) return; // superseded by a newer fetch
       if (error) {
@@ -153,6 +160,38 @@ export default function ContactsPage() {
       const rows = (data ?? []) as { contact: Contact; total_count: number }[];
       contactRows = rows.map((r) => r.contact);
       count = rows.length > 0 ? Number(rows[0].total_count) : 0;
+    } else if (convertedOnly) {
+      // "Solo convertidos" uses an inner join against patient_profiles
+      // (contact "becomes" a patient when that row exists — migration
+      // 038) so only converted contacts come back, with a correct
+      // post-join count. A separate branch (rather than a conditional
+      // select string) so the typed query builder can parse each
+      // literal select independently.
+      let query = supabase
+        .from('contacts')
+        .select('*, patient_profiles!inner(id)', { count: 'exact' })
+        .order('created_at', { ascending: false })
+        .range(from, to);
+
+      if (term) {
+        const like = `%${term}%`;
+        query = query.or(`name.ilike.${like},phone.ilike.${like},email.ilike.${like}`);
+      }
+
+      const { data, count: exactCount, error } = await query;
+      if (seq !== fetchSeq.current) return; // superseded by a newer fetch
+      if (error) {
+        toast.error(t('toastFailedLoad'));
+        setLoading(false);
+        return;
+      }
+      // Strip the embedded patient_profiles join column — callers only
+      // expect the plain Contact shape.
+      contactRows = (data ?? []).map(
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        ({ patient_profiles: _patientProfiles, ...c }) => c,
+      );
+      count = exactCount ?? 0;
     } else {
       let query = supabase
         .from('contacts')
@@ -207,7 +246,7 @@ export default function ContactsPage() {
 
     setContacts(enriched);
     setLoading(false);
-  }, [supabase, page, search, selectedTagIds, tagsMap, t]);
+  }, [supabase, page, search, selectedTagIds, convertedOnly, tagsMap, t]);
 
   // Load-once-on-mount-ish data fetches. Each setter inside runs
   // inside an async promise completion (Supabase await), not
@@ -323,7 +362,7 @@ export default function ContactsPage() {
   const allTags = Object.values(tagsMap).sort((a, b) =>
     a.name.localeCompare(b.name)
   );
-  const hasActiveFilters = search.trim().length > 0 || selectedTagIds.length > 0;
+  const hasActiveFilters = search.trim().length > 0 || selectedTagIds.length > 0 || convertedOnly;
 
   function toggleTagFilter(tagId: string) {
     setSelectedTagIds((prev) =>
@@ -460,6 +499,22 @@ export default function ContactsPage() {
               )}
             </PopoverContent>
           </Popover>
+
+          <Button
+            variant={convertedOnly ? 'default' : 'outline'}
+            className={
+              convertedOnly
+                ? 'shrink-0'
+                : 'border-border text-muted-foreground hover:bg-muted shrink-0'
+            }
+            onClick={() => {
+              setConvertedOnly((v) => !v);
+              setPage(0);
+            }}
+          >
+            <UserCheck className="size-4" />
+            {t('convertedOnly')}
+          </Button>
         </div>
 
         {/* Active tag-filter chips */}

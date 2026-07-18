@@ -11,6 +11,8 @@ import {
   type TemplateSendValues,
 } from '@/components/inbox/template-picker';
 import { MedicalTab } from '@/components/contacts/medical-tab';
+import { OdontogramTab } from '@/components/contacts/odontogram-tab';
+import { VisitPhotosTab } from '@/components/contacts/visit-photos-tab';
 import { AppointmentsTab } from '@/components/contacts/appointments-tab';
 import { BillingTab } from '@/components/contacts/billing-tab';
 import {
@@ -485,6 +487,18 @@ export function ContactDetailView({
                   {t('tabs.medical')}
                 </TabsTrigger>
                 <TabsTrigger
+                  value="odontogram"
+                  className="data-active:bg-muted data-active:text-primary text-muted-foreground"
+                >
+                  {t('tabs.odontogram')}
+                </TabsTrigger>
+                <TabsTrigger
+                  value="photos"
+                  className="data-active:bg-muted data-active:text-primary text-muted-foreground"
+                >
+                  {t('tabs.photos')}
+                </TabsTrigger>
+                <TabsTrigger
                   value="appointments"
                   className="data-active:bg-muted data-active:text-primary text-muted-foreground"
                 >
@@ -672,6 +686,16 @@ export function ContactDetailView({
               {/* Medical Tab */}
               <TabsContent value="medical" className="flex-1 overflow-y-auto px-4 py-3">
                 {contactId && <MedicalTab contactId={contactId} />}
+              </TabsContent>
+
+              {/* Odontogram Tab */}
+              <TabsContent value="odontogram" className="flex-1 overflow-y-auto px-4 py-3">
+                {contactId && <OdontogramTab contactId={contactId} />}
+              </TabsContent>
+
+              {/* Visit Photos Tab */}
+              <TabsContent value="photos" className="flex-1 overflow-y-auto px-4 py-3">
+                {contactId && <VisitPhotosTab contactId={contactId} />}
               </TabsContent>
 
               {/* Appointments Tab */}

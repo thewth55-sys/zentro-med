@@ -525,6 +525,55 @@ export interface ClinicalNote {
   addenda?: ClinicalNoteAddendum[];
 }
 
+// ============================================================
+// Odontogram (migration 066) — current per-tooth status for a
+// converted patient (keyed off patient_profile_id, same as
+// clinical_notes). FDI/ISO two-digit tooth numbering (11-18, 21-28,
+// 31-38, 41-48 — permanent adult dentition only in this version).
+// ============================================================
+
+export type ToothCondition =
+  | 'healthy'
+  | 'caries'
+  | 'filled'
+  | 'crown'
+  | 'root_canal'
+  | 'missing'
+  | 'extraction_planned'
+  | 'implant'
+  | 'bridge';
+
+export interface OdontogramTooth {
+  id: string;
+  account_id: string;
+  patient_profile_id: string;
+  tooth_number: number;
+  condition: ToothCondition;
+  notes?: string | null;
+  updated_by?: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+// ============================================================
+// Visit photos (migration 067) — durable clinical photo history per
+// patient, optionally tied to the appointment/visit it was taken
+// during. Stored in the private `clinical-photos` bucket, served via
+// short-lived signed URLs (never a public bucket — this is patient
+// medical imagery).
+// ============================================================
+
+export interface VisitPhoto {
+  id: string;
+  account_id: string;
+  patient_profile_id: string;
+  appointment_id?: string | null;
+  storage_path: string;
+  caption?: string | null;
+  uploaded_by?: string | null;
+  created_at: string;
+}
+
 export type BroadcastStatus = 'draft' | 'scheduled' | 'sending' | 'sent' | 'failed';
 export type RecipientStatus = 'pending' | 'sent' | 'delivered' | 'read' | 'replied' | 'failed';
 

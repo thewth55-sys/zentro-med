@@ -356,6 +356,7 @@
       "addContactBtn": "Add Patient",
       "searchPlaceholder": "Search by name, phone, or email...",
       "filterByTags": "Filter by tags",
+      "convertedOnly": "Converted only",
       "clearAll": "Clear all",
       "noTagsYet": "No tags yet.",
       "selectedCount": "{count} selected",
@@ -421,8 +422,7 @@
       "dupSimilar": "A patient with a very similar number already exists.",
       "loadingTags": "Loading tags...",
       "noTagsAvailable": "No tags available. Create tags in Settings.",
-      "phoneRequired": "Phone number is required",
-      "toastPatientLimit": "You've reached your plan's patient limit. Upgrade in Settings → Subscription to add more."
+      "phoneRequired": "Phone number is required"
     },
     "detailView": {
       "tabs": {
@@ -430,6 +430,8 @@
         "activity": "Activity",
         "notes": "Notes",
         "medical": "Medical",
+        "odontogram": "Odontogram",
+        "photos": "Photos",
         "appointments": "Appointments",
         "billing": "Billing",
         "tags": "Tags",
@@ -493,6 +495,7 @@
         "createProfile": "Create medical profile",
         "profileCreated": "Medical profile created",
         "profileCreateFailed": "Failed to create medical profile",
+        "profileLimitReached": "You've reached your plan's patient limit. Upgrade in Settings → Subscription to convert more contacts into patients.",
         "profileTitle": "Medical profile",
         "bloodType": "Blood type",
         "assignedDoctor": "Assigned doctor",
@@ -528,6 +531,40 @@
         "noteSaveFailed": "Failed to save the clinical note",
         "addendumSaved": "Addendum saved",
         "addendumSaveFailed": "Failed to save the addendum"
+      },
+      "odontogramTab": {
+        "noProfile": "This contact isn't a converted patient yet — create their medical profile in the Medical tab to enable the odontogram.",
+        "toothLabel": "Tooth {number}",
+        "condition": "Condition",
+        "notes": "Notes",
+        "save": "Save",
+        "toothSaved": "Tooth updated",
+        "toothSaveFailed": "Failed to update tooth",
+        "conditions": {
+          "healthy": "Healthy",
+          "caries": "Caries",
+          "filled": "Filled",
+          "crown": "Crown",
+          "root_canal": "Root canal",
+          "missing": "Missing",
+          "extraction_planned": "Extraction planned",
+          "implant": "Implant",
+          "bridge": "Bridge"
+        }
+      },
+      "photosTab": {
+        "noProfile": "This contact isn't a converted patient yet — create their medical profile in the Medical tab to enable photos.",
+        "title": "Photo history",
+        "upload": "Upload photo",
+        "empty": "No photos yet.",
+        "uploaded": "Photo uploaded",
+        "uploadFailed": "Failed to upload photo",
+        "invalidType": "Only PNG, JPEG, or WebP images are allowed",
+        "tooLarge": "Image exceeds the 8 MB limit",
+        "deleted": "Photo deleted",
+        "deleteFailed": "Failed to delete photo",
+        "delete": "Delete",
+        "close": "Close"
       },
       "appointmentsTab": {
         "empty": "No appointments yet.",

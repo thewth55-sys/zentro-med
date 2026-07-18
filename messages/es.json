@@ -356,6 +356,7 @@
       "addContactBtn": "Agregar paciente",
       "searchPlaceholder": "Buscar por nombre, teléfono o correo...",
       "filterByTags": "Filtrar por etiquetas",
+      "convertedOnly": "Solo convertidos",
       "clearAll": "Borrar todo",
       "noTagsYet": "Aún no hay etiquetas.",
       "selectedCount": "{count} seleccionados",
@@ -421,8 +422,7 @@
       "dupSimilar": "Ya existe un paciente con un número muy similar.",
       "loadingTags": "Cargando etiquetas...",
       "noTagsAvailable": "No hay etiquetas disponibles. Créalas en Ajustes.",
-      "phoneRequired": "El número de teléfono es obligatorio",
-      "toastPatientLimit": "Alcanzaste el límite de pacientes de tu plan. Sube de plan en Ajustes → Suscripción para agregar más."
+      "phoneRequired": "El número de teléfono es obligatorio"
     },
     "detailView": {
       "tabs": {
@@ -430,6 +430,8 @@
         "activity": "Actividad",
         "notes": "Notas",
         "medical": "Médico",
+        "odontogram": "Odontograma",
+        "photos": "Fotos",
         "appointments": "Citas",
         "billing": "Facturación",
         "tags": "Etiquetas",
@@ -493,6 +495,7 @@
         "createProfile": "Crear perfil médico",
         "profileCreated": "Perfil médico creado",
         "profileCreateFailed": "Error al crear el perfil médico",
+        "profileLimitReached": "Alcanzaste el límite de pacientes de tu plan. Sube de plan en Ajustes → Suscripción para convertir más contactos en pacientes.",
         "profileTitle": "Perfil médico",
         "bloodType": "Tipo de sangre",
         "assignedDoctor": "Doctor asignado",
@@ -528,6 +531,40 @@
         "noteSaveFailed": "Error al guardar la nota clínica",
         "addendumSaved": "Adenda guardada",
         "addendumSaveFailed": "Error al guardar la adenda"
+      },
+      "odontogramTab": {
+        "noProfile": "Este contacto aún no es un paciente convertido — crea su perfil médico en la pestaña Médico para habilitar el odontograma.",
+        "toothLabel": "Diente {number}",
+        "condition": "Condición",
+        "notes": "Notas",
+        "save": "Guardar",
+        "toothSaved": "Diente actualizado",
+        "toothSaveFailed": "Error al actualizar el diente",
+        "conditions": {
+          "healthy": "Sano",
+          "caries": "Caries",
+          "filled": "Obturado",
+          "crown": "Corona",
+          "root_canal": "Endodoncia",
+          "missing": "Ausente",
+          "extraction_planned": "Extracción planeada",
+          "implant": "Implante",
+          "bridge": "Puente"
+        }
+      },
+      "photosTab": {
+        "noProfile": "Este contacto aún no es un paciente convertido — crea su perfil médico en la pestaña Médico para habilitar las fotos.",
+        "title": "Historial fotográfico",
+        "upload": "Subir foto",
+        "empty": "Aún no hay fotos.",
+        "uploaded": "Foto subida",
+        "uploadFailed": "Error al subir la foto",
+        "invalidType": "Solo se permiten imágenes PNG, JPEG o WebP",
+        "tooLarge": "La imagen supera el límite de 8 MB",
+        "deleted": "Foto eliminada",
+        "deleteFailed": "Error al eliminar la foto",
+        "delete": "Eliminar",
+        "close": "Cerrar"
       },
       "appointmentsTab": {
         "empty": "Aún no hay citas.",
