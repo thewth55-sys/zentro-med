@@ -388,15 +388,24 @@ export default function ContactsPage() {
             {totalCount > 0 ? t('subtitle', { count: totalCount }) : t('subtitleZero')}
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        {/* Secondary actions (Campos personalizados, Importar) collapse to
+            icon-only below sm — three full-width-text buttons here would
+            overflow a 375px viewport and, since nothing between this row
+            and <main> clips horizontally, drag the WHOLE page sideways
+            rather than just wrapping. flex-wrap is a safety net; the
+            icon-only collapse is what actually keeps this row within
+            phone width. Labels stay in the accessibility tree via
+            sr-only so screen readers still hear the full name. */}
+        <div className="flex flex-wrap items-center gap-2">
           {canEditSettings && (
             <Button
               variant="outline"
               onClick={() => setCustomFieldsOpen(true)}
               className="border-border text-muted-foreground hover:bg-muted"
+              title={t('customFieldsBtn')}
             >
               <SlidersHorizontal className="size-4" />
-              {t('customFieldsBtn')}
+              <span className="sr-only sm:not-sr-only">{t('customFieldsBtn')}</span>
             </Button>
           )}
           <GatedButton
@@ -405,9 +414,10 @@ export default function ContactsPage() {
             gateReason="add or import contacts"
             onClick={() => setImportOpen(true)}
             className="border-border text-muted-foreground hover:bg-muted"
+            title={t('importBtn')}
           >
             <Upload className="size-4" />
-            {t('importBtn')}
+            <span className="sr-only sm:not-sr-only">{t('importBtn')}</span>
           </GatedButton>
           <GatedButton
             canAct={canEdit}

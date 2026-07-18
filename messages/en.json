@@ -247,7 +247,7 @@
       "noCustomerMessages": "No customer messages"
     },
     "composer": {
-      "draftHint": "Tap the ✨ to draft a reply with AI — you can edit it before sending",
+      "draftHint": "Tap ✨ for an AI-drafted reply",
       "sessionExpiredHint": "24-hour session expired. Use a template to re-engage.",
       "templates": "Templates",
       "readOnlyPlaceholder": "Read-only — viewers can browse but not reply",
@@ -337,7 +337,7 @@
     },
     "aiBanner": {
       "pausedTitle": "AI assistant is paused here",
-      "activeText": "AI assistant is replying automatically",
+      "activeText": "AI is replying automatically",
       "takeOver": "Take over",
       "resume": "Resume AI",
       "tookOver": "You’ve taken over this chat.",

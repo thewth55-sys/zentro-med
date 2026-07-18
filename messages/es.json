@@ -247,7 +247,7 @@
       "noCustomerMessages": "Sin mensajes del cliente"
     },
     "composer": {
-      "draftHint": "Toca el ✨ para redactar una respuesta con IA — puedes editarla antes de enviar",
+      "draftHint": "Toca ✨ para responder con IA",
       "sessionExpiredHint": "La sesión de 24 horas expiró. Usa una plantilla para reactivar.",
       "templates": "Plantillas",
       "readOnlyPlaceholder": "Solo lectura — los espectadores pueden ver pero no responder",
@@ -337,7 +337,7 @@
     },
     "aiBanner": {
       "pausedTitle": "El asistente de IA está en pausa aquí",
-      "activeText": "El asistente de IA está respondiendo automáticamente",
+      "activeText": "IA respondiendo automáticamente",
       "takeOver": "Tomar control",
       "resume": "Reanudar IA",
       "tookOver": "Tomaste el control de este chat.",
