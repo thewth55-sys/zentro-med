@@ -34,18 +34,23 @@ window.ZOHOIM.prefilledMessage = "";
 // inside `#im-visitor-components`. Those data-* attributes are
 // semantic/product-code-driven (not the accompanying `zim<hash>...`
 // CSS module classes, which are build-hash-derived and would break on
-// Zoho's next widget deploy), so they're the stable hook to override
-// position from our own CSS. On /inbox this bubble sits directly over
-// the message composer's send button — moved to the opposite corner
-// there rather than hidden outright, so staff can still reach support
-// chat from the busiest page in the app; every other route is
-// unaffected. There's no documented JS config for this in Zoho's IM
-// widget embed (unlike SalesIQ's), so a scoped CSS override is the
-// only lever available short of hiding the widget entirely.
-const INBOX_BUBBLE_REPOSITION_CSS = `
-  [data-id="im-bm-bubble"] {
-    right: auto !important;
-    left: 16px !important;
+// Zoho's next widget deploy), so they're the stable hook here.
+//
+// On /inbox's mobile layout the message composer spans full width
+// with controls at BOTH edges (attach/template/AI icons on the left,
+// send on the right) — there's no corner left to relocate the bubble
+// to without it landing on something. Moving it to the opposite
+// corner (tried first) still collided. Hidden below the md breakpoint
+// on /inbox only; kept visible on wider viewports (desktop has room)
+// and on every other route. There's no documented JS config for this
+// in Zoho's IM widget embed (unlike SalesIQ's), so a scoped CSS
+// override is the only lever available short of removing the widget
+// from /inbox altogether.
+const INBOX_BUBBLE_MOBILE_HIDE_CSS = `
+  @media (max-width: 767px) {
+    [data-id="im-bm-bubble"] {
+      display: none !important;
+    }
   }
 `;
 
@@ -61,7 +66,7 @@ export function ZohoDeskWidget() {
         dangerouslySetInnerHTML={{ __html: ZOHO_DESK_WIDGET_SCRIPT }}
       />
       {pathname?.startsWith("/inbox") && (
-        <style id="zoho-desk-widget-inbox-override">{INBOX_BUBBLE_REPOSITION_CSS}</style>
+        <style id="zoho-desk-widget-inbox-override">{INBOX_BUBBLE_MOBILE_HIDE_CSS}</style>
       )}
     </>
   );
