@@ -16,6 +16,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { AccountActionsMenu } from "@/components/admin/account-actions-menu";
+import { CreateDemoAccountDialog } from "@/components/admin/create-demo-account-dialog";
 import type { Plan, SubscriptionStatus } from "@/lib/billing-platform/plans";
 
 interface AdminAccount {
@@ -97,12 +98,15 @@ export default function AdminAccountsPage() {
             Todas las cuentas de Zentro Med — plan, estado de suscripción y asientos.
           </p>
         </div>
-        <Input
-          placeholder="Buscar por nombre, dueño o correo"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="sm:max-w-xs"
-        />
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+          <Input
+            placeholder="Buscar por nombre, dueño o correo"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="sm:max-w-xs"
+          />
+          <CreateDemoAccountDialog onCreated={loadAccounts} />
+        </div>
       </div>
 
       {error ? (
