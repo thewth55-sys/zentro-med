@@ -409,8 +409,7 @@
   .zm-landing .diff-header { text-align: center; margin-bottom: 48px; }
   .zm-landing .diff-header .section-title { color: var(--zm-white); }
   .zm-landing .diff-header .section-sub { color: rgba(255,255,255,.45); margin: 12px auto 0; }
-  .zm-landing .diff-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; max-width: 900px; margin: 0 auto; }
-  @media(max-width:680px) { .zm-landing .diff-cols { grid-template-columns: 1fr; } }
+  .zm-landing .diff-cols { display: grid; grid-template-columns: 1fr; gap: 20px; max-width: 620px; margin: 0 auto; }
   .zm-landing .diff-col {
     border-radius: 18px; padding: 28px;
     display: flex; flex-direction: column; gap: 0;
