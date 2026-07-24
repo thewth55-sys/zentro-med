@@ -15,13 +15,6 @@ import { OdontogramTab } from '@/components/contacts/odontogram-tab';
 import { VisitPhotosTab } from '@/components/contacts/visit-photos-tab';
 import { AppointmentsTab } from '@/components/contacts/appointments-tab';
 import { BillingTab } from '@/components/contacts/billing-tab';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from '@/components/ui/dialog';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -47,18 +40,10 @@ import {
 import { useTranslations } from 'next-intl';
 
 interface ContactDetailViewProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  contactId: string | null;
-  onUpdated: () => void;
+  contactId: string;
 }
 
-export function ContactDetailView({
-  open,
-  onOpenChange,
-  contactId,
-  onUpdated,
-}: ContactDetailViewProps) {
+export function ContactDetailView({ contactId }: ContactDetailViewProps) {
   const t = useTranslations('Contacts.detailView');
   const supabase = createClient();
   const { accountId, defaultCurrency } = useAuth();
@@ -74,10 +59,15 @@ export function ContactDetailView({
   const [sendingTemplate, setSendingTemplate] = useState(false);
 
   // Details tab
-  const [editName, setEditName] = useState('');
+  const [editFirstName, setEditFirstName] = useState('');
+  const [editLastName, setEditLastName] = useState('');
+  const [editNickname, setEditNickname] = useState('');
   const [editPhone, setEditPhone] = useState('');
   const [editEmail, setEditEmail] = useState('');
   const [editCompany, setEditCompany] = useState('');
+  const [editLandlinePhone, setEditLandlinePhone] = useState('');
+  const [editAddress, setEditAddress] = useState('');
+  const [editLeadSource, setEditLeadSource] = useState('');
   const [savingDetails, setSavingDetails] = useState(false);
 
   // Tags tab
@@ -113,10 +103,25 @@ export function ContactDetailView({
 
     if (data) {
       setContact(data);
-      setEditName(data.name ?? '');
+      // Contacts created before first_name/last_name existed only have
+      // `name` — best-effort split it (first word → Nombres, rest →
+      // Apellidos) purely to pre-fill the form; nothing is written back
+      // until the admin hits "Guardar cambios".
+      if (data.first_name || data.last_name) {
+        setEditFirstName(data.first_name ?? '');
+        setEditLastName(data.last_name ?? '');
+      } else {
+        const parts = (data.name ?? '').trim().split(/\s+/).filter(Boolean);
+        setEditFirstName(parts[0] ?? '');
+        setEditLastName(parts.slice(1).join(' '));
+      }
+      setEditNickname(data.nickname ?? '');
       setEditPhone(data.phone);
       setEditEmail(data.email ?? '');
       setEditCompany(data.company ?? '');
+      setEditLandlinePhone(data.landline_phone ?? '');
+      setEditAddress(data.address ?? '');
+      setEditLeadSource(data.lead_source ?? '');
     }
     setLoading(false);
   }, [contactId, supabase]);
@@ -185,14 +190,14 @@ export function ContactDetailView({
   }, [contactId, supabase]);
 
   useEffect(() => {
-    if (open && contactId) {
+    if (contactId) {
       fetchContact();
       fetchTags();
       fetchNotes();
       fetchCustomFields();
       fetchDeals();
     }
-  }, [open, contactId, fetchContact, fetchTags, fetchNotes, fetchCustomFields, fetchDeals]);
+  }, [contactId, fetchContact, fetchTags, fetchNotes, fetchCustomFields, fetchDeals]);
 
   async function copyPhone() {
     if (!contact) return;
@@ -211,10 +216,15 @@ export function ContactDetailView({
     const { error } = await supabase
       .from('contacts')
       .update({
-        name: editName.trim() || null,
+        first_name: editFirstName.trim() || null,
+        last_name: editLastName.trim() || null,
+        nickname: editNickname.trim() || null,
         phone: editPhone.trim(),
         email: editEmail.trim() || null,
         company: editCompany.trim() || null,
+        landline_phone: editLandlinePhone.trim() || null,
+        address: editAddress.trim() || null,
+        lead_source: editLeadSource || null,
         updated_at: new Date().toISOString(),
       })
       .eq('id', contactId);
@@ -224,7 +234,6 @@ export function ContactDetailView({
     } else {
       toast.success(t('toastUpdated'));
       fetchContact();
-      onUpdated();
     }
     setSavingDetails(false);
   }
@@ -243,7 +252,6 @@ export function ContactDetailView({
         .eq('tag_id', tagId);
       if (!error) {
         setContactTagIds((prev) => prev.filter((id) => id !== tagId));
-        onUpdated();
       }
     } else {
       const { error } = await supabase
@@ -251,7 +259,6 @@ export function ContactDetailView({
         .insert({ contact_id: contactId, tag_id: tagId });
       if (!error) {
         setContactTagIds((prev) => [...prev, tagId]);
-        onUpdated();
       }
     }
     setSavingTags(false);
@@ -389,18 +396,15 @@ export function ContactDetailView({
 
   return (
     <>
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent
-        className="bg-popover border-border text-popover-foreground w-full max-w-5xl sm:max-w-5xl max-h-[90vh] p-0 flex flex-col"
-      >
+    <div className="rounded-lg border border-border bg-popover text-popover-foreground">
         {loading || !contact ? (
-          <div className="flex items-center justify-center h-full py-16">
+          <div className="flex items-center justify-center py-24">
             <Loader2 className="size-6 animate-spin text-primary" />
           </div>
         ) : (
-          <div className="flex flex-col min-h-0 flex-1">
+          <div className="flex flex-col">
             {/* Header */}
-            <DialogHeader className="p-4 border-b border-border/50">
+            <div className="p-4 border-b border-border/50">
               <div className="flex items-center gap-3">
                 <Avatar className="size-12 bg-muted border border-border">
                   <AvatarFallback className="bg-primary/10 text-primary text-sm font-medium">
@@ -408,12 +412,12 @@ export function ContactDetailView({
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex-1 min-w-0">
-                  <DialogTitle className="text-popover-foreground truncate">
+                  <h1 className="text-lg font-semibold text-popover-foreground truncate">
                     {contact.name || t('unnamed')}
-                  </DialogTitle>
-                  <DialogDescription className="text-muted-foreground text-xs mt-0.5">
+                  </h1>
+                  <p className="text-muted-foreground text-xs mt-0.5">
                     {t('contactDetailsDesc')}
-                  </DialogDescription>
+                  </p>
                   <div className="flex flex-wrap items-center gap-3 mt-1.5 text-xs text-muted-foreground">
                     <button
                       onClick={copyPhone}
@@ -457,10 +461,10 @@ export function ContactDetailView({
                   {t('sendTemplateBtn')}
                 </Button>
               </div>
-            </DialogHeader>
+            </div>
 
             {/* Tabs */}
-            <Tabs defaultValue="details" className="flex-1 flex flex-col min-h-0 overflow-hidden">
+            <Tabs defaultValue="details" className="flex flex-col">
               <TabsList className="w-full justify-start overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden bg-muted/50 border-b border-border mx-4 mt-3">
                 <TabsTrigger
                   value="details"
@@ -525,14 +529,30 @@ export function ContactDetailView({
               </TabsList>
 
               {/* Details Tab */}
-              <TabsContent value="details" className="flex-1 overflow-y-auto px-4 py-3">
+              <TabsContent value="details" className="px-4 py-3">
                 <div className="space-y-3">
                   <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
                     <div className="space-y-1.5">
-                      <Label className="text-muted-foreground text-xs">{t('name')}</Label>
+                      <Label className="text-muted-foreground text-xs">{t('firstName')}</Label>
                       <Input
-                        value={editName}
-                        onChange={(e) => setEditName(e.target.value)}
+                        value={editFirstName}
+                        onChange={(e) => setEditFirstName(e.target.value)}
+                        className="bg-muted border-border text-foreground h-8 text-sm"
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-muted-foreground text-xs">{t('lastName')}</Label>
+                      <Input
+                        value={editLastName}
+                        onChange={(e) => setEditLastName(e.target.value)}
+                        className="bg-muted border-border text-foreground h-8 text-sm"
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-muted-foreground text-xs">{t('nickname')}</Label>
+                      <Input
+                        value={editNickname}
+                        onChange={(e) => setEditNickname(e.target.value)}
                         className="bg-muted border-border text-foreground h-8 text-sm"
                       />
                     </div>
@@ -543,6 +563,14 @@ export function ContactDetailView({
                       <Input
                         value={editPhone}
                         onChange={(e) => setEditPhone(e.target.value)}
+                        className="bg-muted border-border text-foreground h-8 text-sm"
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-muted-foreground text-xs">{t('landlinePhone')}</Label>
+                      <Input
+                        value={editLandlinePhone}
+                        onChange={(e) => setEditLandlinePhone(e.target.value)}
                         className="bg-muted border-border text-foreground h-8 text-sm"
                       />
                     </div>
@@ -562,6 +590,31 @@ export function ContactDetailView({
                         className="bg-muted border-border text-foreground h-8 text-sm"
                       />
                     </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-muted-foreground text-xs">{t('address')}</Label>
+                      <Input
+                        value={editAddress}
+                        onChange={(e) => setEditAddress(e.target.value)}
+                        className="bg-muted border-border text-foreground h-8 text-sm"
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-muted-foreground text-xs">{t('leadSource')}</Label>
+                      <select
+                        value={editLeadSource}
+                        onChange={(e) => setEditLeadSource(e.target.value)}
+                        className="h-8 w-full rounded-md border border-border bg-muted px-2 text-sm text-foreground outline-none focus:border-primary"
+                      >
+                        <option value="">{t('selectLeadSource')}</option>
+                        <option value="google">{t('leadSources.google')}</option>
+                        <option value="social_media">{t('leadSources.socialMedia')}</option>
+                        <option value="referral">{t('leadSources.referral')}</option>
+                        <option value="whatsapp">{t('leadSources.whatsapp')}</option>
+                        <option value="website">{t('leadSources.website')}</option>
+                        <option value="advertising">{t('leadSources.advertising')}</option>
+                        <option value="other">{t('leadSources.other')}</option>
+                      </select>
+                    </div>
                   </div>
                   <Button
                     onClick={saveDetails}
@@ -580,7 +633,7 @@ export function ContactDetailView({
               </TabsContent>
 
               {/* Tags Tab */}
-              <TabsContent value="tags" className="flex-1 overflow-y-auto px-4 py-3">
+              <TabsContent value="tags" className="px-4 py-3">
                 <div className="space-y-3">
                   <p className="text-xs text-muted-foreground">
                     {t('tagsTab.clickTagDesc')}
@@ -619,7 +672,7 @@ export function ContactDetailView({
               </TabsContent>
 
               {/* Notes Tab */}
-              <TabsContent value="notes" className="flex-1 flex flex-col min-h-0 px-4 py-3">
+              <TabsContent value="notes" className="px-4 py-3">
                 <div className="space-y-2 mb-3">
                   <Textarea
                     value={newNote}
@@ -642,7 +695,7 @@ export function ContactDetailView({
                   </Button>
                 </div>
 
-                <div className="flex-1 overflow-y-auto space-y-2">
+                <div className="space-y-2">
                   {loadingNotes ? (
                     <div className="flex items-center justify-center py-8">
                       <Loader2 className="size-5 animate-spin text-muted-foreground" />
@@ -684,32 +737,32 @@ export function ContactDetailView({
               </TabsContent>
 
               {/* Medical Tab */}
-              <TabsContent value="medical" className="flex-1 overflow-y-auto px-4 py-3">
+              <TabsContent value="medical" className="px-4 py-3">
                 {contactId && <MedicalTab contactId={contactId} />}
               </TabsContent>
 
               {/* Odontogram Tab */}
-              <TabsContent value="odontogram" className="flex-1 overflow-y-auto px-4 py-3">
+              <TabsContent value="odontogram" className="px-4 py-3">
                 {contactId && <OdontogramTab contactId={contactId} />}
               </TabsContent>
 
               {/* Visit Photos Tab */}
-              <TabsContent value="photos" className="flex-1 overflow-y-auto px-4 py-3">
+              <TabsContent value="photos" className="px-4 py-3">
                 {contactId && <VisitPhotosTab contactId={contactId} />}
               </TabsContent>
 
               {/* Appointments Tab */}
-              <TabsContent value="appointments" className="flex-1 overflow-y-auto px-4 py-3">
+              <TabsContent value="appointments" className="px-4 py-3">
                 {contactId && <AppointmentsTab contactId={contactId} />}
               </TabsContent>
 
               {/* Billing Tab */}
-              <TabsContent value="billing" className="flex-1 overflow-y-auto px-4 py-3">
+              <TabsContent value="billing" className="px-4 py-3">
                 {contactId && <BillingTab contactId={contactId} />}
               </TabsContent>
 
               {/* Custom Fields Tab */}
-              <TabsContent value="custom" className="flex-1 overflow-y-auto px-4 py-3">
+              <TabsContent value="custom" className="px-4 py-3">
                 {loadingCustom ? (
                   <div className="flex items-center justify-center py-8">
                     <Loader2 className="size-5 animate-spin text-muted-foreground" />
@@ -756,7 +809,7 @@ export function ContactDetailView({
               </TabsContent>
 
               {/* Deals Tab */}
-              <TabsContent value="deals" className="flex-1 overflow-y-auto px-4 py-3">
+              <TabsContent value="deals" className="px-4 py-3">
                 {loadingDeals ? (
                   <div className="flex items-center justify-center py-8">
                     <Loader2 className="size-5 animate-spin text-primary" />
@@ -814,8 +867,7 @@ export function ContactDetailView({
             </Tabs>
           </div>
         )}
-      </DialogContent>
-    </Dialog>
+    </div>
     <TemplatePicker
       open={templatePickerOpen}
       onOpenChange={setTemplatePickerOpen}

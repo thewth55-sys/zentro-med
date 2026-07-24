@@ -120,9 +120,18 @@ export interface Contact {
    *  and unique per account. Read-only. */
   phone_normalized?: string;
   name?: string;
+  /** Split-name fields (migration 069). `name` stays in sync with
+   *  these via a DB trigger whenever they're written — every other
+   *  read path (avatars, previews, search) still just reads `name`. */
+  first_name?: string | null;
+  last_name?: string | null;
+  nickname?: string | null;
   email?: string;
   company?: string;
   avatar_url?: string;
+  landline_phone?: string | null;
+  address?: string | null;
+  lead_source?: string | null;
   created_at: string;
   updated_at: string;
   /** Hydrated by queries that embed `contact_tags(tags(*))` (e.g. the
@@ -495,6 +504,16 @@ export interface PatientProfile {
   emergency_contact_name?: string | null;
   emergency_contact_phone?: string | null;
   notes?: string | null;
+  document_type?: string | null;
+  document_number?: string | null;
+  birth_date?: string | null;
+  birth_country?: string | null;
+  hc_number?: string | null;
+  insurance_provider?: string | null;
+  business_line?: string | null;
+  patient_group?: string | null;
+  occupation?: string | null;
+  sex?: string | null;
   created_by?: string | null;
   created_at: string;
   updated_at?: string;

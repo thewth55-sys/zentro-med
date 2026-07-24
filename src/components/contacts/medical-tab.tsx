@@ -44,6 +44,16 @@ export function MedicalTab({ contactId }: MedicalTabProps) {
   const [emergencyContactPhone, setEmergencyContactPhone] = useState("");
   const [assignedDoctorId, setAssignedDoctorId] = useState("");
   const [generalNotes, setGeneralNotes] = useState("");
+  const [documentType, setDocumentType] = useState("");
+  const [documentNumber, setDocumentNumber] = useState("");
+  const [birthDate, setBirthDate] = useState("");
+  const [birthCountry, setBirthCountry] = useState("");
+  const [hcNumber, setHcNumber] = useState("");
+  const [insuranceProvider, setInsuranceProvider] = useState("");
+  const [businessLine, setBusinessLine] = useState("");
+  const [patientGroup, setPatientGroup] = useState("");
+  const [occupation, setOccupation] = useState("");
+  const [sex, setSex] = useState("");
   const [savingProfile, setSavingProfile] = useState(false);
   const [creatingProfile, setCreatingProfile] = useState(false);
 
@@ -106,6 +116,16 @@ export function MedicalTab({ contactId }: MedicalTabProps) {
         setEmergencyContactPhone(p.emergency_contact_phone ?? "");
         setAssignedDoctorId(p.assigned_doctor_id ?? "");
         setGeneralNotes(p.notes ?? "");
+        setDocumentType(p.document_type ?? "");
+        setDocumentNumber(p.document_number ?? "");
+        setBirthDate(p.birth_date ?? "");
+        setBirthCountry(p.birth_country ?? "");
+        setHcNumber(p.hc_number ?? "");
+        setInsuranceProvider(p.insurance_provider ?? "");
+        setBusinessLine(p.business_line ?? "");
+        setPatientGroup(p.patient_group ?? "");
+        setOccupation(p.occupation ?? "");
+        setSex(p.sex ?? "");
         await fetchNotes(p.id);
       }
       setLoading(false);
@@ -160,6 +180,16 @@ export function MedicalTab({ contactId }: MedicalTabProps) {
           emergency_contact_phone: emergencyContactPhone.trim() || null,
           assigned_doctor_id: assignedDoctorId || null,
           notes: generalNotes.trim() || null,
+          document_type: documentType || null,
+          document_number: documentNumber.trim() || null,
+          birth_date: birthDate || null,
+          birth_country: birthCountry.trim() || null,
+          hc_number: hcNumber.trim() || null,
+          insurance_provider: insuranceProvider.trim() || null,
+          business_line: businessLine.trim() || null,
+          patient_group: patientGroup.trim() || null,
+          occupation: occupation.trim() || null,
+          sex: sex || null,
         })
         .eq("id", profile.id);
       if (error) throw error;
@@ -258,6 +288,81 @@ export function MedicalTab({ contactId }: MedicalTabProps) {
       {/* Medical profile */}
       <div className="space-y-3 rounded-lg border border-border bg-muted/50 p-3">
         <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">{t("profileTitle")}</p>
+
+        {/* Document + demographics */}
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+          <div className="space-y-1.5">
+            <Label className="text-xs text-muted-foreground">{t("documentType")}</Label>
+            <select
+              value={documentType}
+              onChange={(e) => setDocumentType(e.target.value)}
+              className="h-8 w-full rounded-md border border-border bg-card px-2 text-sm text-foreground outline-none focus:border-primary"
+            >
+              <option value="">{t("selectDocumentType")}</option>
+              <option value="cedula_ciudadania">{t("documentTypes.cedulaCiudadania")}</option>
+              <option value="cedula_extranjeria">{t("documentTypes.cedulaExtranjeria")}</option>
+              <option value="tarjeta_identidad">{t("documentTypes.tarjetaIdentidad")}</option>
+              <option value="pasaporte">{t("documentTypes.pasaporte")}</option>
+              <option value="nit">{t("documentTypes.nit")}</option>
+              <option value="curp">{t("documentTypes.curp")}</option>
+              <option value="rfc">{t("documentTypes.rfc")}</option>
+              <option value="otro">{t("documentTypes.otro")}</option>
+            </select>
+          </div>
+          <div className="space-y-1.5">
+            <Label className="text-xs text-muted-foreground">{t("documentNumber")}</Label>
+            <Input value={documentNumber} onChange={(e) => setDocumentNumber(e.target.value)} className="h-8 bg-card text-sm" />
+          </div>
+          <div className="space-y-1.5">
+            <Label className="text-xs text-muted-foreground">{t("birthDate")}</Label>
+            <Input type="date" value={birthDate} onChange={(e) => setBirthDate(e.target.value)} className="h-8 bg-card text-sm" />
+          </div>
+          <div className="space-y-1.5">
+            <Label className="text-xs text-muted-foreground">{t("birthCountry")}</Label>
+            <Input value={birthCountry} onChange={(e) => setBirthCountry(e.target.value)} className="h-8 bg-card text-sm" />
+          </div>
+        </div>
+
+        {/* Clinic admin fields */}
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+          <div className="space-y-1.5">
+            <Label className="text-xs text-muted-foreground">{t("hcNumber")}</Label>
+            <Input value={hcNumber} onChange={(e) => setHcNumber(e.target.value)} className="h-8 bg-card text-sm" />
+          </div>
+          <div className="space-y-1.5">
+            <Label className="text-xs text-muted-foreground">{t("sex")}</Label>
+            <select
+              value={sex}
+              onChange={(e) => setSex(e.target.value)}
+              className="h-8 w-full rounded-md border border-border bg-card px-2 text-sm text-foreground outline-none focus:border-primary"
+            >
+              <option value="">{t("selectSex")}</option>
+              <option value="male">{t("sexOptions.male")}</option>
+              <option value="female">{t("sexOptions.female")}</option>
+              <option value="other">{t("sexOptions.other")}</option>
+            </select>
+          </div>
+          <div className="space-y-1.5">
+            <Label className="text-xs text-muted-foreground">{t("insuranceProvider")}</Label>
+            <Input value={insuranceProvider} onChange={(e) => setInsuranceProvider(e.target.value)} className="h-8 bg-card text-sm" />
+          </div>
+          <div className="space-y-1.5">
+            <Label className="text-xs text-muted-foreground">{t("occupation")}</Label>
+            <Input value={occupation} onChange={(e) => setOccupation(e.target.value)} className="h-8 bg-card text-sm" />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-2">
+          <div className="space-y-1.5">
+            <Label className="text-xs text-muted-foreground">{t("businessLine")}</Label>
+            <Input value={businessLine} onChange={(e) => setBusinessLine(e.target.value)} className="h-8 bg-card text-sm" />
+          </div>
+          <div className="space-y-1.5">
+            <Label className="text-xs text-muted-foreground">{t("patientGroup")}</Label>
+            <Input value={patientGroup} onChange={(e) => setPatientGroup(e.target.value)} className="h-8 bg-card text-sm" />
+          </div>
+        </div>
+
         <div className="grid grid-cols-2 gap-2">
           <div className="space-y-1.5">
             <Label className="text-xs text-muted-foreground">{t("bloodType")}</Label>
