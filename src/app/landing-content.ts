@@ -107,7 +107,7 @@ export const LANDING_BODY_HTML = `
         <div class="proof-av" style="background:#dcfce7;color:#15803d;">DR</div>
         <div class="proof-av" style="background:#dbeafe;color:#1d4ed8;">DL</div>
         <div class="proof-av" style="background:#f3e8ff;color:#7e22ce;">CE</div>
-        <div class="proof-av" style="background:rgba(74,222,90,.2);color:var(--g);">+</div>
+        <div class="proof-av" style="background:rgba(74,222,90,.2);color:var(--zm-g);">+</div>
       </div>
       <span class="proof-stars">★★★★★</span>
       <span class="proof-text"><strong>+80 consultorios</strong> ya gestionan con Zentro Med</span>
@@ -124,7 +124,7 @@ export const LANDING_BODY_HTML = `
       <!-- Widget: cita confirmada (CRM) -->
       <div class="hw-card">
         <div class="hw-icon-wrap" style="background:rgba(74,222,90,.1);">
-          <svg viewBox="0 0 24 24" stroke="var(--g)"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><polyline points="9 16 11 18 15 14"/></svg>
+          <svg viewBox="0 0 24 24" stroke="var(--zm-g)"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><polyline points="9 16 11 18 15 14"/></svg>
         </div>
         <div>
           <div class="hw-title">Cita confirmada</div>
@@ -193,7 +193,7 @@ export const LANDING_BODY_HTML = `
 </section>
 
 <!-- STATS BAR -->
-<div class="stats-bar" style="background:var(--night);border-color:rgba(255,255,255,.07);">
+<div class="stats-bar" style="background:var(--zm-night);border-color:rgba(255,255,255,.07);">
   <div class="wrap">
     <div class="stats-bar-inner">
       <div class="stat-item">
@@ -236,7 +236,7 @@ export const LANDING_BODY_HTML = `
   <div class="wrap">
     <div class="diff-header reveal">
       <p class="section-label" style="color:rgba(74,222,90,.6);">// Por qué Zentro CRM</p>
-      <h2 class="section-title" style="color:var(--white);">Construido para consultorios.<br>No reciclado de un CRM de ventas.</h2>
+      <h2 class="section-title" style="color:var(--zm-white);">Construido para consultorios.<br>No reciclado de un CRM de ventas.</h2>
       <p class="section-sub" style="color:rgba(255,255,255,.45);margin:12px auto 0;">La mayoría de consultorios organiza pacientes en WhatsApp, Excel o un cuaderno. Zentro CRM reemplaza los tres — sin la curva de aprendizaje de un CRM genérico.</p>
     </div>
     <div class="diff-cols reveal-group">
@@ -461,14 +461,14 @@ export const LANDING_BODY_HTML = `
             </div>
           </div>
         </div>
-        <p style="font-size:12px;color:var(--muted2);font-family:'JetBrains Mono',monospace;line-height:1.7;margin-top:4px;">// Esencial incluye hasta 300 borradores/mes; Profesional hasta 2.000 respuestas/mes; Clínica hasta 6.000 respuestas/mes. En Esencial el agente redacta un borrador que revisas antes de enviar; en Profesional y Clínica responde y agenda de forma autónoma, 24/7. ¿Necesitas más? Puedes ampliar tu cuota sin cambiar de plan.</p>
+        <p style="font-size:12px;color:var(--zm-muted2);font-family:'JetBrains Mono',monospace;line-height:1.7;margin-top:4px;">// Esencial incluye hasta 300 borradores/mes; Profesional hasta 2.000 respuestas/mes; Clínica hasta 6.000 respuestas/mes. En Esencial el agente redacta un borrador que revisas antes de enviar; en Profesional y Clínica responde y agenda de forma autónoma, 24/7. ¿Necesitas más? Puedes ampliar tu cuota sin cambiar de plan.</p>
       </div>
     </div>
   </div>
 </section>
 
 <!-- FEATURES OVERVIEW -->
-<section class="problems" style="background:var(--surface);">
+<section class="problems" style="background:var(--zm-surface);">
   <div class="wrap">
     <div class="problems-header reveal">
       <p class="section-label">// Todo lo que incluye</p>
@@ -497,7 +497,7 @@ export const LANDING_BODY_HTML = `
       <div class="fx-card">
         <div class="fx-icon"><i data-lucide="history"></i></div>
         <div class="fx-title">Historial del paciente</div>
-        <div class="fx-desc">Cada contacto tiene su ficha con citas pasadas, comunicaciones y notas de seguimiento, accesible para todo el equipo. <span style="color:var(--muted2);font-size:12px;">(No es historia clínica)</span></div>
+        <div class="fx-desc">Cada contacto tiene su ficha con citas pasadas, comunicaciones y notas de seguimiento, accesible para todo el equipo. <span style="color:var(--zm-muted2);font-size:12px;">(No es historia clínica)</span></div>
         <span class="fx-tag">Todos los planes</span>
       </div>
       <div class="fx-card">
@@ -570,21 +570,21 @@ export const LANDING_BODY_HTML = `
     </div>
     <p class="pricing-sub-note">// Sin setup · Sin permanencia · Cancela cuando quieras</p>
     <div class="reveal fitme-grid">
-      <div style="border:1px solid var(--line);border-radius:12px;padding:14px 16px;background:var(--surface);">
-        <div style="font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;">¿Es para mí? — Prueba gratuita</div>
-        <div style="font-size:12.5px;color:var(--ink2);line-height:1.5;">Quieres ver cómo se siente el sistema antes de pagar — sin WhatsApp ni IA todavía.</div>
+      <div style="border:1px solid var(--zm-line);border-radius:12px;padding:14px 16px;background:var(--zm-surface);">
+        <div style="font-size:11px;font-weight:800;color:var(--zm-muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;">¿Es para mí? — Prueba gratuita</div>
+        <div style="font-size:12.5px;color:var(--zm-ink2);line-height:1.5;">Quieres ver cómo se siente el sistema antes de pagar — sin WhatsApp ni IA todavía.</div>
       </div>
-      <div style="border:1px solid var(--line);border-radius:12px;padding:14px 16px;background:var(--surface);">
-        <div style="font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;">¿Es para mí? — Esencial</div>
-        <div style="font-size:12.5px;color:var(--ink2);line-height:1.5;">Trabajas solo o con 1 persona más, y solo necesitas ordenar WhatsApp y la agenda.</div>
+      <div style="border:1px solid var(--zm-line);border-radius:12px;padding:14px 16px;background:var(--zm-surface);">
+        <div style="font-size:11px;font-weight:800;color:var(--zm-muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;">¿Es para mí? — Esencial</div>
+        <div style="font-size:12.5px;color:var(--zm-ink2);line-height:1.5;">Trabajas solo o con 1 persona más, y solo necesitas ordenar WhatsApp y la agenda.</div>
       </div>
-      <div style="border:1px solid var(--g-mid);border-radius:12px;padding:14px 16px;background:#f0fdf4;">
-        <div style="font-size:11px;font-weight:800;color:var(--g3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;">¿Es para mí? — Profesional</div>
-        <div style="font-size:12.5px;color:var(--ink2);line-height:1.5;">Tienes recepcionista y quieres que la IA y las automatizaciones hagan el seguimiento por ti.</div>
+      <div style="border:1px solid var(--zm-g-mid);border-radius:12px;padding:14px 16px;background:#f0fdf4;">
+        <div style="font-size:11px;font-weight:800;color:var(--zm-g3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;">¿Es para mí? — Profesional</div>
+        <div style="font-size:12.5px;color:var(--zm-ink2);line-height:1.5;">Tienes recepcionista y quieres que la IA y las automatizaciones hagan el seguimiento por ti.</div>
       </div>
-      <div style="border:1px solid var(--line);border-radius:12px;padding:14px 16px;background:var(--surface);">
-        <div style="font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;">¿Es para mí? — Clínica</div>
-        <div style="font-size:12.5px;color:var(--ink2);line-height:1.5;">Varios especialistas o sedes, y necesitas roles, API o integraciones propias.</div>
+      <div style="border:1px solid var(--zm-line);border-radius:12px;padding:14px 16px;background:var(--zm-surface);">
+        <div style="font-size:11px;font-weight:800;color:var(--zm-muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;">¿Es para mí? — Clínica</div>
+        <div style="font-size:12.5px;color:var(--zm-ink2);line-height:1.5;">Varios especialistas o sedes, y necesitas roles, API o integraciones propias.</div>
       </div>
     </div>
     <div class="plans-grid reveal-group">
@@ -622,7 +622,7 @@ export const LANDING_BODY_HTML = `
           <div class="pf"><div class="pf-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>Cotizaciones y recibos de cobro en PDF</div>
           <div class="pf"><div class="pf-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>Hasta 1.000 pacientes activos</div>
           <div class="pf"><div class="pf-check pf-check-ai"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div><span><span class="pf-ai-num">Borradores de respuesta con IA</span> · hasta 300 al mes incluidos <span class="pf-ai-pill">IA</span></span></div>
-          <div class="pf" style="color:var(--muted2);"><div class="pf-check" style="background:var(--line2);"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div>Automatizaciones y campañas de difusión</div>
+          <div class="pf" style="color:var(--zm-muted2);"><div class="pf-check" style="background:var(--zm-line2);"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div>Automatizaciones y campañas de difusión</div>
         </div>
         <a href="/signup?plan=esencial" class="plan-btn btn-plan-crm" onclick="if(typeof fbq!=='undefined')fbq('track','InitiateCheckout');if(typeof gtag!=='undefined')gtag('event','generate_lead',{event_category:'plan',event_label:'crm_esencial'});">Elegir Esencial →</a>
         <p class="plan-fine">// Factura mensual · Cancela cuando quieras</p>
@@ -670,38 +670,38 @@ export const LANDING_BODY_HTML = `
 
     </div>
     <div style="max-width:680px;margin:28px auto 0;text-align:center;">
-      <p style="font-size:13px;color:var(--muted);line-height:1.7;">La <strong>Prueba gratuita</strong> dura 30 días, sin tarjeta, con funciones básicas de agenda y pipeline de pacientes. Si tu consultorio necesita WhatsApp, IA o automatizaciones, elige <strong>Esencial, Profesional o Clínica</strong> — son planes pagos desde el primer día, sin período de prueba extendido. Si no activas un plan al terminar tu prueba gratuita, tu cuenta pasa a solo lectura; nunca te cobramos sin que actives un plan primero.</p>
+      <p style="font-size:13px;color:var(--zm-muted);line-height:1.7;">La <strong>Prueba gratuita</strong> dura 30 días, sin tarjeta, con funciones básicas de agenda y pipeline de pacientes. Si tu consultorio necesita WhatsApp, IA o automatizaciones, elige <strong>Esencial, Profesional o Clínica</strong> — son planes pagos desde el primer día, sin período de prueba extendido. Si no activas un plan al terminar tu prueba gratuita, tu cuenta pasa a solo lectura; nunca te cobramos sin que actives un plan primero.</p>
     </div>
-    <p style="text-align:center;margin-top:20px;font-size:12px;color:var(--muted2);font-family:'JetBrains Mono',monospace;line-height:1.8;">
+    <p style="text-align:center;margin-top:20px;font-size:12px;color:var(--zm-muted2);font-family:'JetBrains Mono',monospace;line-height:1.8;">
       <span style="color:rgba(167,139,250,.7);">IA</span> = auto-respuestas + redacción asistida en WhatsApp, con infraestructura de IA gestionada por Zentro — no necesitas cuentas propias en OpenAI ni Anthropic. Cada plan incluye una cantidad mensual de respuestas de IA (ver detalle en cada plan); si tu consultorio la supera, puedes ampliarla desde $5 USD por cada 1.000 respuestas adicionales, sin cambiar de plan.<br>
-      Zentro CRM es software de gestión comercial. No incluye gestión de campañas publicitarias — eso es <a href="#marketing" style="color:var(--g3);font-weight:700;">Zentro Med Marketing</a>, un servicio aparte y opcional.<br>
+      Zentro CRM es software de gestión comercial. No incluye gestión de campañas publicitarias — eso es <a href="#marketing" style="color:var(--zm-g3);font-weight:700;">Zentro Med Marketing</a>, un servicio aparte y opcional.<br>
       Zentro Med no es un software de historia clínica ni de facturación tributaria.
     </p>
   </div>
 </section>
 
 <!-- CROSS-SELL: ZENTRO MED MARKETING (después de ver el precio del CRM, para que no se confunda con él) -->
-<section class="solution" id="marketing" style="background:var(--night);padding-top:clamp(64px,9vw,100px);padding-bottom:clamp(64px,9vw,100px);">
+<section class="solution" id="marketing" style="background:var(--zm-night);padding-top:clamp(64px,9vw,100px);padding-bottom:clamp(64px,9vw,100px);">
   <div class="wrap">
     <div class="reveal" style="max-width:700px;margin:0 auto;text-align:center;">
       <p class="section-label" style="color:#a5b4fc;">// Ya tienes tu CRM. ¿Y si además quieres pacientes nuevos?</p>
-      <h2 class="section-title" style="color:var(--white);">Esto es <span style="color:#a5b4fc;">Zentro Med Marketing</span> — un servicio aparte, opcional.</h2>
+      <h2 class="section-title" style="color:var(--zm-white);">Esto es <span style="color:#a5b4fc;">Zentro Med Marketing</span> — un servicio aparte, opcional.</h2>
       <p class="section-sub" style="color:rgba(255,255,255,.5);margin:14px auto 0;">No es otro nivel del CRM ni un cobro escondido: es un equipo que gestiona campañas de Meta Ads, Google Ads y contenido para traerte pacientes nuevos, si tu agenda depende hoy del boca a boca. Corre sobre la misma bandeja de WhatsApp Cloud API y el mismo calendario sincronizado con Google Calendar de tu CRM actual — no migras nada, no duplicas herramientas.</p>
     </div>
     <div class="reveal-group" style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;max-width:920px;margin:40px auto 0;">
       <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:22px;">
-        <div style="font-size:13px;font-weight:800;color:var(--white);margin-bottom:6px;">Med Starter</div>
+        <div style="font-size:13px;font-weight:800;color:var(--zm-white);margin-bottom:6px;">Med Starter</div>
         <div style="font-size:22px;font-weight:800;color:#a5b4fc;margin-bottom:8px;">$249<span style="font-size:12px;color:rgba(255,255,255,.4);font-weight:600;"> USD/mes + setup $99</span></div>
         <div style="font-size:12px;color:rgba(255,255,255,.5);line-height:1.6;">Incluye tu CRM Profesional (valor $99) + 1 campaña activa en Meta Ads + contenido mensual</div>
       </div>
       <div style="background:rgba(99,102,241,.1);border:2px solid rgba(129,140,248,.5);border-radius:16px;padding:22px;position:relative;">
         <div style="position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:#818cf8;color:#1e1b4b;font-size:9px;font-weight:800;padding:3px 10px;border-radius:20px;text-transform:uppercase;letter-spacing:.05em;white-space:nowrap;">Recomendado</div>
-        <div style="font-size:13px;font-weight:800;color:var(--white);margin-bottom:6px;">Med Growth</div>
+        <div style="font-size:13px;font-weight:800;color:var(--zm-white);margin-bottom:6px;">Med Growth</div>
         <div style="font-size:22px;font-weight:800;color:#a5b4fc;margin-bottom:8px;">$399<span style="font-size:12px;color:rgba(255,255,255,.4);font-weight:600;"> USD/mes + setup $99</span></div>
         <div style="font-size:12px;color:rgba(255,255,255,.55);line-height:1.6;">Incluye tu CRM Clínica (valor $149) + Meta + Google Ads + landing de especialidad</div>
       </div>
       <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:22px;">
-        <div style="font-size:13px;font-weight:800;color:var(--white);margin-bottom:6px;">Med Premium</div>
+        <div style="font-size:13px;font-weight:800;color:var(--zm-white);margin-bottom:6px;">Med Premium</div>
         <div style="font-size:22px;font-weight:800;color:#a5b4fc;margin-bottom:8px;">$599<span style="font-size:12px;color:rgba(255,255,255,.4);font-weight:600;"> USD/mes + setup $149</span></div>
         <div style="font-size:12px;color:rgba(255,255,255,.5);line-height:1.6;">Incluye tu CRM Clínica (valor $149) + SEO local + account manager dedicado</div>
       </div>
