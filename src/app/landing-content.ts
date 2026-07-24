@@ -153,41 +153,19 @@ export const LANDING_BODY_HTML = `
       </div>
     </div>
 
-    <!-- MOCKUP: bandeja de WhatsApp del CRM -->
-    <div class="mockui reveal" style="max-width:820px;margin:36px auto 0;">
-      <div class="mockui-bar">
-        <span class="mockui-bardot" style="background:#ef4444;"></span>
-        <span class="mockui-bardot" style="background:#f59e0b;"></span>
-        <span class="mockui-bardot" style="background:#22c55e;"></span>
-        <span class="mockui-url">app.zentrolabs.com/inbox</span>
-      </div>
-      <div class="mockui-body">
-        <div class="mockui-inbox">
-          <div class="mockui-row active">
-            <div class="mockui-avatar" style="background:#dcfce7;color:#15803d;">MR</div>
-            <div class="mockui-row-txt"><div class="mockui-row-name">María R.</div><div class="mockui-row-msg">Perfecto, ahí estaré 👍</div></div>
-            <span class="mockui-row-time">10:42</span>
-          </div>
-          <div class="mockui-row">
-            <div class="mockui-avatar" style="background:#dbeafe;color:#1d4ed8;">JC</div>
-            <div class="mockui-row-txt"><div class="mockui-row-name">Julián C.</div><div class="mockui-row-msg">¿Tienen cupo mañana?</div></div>
-            <span class="mockui-row-time">09:15</span>
-            <span class="mockui-row-dot"></span>
-          </div>
-          <div class="mockui-row">
-            <div class="mockui-avatar" style="background:#f3e8ff;color:#7e22ce;">AL</div>
-            <div class="mockui-row-txt"><div class="mockui-row-name">Ana L.</div><div class="mockui-row-msg">Gracias por el recordatorio</div></div>
-            <span class="mockui-row-time">Ayer</span>
-          </div>
-        </div>
-        <div class="mockui-chat">
-          <div class="mockui-bubble in">Hola, ¿me confirman mi cita del jueves 3pm?</div>
-          <div class="mockui-bubble auto">🤖 ¡Claro! Tu cita con Dr. Martínez está confirmada para el jueves a las 3:00pm. Te escribimos 24h antes para recordarte.</div>
-          <div class="mockui-bubble in">Perfecto, ahí estaré 👍</div>
-        </div>
-      </div>
+    <!-- REAL PRODUCT SCREENSHOT: panel de control -->
+    <div class="reveal" style="max-width:900px;margin:36px auto 0;">
+      <img
+        src="/landing/hero-dashboard-preview.webp"
+        width="1536"
+        height="1024"
+        alt="Panel de Zentro CRM mostrando conversaciones activas, pacientes nuevos, ingresos cobrados y la agenda del día"
+        style="width:100%;height:auto;display:block;border-radius:16px;box-shadow:0 30px 80px -20px rgba(0,0,0,.5);"
+        loading="eager"
+        fetchpriority="high"
+      >
     </div>
-    <p class="mockui-caption">// Así se ve la bandeja de WhatsApp de Zentro CRM</p>
+    <p class="mockui-caption">// Así se ve tu panel de control en Zentro CRM</p>
 
   </div>
 </section>
