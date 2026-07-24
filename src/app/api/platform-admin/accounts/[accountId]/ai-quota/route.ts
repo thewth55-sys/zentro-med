@@ -7,16 +7,17 @@ import { checkRateLimit, rateLimitResponse, RATE_LIMITS } from "@/lib/rate-limit
 
 /**
  * PATCH /api/platform-admin/accounts/[accountId]/ai-quota
- * body: { blocked?: boolean, tokenLimitOverride?: number | null }
+ * body: { blocked?: boolean, responseLimitOverride?: number | null }
  *
- * Lets a platform admin override an account's AI token quota
+ * Lets a platform admin override an account's AI response quota
  * (lib/ai/quota.ts) independently of its plan:
  *   - `blocked` — hard kill switch, checked before the plan's cap.
- *   - `tokenLimitOverride` — replaces the plan's monthly token cap for
- *     this account only. `null` clears the override (falls back to
- *     the plan default); `0` is a valid value (blocks via the quota
- *     path rather than the `blocked` flag — useful when the intent is
- *     "out of tokens" rather than "access revoked").
+ *   - `responseLimitOverride` — replaces the plan's monthly response
+ *     cap (one AI reply/draft = one response, regardless of token
+ *     length) for this account only. `null` clears the override
+ *     (falls back to the plan default); `0` is a valid value (blocks
+ *     via the quota path rather than the `blocked` flag — useful when
+ *     the intent is "out of responses" rather than "access revoked").
  *
  * Both fields are optional and independent — a caller can flip one
  * without touching the other.
@@ -33,7 +34,7 @@ export async function PATCH(
     if (!limit.success) return rateLimitResponse(limit);
 
     const body = (await request.json().catch(() => null)) as
-      | { blocked?: unknown; tokenLimitOverride?: unknown }
+      | { blocked?: unknown; responseLimitOverride?: unknown }
       | null;
 
     const update: Record<string, unknown> = {};
@@ -43,15 +44,15 @@ export async function PATCH(
       }
       update.ai_access_blocked = body.blocked;
     }
-    if (body && "tokenLimitOverride" in body) {
-      const raw = body.tokenLimitOverride;
+    if (body && "responseLimitOverride" in body) {
+      const raw = body.responseLimitOverride;
       if (raw !== null && (typeof raw !== "number" || !Number.isInteger(raw) || raw < 0)) {
         return NextResponse.json(
-          { error: "'tokenLimitOverride' must be null or a non-negative integer" },
+          { error: "'responseLimitOverride' must be null or a non-negative integer" },
           { status: 400 },
         );
       }
-      update.ai_token_limit_override = raw;
+      update.ai_response_limit_override = raw;
     }
     if (Object.keys(update).length === 0) {
       return NextResponse.json({ error: "Nothing to update" }, { status: 400 });

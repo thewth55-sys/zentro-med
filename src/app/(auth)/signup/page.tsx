@@ -25,13 +25,13 @@ import { getPasswordStrengthError } from "@/lib/password-strength";
 // server-only Stripe env vars at module scope, and this is a client
 // component — importing it would either bundle those reads uselessly
 // or (worse) tempt a future edit into leaking a price ID client-side.
-const PURCHASABLE_PLAN_IDS = ["standalone", "zentro_salud_starter", "zentro_salud_pro"] as const;
+const PURCHASABLE_PLAN_IDS = ["esencial", "profesional", "clinica"] as const;
 type PurchasablePlan = (typeof PURCHASABLE_PLAN_IDS)[number];
 
 const PLAN_LABEL: Record<PurchasablePlan, string> = {
-  standalone: "Zentro Med independiente",
-  zentro_salud_starter: "Zentro Salud Starter",
-  zentro_salud_pro: "Zentro Salud Pro",
+  esencial: "Esencial",
+  profesional: "Profesional",
+  clinica: "Clínica",
 };
 
 function isPurchasablePlan(value: string | null): value is PurchasablePlan {

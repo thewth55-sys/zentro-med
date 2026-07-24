@@ -61,9 +61,9 @@ interface InviteMemberDialogProps {
 // Stripe price-id env vars at module scope. Display-only; the actual
 // charge is computed server-side by Stripe's proration.
 const SEAT_PRICE_USD: Record<string, number> = {
-  standalone: 35,
-  zentro_salud_starter: 15,
-  zentro_salud_pro: 15,
+  esencial: 25,
+  profesional: 25,
+  clinica: 25,
 };
 
 const EXPIRY_OPTIONS = [

@@ -64,9 +64,9 @@ interface AccountActionsMenuProps {
 
 const PLAN_OPTIONS: { value: Plan; label: string }[] = [
   { value: "trial", label: "Prueba" },
-  { value: "standalone", label: "Standalone" },
-  { value: "zentro_salud_starter", label: "Zentro Salud Starter" },
-  { value: "zentro_salud_pro", label: "Zentro Salud Pro" },
+  { value: "esencial", label: "Esencial" },
+  { value: "profesional", label: "Profesional" },
+  { value: "clinica", label: "Clínica" },
 ];
 
 const STATUS_OPTIONS: { value: SubscriptionStatus; label: string }[] = [

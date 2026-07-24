@@ -44,20 +44,26 @@ export const FEATURE_LABEL: Record<GatedFeature, string> = {
 export type FeatureOverrides = Partial<Record<GatedFeature, boolean>>;
 
 const FEATURE_MIN_PLAN: Record<GatedFeature, Plan[]> = {
-  // "Automatizaciones y flows" — trial doesn't get it per /pricing;
-  // every paid plan (standalone included) does.
-  automations: ["standalone", "zentro_salud_starter", "zentro_salud_pro"],
-  // "WhatsApp IA (requiere plan de pago)" on the trial card.
-  ai_autoreply: ["standalone", "zentro_salud_starter", "zentro_salud_pro"],
-  // The trial checklist never lists a WhatsApp inbox at all (only
-  // "WhatsApp IA" appears, explicitly X'd out) — WhatsApp itself is a
-  // paid-plan feature, not just its AI reply layer.
-  whatsapp_inbox: ["standalone", "zentro_salud_starter", "zentro_salud_pro"],
-  // Bulk WhatsApp campaigns, same reasoning as the inbox above.
-  broadcasts: ["standalone", "zentro_salud_starter", "zentro_salud_pro"],
-  // Self-serve landing builder (basic component config only) — not
-  // on the free trial, matching every other paid-plan feature above.
-  landing_builder: ["standalone", "zentro_salud_starter", "zentro_salud_pro"],
+  // Landing page's Esencial card explicitly X's out "Automatizaciones
+  // y campañas de difusión" — customizable automations only start at
+  // Profesional ("Automatizaciones personalizables" is a Profesional
+  // pf-new line item).
+  automations: ["profesional", "clinica"],
+  // Esencial's AI is draft-only (a human reviews/sends every reply —
+  // see PLAN_CONFIG.esencial.aiAutonomous) which isn't really
+  // "auto-reply" at all; autonomous 24/7 AI with handoff is the
+  // Profesional/Clinica line item this gate actually protects.
+  ai_autoreply: ["profesional", "clinica"],
+  // Esencial's own card lists "Bandeja de WhatsApp (Cloud API)" as
+  // included — all three paid plans get the WhatsApp channel itself,
+  // only the automation/broadcast/AI layers on top of it are tiered.
+  whatsapp_inbox: ["esencial", "profesional", "clinica"],
+  // Same X'd-out line as automations on the Esencial card —
+  // "Campañas de difusión por WhatsApp" is a Profesional pf-new item.
+  broadcasts: ["profesional", "clinica"],
+  // "Mini-sitio propio del consultorio" is a Profesional-only pf-new
+  // line item — not on Esencial's feature list.
+  landing_builder: ["profesional", "clinica"],
 };
 
 export function planHasFeature(plan: Plan, feature: GatedFeature): boolean {

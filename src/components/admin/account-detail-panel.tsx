@@ -61,7 +61,7 @@ interface AccountDetail {
   featureOverrides: FeatureOverrides;
   logoUrl: string | null;
   aiAccessBlocked: boolean;
-  aiTokenLimitOverride: number | null;
+  aiResponseLimitOverride: number | null;
 }
 
 interface AiQuota {
@@ -157,9 +157,9 @@ interface Note {
 
 const PLAN_LABEL: Record<Plan, string> = {
   trial: "Prueba",
-  standalone: "Standalone",
-  zentro_salud_starter: "Zentro Salud Starter",
-  zentro_salud_pro: "Zentro Salud Pro",
+  esencial: "Esencial",
+  profesional: "Profesional",
+  clinica: "Clínica",
 };
 
 const STATUS_VARIANT: Record<SubscriptionStatus, "default" | "secondary" | "destructive" | "outline"> = {
@@ -215,7 +215,7 @@ export function AccountDetailPanel({ accountId }: { accountId: string }) {
   const [sessions, setSessions] = useState<Session[]>([]);
   const [aiQuota, setAiQuota] = useState<AiQuota | null>(null);
   const [recentErrors, setRecentErrors] = useState<IntegrationError[]>([]);
-  const [tokenLimitDraft, setTokenLimitDraft] = useState("");
+  const [responseLimitDraft, setResponseLimitDraft] = useState("");
   const [savingAiQuota, setSavingAiQuota] = useState(false);
   const [coupons, setCoupons] = useState<CouponOption[]>([]);
   const [selectedCouponId, setSelectedCouponId] = useState("");
@@ -278,8 +278,8 @@ export function AccountDetailPanel({ accountId }: { accountId: string }) {
       setSessions(body.sessions ?? []);
       setAiQuota(body.aiQuota ?? null);
       setRecentErrors(body.recentErrors ?? []);
-      setTokenLimitDraft(
-        body.account?.aiTokenLimitOverride != null ? String(body.account.aiTokenLimitOverride) : "",
+      setResponseLimitDraft(
+        body.account?.aiResponseLimitOverride != null ? String(body.account.aiResponseLimitOverride) : "",
       );
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error desconocido");
@@ -413,10 +413,10 @@ export function AccountDetailPanel({ accountId }: { accountId: string }) {
     }
   }
 
-  async function handleSaveTokenLimitOverride() {
-    const trimmed = tokenLimitDraft.trim();
-    const tokenLimitOverride = trimmed === "" ? null : Number(trimmed);
-    if (tokenLimitOverride !== null && (!Number.isInteger(tokenLimitOverride) || tokenLimitOverride < 0)) {
+  async function handleSaveResponseLimitOverride() {
+    const trimmed = responseLimitDraft.trim();
+    const responseLimitOverride = trimmed === "" ? null : Number(trimmed);
+    if (responseLimitOverride !== null && (!Number.isInteger(responseLimitOverride) || responseLimitOverride < 0)) {
       toast.error("Ingresa un número entero de 0 o más, o deja el campo vacío");
       return;
     }
@@ -425,12 +425,12 @@ export function AccountDetailPanel({ accountId }: { accountId: string }) {
       const res = await fetch(`/api/platform-admin/accounts/${accountId}/ai-quota`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ tokenLimitOverride }),
+        body: JSON.stringify({ responseLimitOverride }),
       });
       const body = await res.json().catch(() => null);
       if (!res.ok) throw new Error(body?.error ?? "No se pudo actualizar");
-      setAccount((prev) => (prev ? { ...prev, aiTokenLimitOverride: tokenLimitOverride } : prev));
-      toast.success("Límite de tokens actualizado");
+      setAccount((prev) => (prev ? { ...prev, aiResponseLimitOverride: responseLimitOverride } : prev));
+      toast.success("Límite de respuestas de IA actualizado");
       void load();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "No se pudo actualizar");
@@ -1194,8 +1194,8 @@ export function AccountDetailPanel({ accountId }: { accountId: string }) {
               <p className="text-xs text-muted-foreground">
                 {aiQuota
                   ? aiQuota.limit === null
-                    ? `${aiQuota.used.toLocaleString()} tokens · sin límite`
-                    : `${aiQuota.used.toLocaleString()} / ${aiQuota.limit.toLocaleString()} tokens`
+                    ? `${aiQuota.used.toLocaleString()} respuestas · sin límite`
+                    : `${aiQuota.used.toLocaleString()} / ${aiQuota.limit.toLocaleString()} respuestas`
                   : "Cargando…"}
               </p>
             </div>
@@ -1234,12 +1234,12 @@ export function AccountDetailPanel({ accountId }: { accountId: string }) {
                 type="number"
                 min={0}
                 step={1}
-                value={tokenLimitDraft}
-                onChange={(e) => setTokenLimitDraft(e.target.value)}
+                value={responseLimitDraft}
+                onChange={(e) => setResponseLimitDraft(e.target.value)}
                 placeholder="Del plan"
                 className="w-28"
               />
-              <Button size="sm" disabled={savingAiQuota} onClick={handleSaveTokenLimitOverride}>
+              <Button size="sm" disabled={savingAiQuota} onClick={handleSaveResponseLimitOverride}>
                 Guardar
               </Button>
             </div>

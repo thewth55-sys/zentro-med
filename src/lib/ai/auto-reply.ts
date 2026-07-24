@@ -6,7 +6,7 @@ import { generateReply } from './generate'
 import { buildSystemPrompt } from './defaults'
 import { buildHandoffSummary } from './handoff'
 import { logAiUsage } from './usage'
-import { getAiTokenQuotaStatus } from './quota'
+import { getAiResponseQuotaStatus } from './quota'
 import { logIntegrationError } from '@/lib/integration-errors/log'
 import { latestUserMessage } from './query'
 import { AGENDA_TOOLS, createAgendaToolExecutor } from './tools/agenda'
@@ -53,7 +53,7 @@ export async function dispatchInboundToAiReply(
     const config = await loadAiConfig(db, accountId)
     if (!config || !config.autoReplyEnabled) return
 
-    const quota = await getAiTokenQuotaStatus(db, accountId)
+    const quota = await getAiResponseQuotaStatus(db, accountId)
     if (quota.blocked) {
       console.warn(`[ai auto-reply] account ${accountId} has AI access blocked by a platform admin — skipping this inbound.`)
       return

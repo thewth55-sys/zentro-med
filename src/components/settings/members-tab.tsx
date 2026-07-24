@@ -108,7 +108,7 @@ const EDITABLE_ROLES: { value: AccountRole }[] = [
 // Plans with a configured seat-addon price — mirrors the `purchasable`
 // flag in lib/billing-platform/plans.ts (not imported here for the
 // same client-bundle-hygiene reason documented in signup/page.tsx).
-const SEATABLE_PLANS = new Set(['standalone', 'zentro_salud_starter', 'zentro_salud_pro']);
+const SEATABLE_PLANS = new Set(['esencial', 'profesional', 'clinica']);
 
 function fmtDate(iso: string): string {
   // Match the rest of the dashboard's locale-light formatting.

@@ -23,9 +23,9 @@ import { renderBrandedEmail, escapeHtml } from "@/lib/email/branded-template";
 
 const PLAN_LABEL: Record<string, string> = {
   trial: "Prueba",
-  standalone: "Standalone",
-  zentro_salud_starter: "Zentro Salud Starter",
-  zentro_salud_pro: "Zentro Salud Pro",
+  esencial: "Esencial",
+  profesional: "Profesional",
+  clinica: "Clínica",
 };
 
 export async function POST(request: Request) {

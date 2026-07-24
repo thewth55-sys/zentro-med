@@ -16,11 +16,28 @@ import { STRUCTURED_DATA, LANDING_BODY_HTML, LANDING_BEHAVIOR_SCRIPT } from "./l
 // the whole app (it's a private CRM). This is the one page meant to
 // be crawled, so it overrides that here.
 export const metadata: Metadata = {
-  title: "Zentro Med — Más pacientes. Sin caos administrativo.",
+  title: "Zentro CRM — El CRM para consultorios médicos en Latinoamérica",
   description:
-    "CRM de gestión comercial con WhatsApp + marketing digital gestionado para consultorios y clínicas en Latinoamérica. Prueba 30 días gratis, sin tarjeta.",
+    "CRM con WhatsApp, IA y automatizaciones para consultorios en Latinoamérica. 3 planes desde $49/mes. Prueba 30 días gratis, sin tarjeta.",
   robots: { index: true, follow: true },
   alternates: { canonical: "https://med.zentrolabs.com" },
+  openGraph: {
+    type: "website",
+    siteName: "Zentro CRM",
+    title: "Zentro CRM — El CRM para consultorios médicos en Latinoamérica",
+    description:
+      "CRM con WhatsApp, IA y automatizaciones para consultorios en Latinoamérica. 3 planes desde $49/mes. Prueba 30 días gratis, sin tarjeta.",
+    url: "https://med.zentrolabs.com",
+    // TODO: this image doesn't exist in /public yet — upload it before
+    // this page ships, or Facebook/WhatsApp link previews show nothing.
+    images: ["https://med.zentrolabs.com/og-zentro-crm.png"],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Zentro CRM — El CRM para consultorios médicos en Latinoamérica",
+    description: "CRM con WhatsApp, IA y automatizaciones para consultorios en Latinoamérica. 3 planes desde $49/mes.",
+    images: ["https://med.zentrolabs.com/og-zentro-crm.png"],
+  },
 };
 
 export default function LandingPage() {

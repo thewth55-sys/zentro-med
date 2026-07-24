@@ -4,7 +4,7 @@ import { requireRole, toErrorResponse } from "@/lib/auth/account";
 import { getStripeClient } from "@/lib/billing-platform/stripe";
 import { PLAN_CONFIG, type Plan } from "@/lib/billing-platform/plans";
 
-const PURCHASABLE_PLANS: Plan[] = ["standalone", "zentro_salud_starter", "zentro_salud_pro"];
+const PURCHASABLE_PLANS: Plan[] = ["esencial", "profesional", "clinica"];
 
 /**
  * POST /api/billing-platform/checkout — starts a Stripe Checkout

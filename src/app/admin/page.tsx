@@ -19,9 +19,9 @@ interface DashboardData {
 
 const PLAN_LABEL: Record<Plan, string> = {
   trial: "Prueba",
-  standalone: "Standalone",
-  zentro_salud_starter: "Zentro Salud Starter",
-  zentro_salud_pro: "Zentro Salud Pro",
+  esencial: "Esencial",
+  profesional: "Profesional",
+  clinica: "Clínica",
 };
 
 function formatMoney(usd: number) {
@@ -65,7 +65,7 @@ export default function AdminDashboardPage() {
     );
   }
 
-  const paidPlans: Plan[] = ["zentro_salud_pro", "zentro_salud_starter", "standalone"];
+  const paidPlans: Plan[] = ["clinica", "profesional", "esencial"];
   const maxPlanMrr = Math.max(...paidPlans.map((p) => data.mrrByPlan[p]), 1);
 
   return (

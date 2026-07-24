@@ -4,7 +4,7 @@ import { Suspense, useEffect, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 
-const PURCHASABLE_PLAN_IDS = ["standalone", "zentro_salud_starter", "zentro_salud_pro"];
+const PURCHASABLE_PLAN_IDS = ["esencial", "profesional", "clinica"];
 
 /**
  * Headless — mounted once in DashboardShell alongside PresenceHeartbeat.

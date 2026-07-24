@@ -55,9 +55,9 @@ function invoiceStatusKey(inv: Invoice): keyof typeof INVOICE_STATUS_META {
 
 const PLAN_LABELS: Record<Plan, string> = {
   trial: "Prueba gratuita",
-  standalone: "Zentro Med (independiente)",
-  zentro_salud_starter: "Zentro Salud Starter",
-  zentro_salud_pro: "Zentro Salud Pro",
+  esencial: "Esencial",
+  profesional: "Profesional",
+  clinica: "Clínica",
 };
 
 const STATUS_LABELS: Record<string, string> = {
@@ -195,7 +195,7 @@ export function SubscriptionPanel() {
           ) : (
             <>
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-                {(["standalone", "zentro_salud_starter", "zentro_salud_pro"] as const).map((plan) => {
+                {(["esencial", "profesional", "clinica"] as const).map((plan) => {
                   const config = PLAN_CONFIG[plan];
                   const isCurrent = account.plan === plan && active;
                   return (

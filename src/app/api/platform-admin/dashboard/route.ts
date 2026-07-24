@@ -48,9 +48,9 @@ export async function GET() {
     let mrrTotal = 0;
     const mrrByPlan: Record<Plan, number> = {
       trial: 0,
-      standalone: 0,
-      zentro_salud_starter: 0,
-      zentro_salud_pro: 0,
+      esencial: 0,
+      profesional: 0,
+      clinica: 0,
     };
     const statusCounts: Record<SubscriptionStatus, number> = {
       trialing: 0,
@@ -62,9 +62,9 @@ export async function GET() {
     };
     const planCounts: Record<Plan, number> = {
       trial: 0,
-      standalone: 0,
-      zentro_salud_starter: 0,
-      zentro_salud_pro: 0,
+      esencial: 0,
+      profesional: 0,
+      clinica: 0,
     };
 
     const now = Date.now();

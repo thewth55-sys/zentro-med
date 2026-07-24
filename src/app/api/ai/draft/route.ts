@@ -8,7 +8,7 @@ import { generateReply } from '@/lib/ai/generate'
 import { buildSystemPrompt } from '@/lib/ai/defaults'
 import { latestUserMessage } from '@/lib/ai/query'
 import { logAiUsage } from '@/lib/ai/usage'
-import { getAiTokenQuotaStatus } from '@/lib/ai/quota'
+import { getAiResponseQuotaStatus } from '@/lib/ai/quota'
 import { supabaseAdmin } from '@/lib/ai/admin-client'
 import { AiError } from '@/lib/ai/types'
 
@@ -77,7 +77,7 @@ export async function POST(request: Request) {
       )
     }
 
-    const quota = await getAiTokenQuotaStatus(supabase, accountId)
+    const quota = await getAiResponseQuotaStatus(supabase, accountId)
     if (quota.blocked) {
       return NextResponse.json(
         { error: 'AI access has been disabled for this account by an administrator.', code: 'ai_access_blocked' },

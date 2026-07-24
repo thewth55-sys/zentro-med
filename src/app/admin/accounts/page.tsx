@@ -35,9 +35,9 @@ interface AdminAccount {
 
 const PLAN_LABEL: Record<Plan, string> = {
   trial: "Prueba",
-  standalone: "Standalone",
-  zentro_salud_starter: "Zentro Salud Starter",
-  zentro_salud_pro: "Zentro Salud Pro",
+  esencial: "Esencial",
+  profesional: "Profesional",
+  clinica: "Clínica",
 };
 
 const STATUS_VARIANT: Record<SubscriptionStatus, "default" | "secondary" | "destructive" | "outline"> = {

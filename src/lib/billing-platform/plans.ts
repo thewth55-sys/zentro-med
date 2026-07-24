@@ -4,13 +4,19 @@
  * Checkout/webhook/pricing-page code. Adjusting a price is a one-line
  * change to this file, not a hunt through the codebase.
  *
- * Numbers below match the public /pricing page exactly (all 4 plans
- * use the same base+included-seats+extra-seat shape now — standalone
- * used to be pure per-seat with no base price, but the current
- * pricing image prices it as "$49 for the first user + $25/extra").
+ * Plan names/prices/limits below match the landing page's pricing
+ * section exactly (see src/app/landing-content.ts's PRICING block).
+ * Renamed from the old standalone/zentro_salud_starter/zentro_salud_pro
+ * tiers — same three-tier shape, new names and a repriced middle/top
+ * tier ($299/$499 -> $99/$149).
+ *
+ * IMPORTANT: the Stripe products/prices for esencial/profesional/clinica
+ * do not exist yet as of this rename — see the STRIPE_PRICE_* env vars
+ * below. Nothing will actually charge correctly until those are created
+ * in the Stripe dashboard and the env vars are set.
  */
 
-export type Plan = "trial" | "standalone" | "zentro_salud_starter" | "zentro_salud_pro";
+export type Plan = "trial" | "esencial" | "profesional" | "clinica";
 export type SubscriptionStatus =
   | "trialing"
   | "active"
@@ -34,21 +40,30 @@ export interface PlanDefinition {
   /**
    * Max active contacts ("pacientes activos") this plan allows.
    * null = unlimited. Enforced server-side by a DB trigger — see
-   * 049_patient_limit_enforcement.sql — not just here; this constant
-   * exists so the UI can show remaining-quota copy, not as the
-   * enforcement point itself.
+   * 049_patient_limit_enforcement.sql / 065_plan_rename_esencial_profesional_clinica.sql
+   * — not just here; this constant exists so the UI can show
+   * remaining-quota copy, not as the enforcement point itself.
    */
   patientLimit: number | null;
   /**
-   * Max AI tokens (prompt + completion, across auto-reply and draft)
-   * this plan allows per calendar month. null = unlimited. Enforced in
-   * application code (lib/ai/quota.ts), not a DB trigger like
-   * patientLimit — the check has to run BEFORE the provider call, not
-   * after logging usage, since by then the (BYO-key) cost is already
-   * incurred. Placeholder numbers — adjust freely, this is a one-line
-   * change same as every other plan constant here.
+   * Max AI *responses* (one row per auto-reply/draft call, regardless
+   * of token length) this plan allows per calendar month. null =
+   * unlimited. Enforced in application code (lib/ai/quota.ts) by
+   * counting `ai_usage_log` rows, not summing tokens — the landing
+   * page promises response counts, not a token budget, so the
+   * enforcement now matches exactly what's sold. Checked BEFORE
+   * calling the provider (not after logging usage), since by then the
+   * (BYO-key) cost is already incurred.
    */
-  aiTokenLimitMonthly: number | null;
+  aiResponseLimitMonthly: number | null;
+  /**
+   * On Esencial the AI only drafts a reply for a human to review/send
+   * (never sends autonomously); Profesional and Clinica reply and
+   * book appointments on their own, 24/7. Purely descriptive — the
+   * actual behavior switch lives wherever auto-reply is dispatched,
+   * this just drives the landing page / settings copy.
+   */
+  aiAutonomous: boolean;
   /** Stripe Price IDs — undefined until the corresponding env var is set. */
   stripeBasePriceId?: string;
   stripeSeatPriceId?: string;
@@ -63,44 +78,48 @@ export const PLAN_CONFIG: Record<Plan, PlanDefinition> = {
     seatPriceUsd: null,
     includedSeats: 1,
     // Not capped by patient count — the 30-day window is the real
-    // constraint on a free trial, not volume.
+    // constraint on a free trial, not volume. The free trial also has
+    // no WhatsApp/AI at all per the landing page, so this number is
+    // moot in practice (nothing calls the AI provider pre-upgrade),
+    // kept only as a defensive ceiling.
     patientLimit: null,
-    // A trial account still using AI needs SOME cap on someone else's
-    // BYO key spend during evaluation, even though the tokens aren't
-    // Zentro's cost — bounds runaway usage from a misconfigured loop.
-    aiTokenLimitMonthly: 20_000,
+    aiResponseLimitMonthly: 0,
+    aiAutonomous: false,
     purchasable: false,
   },
-  standalone: {
-    id: "standalone",
+  esencial: {
+    id: "esencial",
     basePriceUsd: 49,
     seatPriceUsd: 25,
     includedSeats: 1,
     patientLimit: 1000,
-    aiTokenLimitMonthly: 100_000,
-    stripeBasePriceId: process.env.STRIPE_PRICE_STANDALONE_BASE,
-    stripeSeatPriceId: process.env.STRIPE_PRICE_STANDALONE_SEAT,
-    purchasable: true,
-  },
-  zentro_salud_starter: {
-    id: "zentro_salud_starter",
-    basePriceUsd: 299,
-    seatPriceUsd: 25,
-    includedSeats: DEFAULT_INCLUDED_SEATS,
-    patientLimit: 5000,
-    aiTokenLimitMonthly: 500_000,
-    stripeBasePriceId: process.env.STRIPE_PRICE_ZENTRO_SALUD_STARTER,
+    aiResponseLimitMonthly: 300,
+    aiAutonomous: false,
+    stripeBasePriceId: process.env.STRIPE_PRICE_ESENCIAL_BASE,
     stripeSeatPriceId: process.env.STRIPE_PRICE_SEAT_ADDON,
     purchasable: true,
   },
-  zentro_salud_pro: {
-    id: "zentro_salud_pro",
-    basePriceUsd: 499,
+  profesional: {
+    id: "profesional",
+    basePriceUsd: 99,
     seatPriceUsd: 25,
-    includedSeats: DEFAULT_INCLUDED_SEATS,
+    includedSeats: 3,
+    patientLimit: 5000,
+    aiResponseLimitMonthly: 2000,
+    aiAutonomous: true,
+    stripeBasePriceId: process.env.STRIPE_PRICE_PROFESIONAL_BASE,
+    stripeSeatPriceId: process.env.STRIPE_PRICE_SEAT_ADDON,
+    purchasable: true,
+  },
+  clinica: {
+    id: "clinica",
+    basePriceUsd: 149,
+    seatPriceUsd: 25,
+    includedSeats: 5,
     patientLimit: null,
-    aiTokenLimitMonthly: null,
-    stripeBasePriceId: process.env.STRIPE_PRICE_ZENTRO_SALUD_PRO,
+    aiResponseLimitMonthly: 6000,
+    aiAutonomous: true,
+    stripeBasePriceId: process.env.STRIPE_PRICE_CLINICA_BASE,
     stripeSeatPriceId: process.env.STRIPE_PRICE_SEAT_ADDON,
     purchasable: true,
   },

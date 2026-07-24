@@ -8,7 +8,7 @@ import { checkRateLimit, rateLimitResponse, RATE_LIMITS } from '@/lib/rate-limit
 import { encrypt, decrypt } from '@/lib/whatsapp/encryption'
 import { validateAiCredentials } from '@/lib/ai/validate'
 import { embedTexts } from '@/lib/ai/embeddings'
-import { getAiTokenQuotaStatus } from '@/lib/ai/quota'
+import { getAiResponseQuotaStatus } from '@/lib/ai/quota'
 import { AiError, type AiProvider } from '@/lib/ai/types'
 
 function bad(message: string) {
@@ -44,7 +44,7 @@ export async function GET() {
       )
     }
 
-    const quota = await getAiTokenQuotaStatus(supabase, accountId)
+    const quota = await getAiResponseQuotaStatus(supabase, accountId)
 
     if (!data) return NextResponse.json({ configured: false, quota })
     // The keys are selected only to derive the has_* flags; neither is

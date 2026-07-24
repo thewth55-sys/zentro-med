@@ -6,7 +6,7 @@ import { supabaseAdmin } from "@/lib/billing-platform/admin-client";
 import { checkRateLimit, rateLimitResponse, RATE_LIMITS } from "@/lib/rate-limit";
 import type { Plan, SubscriptionStatus } from "@/lib/billing-platform/plans";
 
-const VALID_PLANS: Plan[] = ["trial", "standalone", "zentro_salud_starter", "zentro_salud_pro"];
+const VALID_PLANS: Plan[] = ["trial", "esencial", "profesional", "clinica"];
 const VALID_STATUSES: SubscriptionStatus[] = [
   "trialing",
   "active",

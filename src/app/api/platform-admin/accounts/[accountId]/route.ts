@@ -11,7 +11,7 @@ import { requirePlatformAdmin } from "@/lib/auth/platform-admin";
 import { toErrorResponse } from "@/lib/auth/account";
 import { supabaseAdmin } from "@/lib/billing-platform/admin-client";
 import { getStripeClient } from "@/lib/billing-platform/stripe";
-import { getAiTokenQuotaStatus } from "@/lib/ai/quota";
+import { getAiResponseQuotaStatus } from "@/lib/ai/quota";
 
 export async function GET(_request: Request, { params }: { params: Promise<{ accountId: string }> }) {
   try {
@@ -23,7 +23,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ acc
     const { data: account, error: accountErr } = await db
       .from("accounts")
       .select(
-        "id, name, owner_user_id, plan, subscription_status, trial_ends_at, included_seats, stripe_customer_id, stripe_subscription_id, created_at, feature_overrides, logo_url, ai_access_blocked, ai_token_limit_override",
+        "id, name, owner_user_id, plan, subscription_status, trial_ends_at, included_seats, stripe_customer_id, stripe_subscription_id, created_at, feature_overrides, logo_url, ai_access_blocked, ai_response_limit_override",
       )
       .eq("id", accountId)
       .maybeSingle();
@@ -134,7 +134,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ acc
       console.error("[GET /api/platform-admin/accounts/:id] notes fetch error:", notesErr);
     }
 
-    const quota = await getAiTokenQuotaStatus(db, accountId);
+    const quota = await getAiResponseQuotaStatus(db, accountId);
 
     const { data: recentErrors, error: errorsErr } = await db
       .from("integration_errors")
@@ -174,7 +174,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ acc
         featureOverrides: account.feature_overrides ?? {},
         logoUrl: account.logo_url,
         aiAccessBlocked: account.ai_access_blocked,
-        aiTokenLimitOverride: account.ai_token_limit_override,
+        aiResponseLimitOverride: account.ai_response_limit_override,
       },
       aiQuota: quota,
       recentErrors: (recentErrors ?? []).map((e) => ({

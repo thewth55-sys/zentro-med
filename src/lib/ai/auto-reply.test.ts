@@ -36,6 +36,36 @@ vi.mock('./admin-client', () => ({
         }
         return chain
       }
+      if (table === 'accounts') {
+        // .select().eq().maybeSingle() → quota check's plan lookup.
+        // 'profesional' with no override gives a generous 2000/mo cap
+        // so the quota gate never trips in tests that aren't about it.
+        return {
+          select: () => ({
+            eq: () => ({
+              maybeSingle: () =>
+                Promise.resolve({
+                  data: {
+                    plan: 'profesional',
+                    ai_access_blocked: false,
+                    ai_response_limit_override: null,
+                  },
+                  error: null,
+                }),
+            }),
+          }),
+        }
+      }
+      if (table === 'ai_usage_log') {
+        // .select('id', {count:'exact', head:true}).eq().gte() → quota check's usage count
+        return {
+          select: () => ({
+            eq: () => ({
+              gte: () => Promise.resolve({ count: 0, error: null }),
+            }),
+          }),
+        }
+      }
       // conversations
       return {
         select: () => ({
