@@ -51,25 +51,25 @@ export const LANDING_BODY_HTML = `
         <!-- Currency Switcher -->
         <div class="curr-switch" id="currSwitch">
           <button class="curr-btn" onclick="zmToggleCurr(event)" aria-label="Cambiar moneda">
-            <span id="currFlag">🇺🇸</span>
+            <img id="currFlag" class="curr-flag-img" src="https://flagcdn.com/20x15/us.png" width="16" height="12" alt="">
             <span id="currCode">USD</span>
             <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
           </button>
           <div class="curr-dropdown">
             <button class="curr-opt curr-active" data-curr="USD" onclick="zmSetCurr('USD')">
-              <span class="curr-flag">🇺🇸</span><span class="curr-name">USD</span><span class="curr-sym">$</span>
+              <img class="curr-flag-img" src="https://flagcdn.com/20x15/us.png" width="16" height="12" alt=""><span class="curr-name">USD</span><span class="curr-sym">$</span>
             </button>
             <button class="curr-opt" data-curr="MXN" onclick="zmSetCurr('MXN')">
-              <span class="curr-flag">🇲🇽</span><span class="curr-name">MXN</span><span class="curr-sym">$</span>
+              <img class="curr-flag-img" src="https://flagcdn.com/20x15/mx.png" width="16" height="12" alt=""><span class="curr-name">MXN</span><span class="curr-sym">$</span>
             </button>
             <button class="curr-opt" data-curr="COP" onclick="zmSetCurr('COP')">
-              <span class="curr-flag">🇨🇴</span><span class="curr-name">COP</span><span class="curr-sym">$</span>
+              <img class="curr-flag-img" src="https://flagcdn.com/20x15/co.png" width="16" height="12" alt=""><span class="curr-name">COP</span><span class="curr-sym">$</span>
             </button>
             <button class="curr-opt" data-curr="ARS" onclick="zmSetCurr('ARS')">
-              <span class="curr-flag">🇦🇷</span><span class="curr-name">ARS</span><span class="curr-sym">$</span>
+              <img class="curr-flag-img" src="https://flagcdn.com/20x15/ar.png" width="16" height="12" alt=""><span class="curr-name">ARS</span><span class="curr-sym">$</span>
             </button>
             <button class="curr-opt" data-curr="GTQ" onclick="zmSetCurr('GTQ')">
-              <span class="curr-flag">🇬🇹</span><span class="curr-name">GTQ</span><span class="curr-sym">Q</span>
+              <img class="curr-flag-img" src="https://flagcdn.com/20x15/gt.png" width="16" height="12" alt=""><span class="curr-name">GTQ</span><span class="curr-sym">Q</span>
             </button>
           </div>
         </div>
@@ -78,7 +78,7 @@ export const LANDING_BODY_HTML = `
           <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
           <span class="nav-login-text">Iniciar sesión</span>
         </a>
-        <a href="/signup" class="btn btn-green btn-sm">Probar 30 días gratis →</a>
+        <a href="/signup" class="btn btn-green btn-sm nav-cta-btn">Probar 30 días gratis →</a>
         <button class="mob-menu-btn" onclick="zmToggleMobMenu()" aria-label="Abrir menú" aria-expanded="false" id="mobMenuBtn">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
         </button>
@@ -90,6 +90,7 @@ export const LANDING_BODY_HTML = `
     <a href="#planes" class="mob-menu-link" onclick="zmCloseMobMenu()">Planes</a>
     <a href="#marketing" class="mob-menu-link" onclick="zmCloseMobMenu()">Marketing</a>
     <a href="/login" class="mob-menu-link" onclick="zmCloseMobMenu()">Iniciar sesión</a>
+    <a href="/signup" class="btn btn-green btn-sm mob-menu-cta" onclick="zmCloseMobMenu()">Probar 30 días gratis →</a>
   </div>
 </nav>
 
@@ -250,7 +251,7 @@ export const LANDING_BODY_HTML = `
 
     </div>
     <!-- Comparación visual: caos disperso vs. bandeja organizada -->
-    <div class="reveal" style="max-width:860px;margin:32px auto 0;display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+    <div class="reveal compare-grid">
       <div style="border-radius:16px;border:1px solid rgba(239,68,68,.15);background:rgba(239,68,68,.03);">
         <div class="mockui-chaos">
           <span class="mockui-chaos-chip" style="--r:-4deg;">📓 Libreta de citas</span>
@@ -666,7 +667,7 @@ export const LANDING_BODY_HTML = `
       <h2 class="section-title" style="color:var(--zm-white);">Esto es <span style="color:#a5b4fc;">Zentro Med Marketing</span> — un servicio aparte, opcional.</h2>
       <p class="section-sub" style="color:rgba(255,255,255,.5);margin:14px auto 0;">No es otro nivel del CRM ni un cobro escondido: es un equipo que gestiona campañas de Meta Ads, Google Ads y contenido para traerte pacientes nuevos, si tu agenda depende hoy del boca a boca. Corre sobre la misma bandeja de WhatsApp Cloud API y el mismo calendario sincronizado con Google Calendar de tu CRM actual — no migras nada, no duplicas herramientas.</p>
     </div>
-    <div class="reveal-group" style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;max-width:920px;margin:40px auto 0;">
+    <div class="reveal-group marketing-plans-grid">
       <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:22px;">
         <div style="font-size:13px;font-weight:800;color:var(--zm-white);margin-bottom:6px;">Med Starter</div>
         <div style="font-size:22px;font-weight:800;color:#a5b4fc;margin-bottom:8px;">$249<span style="font-size:12px;color:rgba(255,255,255,.4);font-weight:600;"> USD/mes + setup $99</span></div>
@@ -879,11 +880,11 @@ function zmToggleFaq(el) {
 
 /* ── CURRENCY SWITCHER ── */
 var ZM_CURR = {
-  USD: { sym:'$', rate:1,    flag:'🇺🇸', label:'USD' },
-  MXN: { sym:'$', rate:17.5, flag:'🇲🇽', label:'MXN' },
-  COP: { sym:'$', rate:4100, flag:'🇨🇴', label:'COP' },
-  ARS: { sym:'$', rate:1050, flag:'🇦🇷', label:'ARS' },
-  GTQ: { sym:'Q', rate:7.75, flag:'🇬🇹', label:'GTQ' }
+  USD: { sym:'$', rate:1,    flagUrl:'https://flagcdn.com/20x15/us.png', label:'USD' },
+  MXN: { sym:'$', rate:17.5, flagUrl:'https://flagcdn.com/20x15/mx.png', label:'MXN' },
+  COP: { sym:'$', rate:4100, flagUrl:'https://flagcdn.com/20x15/co.png', label:'COP' },
+  ARS: { sym:'$', rate:1050, flagUrl:'https://flagcdn.com/20x15/ar.png', label:'ARS' },
+  GTQ: { sym:'Q', rate:7.75, flagUrl:'https://flagcdn.com/20x15/gt.png', label:'GTQ' }
 };
 
 function zmFmtAmt(usd, c) {
@@ -908,7 +909,7 @@ function zmSetCurr(code) {
   // Update currency labels
   document.querySelectorAll('.price-curr-label').forEach(el => el.textContent = code);
   // Update button
-  document.getElementById('currFlag').textContent = c.flag;
+  document.getElementById('currFlag').src = c.flagUrl;
   document.getElementById('currCode').textContent = code;
   // Close & mark active
   document.getElementById('currSwitch').classList.remove('open');

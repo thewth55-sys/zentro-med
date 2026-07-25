@@ -56,6 +56,11 @@
     .zm-landing .nav-r { gap: 8px; }
     .zm-landing .btn-ghost-light { display: none; }
     .zm-landing .nav-login .nav-login-text { display: none; }
+    /* The full-text CTA doesn't fit alongside the currency switcher,
+       login icon, and hamburger on a narrow phone — it was clipping
+       off the right edge instead of wrapping. Moved into the mobile
+       menu panel (.mob-menu-cta) instead of shown here. */
+    .zm-landing .nav-cta-btn { display: none; }
   }
 
   .zm-landing .hero {
@@ -458,6 +463,18 @@
     font-size: 12px; color: rgba(255,255,255,.3); margin-top: 14px;
   }
 
+  /* "Antes vs. después" 2-up comparison (chaos chips vs. real agenda) —
+     stacks on mobile so the agenda card's pills (Confirmada/Pendiente)
+     don't get squeezed to ~180px and clip their own text. */
+  .zm-landing .compare-grid { max-width: 860px; margin: 32px auto 0; display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media(max-width:640px) { .zm-landing .compare-grid { grid-template-columns: 1fr; } }
+
+  /* Zentro Med Marketing cross-sell pricing cards — 3-up desktop,
+     stacks below 760px so each card's price/copy has room instead of
+     wrapping into a ~100px-wide column. */
+  .zm-landing .marketing-plans-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; max-width: 920px; margin: 40px auto 0; }
+  @media(max-width:760px) { .zm-landing .marketing-plans-grid { grid-template-columns: 1fr; max-width: 420px; } }
+
   .zm-landing .mid-cta { background: var(--zm-g-soft); border-top: 1px solid #bbf7d0; border-bottom: 1px solid #bbf7d0; padding: 28px 0; }
   .zm-landing .mid-cta-inner { display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap; }
   .zm-landing .mid-cta-pre { font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 600; color: var(--zm-g3); text-transform: uppercase; letter-spacing: .1em; margin-bottom: 4px; }
@@ -492,7 +509,7 @@
   .zm-landing .curr-opt:last-child { border-bottom: none; }
   .zm-landing .curr-opt:hover { background: rgba(255,255,255,.06); color: var(--zm-white); }
   .zm-landing .curr-opt.curr-active { color: var(--zm-g); }
-  .zm-landing .curr-opt .curr-flag { font-size: 14px; line-height: 1; }
+  .zm-landing .curr-flag-img { display: inline-block; border-radius: 2px; flex-shrink: 0; }
   .zm-landing .curr-opt .curr-name { flex: 1; }
   .zm-landing .curr-opt .curr-sym { color: rgba(255,255,255,.3); font-size: 11px; }
   .zm-landing .curr-opt.curr-active .curr-sym { color: rgba(74,222,90,.5); }
@@ -507,6 +524,7 @@
   .zm-landing .mob-menu-link { padding: 13px 2px; font-size: 14px; font-weight: 600; color: rgba(255,255,255,.75); border-bottom: 1px solid rgba(255,255,255,.06); }
   .zm-landing .mob-menu-link:last-child { border-bottom: none; }
   .zm-landing .mob-menu-link:hover { color: var(--zm-g); }
+  .zm-landing .mob-menu-cta { margin-top: 12px; text-align: center; justify-content: center; width: 100%; }
 
   /* ── FEATURES OVERVIEW (fx) ── */
   .zm-landing .fx-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 20px; }
