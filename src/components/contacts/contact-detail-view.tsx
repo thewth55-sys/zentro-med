@@ -39,6 +39,7 @@ import {
   LayoutTemplate,
 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
+import { showsOdontogram } from '@/lib/specialties';
 
 interface ContactDetailViewProps {
   contactId: string;
@@ -47,7 +48,8 @@ interface ContactDetailViewProps {
 export function ContactDetailView({ contactId }: ContactDetailViewProps) {
   const t = useTranslations('Contacts.detailView');
   const supabase = createClient();
-  const { accountId, defaultCurrency } = useAuth();
+  const { accountId, defaultCurrency, account } = useAuth();
+  const showOdontogram = showsOdontogram(account?.specialty);
 
   const [contact, setContact] = useState<Contact | null>(null);
   const [loading, setLoading] = useState(false);
@@ -466,7 +468,8 @@ export function ContactDetailView({ contactId }: ContactDetailViewProps) {
 
             {/* Tabs */}
             <Tabs defaultValue="details" className="flex flex-col">
-              <TabsList className="w-full justify-start overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden bg-muted/50 border-b border-border mx-4 mt-3">
+            <div className="relative mx-4 mt-3">
+              <TabsList className="w-full justify-start overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden bg-muted/50 border-b border-border pr-6">
                 <TabsTrigger
                   value="details"
                   className="data-active:bg-muted data-active:text-primary text-muted-foreground shrink-0"
@@ -497,12 +500,14 @@ export function ContactDetailView({ contactId }: ContactDetailViewProps) {
                 >
                   {t('tabs.consent')}
                 </TabsTrigger>
-                <TabsTrigger
-                  value="odontogram"
-                  className="data-active:bg-muted data-active:text-primary text-muted-foreground shrink-0"
-                >
-                  {t('tabs.odontogram')}
-                </TabsTrigger>
+                {showOdontogram && (
+                  <TabsTrigger
+                    value="odontogram"
+                    className="data-active:bg-muted data-active:text-primary text-muted-foreground shrink-0"
+                  >
+                    {t('tabs.odontogram')}
+                  </TabsTrigger>
+                )}
                 <TabsTrigger
                   value="photos"
                   className="data-active:bg-muted data-active:text-primary text-muted-foreground shrink-0"
@@ -534,6 +539,8 @@ export function ContactDetailView({ contactId }: ContactDetailViewProps) {
                   {t('tabs.deals')}
                 </TabsTrigger>
               </TabsList>
+              <div className="pointer-events-none absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-muted/80 to-transparent" />
+            </div>
 
               {/* Details Tab */}
               <TabsContent value="details" className="px-4 py-3">
@@ -754,9 +761,11 @@ export function ContactDetailView({ contactId }: ContactDetailViewProps) {
               </TabsContent>
 
               {/* Odontogram Tab */}
-              <TabsContent value="odontogram" className="px-4 py-3">
-                {contactId && <OdontogramTab contactId={contactId} />}
-              </TabsContent>
+              {showOdontogram && (
+                <TabsContent value="odontogram" className="px-4 py-3">
+                  {contactId && <OdontogramTab contactId={contactId} />}
+                </TabsContent>
+              )}
 
               {/* Visit Photos Tab */}
               <TabsContent value="photos" className="px-4 py-3">

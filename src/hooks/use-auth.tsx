@@ -13,6 +13,7 @@ import {
 import { createClient } from "@/lib/supabase/client";
 import type { User } from "@supabase/supabase-js";
 import { DEFAULT_CURRENCY } from "@/lib/currency";
+import { DENTAL_SPECIALTY } from "@/lib/specialties";
 import type { Plan, SubscriptionStatus } from "@/lib/billing-platform/plans";
 import type { FeatureOverrides } from "@/lib/billing-platform/features";
 import {
@@ -68,6 +69,8 @@ interface AccountSummary {
   quote_accent_color: string | null;
   address: string | null;
   tax_id: string | null;
+  /** Gates the Odontograma tab (see src/lib/specialties.ts) — migration 076. */
+  specialty: string;
   /** Platform-admin per-feature force on/off — see 057_account_feature_overrides.sql. */
   feature_overrides: FeatureOverrides;
 }
@@ -199,7 +202,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             // default_currency added in migration 021; narrowed to the
             // USD fallback below for older schemas where it reads null.
             .select(
-              "id, name, default_currency, plan, subscription_status, trial_ends_at, included_seats, stripe_customer_id, logo_url, quote_terms, quote_accent_color, address, tax_id, feature_overrides",
+              "id, name, default_currency, plan, subscription_status, trial_ends_at, included_seats, stripe_customer_id, logo_url, quote_terms, quote_accent_color, address, tax_id, specialty, feature_overrides",
             )
             .eq("id", data.account_id)
             .maybeSingle();
@@ -225,6 +228,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               quote_accent_color: account.quote_accent_color,
               address: account.address,
               tax_id: account.tax_id,
+              specialty: account.specialty ?? DENTAL_SPECIALTY,
               feature_overrides: (account.feature_overrides as FeatureOverrides | null) ?? {},
             };
           }

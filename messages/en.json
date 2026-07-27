@@ -29,6 +29,7 @@
     "optional": "(optional)",
     "brandNamePlaceholder": "Clínica Cruz",
     "brandNameHint": "Teammates you invite later join under this name instead of yours. You can change it anytime in Settings.",
+    "specialtyLabel": "Specialty",
     "emailLabel": "Email",
     "emailPlaceholder": "you@example.com",
     "passwordLabel": "Password",

@@ -19,6 +19,8 @@ import { ROLE_META } from './role-meta';
 import { AccountNameEditor } from './account-name-editor';
 import { AccountLogoUploader } from './account-logo-uploader';
 import { InlineFieldEditor } from './inline-field-editor';
+import { SpecialtyEditor } from './specialty-editor';
+import { DENTAL_SPECIALTY, type AccountSpecialty } from '@/lib/specialties';
 
 interface OverviewCounts {
   members: number | null;
@@ -45,6 +47,7 @@ export function SettingsOverview({
   const [logoUrl, setLogoUrl] = useState<string | null | undefined>(undefined);
   const [address, setAddress] = useState<string | null | undefined>(undefined);
   const [taxId, setTaxId] = useState<string | null | undefined>(undefined);
+  const [specialty, setSpecialty] = useState<AccountSpecialty | undefined>(undefined);
   const { mode, theme } = useTheme();
   const t = useTranslations('Settings.overview');
   const tRoles = useTranslations('roles');
@@ -331,9 +334,25 @@ export function SettingsOverview({
                 />
               </div>
             </div>
+            <div className="min-w-0">
+              <div className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
+                Especialidad
+              </div>
+              <div className="mt-1">
+                <SpecialtyEditor
+                  value={(specialty ?? (account.specialty as AccountSpecialty)) || DENTAL_SPECIALTY}
+                  editable={canManageMembers}
+                  onSaved={(v) => {
+                    setSpecialty(v);
+                    refreshProfile();
+                  }}
+                />
+              </div>
+            </div>
           </div>
           <p className="mt-3 text-xs text-muted-foreground">
-            Estos datos aparecen en el encabezado de tus cotizaciones en PDF.
+            Estos datos aparecen en el encabezado de tus cotizaciones en PDF. La especialidad
+            determina si la pestaña de Odontograma aparece en los pacientes.
           </p>
         </Card>
       ) : null}

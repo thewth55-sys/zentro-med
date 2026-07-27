@@ -24,6 +24,7 @@ import {
   rateLimitResponse,
   RATE_LIMITS,
 } from "@/lib/rate-limit";
+import { ACCOUNT_SPECIALTIES } from "@/lib/specialties";
 
 export async function GET() {
   try {
@@ -65,6 +66,7 @@ export async function PATCH(request: Request) {
           quote_accent_color?: unknown;
           address?: unknown;
           tax_id?: unknown;
+          specialty?: unknown;
         }
       | null;
 
@@ -161,6 +163,16 @@ export async function PATCH(request: Request) {
       update.tax_id = taxId || null;
     }
 
+    if (body.specialty !== undefined) {
+      if (typeof body.specialty !== "string" || !ACCOUNT_SPECIALTIES.includes(body.specialty as (typeof ACCOUNT_SPECIALTIES)[number])) {
+        return NextResponse.json(
+          { error: `'specialty' must be one of: ${ACCOUNT_SPECIALTIES.join(", ")}` },
+          { status: 400 },
+        );
+      }
+      update.specialty = body.specialty;
+    }
+
     if (Object.keys(update).length === 0) {
       return NextResponse.json({ error: "No fields to update" }, { status: 400 });
     }
@@ -172,7 +184,7 @@ export async function PATCH(request: Request) {
       .from("accounts")
       .update(update)
       .eq("id", ctx.accountId)
-      .select("id, name, logo_url, quote_terms, quote_accent_color, address, tax_id")
+      .select("id, name, logo_url, quote_terms, quote_accent_color, address, tax_id, specialty")
       .single();
 
     if (error) {

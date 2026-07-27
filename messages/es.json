@@ -29,6 +29,7 @@
     "optional": "(opcional)",
     "brandNamePlaceholder": "Clínica Cruz",
     "brandNameHint": "Los compañeros que invites después se unen bajo este nombre en vez del tuyo. Puedes cambiarlo cuando quieras en Ajustes.",
+    "specialtyLabel": "Especialidad",
     "emailLabel": "Correo electrónico",
     "emailPlaceholder": "tu@ejemplo.com",
     "passwordLabel": "Contraseña",

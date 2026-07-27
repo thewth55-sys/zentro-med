@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/card";
 import { CheckCircle, UsersRound } from "lucide-react";
 import { getPasswordStrengthError } from "@/lib/password-strength";
+import { ACCOUNT_SPECIALTIES, SPECIALTY_LABELS, DENTAL_SPECIALTY, type AccountSpecialty } from "@/lib/specialties";
 
 // Plans a visitor can land here wanting to buy directly from
 // /pricing (the trial itself isn't in this list — that's the no-param
@@ -66,6 +67,7 @@ function SignupPageInner() {
 
   const [fullName, setFullName] = useState("");
   const [brandName, setBrandName] = useState("");
+  const [specialty, setSpecialty] = useState<AccountSpecialty>(DENTAL_SPECIALTY);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -121,6 +123,10 @@ function SignupPageInner() {
           // seed accounts.name — falls back to full_name/email when
           // blank, same as before this field existed.
           brand_name: brandName.trim() || undefined,
+          // Read by the same trigger (076_account_specialty.sql) to
+          // seed accounts.specialty — controls whether the Odontograma
+          // tab shows on a contact (see src/lib/specialties.ts).
+          specialty: inviteToken ? undefined : specialty,
         },
         emailRedirectTo,
       },
@@ -255,6 +261,26 @@ function SignupPageInner() {
                   className="border-border bg-muted text-foreground placeholder:text-muted-foreground focus-visible:border-primary focus-visible:ring-primary/20"
                 />
                 <p className="text-xs text-muted-foreground">{t("brandNameHint")}</p>
+              </div>
+            )}
+
+            {!inviteToken && (
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="specialty" className="text-muted-foreground">
+                  {t("specialtyLabel")}
+                </Label>
+                <select
+                  id="specialty"
+                  value={specialty}
+                  onChange={(e) => setSpecialty(e.target.value as AccountSpecialty)}
+                  className="h-10 rounded-md border border-border bg-muted px-3 text-sm text-foreground focus-visible:border-primary focus-visible:outline-none"
+                >
+                  {ACCOUNT_SPECIALTIES.map((value) => (
+                    <option key={value} value={value}>
+                      {SPECIALTY_LABELS[value]}
+                    </option>
+                  ))}
+                </select>
               </div>
             )}
 
