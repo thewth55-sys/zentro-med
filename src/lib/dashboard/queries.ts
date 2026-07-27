@@ -271,6 +271,48 @@ export async function loadTodayAppointments(db: DB): Promise<TodayAppointmentIte
   })
 }
 
+/** Single soonest upcoming appointment (any day, not just today) — used
+ *  by the dashboard's "next appointment" card. Cancelled appointments
+ *  don't count as "coming up next". */
+export async function loadNextAppointment(db: DB): Promise<TodayAppointmentItem | null> {
+  const now = new Date().toISOString()
+
+  const { data, error } = await db
+    .from('appointments')
+    .select(
+      'id, start_at, end_at, status, contact:contacts(name, phone), doctor:doctors(name), service_type:service_types(name)',
+    )
+    .gte('start_at', now)
+    .neq('status', 'cancelled')
+    .order('start_at', { ascending: true })
+    .limit(1)
+  if (error) throw error
+
+  const row = ((data ?? []) as unknown as Array<{
+    id: string
+    start_at: string
+    end_at: string
+    status: TodayAppointmentItem['status']
+    contact: { name: string | null; phone: string }[] | { name: string | null; phone: string } | null
+    doctor: { name: string }[] | { name: string } | null
+    service_type: { name: string }[] | { name: string } | null
+  }>)[0]
+  if (!row) return null
+
+  const contact = Array.isArray(row.contact) ? row.contact[0] : row.contact
+  const doctor = Array.isArray(row.doctor) ? row.doctor[0] : row.doctor
+  const serviceType = Array.isArray(row.service_type) ? row.service_type[0] : row.service_type
+  return {
+    id: row.id,
+    startAt: row.start_at,
+    endAt: row.end_at,
+    status: row.status,
+    patientName: contact?.name || contact?.phone || null,
+    doctorName: doctor?.name ?? null,
+    serviceTypeName: serviceType?.name ?? null,
+  }
+}
+
 // --- 4. Response time by day of week ----------------------------------
 
 export async function loadResponseTime(db: DB): Promise<ResponseTimeSummary> {

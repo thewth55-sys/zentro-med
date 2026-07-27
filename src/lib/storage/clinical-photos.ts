@@ -3,8 +3,8 @@ import { buildMediaPath } from "@/lib/storage/upload-media";
 
 const BUCKET = "clinical-photos";
 
-/** Matches the bucket's file_size_limit (migration 067). */
-export const CLINICAL_PHOTO_MAX_BYTES = 8 * 1024 * 1024;
+/** Matches the bucket's file_size_limit (migration 070). */
+export const CLINICAL_PHOTO_MAX_BYTES = 15 * 1024 * 1024;
 
 /**
  * Uploads a clinical photo for a patient. Unlike uploadAccountMedia

@@ -569,6 +569,8 @@ export interface OdontogramTooth {
   tooth_number: number;
   condition: ToothCondition;
   notes?: string | null;
+  /** Free-text ICD-10/ICD-11 diagnostic code (migration 071). */
+  icd_code?: string | null;
   updated_by?: string | null;
   created_at: string;
   updated_at: string;
@@ -589,6 +591,10 @@ export interface VisitPhoto {
   appointment_id?: string | null;
   storage_path: string;
   caption?: string | null;
+  /** Original filename — stored explicitly (migration 070) since
+   *  non-image files have no thumbnail to fall back on for display. */
+  file_name?: string | null;
+  content_type?: string | null;
   uploaded_by?: string | null;
   created_at: string;
 }

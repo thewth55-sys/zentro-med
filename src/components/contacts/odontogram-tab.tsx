@@ -8,6 +8,7 @@ import { useTranslations } from "next-intl";
 import { createClient } from "@/lib/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -59,6 +60,8 @@ interface ToothButtonProps {
   onOpenEditor: (toothNumber: number) => void;
   draftCondition: ToothCondition;
   onDraftConditionChange: (condition: ToothCondition) => void;
+  draftIcdCode: string;
+  onDraftIcdCodeChange: (code: string) => void;
   draftNotes: string;
   onDraftNotesChange: (notes: string) => void;
   onSave: () => void;
@@ -82,6 +85,8 @@ function ToothButton({
   onOpenEditor,
   draftCondition,
   onDraftConditionChange,
+  draftIcdCode,
+  onDraftIcdCodeChange,
   draftNotes,
   onDraftNotesChange,
   onSave,
@@ -126,6 +131,15 @@ function ToothButton({
           </Select>
         </div>
         <div className="space-y-1.5">
+          <Label className="text-xs text-muted-foreground">{t("icdCode")}</Label>
+          <Input
+            value={draftIcdCode}
+            onChange={(e) => onDraftIcdCodeChange(e.target.value)}
+            placeholder={t("icdCodePlaceholder")}
+            className="h-8 text-sm"
+          />
+        </div>
+        <div className="space-y-1.5">
           <Label className="text-xs text-muted-foreground">{t("notes")}</Label>
           <Textarea
             value={draftNotes}
@@ -159,6 +173,7 @@ export function OdontogramTab({ contactId }: OdontogramTabProps) {
   const [teeth, setTeeth] = useState<Record<number, OdontogramTooth>>({});
   const [openTooth, setOpenTooth] = useState<number | null>(null);
   const [draftCondition, setDraftCondition] = useState<ToothCondition>("healthy");
+  const [draftIcdCode, setDraftIcdCode] = useState("");
   const [draftNotes, setDraftNotes] = useState("");
   const [saving, setSaving] = useState(false);
 
@@ -200,6 +215,7 @@ export function OdontogramTab({ contactId }: OdontogramTabProps) {
   function openToothEditor(toothNumber: number) {
     const existing = teeth[toothNumber];
     setDraftCondition(existing?.condition ?? "healthy");
+    setDraftIcdCode(existing?.icd_code ?? "");
     setDraftNotes(existing?.notes ?? "");
     setOpenTooth(toothNumber);
   }
@@ -219,6 +235,7 @@ export function OdontogramTab({ contactId }: OdontogramTabProps) {
             patient_profile_id: profile.id,
             tooth_number: openTooth,
             condition: draftCondition,
+            icd_code: draftIcdCode.trim() || null,
             notes: draftNotes.trim() || null,
             updated_by: session?.user?.id ?? null,
           },
@@ -249,6 +266,8 @@ export function OdontogramTab({ contactId }: OdontogramTabProps) {
       onOpenEditor: openToothEditor,
       draftCondition,
       onDraftConditionChange: setDraftCondition,
+      draftIcdCode,
+      onDraftIcdCodeChange: setDraftIcdCode,
       draftNotes,
       onDraftNotesChange: setDraftNotes,
       onSave: saveTooth,

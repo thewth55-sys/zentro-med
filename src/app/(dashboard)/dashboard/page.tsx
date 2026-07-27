@@ -18,6 +18,7 @@ import {
   loadConversationsSeries,
   loadMetrics,
   loadTodayAppointments,
+  loadNextAppointment,
   loadResponseTime,
 } from '@/lib/dashboard/queries'
 import type {
@@ -33,6 +34,7 @@ import { SkeletonCard } from '@/components/dashboard/skeleton'
 import { QuickActions } from '@/components/dashboard/quick-actions'
 import { ConversationsChart } from '@/components/dashboard/conversations-chart'
 import { TodayAppointments } from '@/components/dashboard/today-appointments'
+import { NextAppointmentCard } from '@/components/dashboard/next-appointment-card'
 import { ResponseTimeChart } from '@/components/dashboard/response-time-chart'
 import { ActivityFeed } from '@/components/dashboard/activity-feed'
 
@@ -60,6 +62,9 @@ export default function DashboardPage() {
   const [todayAppointments, setTodayAppointments] = useState<TodayAppointmentItem[] | null>(null)
   const [todayAppointmentsLoading, setTodayAppointmentsLoading] = useState(true)
 
+  const [nextAppointment, setNextAppointment] = useState<TodayAppointmentItem | null>(null)
+  const [nextAppointmentLoading, setNextAppointmentLoading] = useState(true)
+
   const [responseTime, setResponseTime] = useState<ResponseTimeSummary | null>(null)
   const [responseTimeLoading, setResponseTimeLoading] = useState(true)
 
@@ -86,6 +91,11 @@ export default function DashboardPage() {
       .then((a) => setTodayAppointments(a))
       .catch((err) => console.error('[dashboard] today appointments failed:', err))
       .finally(() => setTodayAppointmentsLoading(false))
+
+    void loadNextAppointment(db)
+      .then((a) => setNextAppointment(a))
+      .catch((err) => console.error('[dashboard] next appointment failed:', err))
+      .finally(() => setNextAppointmentLoading(false))
 
     void loadResponseTime(db)
       .then((r) => setResponseTime(r))
@@ -206,6 +216,9 @@ export default function DashboardPage() {
           </>
         )}
       </div>
+
+      {/* Next appointment */}
+      <NextAppointmentCard item={nextAppointment} loading={nextAppointmentLoading} />
 
       {/* Quick actions */}
       <QuickActions />

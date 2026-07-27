@@ -2,13 +2,15 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { Loader2, Plus, Trash2, X } from "lucide-react";
+import { FileText, Loader2, Paperclip, Trash2, X } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 import { createClient } from "@/lib/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
   CLINICAL_PHOTO_MAX_BYTES,
   deleteClinicalPhoto,
@@ -21,16 +23,28 @@ interface VisitPhotosTabProps {
   contactId: string;
 }
 
-interface PhotoWithUrl extends VisitPhoto {
+interface FileWithUrl extends VisitPhoto {
   url: string | null;
 }
 
-const ACCEPTED_TYPES = ["image/png", "image/jpeg", "image/webp"];
+const ACCEPTED_TYPES = [
+  "image/png",
+  "image/jpeg",
+  "image/webp",
+  "application/pdf",
+  "application/msword",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+];
+
+function isImageType(contentType?: string | null): boolean {
+  return !!contentType && contentType.startsWith("image/");
+}
 
 /**
- * Fotos tab — durable clinical photo history per patient, uploaded to
- * the private `clinical-photos` bucket (migration 067) and displayed
- * via short-lived signed URLs, never a public link. Same
+ * Archivos tab — durable file history per patient (photos, signed
+ * PDFs, referral letters, etc.), uploaded to the private
+ * `clinical-photos` bucket (migrations 067/070) and displayed via
+ * short-lived signed URLs, never a public link. Same
  * converted-patient gate as the odontogram — only available once the
  * contact has a patient_profiles row.
  */
@@ -42,12 +56,17 @@ export function VisitPhotosTab({ contactId }: VisitPhotosTabProps) {
 
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<PatientProfile | null>(null);
-  const [photos, setPhotos] = useState<PhotoWithUrl[]>([]);
+  const [files, setFiles] = useState<FileWithUrl[]>([]);
   const [uploading, setUploading] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
-  const [viewerPhoto, setViewerPhoto] = useState<PhotoWithUrl | null>(null);
+  const [viewerFile, setViewerFile] = useState<FileWithUrl | null>(null);
 
-  const fetchPhotos = useCallback(
+  // Add-file flow: pick a file, then confirm with an optional note
+  // before it actually uploads.
+  const [pendingFile, setPendingFile] = useState<File | null>(null);
+  const [pendingNote, setPendingNote] = useState("");
+
+  const fetchFiles = useCallback(
     async (patientProfileId: string) => {
       const { data } = await supabase
         .from("visit_photos")
@@ -58,7 +77,7 @@ export function VisitPhotosTab({ contactId }: VisitPhotosTabProps) {
       const withUrls = await Promise.all(
         rows.map(async (p) => ({ ...p, url: await getClinicalPhotoUrl(p.storage_path) })),
       );
-      setPhotos(withUrls);
+      setFiles(withUrls);
     },
     [supabase],
   );
@@ -75,18 +94,18 @@ export function VisitPhotosTab({ contactId }: VisitPhotosTabProps) {
       if (cancelled) return;
       const p = (data ?? null) as PatientProfile | null;
       setProfile(p);
-      if (p) await fetchPhotos(p.id);
+      if (p) await fetchFiles(p.id);
       if (!cancelled) setLoading(false);
     })();
     return () => {
       cancelled = true;
     };
-  }, [contactId, supabase, fetchPhotos]);
+  }, [contactId, supabase, fetchFiles]);
 
-  async function handleFileSelected(e: React.ChangeEvent<HTMLInputElement>) {
+  function handleFileSelected(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     e.target.value = ""; // allow re-selecting the same file next time
-    if (!file || !profile || !accountId) return;
+    if (!file) return;
 
     if (!ACCEPTED_TYPES.includes(file.type)) {
       toast.error(t("invalidType"));
@@ -97,43 +116,63 @@ export function VisitPhotosTab({ contactId }: VisitPhotosTabProps) {
       return;
     }
 
+    setPendingFile(file);
+    setPendingNote("");
+  }
+
+  async function confirmUpload() {
+    if (!pendingFile || !profile || !accountId) return;
+
     setUploading(true);
     try {
       const {
         data: { session },
       } = await supabase.auth.getSession();
-      const { path } = await uploadClinicalPhoto(accountId, profile.id, file);
+      const { path } = await uploadClinicalPhoto(accountId, profile.id, pendingFile);
       const { error } = await supabase.from("visit_photos").insert({
         account_id: accountId,
         patient_profile_id: profile.id,
         storage_path: path,
+        file_name: pendingFile.name,
+        content_type: pendingFile.type,
+        caption: pendingNote.trim() || null,
         uploaded_by: session?.user?.id ?? null,
       });
       if (error) throw error;
       toast.success(t("uploaded"));
-      await fetchPhotos(profile.id);
+      setPendingFile(null);
+      setPendingNote("");
+      await fetchFiles(profile.id);
     } catch (err) {
-      console.error("Upload visit photo error:", err);
+      console.error("Upload file error:", err);
       toast.error(t("uploadFailed"));
     } finally {
       setUploading(false);
     }
   }
 
-  async function handleDelete(photo: PhotoWithUrl) {
-    setDeletingId(photo.id);
+  async function handleDelete(file: FileWithUrl) {
+    setDeletingId(file.id);
     try {
-      const { error } = await supabase.from("visit_photos").delete().eq("id", photo.id);
+      const { error } = await supabase.from("visit_photos").delete().eq("id", file.id);
       if (error) throw error;
-      await deleteClinicalPhoto(photo.storage_path).catch(() => {});
-      setPhotos((prev) => prev.filter((p) => p.id !== photo.id));
-      if (viewerPhoto?.id === photo.id) setViewerPhoto(null);
+      await deleteClinicalPhoto(file.storage_path).catch(() => {});
+      setFiles((prev) => prev.filter((p) => p.id !== file.id));
+      if (viewerFile?.id === file.id) setViewerFile(null);
       toast.success(t("deleted"));
     } catch (err) {
-      console.error("Delete visit photo error:", err);
+      console.error("Delete file error:", err);
       toast.error(t("deleteFailed"));
     } finally {
       setDeletingId(null);
+    }
+  }
+
+  function openFile(file: FileWithUrl) {
+    if (isImageType(file.content_type)) {
+      setViewerFile(file);
+    } else if (file.url) {
+      window.open(file.url, "_blank", "noopener,noreferrer");
     }
   }
 
@@ -160,7 +199,7 @@ export function VisitPhotosTab({ contactId }: VisitPhotosTabProps) {
           {t("title")}
         </p>
         <Button size="sm" onClick={() => fileInputRef.current?.click()} disabled={uploading}>
-          {uploading ? <Loader2 className="size-3.5 animate-spin" /> : <Plus className="size-3.5" />}
+          <Paperclip className="size-3.5" />
           {t("upload")}
         </Button>
         <input
@@ -172,55 +211,107 @@ export function VisitPhotosTab({ contactId }: VisitPhotosTabProps) {
         />
       </div>
 
-      {photos.length === 0 ? (
+      {files.length === 0 ? (
         <p className="py-8 text-center text-sm text-muted-foreground">{t("empty")}</p>
       ) : (
-        <div className="grid grid-cols-3 gap-2">
-          {photos.map((photo) => (
+        <div className="space-y-1.5">
+          {files.map((file) => (
             <button
-              key={photo.id}
+              key={file.id}
               type="button"
-              onClick={() => setViewerPhoto(photo)}
-              className="group relative aspect-square overflow-hidden rounded-md border border-border bg-muted"
+              onClick={() => openFile(file)}
+              className="flex w-full items-center gap-3 rounded-md border border-border bg-muted/30 p-2 text-left hover:bg-muted/60"
             >
-              {photo.url ? (
-                // eslint-disable-next-line @next/next/no-img-element -- signed URL to a private bucket, not a Next-optimizable static asset
-                <img src={photo.url} alt="" className="size-full object-cover" />
-              ) : (
-                <div className="flex size-full items-center justify-center text-muted-foreground">
-                  <Loader2 className="size-4 animate-spin" />
-                </div>
-              )}
+              <div className="flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-md border border-border bg-muted">
+                {isImageType(file.content_type) ? (
+                  file.url ? (
+                    // eslint-disable-next-line @next/next/no-img-element -- signed URL to a private bucket, not a Next-optimizable static asset
+                    <img src={file.url} alt="" className="size-full object-cover" />
+                  ) : (
+                    <Loader2 className="size-4 animate-spin text-muted-foreground" />
+                  )
+                ) : (
+                  <FileText className="size-5 text-muted-foreground" />
+                )}
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm text-foreground">
+                  {file.file_name || t("untitledFile")}
+                </p>
+                {file.caption && (
+                  <p className="truncate text-xs text-muted-foreground">{file.caption}</p>
+                )}
+              </div>
+              <span className="shrink-0 text-[11px] text-muted-foreground">
+                {new Date(file.created_at).toLocaleDateString()}
+              </span>
             </button>
           ))}
         </div>
       )}
 
-      <Dialog open={!!viewerPhoto} onOpenChange={(open) => !open && setViewerPhoto(null)}>
+      {/* Add-file confirmation — lets staff attach a note before it uploads */}
+      <Dialog open={!!pendingFile} onOpenChange={(open) => !open && setPendingFile(null)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>{t("addFileTitle")}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <p className="truncate text-sm text-foreground">{pendingFile?.name}</p>
+            <div className="space-y-1.5">
+              <Label className="text-xs text-muted-foreground">{t("note")}</Label>
+              <Textarea
+                value={pendingNote}
+                onChange={(e) => setPendingNote(e.target.value)}
+                placeholder={t("notePlaceholder")}
+                rows={3}
+                className="text-sm"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" size="sm" onClick={() => setPendingFile(null)} disabled={uploading}>
+              {t("cancel")}
+            </Button>
+            <Button size="sm" onClick={confirmUpload} disabled={uploading}>
+              {uploading ? <Loader2 className="size-3.5 animate-spin" /> : null}
+              {t("upload")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Image viewer */}
+      <Dialog open={!!viewerFile} onOpenChange={(open) => !open && setViewerFile(null)}>
         <DialogContent className="sm:max-w-2xl">
-          {viewerPhoto?.url && (
+          {viewerFile?.url && (
             // eslint-disable-next-line @next/next/no-img-element -- signed URL to a private bucket
-            <img src={viewerPhoto.url} alt="" className="max-h-[70vh] w-full rounded-md object-contain" />
+            <img src={viewerFile.url} alt="" className="max-h-[70vh] w-full rounded-md object-contain" />
           )}
           <div className="flex items-center justify-between">
-            <p className="text-xs text-muted-foreground">
-              {viewerPhoto && new Date(viewerPhoto.created_at).toLocaleString()}
-            </p>
-            <div className="flex gap-2">
+            <div className="min-w-0">
+              <p className="truncate text-xs text-muted-foreground">
+                {viewerFile && new Date(viewerFile.created_at).toLocaleString()}
+              </p>
+              {viewerFile?.caption && (
+                <p className="truncate text-xs text-foreground">{viewerFile.caption}</p>
+              )}
+            </div>
+            <div className="flex shrink-0 gap-2">
               <Button
                 variant="outline"
                 size="sm"
-                disabled={!viewerPhoto || deletingId === viewerPhoto.id}
-                onClick={() => viewerPhoto && handleDelete(viewerPhoto)}
+                disabled={!viewerFile || deletingId === viewerFile.id}
+                onClick={() => viewerFile && handleDelete(viewerFile)}
               >
-                {viewerPhoto && deletingId === viewerPhoto.id ? (
+                {viewerFile && deletingId === viewerFile.id ? (
                   <Loader2 className="size-3.5 animate-spin" />
                 ) : (
                   <Trash2 className="size-3.5" />
                 )}
                 {t("delete")}
               </Button>
-              <Button variant="outline" size="sm" onClick={() => setViewerPhoto(null)}>
+              <Button variant="outline" size="sm" onClick={() => setViewerFile(null)}>
                 <X className="size-3.5" />
                 {t("close")}
               </Button>

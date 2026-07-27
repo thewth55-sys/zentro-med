@@ -79,6 +79,11 @@ export function AgendaCalendarView() {
 
   const [doctorFilter, setDoctorFilter] = useState("");
   const [roomFilter, setRoomFilter] = useState("");
+  // Client-side only — the appointments already loaded for the visible
+  // range just get filtered by status, no extra round trip. Lets staff
+  // quickly isolate e.g. only confirmed patients instead of scanning
+  // the whole calendar for the right color.
+  const [statusFilter, setStatusFilter] = useState<AppointmentStatus | "">("");
   const [range, setRange] = useState<{ from: string; to: string } | null>(null);
 
   const [editorOpen, setEditorOpen] = useState(false);
@@ -177,6 +182,7 @@ export function AgendaCalendarView() {
   const events = useMemo<CalendarEvent[]>(() => {
     const apptEvents: CalendarEvent[] = appointments
       .filter((a) => a.status !== "cancelled")
+      .filter((a) => !statusFilter || a.status === statusFilter)
       .map((a) => {
         const colors = STATUS_COLORS[a.status];
         return {
@@ -220,7 +226,7 @@ export function AgendaCalendarView() {
     }));
 
     return [...blockEvents, ...googleBusyEvents, ...apptEvents];
-  }, [appointments, availabilityBlocks, googleBusyBlocks, doctorFilter, doctors, t]);
+  }, [appointments, availabilityBlocks, googleBusyBlocks, doctorFilter, statusFilter, doctors, t]);
 
   function handleEventClick(info: EventClickArg) {
     const type = info.event.extendedProps.type;
@@ -348,6 +354,17 @@ export function AgendaCalendarView() {
               {r.name}
             </option>
           ))}
+        </select>
+        <select
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value as AppointmentStatus | "")}
+          className="h-8 rounded-md border border-border bg-muted px-2 text-xs text-foreground outline-none focus:border-primary"
+        >
+          <option value="">{t("allStatuses")}</option>
+          <option value="pending">{tAppt("status.pending")}</option>
+          <option value="confirmed">{tAppt("status.confirmed")}</option>
+          <option value="completed">{tAppt("status.completed")}</option>
+          <option value="no_show">{tAppt("status.no_show")}</option>
         </select>
         {loading && <Loader2 className="size-4 animate-spin text-muted-foreground" />}
         {canEdit && (
