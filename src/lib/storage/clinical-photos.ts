@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/client";
+import { supabaseAdmin } from "@/lib/billing-platform/admin-client";
 import { buildMediaPath } from "@/lib/storage/upload-media";
 
 const BUCKET = "clinical-photos";
@@ -56,4 +57,29 @@ export async function deleteClinicalPhoto(path: string): Promise<void> {
   const supabase = createClient();
   const { error } = await supabase.storage.from(BUCKET).remove([path]);
   if (error) throw new Error(error.message);
+}
+
+/**
+ * Uploads a patient's signature PNG (informed consent, migration 072)
+ * — same bucket as clinical photos, under a signatures/ subfolder so
+ * RLS's account-<id> path check (067) still applies without any new
+ * policy. Uses the service-role client, not the browser one: the
+ * signer is an anonymous patient following an emailed link with no
+ * Supabase session, so the normal "Members can upload" storage policy
+ * (which requires auth.uid() to resolve to an account member) would
+ * reject them. This is the one write in the informed-consent flow
+ * that bypasses RLS outright, mirroring how every other server-side
+ * admin write in this codebase uses supabaseAdmin().
+ */
+export async function uploadSignatureImage(
+  accountId: string,
+  consentDocumentId: string,
+  pngBuffer: Buffer,
+): Promise<{ path: string }> {
+  const path = `account-${accountId}/signatures/${consentDocumentId}.png`;
+  const { error } = await supabaseAdmin()
+    .storage.from(BUCKET)
+    .upload(path, pngBuffer, { cacheControl: "3600", upsert: false, contentType: "image/png" });
+  if (error) throw new Error(error.message);
+  return { path };
 }

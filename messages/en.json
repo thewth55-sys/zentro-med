@@ -445,6 +445,7 @@
         "activity": "Activity",
         "notes": "Notes",
         "medical": "Medical",
+        "consent": "Consent forms",
         "odontogram": "Odontogram",
         "photos": "Files",
         "appointments": "Appointments",
@@ -589,6 +590,31 @@
         "noteSaveFailed": "Failed to save the clinical note",
         "addendumSaved": "Addendum saved",
         "addendumSaveFailed": "Failed to save the addendum"
+      },
+      "consentTab": {
+        "noProfile": "This contact isn't a converted patient yet — create their medical profile in the Médico tab to enable consent forms.",
+        "title": "Informed consent forms",
+        "newDocument": "New document",
+        "newDocumentTitle": "New informed consent",
+        "docTitleLabel": "Title",
+        "docTitlePlaceholder": "e.g. Consent for procedure X",
+        "docContentLabel": "Content",
+        "cancel": "Cancel",
+        "create": "Create",
+        "empty": "No consent documents yet.",
+        "loadFailed": "Failed to load documents",
+        "titleAndContentRequired": "Title and content are required",
+        "created": "Document created",
+        "createFailed": "Failed to create the document",
+        "sendToSign": "Send to sign",
+        "sent": "Sent to {email}",
+        "sendFailed": "Failed to send the document",
+        "status": {
+          "pending": "Pending",
+          "signed": "Signed",
+          "declined": "Declined",
+          "expired": "Expired"
+        }
       },
       "odontogramTab": {
         "noProfile": "This contact isn't a converted patient yet — create their medical profile in the Medical tab to enable the odontogram.",

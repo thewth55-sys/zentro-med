@@ -197,6 +197,22 @@ export const RATE_LIMITS = {
    *  error); tight because a successful call creates a real Contact +
    *  Appointment row with no other abuse gate in front of it. */
   publicBookingCreate: { limit: 5, windowMs: 60_000 },
+  /** Public consent-signing link peek (per IP). Same 256-bit-token
+   *  reasoning as invitationPeek — the retry allowance is for flaky
+   *  connectivity, not because token guessing is a real risk. */
+  signaturePeek: { limit: 30, windowMs: 60_000 },
+  /** OTP send/resend for a signing link (per IP). Tighter than peek —
+   *  each call sends a real email; this bounds someone hammering
+   *  "resend" (or using it to spam a stranger's inbox via a leaked
+   *  link) rather than genuine "I didn't get the code" retries. */
+  signatureOtpSend: { limit: 5, windowMs: 60_000 },
+  /** OTP verify attempts (per IP). The RPC itself also caps attempts
+   *  at 6 per sent code; this is the outer per-minute brake on top of
+   *  that so a script can't burn through many codes quickly. */
+  signatureOtpVerify: { limit: 10, windowMs: 60_000 },
+  /** Signature submit (per IP). A real signer submits once; tight
+   *  because success is the actual legal signing event. */
+  signatureSubmit: { limit: 5, windowMs: 60_000 },
 } as const;
 
 /** Test-only helper. Clears the in-memory state so unit tests don't

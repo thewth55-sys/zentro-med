@@ -11,6 +11,7 @@ import {
   type TemplateSendValues,
 } from '@/components/inbox/template-picker';
 import { MedicalTab } from '@/components/contacts/medical-tab';
+import { ConsentFormsTab } from '@/components/contacts/consent-forms-tab';
 import { OdontogramTab } from '@/components/contacts/odontogram-tab';
 import { VisitPhotosTab } from '@/components/contacts/visit-photos-tab';
 import { AppointmentsTab } from '@/components/contacts/appointments-tab';
@@ -491,6 +492,12 @@ export function ContactDetailView({ contactId }: ContactDetailViewProps) {
                   {t('tabs.medical')}
                 </TabsTrigger>
                 <TabsTrigger
+                  value="consent"
+                  className="data-active:bg-muted data-active:text-primary text-muted-foreground shrink-0"
+                >
+                  {t('tabs.consent')}
+                </TabsTrigger>
+                <TabsTrigger
                   value="odontogram"
                   className="data-active:bg-muted data-active:text-primary text-muted-foreground shrink-0"
                 >
@@ -739,6 +746,11 @@ export function ContactDetailView({ contactId }: ContactDetailViewProps) {
               {/* Medical Tab */}
               <TabsContent value="medical" className="px-4 py-3">
                 {contactId && <MedicalTab contactId={contactId} />}
+              </TabsContent>
+
+              {/* Odontogram Tab */}
+              <TabsContent value="consent" className="px-4 py-3">
+                {contactId && <ConsentFormsTab contactId={contactId} />}
               </TabsContent>
 
               {/* Odontogram Tab */}

@@ -445,6 +445,7 @@
         "activity": "Actividad",
         "notes": "Notas",
         "medical": "Médico",
+        "consent": "Consentimientos",
         "odontogram": "Odontograma",
         "photos": "Archivos",
         "appointments": "Citas",
@@ -589,6 +590,31 @@
         "noteSaveFailed": "Error al guardar la nota clínica",
         "addendumSaved": "Adenda guardada",
         "addendumSaveFailed": "Error al guardar la adenda"
+      },
+      "consentTab": {
+        "noProfile": "Este contacto aún no es un paciente convertido — crea su perfil médico en la pestaña Médico para habilitar los consentimientos.",
+        "title": "Consentimientos informados",
+        "newDocument": "Nuevo documento",
+        "newDocumentTitle": "Nuevo consentimiento informado",
+        "docTitleLabel": "Título",
+        "docTitlePlaceholder": "ej. Consentimiento para procedimiento X",
+        "docContentLabel": "Contenido",
+        "cancel": "Cancelar",
+        "create": "Crear",
+        "empty": "Aún no hay documentos de consentimiento.",
+        "loadFailed": "No se pudieron cargar los documentos",
+        "titleAndContentRequired": "El título y el contenido son obligatorios",
+        "created": "Documento creado",
+        "createFailed": "No se pudo crear el documento",
+        "sendToSign": "Enviar para firmar",
+        "sent": "Enviado a {email}",
+        "sendFailed": "No se pudo enviar el documento",
+        "status": {
+          "pending": "Pendiente",
+          "signed": "Firmado",
+          "declined": "Rechazado",
+          "expired": "Vencido"
+        }
       },
       "odontogramTab": {
         "noProfile": "Este contacto aún no es un paciente convertido — crea su perfil médico en la pestaña Médico para habilitar el odontograma.",

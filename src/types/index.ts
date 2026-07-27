@@ -599,6 +599,62 @@ export interface VisitPhoto {
   created_at: string;
 }
 
+// ============================================================
+// Informed consent + e-signature (migration 072). `content_hash` is
+// a Postgres GENERATED column (SHA-256 of `content`) so it can never
+// drift from what's actually stored — that's what proves the text
+// wasn't altered after the patient signed it.
+// ============================================================
+
+export type ConsentDocumentStatus = 'pending' | 'signed' | 'declined' | 'expired';
+
+export interface ConsentDocument {
+  id: string;
+  account_id: string;
+  patient_profile_id: string;
+  title: string;
+  content: string;
+  content_hash: string;
+  status: ConsentDocumentStatus;
+  created_by?: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+/** Read-only from the client — every row is written by the
+ *  submit_signature() RPC, never a direct insert. */
+export interface ConsentSignature {
+  id: string;
+  account_id: string;
+  consent_document_id: string;
+  signer_name: string;
+  signer_email: string;
+  signature_storage_path: string;
+  otp_verified_at: string;
+  document_hash_at_signing: string;
+  ip_address?: string | null;
+  user_agent?: string | null;
+  signed_at: string;
+}
+
+/** The emailed link + OTP mechanism. `otp_code_hash`/`otp_attempts`/
+ *  `otp_verified_at`/`redeemed_at` are only ever written by the
+ *  request_signature_otp/verify_signature_otp/submit_signature RPCs. */
+export interface SignatureRequest {
+  id: string;
+  account_id: string;
+  consent_document_id: string;
+  token_hash: string;
+  delivered_to_email: string;
+  otp_expires_at?: string | null;
+  otp_attempts: number;
+  otp_verified_at?: string | null;
+  redeemed_at?: string | null;
+  expires_at: string;
+  created_by?: string | null;
+  created_at: string;
+}
+
 export type BroadcastStatus = 'draft' | 'scheduled' | 'sending' | 'sent' | 'failed';
 export type RecipientStatus = 'pending' | 'sent' | 'delivered' | 'read' | 'replied' | 'failed';
 
