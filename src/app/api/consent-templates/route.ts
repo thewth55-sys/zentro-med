@@ -10,6 +10,28 @@
 import { NextResponse } from "next/server";
 
 import { requireRole, toErrorResponse } from "@/lib/auth/account";
+import type { StampField, StampFieldType } from "@/types";
+
+const STAMP_FIELD_TYPES: StampFieldType[] = ["signature", "signer_name", "signed_date"];
+
+function parseStampFields(input: unknown): StampField[] | null {
+  if (!Array.isArray(input) || input.length === 0) return null;
+  const fields: StampField[] = [];
+  for (const raw of input) {
+    if (typeof raw !== "object" || raw === null) return null;
+    const { type, page, x, y } = raw as Record<string, unknown>;
+    if (typeof type !== "string" || !STAMP_FIELD_TYPES.includes(type as StampFieldType)) return null;
+    if (!Number.isInteger(page) || (page as number) < 1) return null;
+    if (typeof x !== "number" || !(x >= 0 && x <= 1)) return null;
+    if (typeof y !== "number" || !(y >= 0 && y <= 1)) return null;
+    fields.push({ type: type as StampFieldType, page: page as number, x, y });
+  }
+  // A signature image is the one legally-required element (Ley 527 /
+  // Decreto 2364 — see migration 072's module comment); name/date are
+  // optional extra context staff can place wherever they like.
+  if (!fields.some((f) => f.type === "signature")) return null;
+  return fields;
+}
 
 export async function GET() {
   try {
@@ -38,20 +60,16 @@ export async function POST(request: Request) {
 
     const name = typeof body?.name === "string" ? body.name.trim() : "";
     const storagePath = typeof body?.storagePath === "string" ? body.storagePath : "";
-    const stampPageNumber = Number(body?.stampPageNumber);
-    const stampXFraction = Number(body?.stampXFraction);
-    const stampYFraction = Number(body?.stampYFraction);
+    const stampFields = parseStampFields(body?.stampFields);
 
     if (!name || !storagePath) {
       return NextResponse.json({ error: "name and storagePath are required" }, { status: 400 });
     }
-    if (
-      !Number.isInteger(stampPageNumber) ||
-      stampPageNumber < 1 ||
-      !(stampXFraction >= 0 && stampXFraction <= 1) ||
-      !(stampYFraction >= 0 && stampYFraction <= 1)
-    ) {
-      return NextResponse.json({ error: "Invalid stamp position" }, { status: 400 });
+    if (!stampFields) {
+      return NextResponse.json(
+        { error: "stampFields must include at least a signature position" },
+        { status: 400 },
+      );
     }
 
     const { data, error } = await supabase
@@ -60,9 +78,7 @@ export async function POST(request: Request) {
         account_id: accountId,
         name,
         storage_path: storagePath,
-        stamp_page_number: stampPageNumber,
-        stamp_x_fraction: stampXFraction,
-        stamp_y_fraction: stampYFraction,
+        stamp_fields: stampFields,
         created_by: userId,
       })
       .select("*")

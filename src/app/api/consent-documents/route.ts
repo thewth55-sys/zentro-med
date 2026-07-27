@@ -102,9 +102,7 @@ export async function POST(request: Request) {
           template_id: template.id,
           pdf_storage_path: destPath,
           pdf_hash: pdfHash,
-          stamp_page_number: template.stamp_page_number,
-          stamp_x_fraction: template.stamp_x_fraction,
-          stamp_y_fraction: template.stamp_y_fraction,
+          stamp_fields: template.stamp_fields,
           created_by: userId,
         })
         .select("*")

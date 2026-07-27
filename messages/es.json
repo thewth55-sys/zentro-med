@@ -635,20 +635,22 @@
           "fileLabel": "Archivo PDF",
           "chooseFile": "Elegir archivo PDF",
           "invalidType": "Solo se admiten archivos PDF",
-          "stampHint": "Indica dónde se estampará la firma del paciente al momento de firmar",
-          "pageLabel": "Página",
-          "xLabel": "Horizontal %",
-          "yLabel": "Vertical %",
-          "previewLabel": "Vista previa",
-          "noPreview": "Elige un archivo para ver la vista previa",
+          "stampHint": "Haz clic en el botón del dato que quieres ubicar y luego haz clic sobre el PDF",
+          "clickToPlace": "Haz clic en el PDF para ubicar: {field}",
+          "renderingPdf": "Cargando PDF…",
+          "pageOf": "Página {page} de {total}",
+          "field": {
+            "signature": "Firma",
+            "signer_name": "Nombre",
+            "signed_date": "Fecha"
+          },
           "cancel": "Cancelar",
           "save": "Guardar",
           "uploading": "Subiendo…",
           "created": "Plantilla creada",
           "createFailed": "No se pudo crear la plantilla",
           "nameAndFileRequired": "El nombre y el archivo PDF son obligatorios",
-          "invalidPage": "El número de página no es válido",
-          "invalidPosition": "La posición debe estar entre 0 y 100"
+          "signaturePositionRequired": "Ubica al menos la posición de la firma"
         }
       },
       "odontogramTab": {

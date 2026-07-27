@@ -111,8 +111,13 @@ const SECURITY_HEADERS = [
       // chat panel is also an iframe; WhatsApp Embedded Signup opens
       // Meta's popup as a real window, not an iframe, but the JS SDK
       // itself loads a small hidden iframe from facebook.com for
-      // login-status tracking.
-      "frame-src https://challenges.cloudflare.com https://*.zoho.com https://*.zohopublic.com https://www.facebook.com https://web.facebook.com",
+      // login-status tracking. blob: is the in-browser preview of a
+      // PDF consent template right after upload, before it's saved to
+      // Storage (consent-template-dialog.tsx); *.supabase.co is the
+      // signed URL of an already-uploaded consent PDF, shown both to
+      // staff (consent-forms-tab.tsx) and to the patient mid-signing
+      // (/firmar/[token] — see migration 074's module comment).
+      "frame-src 'self' blob: https://*.supabase.co https://challenges.cloudflare.com https://*.zoho.com https://*.zohopublic.com https://www.facebook.com https://web.facebook.com",
       // Zoho Desk's SDK spins up a background Web Worker from a
       // blob: URL (its "visitor container") — without an explicit
       // worker-src, browsers fall back to script-src, which doesn't

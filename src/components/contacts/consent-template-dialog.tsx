@@ -10,8 +10,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useAuth } from "@/hooks/use-auth";
-import { uploadConsentTemplatePdf, getClinicalPhotoUrl } from "@/lib/storage/clinical-photos";
-import type { ConsentTemplate } from "@/types";
+import { uploadConsentTemplatePdf } from "@/lib/storage/clinical-photos";
+import { PdfStampPicker } from "@/components/contacts/pdf-stamp-picker";
+import type { ConsentTemplate, StampField } from "@/types";
 
 interface ConsentTemplateDialogProps {
   open: boolean;
@@ -21,10 +22,11 @@ interface ConsentTemplateDialogProps {
 
 /**
  * Registers a reusable PDF consent template — upload once, reuse for
- * every patient sent this document. The only per-template config is
- * WHERE the signature gets stamped at signing time (page + position
- * as a percentage of the page); see migration 074's module comment
- * for why this doesn't rewrite any other text in the PDF.
+ * every patient sent this document. Staff click directly on the
+ * rendered PDF (PdfStampPicker) to place where the signature, the
+ * signer's name, and the signed date each land at signing time; see
+ * migration 075's module comment for why these are three independent
+ * positions rather than one fixed block.
  */
 export function ConsentTemplateDialog({ open, onOpenChange, onCreated }: ConsentTemplateDialogProps) {
   const t = useTranslations("Contacts.detailView.consentTab.templateDialog");
@@ -33,20 +35,14 @@ export function ConsentTemplateDialog({ open, onOpenChange, onCreated }: Consent
 
   const [name, setName] = useState("");
   const [file, setFile] = useState<File | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
-  const [stampPage, setStampPage] = useState("1");
-  const [stampX, setStampX] = useState("55");
-  const [stampY, setStampY] = useState("12");
+  const [stampFields, setStampFields] = useState<StampField[]>([]);
   const [saving, setSaving] = useState(false);
 
   function reset() {
     setName("");
     setFile(null);
-    setPreviewUrl(null);
-    setStampPage("1");
-    setStampX("55");
-    setStampY("12");
+    setStampFields([]);
   }
 
   function handleFileSelected(e: React.ChangeEvent<HTMLInputElement>) {
@@ -58,7 +54,7 @@ export function ConsentTemplateDialog({ open, onOpenChange, onCreated }: Consent
       return;
     }
     setFile(selected);
-    setPreviewUrl(URL.createObjectURL(selected));
+    setStampFields([]);
   }
 
   async function handleSave() {
@@ -66,15 +62,8 @@ export function ConsentTemplateDialog({ open, onOpenChange, onCreated }: Consent
       toast.error(t("nameAndFileRequired"));
       return;
     }
-    const pageNumber = Number(stampPage);
-    const xFraction = Number(stampX) / 100;
-    const yFraction = Number(stampY) / 100;
-    if (!Number.isInteger(pageNumber) || pageNumber < 1) {
-      toast.error(t("invalidPage"));
-      return;
-    }
-    if (!(xFraction >= 0 && xFraction <= 1) || !(yFraction >= 0 && yFraction <= 1)) {
-      toast.error(t("invalidPosition"));
+    if (!stampFields.some((f) => f.type === "signature")) {
+      toast.error(t("signaturePositionRequired"));
       return;
     }
 
@@ -87,13 +76,7 @@ export function ConsentTemplateDialog({ open, onOpenChange, onCreated }: Consent
       const res = await fetch("/api/consent-templates", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: name.trim(),
-          storagePath: path,
-          stampPageNumber: pageNumber,
-          stampXFraction: xFraction,
-          stampYFraction: yFraction,
-        }),
+        body: JSON.stringify({ name: name.trim(), storagePath: path, stampFields }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data?.error ?? "failed");
@@ -119,59 +102,37 @@ export function ConsentTemplateDialog({ open, onOpenChange, onCreated }: Consent
         onOpenChange(next);
       }}
     >
-      <DialogContent className="sm:max-w-2xl">
+      <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>{t("title")}</DialogTitle>
         </DialogHeader>
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div className="space-y-3">
-            <div className="space-y-1.5">
-              <Label className="text-xs text-muted-foreground">{t("nameLabel")}</Label>
-              <Input value={name} onChange={(e) => setName(e.target.value)} placeholder={t("namePlaceholder")} />
-            </div>
-
-            <div className="space-y-1.5">
-              <Label className="text-xs text-muted-foreground">{t("fileLabel")}</Label>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => fileInputRef.current?.click()}
-                className="w-full"
-              >
-                <Upload className="size-3.5" />
-                {file ? file.name : t("chooseFile")}
-              </Button>
-              <input ref={fileInputRef} type="file" accept="application/pdf" className="hidden" onChange={handleFileSelected} />
-            </div>
-
-            <p className="text-xs text-muted-foreground">{t("stampHint")}</p>
-            <div className="grid grid-cols-3 gap-2">
-              <div className="space-y-1.5">
-                <Label className="text-xs text-muted-foreground">{t("pageLabel")}</Label>
-                <Input value={stampPage} onChange={(e) => setStampPage(e.target.value)} inputMode="numeric" />
-              </div>
-              <div className="space-y-1.5">
-                <Label className="text-xs text-muted-foreground">{t("xLabel")}</Label>
-                <Input value={stampX} onChange={(e) => setStampX(e.target.value)} inputMode="numeric" />
-              </div>
-              <div className="space-y-1.5">
-                <Label className="text-xs text-muted-foreground">{t("yLabel")}</Label>
-                <Input value={stampY} onChange={(e) => setStampY(e.target.value)} inputMode="numeric" />
-              </div>
-            </div>
+        <div className="space-y-3">
+          <div className="space-y-1.5">
+            <Label className="text-xs text-muted-foreground">{t("nameLabel")}</Label>
+            <Input value={name} onChange={(e) => setName(e.target.value)} placeholder={t("namePlaceholder")} />
           </div>
 
           <div className="space-y-1.5">
-            <Label className="text-xs text-muted-foreground">{t("previewLabel")}</Label>
-            {previewUrl ? (
-              <iframe src={previewUrl} title="preview" className="h-64 w-full rounded-md border border-border sm:h-80" />
-            ) : (
-              <div className="flex h-64 items-center justify-center rounded-md border border-dashed border-border text-xs text-muted-foreground sm:h-80">
-                {t("noPreview")}
-              </div>
-            )}
+            <Label className="text-xs text-muted-foreground">{t("fileLabel")}</Label>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => fileInputRef.current?.click()}
+              className="w-full"
+            >
+              <Upload className="size-3.5" />
+              {file ? file.name : t("chooseFile")}
+            </Button>
+            <input ref={fileInputRef} type="file" accept="application/pdf" className="hidden" onChange={handleFileSelected} />
           </div>
+
+          {file && (
+            <div className="space-y-1.5">
+              <Label className="text-xs text-muted-foreground">{t("stampHint")}</Label>
+              <PdfStampPicker file={file} fields={stampFields} onChange={setStampFields} />
+            </div>
+          )}
         </div>
         <DialogFooter>
           <Button variant="outline" size="sm" onClick={() => onOpenChange(false)} disabled={saving}>
@@ -186,7 +147,3 @@ export function ConsentTemplateDialog({ open, onOpenChange, onCreated }: Consent
     </Dialog>
   );
 }
-
-// Re-exported so consumers don't need to reach into the storage lib
-// just to show a template's own PDF for reference.
-export { getClinicalPhotoUrl };

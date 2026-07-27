@@ -612,18 +612,27 @@ export interface VisitPhoto {
 export type ConsentDocumentStatus = 'pending' | 'signed' | 'declined' | 'expired';
 export type ConsentDocumentSourceType = 'text' | 'pdf';
 
-/** A reusable PDF consent template (migration 074) — the legal text
- *  is fixed; only the signature/name/date stamp position is
+export type StampFieldType = 'signature' | 'signer_name' | 'signed_date';
+
+/** One independently-positioned element stamped onto a PDF at signing
+ *  time (migration 075) — `x`/`y` are page-relative fractions with a
+ *  bottom-left origin, matching pdf-lib's coordinate system directly. */
+export interface StampField {
+  type: StampFieldType;
+  page: number;
+  x: number;
+  y: number;
+}
+
+/** A reusable PDF consent template (migration 074/075) — the legal
+ *  text is fixed; only where the signature/name/date get stamped is
  *  configured, once, and reused for every patient sent this template. */
 export interface ConsentTemplate {
   id: string;
   account_id: string;
   name: string;
   storage_path: string;
-  /** Bottom-left-origin fractions, matching pdf-lib's coordinate system. */
-  stamp_page_number: number;
-  stamp_x_fraction: number;
-  stamp_y_fraction: number;
+  stamp_fields: StampField[];
   created_by?: string | null;
   created_at: string;
 }
@@ -641,9 +650,7 @@ export interface ConsentDocument {
   template_id?: string | null;
   pdf_storage_path?: string | null;
   pdf_hash?: string | null;
-  stamp_page_number?: number | null;
-  stamp_x_fraction?: number | null;
-  stamp_y_fraction?: number | null;
+  stamp_fields?: StampField[] | null;
   status: ConsentDocumentStatus;
   created_by?: string | null;
   created_at: string;

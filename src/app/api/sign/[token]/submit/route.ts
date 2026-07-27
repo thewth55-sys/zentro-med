@@ -20,6 +20,7 @@ import {
   uploadSignatureImage,
 } from "@/lib/storage/clinical-photos";
 import { stampSignatureOntoPdf } from "@/lib/pdf/stamp-signature";
+import type { StampField } from "@/types";
 
 export async function POST(
   request: Request,
@@ -92,7 +93,7 @@ export async function POST(
   if (req.consent_document_id) {
     const { data: doc } = await admin
       .from("consent_documents")
-      .select("source_type, pdf_storage_path, stamp_page_number, stamp_x_fraction, stamp_y_fraction")
+      .select("source_type, pdf_storage_path, stamp_fields")
       .eq("id", req.consent_document_id)
       .maybeSingle();
 
@@ -104,9 +105,7 @@ export async function POST(
           signaturePngBytes: pngBuffer,
           signerName,
           signedAt: new Date(),
-          pageNumber: doc.stamp_page_number ?? 1,
-          xFraction: doc.stamp_x_fraction ?? 0.55,
-          yFraction: doc.stamp_y_fraction ?? 0.12,
+          fields: (doc.stamp_fields as StampField[] | null) ?? [],
         });
         signedPdfStoragePath = `account-${req.account_id}/signatures/${req.consent_document_id}-signed.pdf`;
         const { error: uploadErr } = await admin.storage

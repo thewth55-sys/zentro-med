@@ -635,20 +635,22 @@
           "fileLabel": "PDF file",
           "chooseFile": "Choose PDF file",
           "invalidType": "Only PDF files are supported",
-          "stampHint": "Set where the patient's signature will be stamped when signing",
-          "pageLabel": "Page",
-          "xLabel": "Horizontal %",
-          "yLabel": "Vertical %",
-          "previewLabel": "Preview",
-          "noPreview": "Choose a file to see the preview",
+          "stampHint": "Click a field's button, then click on the PDF to place it",
+          "clickToPlace": "Click on the PDF to place: {field}",
+          "renderingPdf": "Loading PDF…",
+          "pageOf": "Page {page} of {total}",
+          "field": {
+            "signature": "Signature",
+            "signer_name": "Name",
+            "signed_date": "Date"
+          },
           "cancel": "Cancel",
           "save": "Save",
           "uploading": "Uploading…",
           "created": "Template created",
           "createFailed": "Failed to create the template",
           "nameAndFileRequired": "Name and PDF file are required",
-          "invalidPage": "Invalid page number",
-          "invalidPosition": "Position must be between 0 and 100"
+          "signaturePositionRequired": "Place at least the signature position"
         }
       },
       "odontogramTab": {
