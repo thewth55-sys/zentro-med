@@ -49,6 +49,7 @@ export default function SignDocumentPage() {
   const [errorMessage, setErrorMessage] = useState('');
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
+  const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   const [maskedEmail, setMaskedEmail] = useState('');
 
   const [sendingOtp, setSendingOtp] = useState(false);
@@ -72,7 +73,8 @@ export default function SignDocumentPage() {
           return;
         }
         setTitle(data.title);
-        setContent(data.content);
+        setContent(data.content ?? '');
+        setPdfUrl(data.pdf_url ?? null);
         setMaskedEmail(data.delivered_to_email_masked ?? '');
         setStep(data.already_signed ? 'already_signed' : 'ready');
       } catch {
@@ -219,9 +221,13 @@ export default function SignDocumentPage() {
 
           {(step === 'ready' || step === 'otp_sent') && (
             <>
-              <div className="max-h-64 overflow-y-auto whitespace-pre-wrap rounded-md border border-border bg-muted/30 p-3 text-sm text-foreground">
-                {content}
-              </div>
+              {pdfUrl ? (
+                <iframe src={pdfUrl} title={title} className="h-96 w-full rounded-md border border-border" />
+              ) : (
+                <div className="max-h-64 overflow-y-auto whitespace-pre-wrap rounded-md border border-border bg-muted/30 p-3 text-sm text-foreground">
+                  {content}
+                </div>
+              )}
 
               {step === 'ready' && (
                 <Button onClick={handleSendOtp} disabled={sendingOtp} className="w-full">

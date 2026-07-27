@@ -1,14 +1,24 @@
 // ============================================================
 // GET  /api/consent-documents?patient_profile_id=<id> — list a
 //      patient's informed-consent documents, newest first.
-// POST /api/consent-documents — create a new one (frozen text; see
-//      migration 072's module comment for why `content` is never
-//      edited after creation).
+// POST /api/consent-documents — create a new one, either:
+//      { title, content }              — typed text (frozen; see
+//        migration 072's module comment for why `content` is never
+//        edited after creation), or
+//      { templateId, patientProfileId } — from a reusable PDF
+//        template (migration 074): the template's PDF is copied into
+//        a per-document path (so a later template edit/delete can't
+//        affect an already-sent document) and hashed for tamper
+//        evidence, since pdf_hash can't be a GENERATED column the
+//        way content_hash is (the bytes live in Storage, not a
+//        Postgres column).
 // ============================================================
 
+import { randomUUID, createHash } from "node:crypto";
 import { NextResponse } from "next/server";
 
 import { requireRole, toErrorResponse } from "@/lib/auth/account";
+import { CLINICAL_PHOTOS_BUCKET } from "@/lib/storage/clinical-photos";
 
 export async function GET(request: Request) {
   try {
@@ -43,12 +53,77 @@ export async function POST(request: Request) {
     const body = await request.json().catch(() => ({}));
 
     const patientProfileId = typeof body?.patientProfileId === "string" ? body.patientProfileId : "";
+    if (!patientProfileId) {
+      return NextResponse.json({ error: "patientProfileId is required" }, { status: 400 });
+    }
+
+    const templateId = typeof body?.templateId === "string" ? body.templateId : "";
+
+    if (templateId) {
+      const { data: template, error: templateErr } = await supabase
+        .from("consent_templates")
+        .select("*")
+        .eq("id", templateId)
+        .eq("account_id", accountId)
+        .maybeSingle();
+      if (templateErr || !template) {
+        return NextResponse.json({ error: "Template not found" }, { status: 404 });
+      }
+
+      const documentId = randomUUID();
+      const destPath = `account-${accountId}/consent-documents/${documentId}.pdf`;
+
+      const { error: copyErr } = await supabase.storage
+        .from(CLINICAL_PHOTOS_BUCKET)
+        .copy(template.storage_path, destPath);
+      if (copyErr) {
+        console.error("[POST /api/consent-documents] template copy error:", copyErr);
+        return NextResponse.json({ error: "Failed to copy the template file" }, { status: 500 });
+      }
+
+      const { data: pdfBlob, error: downloadErr } = await supabase.storage
+        .from(CLINICAL_PHOTOS_BUCKET)
+        .download(destPath);
+      if (downloadErr || !pdfBlob) {
+        console.error("[POST /api/consent-documents] template download error:", downloadErr);
+        return NextResponse.json({ error: "Failed to read the copied template" }, { status: 500 });
+      }
+      const pdfBuffer = Buffer.from(await pdfBlob.arrayBuffer());
+      const pdfHash = createHash("sha256").update(pdfBuffer).digest("hex");
+
+      const { data, error } = await supabase
+        .from("consent_documents")
+        .insert({
+          id: documentId,
+          account_id: accountId,
+          patient_profile_id: patientProfileId,
+          title: template.name,
+          source_type: "pdf",
+          template_id: template.id,
+          pdf_storage_path: destPath,
+          pdf_hash: pdfHash,
+          stamp_page_number: template.stamp_page_number,
+          stamp_x_fraction: template.stamp_x_fraction,
+          stamp_y_fraction: template.stamp_y_fraction,
+          created_by: userId,
+        })
+        .select("*")
+        .single();
+
+      if (error) {
+        console.error("[POST /api/consent-documents] insert (pdf) error:", error);
+        return NextResponse.json({ error: "Failed to create the consent document" }, { status: 500 });
+      }
+
+      return NextResponse.json({ document: data });
+    }
+
     const title = typeof body?.title === "string" ? body.title.trim() : "";
     const content = typeof body?.content === "string" ? body.content.trim() : "";
 
-    if (!patientProfileId || !title || !content) {
+    if (!title || !content) {
       return NextResponse.json(
-        { error: "patientProfileId, title, and content are all required" },
+        { error: "title and content are required (or pass templateId instead)" },
         { status: 400 },
       );
     }

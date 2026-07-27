@@ -4,8 +4,7 @@
     {
       "name": "zentro-med-dev",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev"],
-      "cwd": "/Users/oswaldogarcia/Documents/zentro-med",
+      "runtimeArgs": ["--prefix", "/Users/oswaldogarcia/Documents/zentro-med", "run", "dev"],
       "port": 3000
     }
   ]

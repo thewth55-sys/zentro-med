@@ -13,6 +13,7 @@ import { NextResponse } from "next/server";
 import { hashSignatureToken, maskEmail } from "@/lib/signatures/tokens";
 import { checkRateLimit, getClientIp, rateLimitResponse, RATE_LIMITS } from "@/lib/rate-limit";
 import { createClient } from "@/lib/supabase/server";
+import { getClinicalPhotoUrlAdmin } from "@/lib/storage/clinical-photos";
 
 export async function GET(
   request: Request,
@@ -38,9 +39,16 @@ export async function GET(
   }
 
   const payload = data as Record<string, unknown> | null;
-  if (payload?.ok && typeof payload.delivered_to_email === "string") {
-    const { delivered_to_email, ...rest } = payload;
-    return NextResponse.json({ ...rest, delivered_to_email_masked: maskEmail(delivered_to_email) });
+  if (payload?.ok) {
+    const { delivered_to_email, pdf_storage_path, ...rest } = payload;
+    const response: Record<string, unknown> = { ...rest };
+    if (typeof delivered_to_email === "string") {
+      response.delivered_to_email_masked = maskEmail(delivered_to_email);
+    }
+    if (typeof pdf_storage_path === "string") {
+      response.pdf_url = await getClinicalPhotoUrlAdmin(pdf_storage_path);
+    }
+    return NextResponse.json(response);
   }
 
   return NextResponse.json(payload);

@@ -610,14 +610,40 @@ export interface VisitPhoto {
 // ============================================================
 
 export type ConsentDocumentStatus = 'pending' | 'signed' | 'declined' | 'expired';
+export type ConsentDocumentSourceType = 'text' | 'pdf';
+
+/** A reusable PDF consent template (migration 074) — the legal text
+ *  is fixed; only the signature/name/date stamp position is
+ *  configured, once, and reused for every patient sent this template. */
+export interface ConsentTemplate {
+  id: string;
+  account_id: string;
+  name: string;
+  storage_path: string;
+  /** Bottom-left-origin fractions, matching pdf-lib's coordinate system. */
+  stamp_page_number: number;
+  stamp_x_fraction: number;
+  stamp_y_fraction: number;
+  created_by?: string | null;
+  created_at: string;
+}
 
 export interface ConsentDocument {
   id: string;
   account_id: string;
   patient_profile_id: string;
   title: string;
-  content: string;
-  content_hash: string;
+  source_type: ConsentDocumentSourceType;
+  /** Set when source_type === 'text'. */
+  content?: string | null;
+  content_hash?: string | null;
+  /** Set when source_type === 'pdf'. */
+  template_id?: string | null;
+  pdf_storage_path?: string | null;
+  pdf_hash?: string | null;
+  stamp_page_number?: number | null;
+  stamp_x_fraction?: number | null;
+  stamp_y_fraction?: number | null;
   status: ConsentDocumentStatus;
   created_by?: string | null;
   created_at: string;
@@ -625,7 +651,8 @@ export interface ConsentDocument {
 }
 
 /** Read-only from the client — every row is written by the
- *  submit_signature() RPC, never a direct insert. */
+ *  submit_signature() RPC, never a direct insert. `signed_pdf_storage_path`
+ *  is only set for PDF-sourced documents — the final stamped artifact. */
 export interface ConsentSignature {
   id: string;
   account_id: string;
@@ -633,6 +660,7 @@ export interface ConsentSignature {
   signer_name: string;
   signer_email: string;
   signature_storage_path: string;
+  signed_pdf_storage_path?: string | null;
   otp_verified_at: string;
   document_hash_at_signing: string;
   ip_address?: string | null;
@@ -642,8 +670,8 @@ export interface ConsentSignature {
 
 /** The emailed link + OTP mechanism. `otp_code_hash`/`otp_attempts`/
  *  `otp_verified_at`/`redeemed_at` are only ever written by the
- *  request_signature_otp/verify_signature_otp/submit_signature RPCs. */
-/** Points at exactly one signable target — consent_document_id XOR
+ *  request_signature_otp/verify_signature_otp/submit_signature RPCs.
+ *  Points at exactly one signable target — consent_document_id XOR
  *  clinical_note_id (migration 073's num_nonnulls check). */
 export interface SignatureRequest {
   id: string;

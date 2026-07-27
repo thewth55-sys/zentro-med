@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Loader2, Plus, Send } from "lucide-react";
+import { Download, Loader2, Plus, Send } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 import { Button } from "@/components/ui/button";
@@ -12,7 +12,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { createClient } from "@/lib/supabase/client";
 import { getClinicalPhotoUrl } from "@/lib/storage/clinical-photos";
-import type { ConsentDocument, ConsentSignature, PatientProfile } from "@/types";
+import { ConsentTemplateDialog } from "@/components/contacts/consent-template-dialog";
+import type { ConsentDocument, ConsentSignature, ConsentTemplate, PatientProfile } from "@/types";
 
 interface ConsentFormsTabProps {
   contactId: string;
@@ -44,11 +45,30 @@ export function ConsentFormsTab({ contactId }: ConsentFormsTabProps) {
   const [loading, setLoading] = useState(true);
   const [documents, setDocuments] = useState<ConsentDocumentWithSignature[]>([]);
   const [createOpen, setCreateOpen] = useState(false);
+  const [createMode, setCreateMode] = useState<"text" | "template">("text");
   const [draftTitle, setDraftTitle] = useState("");
   const [draftContent, setDraftContent] = useState("");
   const [creating, setCreating] = useState(false);
   const [sendingId, setSendingId] = useState<string | null>(null);
   const [signatureUrls, setSignatureUrls] = useState<Record<string, string | null>>({});
+  const [signedPdfUrls, setSignedPdfUrls] = useState<Record<string, string | null>>({});
+  const [templates, setTemplates] = useState<ConsentTemplate[]>([]);
+  const [loadingTemplates, setLoadingTemplates] = useState(false);
+  const [selectedTemplateId, setSelectedTemplateId] = useState("");
+  const [templateDialogOpen, setTemplateDialogOpen] = useState(false);
+
+  const fetchTemplates = useCallback(async () => {
+    setLoadingTemplates(true);
+    try {
+      const res = await fetch("/api/consent-templates");
+      const data = await res.json().catch(() => ({}));
+      setTemplates((data.templates ?? []) as ConsentTemplate[]);
+    } catch (err) {
+      console.error("Load consent templates error:", err);
+    } finally {
+      setLoadingTemplates(false);
+    }
+  }, []);
 
   const fetchDocuments = useCallback(async (patientProfileId: string) => {
     setLoading(true);
@@ -59,15 +79,20 @@ export function ConsentFormsTab({ contactId }: ConsentFormsTabProps) {
       setDocuments(docs);
 
       const urls: Record<string, string | null> = {};
+      const pdfUrls: Record<string, string | null> = {};
       await Promise.all(
         docs.map(async (doc) => {
           const sig = Array.isArray(doc.signature) ? doc.signature[0] : doc.signature;
           if (sig?.signature_storage_path) {
             urls[doc.id] = await getClinicalPhotoUrl(sig.signature_storage_path);
           }
+          if (sig?.signed_pdf_storage_path) {
+            pdfUrls[doc.id] = await getClinicalPhotoUrl(sig.signed_pdf_storage_path);
+          }
         }),
       );
       setSignatureUrls(urls);
+      setSignedPdfUrls(pdfUrls);
     } catch (err) {
       console.error("Load consent documents error:", err);
       toast.error(t("loadFailed"));
@@ -96,22 +121,36 @@ export function ConsentFormsTab({ contactId }: ConsentFormsTabProps) {
     };
   }, [contactId, supabase, fetchDocuments]);
 
+  function openCreateDialog() {
+    setCreateMode("text");
+    setSelectedTemplateId("");
+    setCreateOpen(true);
+    void fetchTemplates();
+  }
+
   async function handleCreate() {
     if (!profile) return;
-    if (!draftTitle.trim() || !draftContent.trim()) {
+
+    const body: Record<string, string> =
+      createMode === "template"
+        ? { patientProfileId: profile.id, templateId: selectedTemplateId }
+        : { patientProfileId: profile.id, title: draftTitle.trim(), content: draftContent.trim() };
+
+    if (createMode === "template" && !selectedTemplateId) {
+      toast.error(t("templateRequired"));
+      return;
+    }
+    if (createMode === "text" && (!draftTitle.trim() || !draftContent.trim())) {
       toast.error(t("titleAndContentRequired"));
       return;
     }
+
     setCreating(true);
     try {
       const res = await fetch("/api/consent-documents", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          patientProfileId: profile.id,
-          title: draftTitle.trim(),
-          content: draftContent.trim(),
-        }),
+        body: JSON.stringify(body),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data?.error ?? "failed");
@@ -119,6 +158,7 @@ export function ConsentFormsTab({ contactId }: ConsentFormsTabProps) {
       setCreateOpen(false);
       setDraftTitle("");
       setDraftContent("");
+      setSelectedTemplateId("");
       await fetchDocuments(profile.id);
     } catch (err) {
       console.error("Create consent document error:", err);
@@ -163,7 +203,7 @@ export function ConsentFormsTab({ contactId }: ConsentFormsTabProps) {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">{t("title")}</p>
-        <Button size="sm" onClick={() => setCreateOpen(true)}>
+        <Button size="sm" onClick={openCreateDialog}>
           <Plus className="size-3.5" />
           {t("newDocument")}
         </Button>
@@ -201,10 +241,21 @@ export function ConsentFormsTab({ contactId }: ConsentFormsTabProps) {
                         className="h-12 w-24 rounded border border-border bg-white object-contain"
                       />
                     )}
-                    <div className="min-w-0 text-xs text-muted-foreground">
+                    <div className="min-w-0 flex-1 text-xs text-muted-foreground">
                       <p className="truncate text-foreground">{signature.signer_name}</p>
                       <p>{new Date(signature.signed_at).toLocaleString()}</p>
                     </div>
+                    {signedPdfUrls[doc.id] && (
+                      <a
+                        href={signedPdfUrls[doc.id]!}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="flex shrink-0 items-center gap-1 text-xs font-medium text-primary hover:underline"
+                      >
+                        <Download className="size-3.5" />
+                        {t("downloadSignedPdf")}
+                      </a>
+                    )}
                   </div>
                 ) : (
                   <Button
@@ -233,23 +284,83 @@ export function ConsentFormsTab({ contactId }: ConsentFormsTabProps) {
             <DialogTitle>{t("newDocumentTitle")}</DialogTitle>
           </DialogHeader>
           <div className="space-y-3">
-            <div className="space-y-1.5">
-              <Label className="text-xs text-muted-foreground">{t("docTitleLabel")}</Label>
-              <Input
-                value={draftTitle}
-                onChange={(e) => setDraftTitle(e.target.value)}
-                placeholder={t("docTitlePlaceholder")}
-              />
+            <div className="flex gap-1.5 rounded-md bg-muted p-1">
+              <button
+                type="button"
+                onClick={() => setCreateMode("text")}
+                className={`flex-1 rounded px-2 py-1.5 text-xs font-medium transition-colors ${
+                  createMode === "text" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground"
+                }`}
+              >
+                {t("modeText")}
+              </button>
+              <button
+                type="button"
+                onClick={() => setCreateMode("template")}
+                className={`flex-1 rounded px-2 py-1.5 text-xs font-medium transition-colors ${
+                  createMode === "template" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground"
+                }`}
+              >
+                {t("modeTemplate")}
+              </button>
             </div>
-            <div className="space-y-1.5">
-              <Label className="text-xs text-muted-foreground">{t("docContentLabel")}</Label>
-              <Textarea
-                value={draftContent}
-                onChange={(e) => setDraftContent(e.target.value)}
-                rows={8}
-                className="text-sm"
-              />
-            </div>
+
+            {createMode === "text" ? (
+              <>
+                <div className="space-y-1.5">
+                  <Label className="text-xs text-muted-foreground">{t("docTitleLabel")}</Label>
+                  <Input
+                    value={draftTitle}
+                    onChange={(e) => setDraftTitle(e.target.value)}
+                    placeholder={t("docTitlePlaceholder")}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs text-muted-foreground">{t("docContentLabel")}</Label>
+                  <Textarea
+                    value={draftContent}
+                    onChange={(e) => setDraftContent(e.target.value)}
+                    rows={8}
+                    className="text-sm"
+                  />
+                </div>
+              </>
+            ) : (
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <Label className="text-xs text-muted-foreground">{t("templateLabel")}</Label>
+                  <button
+                    type="button"
+                    onClick={() => setTemplateDialogOpen(true)}
+                    className="text-xs font-medium text-primary hover:underline"
+                  >
+                    {t("newTemplate")}
+                  </button>
+                </div>
+                {loadingTemplates ? (
+                  <div className="flex justify-center py-4">
+                    <Loader2 className="size-4 animate-spin text-muted-foreground" />
+                  </div>
+                ) : templates.length === 0 ? (
+                  <p className="rounded-md border border-dashed border-border py-4 text-center text-xs text-muted-foreground">
+                    {t("noTemplates")}
+                  </p>
+                ) : (
+                  <select
+                    value={selectedTemplateId}
+                    onChange={(e) => setSelectedTemplateId(e.target.value)}
+                    className="h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm"
+                  >
+                    <option value="">{t("selectTemplate")}</option>
+                    {templates.map((tpl) => (
+                      <option key={tpl.id} value={tpl.id}>
+                        {tpl.name}
+                      </option>
+                    ))}
+                  </select>
+                )}
+              </div>
+            )}
           </div>
           <DialogFooter>
             <Button variant="outline" size="sm" onClick={() => setCreateOpen(false)} disabled={creating}>
@@ -262,6 +373,15 @@ export function ConsentFormsTab({ contactId }: ConsentFormsTabProps) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <ConsentTemplateDialog
+        open={templateDialogOpen}
+        onOpenChange={setTemplateDialogOpen}
+        onCreated={(tpl) => {
+          setTemplates((prev) => [tpl, ...prev]);
+          setSelectedTemplateId(tpl.id);
+        }}
+      />
     </div>
   );
 }

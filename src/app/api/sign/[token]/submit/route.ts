@@ -14,7 +14,12 @@ import { hashSignatureToken } from "@/lib/signatures/tokens";
 import { checkRateLimit, getClientIp, rateLimitResponse, RATE_LIMITS } from "@/lib/rate-limit";
 import { createClient } from "@/lib/supabase/server";
 import { supabaseAdmin } from "@/lib/billing-platform/admin-client";
-import { uploadSignatureImage } from "@/lib/storage/clinical-photos";
+import {
+  CLINICAL_PHOTOS_BUCKET,
+  downloadClinicalPhotoAdmin,
+  uploadSignatureImage,
+} from "@/lib/storage/clinical-photos";
+import { stampSignatureOntoPdf } from "@/lib/pdf/stamp-signature";
 
 export async function POST(
   request: Request,
@@ -48,7 +53,7 @@ export async function POST(
   const admin = supabaseAdmin();
   const { data: req, error: reqErr } = await admin
     .from("signature_requests")
-    .select("account_id, consent_document_id, expires_at, redeemed_at")
+    .select("account_id, consent_document_id, clinical_note_id, expires_at, redeemed_at")
     .eq("token_hash", tokenHash)
     .maybeSingle();
   if (reqErr || !req) {
@@ -66,13 +71,57 @@ export async function POST(
     return NextResponse.json({ ok: false, reason: "empty_signature" });
   }
 
+  // Either id uniquely identifies the target — used only to namespace
+  // the signature image's own path, not which table gets the row
+  // (submit_signature decides that from signature_requests itself).
+  const targetId = req.consent_document_id ?? req.clinical_note_id;
+
   let storagePath: string;
   try {
-    const { path } = await uploadSignatureImage(req.account_id, req.consent_document_id, pngBuffer);
+    const { path } = await uploadSignatureImage(req.account_id, targetId, pngBuffer);
     storagePath = path;
   } catch (err) {
     console.error("[sign/submit] upload error:", err);
     return NextResponse.json({ ok: false, reason: "upload_failed" }, { status: 500 });
+  }
+
+  // PDF-sourced consent documents get the signature stamped directly
+  // onto a copy of the actual PDF — the resulting file is the artifact
+  // of record, in addition to the signature image row.
+  let signedPdfStoragePath: string | null = null;
+  if (req.consent_document_id) {
+    const { data: doc } = await admin
+      .from("consent_documents")
+      .select("source_type, pdf_storage_path, stamp_page_number, stamp_x_fraction, stamp_y_fraction")
+      .eq("id", req.consent_document_id)
+      .maybeSingle();
+
+    if (doc?.source_type === "pdf" && doc.pdf_storage_path) {
+      try {
+        const originalPdf = await downloadClinicalPhotoAdmin(doc.pdf_storage_path);
+        const stampedPdf = await stampSignatureOntoPdf({
+          pdfBytes: originalPdf,
+          signaturePngBytes: pngBuffer,
+          signerName,
+          signedAt: new Date(),
+          pageNumber: doc.stamp_page_number ?? 1,
+          xFraction: doc.stamp_x_fraction ?? 0.55,
+          yFraction: doc.stamp_y_fraction ?? 0.12,
+        });
+        signedPdfStoragePath = `account-${req.account_id}/signatures/${req.consent_document_id}-signed.pdf`;
+        const { error: uploadErr } = await admin.storage
+          .from(CLINICAL_PHOTOS_BUCKET)
+          .upload(signedPdfStoragePath, Buffer.from(stampedPdf), {
+            cacheControl: "3600",
+            upsert: false,
+            contentType: "application/pdf",
+          });
+        if (uploadErr) throw new Error(uploadErr.message);
+      } catch (err) {
+        console.error("[sign/submit] pdf stamping error:", err);
+        return NextResponse.json({ ok: false, reason: "pdf_stamp_failed" }, { status: 500 });
+      }
+    }
   }
 
   const supabase = await createClient();
@@ -82,6 +131,7 @@ export async function POST(
     p_signature_storage_path: storagePath,
     p_ip_address: ip,
     p_user_agent: request.headers.get("user-agent") ?? null,
+    p_signed_pdf_storage_path: signedPdfStoragePath,
   });
 
   if (error) {
