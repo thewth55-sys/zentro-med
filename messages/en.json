@@ -560,6 +560,9 @@
         "bloodType": "Blood type",
         "assignedDoctor": "Assigned doctor",
         "selectDoctor": "Select a doctor…",
+        "linkedAppointment": "Linked appointment",
+        "noLinkedAppointment": "No linked appointment",
+        "linkedAppointmentHint": "Can't be changed after the note is saved.",
         "allergies": "Allergies",
         "allergiesPlaceholder": "e.g. Penicillin",
         "chronicConditions": "Chronic conditions",
@@ -698,7 +701,23 @@
       },
       "appointmentsTab": {
         "empty": "No appointments yet.",
-        "loadFailed": "Failed to load appointment history"
+        "loadFailed": "Failed to load appointment history",
+        "viewDocuments": "View linked documents →",
+        "documents": {
+          "loadFailed": "Failed to load this appointment's documents",
+          "linkFailed": "Failed to link the document",
+          "unlinkFailed": "Failed to unlink the document",
+          "noneLinked": "Nothing linked yet.",
+          "selectExisting": "Select an existing one…",
+          "link": "Link",
+          "photosAndFiles": "Photos and files",
+          "quotes": "Quotes",
+          "invoices": "Invoices",
+          "consents": "Informed consents",
+          "clinicalNotes": "Clinical notes",
+          "clinicalNotesHint": "Clinical notes can only be linked when created (Médico tab), not afterward.",
+          "noProfileHint": "This contact has no medical profile yet — only invoices and quotes can be linked."
+        }
       },
       "billingTab": {
         "invoices": "Invoices",

@@ -13,6 +13,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { getClinicalPhotoUrl } from "@/lib/storage/clinical-photos";
 import type {
+  Appointment,
   ClinicalNote,
   ClinicalNoteAddendum,
   ClinicalNoteSignature,
@@ -39,6 +40,7 @@ export function MedicalTab({ contactId }: MedicalTabProps) {
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<PatientProfile | null>(null);
   const [doctors, setDoctors] = useState<Doctor[]>([]);
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [notes, setNotes] = useState<ClinicalNote[]>([]);
   const [addendaByNote, setAddendaByNote] = useState<Record<string, ClinicalNoteAddendum[]>>({});
   const [signaturesByNote, setSignaturesByNote] = useState<Record<string, ClinicalNoteSignature>>({});
@@ -72,6 +74,7 @@ export function MedicalTab({ contactId }: MedicalTabProps) {
   const [chiefComplaint, setChiefComplaint] = useState("");
   const [findingsAndPlan, setFindingsAndPlan] = useState("");
   const [noteDoctorId, setNoteDoctorId] = useState("");
+  const [noteAppointmentId, setNoteAppointmentId] = useState("");
   const [savingNote, setSavingNote] = useState(false);
 
   // Addendum forms, keyed by clinical_note_id
@@ -141,14 +144,21 @@ export function MedicalTab({ contactId }: MedicalTabProps) {
     let cancelled = false;
     (async () => {
       setLoading(true);
-      const [profileRes, doctorsRes] = await Promise.all([
+      const [profileRes, doctorsRes, appointmentsRes] = await Promise.all([
         supabase.from("patient_profiles").select("*").eq("contact_id", contactId).maybeSingle(),
         supabase.from("doctors").select("*").eq("is_active", true).order("name"),
+        supabase
+          .from("appointments")
+          .select("id, start_at, status")
+          .eq("contact_id", contactId)
+          .order("start_at", { ascending: false })
+          .limit(30),
       ]);
       if (cancelled) return;
       const p = (profileRes.data ?? null) as PatientProfile | null;
       setProfile(p);
       setDoctors((doctorsRes.data ?? []) as Doctor[]);
+      setAppointments((appointmentsRes.data ?? []) as Appointment[]);
       if (p) {
         setBloodType(p.blood_type ?? "");
         setAllergies(p.allergies ?? "");
@@ -258,6 +268,7 @@ export function MedicalTab({ contactId }: MedicalTabProps) {
         account_id: accountId,
         patient_profile_id: profile.id,
         doctor_id: noteDoctorId || null,
+        appointment_id: noteAppointmentId || null,
         chief_complaint: chiefComplaint.trim(),
         findings_and_plan: findingsAndPlan.trim(),
         created_by: session?.user?.id ?? null,
@@ -267,6 +278,7 @@ export function MedicalTab({ contactId }: MedicalTabProps) {
       setChiefComplaint("");
       setFindingsAndPlan("");
       setNoteDoctorId("");
+      setNoteAppointmentId("");
       setNoteFormOpen(false);
       await fetchNotes(profile.id);
     } catch (err) {
@@ -490,6 +502,22 @@ export function MedicalTab({ contactId }: MedicalTabProps) {
                   </option>
                 ))}
               </select>
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs text-muted-foreground">{t("linkedAppointment")}</Label>
+              <select
+                value={noteAppointmentId}
+                onChange={(e) => setNoteAppointmentId(e.target.value)}
+                className="h-8 w-full rounded-md border border-border bg-muted px-2 text-xs text-foreground outline-none focus:border-primary"
+              >
+                <option value="">{t("noLinkedAppointment")}</option>
+                {appointments.map((a) => (
+                  <option key={a.id} value={a.id}>
+                    {dateFormatter.format(new Date(a.start_at))}
+                  </option>
+                ))}
+              </select>
+              <p className="text-[11px] text-muted-foreground">{t("linkedAppointmentHint")}</p>
             </div>
             <div className="space-y-1.5">
               <Label className="text-xs text-muted-foreground">{t("chiefComplaint")}</Label>

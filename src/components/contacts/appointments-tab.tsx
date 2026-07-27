@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { CalendarClock, Loader2 } from "lucide-react";
 import { useTranslations } from "next-intl";
 
+import { AppointmentDocumentsDialog } from "@/components/agenda/appointment-documents-dialog";
 import type { Appointment, AppointmentStatus } from "@/types";
 
 interface AppointmentsTabProps {
@@ -31,6 +32,7 @@ export function AppointmentsTab({ contactId }: AppointmentsTabProps) {
 
   const [loading, setLoading] = useState(true);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
 
   const fetchAppointments = useCallback(async () => {
     setLoading(true);
@@ -76,7 +78,12 @@ export function AppointmentsTab({ contactId }: AppointmentsTabProps) {
   return (
     <div className="space-y-2">
       {appointments.map((appt) => (
-        <div key={appt.id} className="rounded-md border border-border bg-card px-3 py-2.5 text-sm">
+        <button
+          key={appt.id}
+          type="button"
+          onClick={() => setSelectedAppointment(appt)}
+          className="w-full rounded-md border border-border bg-card px-3 py-2.5 text-left text-sm hover:border-primary/50"
+        >
           <div className="flex items-center justify-between gap-2">
             <span className="font-medium text-foreground">
               {dateFormatter.format(new Date(appt.start_at))}
@@ -92,8 +99,18 @@ export function AppointmentsTab({ contactId }: AppointmentsTabProps) {
             {appt.doctor?.name || tAppt("noDoctor")} · {appt.room?.name || tAppt("noRoom")}
           </p>
           {appt.notes && <p className="mt-1 text-xs text-muted-foreground">{appt.notes}</p>}
-        </div>
+          <p className="mt-1 text-[11px] text-primary">{t("viewDocuments")}</p>
+        </button>
       ))}
+
+      {selectedAppointment && (
+        <AppointmentDocumentsDialog
+          open={!!selectedAppointment}
+          onOpenChange={(open) => !open && setSelectedAppointment(null)}
+          appointment={selectedAppointment}
+          contactId={contactId}
+        />
+      )}
     </div>
   );
 }

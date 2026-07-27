@@ -652,6 +652,8 @@ export interface ConsentDocument {
   pdf_hash?: string | null;
   stamp_fields?: StampField[] | null;
   status: ConsentDocumentStatus;
+  /** Migration 077 — optional link to the appointment this consent belongs to. */
+  appointment_id?: string | null;
   created_by?: string | null;
   created_at: string;
   updated_at: string;
@@ -1051,6 +1053,8 @@ export interface Quote {
   account_id: string;
   contact_id: string;
   deal_id: string | null;
+  /** Migration 077 — optional link to the appointment this quote belongs to. */
+  appointment_id?: string | null;
   quote_number: string;
   status: QuoteStatus;
   issue_date: string;
@@ -1097,6 +1101,8 @@ export interface Invoice {
   contact_id: string;
   deal_id: string | null;
   quote_id: string | null;
+  /** Migration 077 — optional link to the appointment this invoice belongs to. */
+  appointment_id?: string | null;
   invoice_number: string;
   status: InvoiceStatus;
   issue_date: string;

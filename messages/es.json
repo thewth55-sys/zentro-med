@@ -560,6 +560,9 @@
         "bloodType": "Tipo de sangre",
         "assignedDoctor": "Doctor asignado",
         "selectDoctor": "Selecciona un doctor…",
+        "linkedAppointment": "Cita asociada",
+        "noLinkedAppointment": "Sin cita asociada",
+        "linkedAppointmentHint": "No se puede cambiar después de guardar la nota.",
         "allergies": "Alergias",
         "allergiesPlaceholder": "ej. Penicilina",
         "chronicConditions": "Condiciones crónicas",
@@ -698,7 +701,23 @@
       },
       "appointmentsTab": {
         "empty": "Aún no hay citas.",
-        "loadFailed": "No se pudo cargar el historial de citas"
+        "loadFailed": "No se pudo cargar el historial de citas",
+        "viewDocuments": "Ver documentos asociados →",
+        "documents": {
+          "loadFailed": "No se pudieron cargar los documentos de la cita",
+          "linkFailed": "No se pudo asociar el documento",
+          "unlinkFailed": "No se pudo desasociar el documento",
+          "noneLinked": "Nada asociado todavía.",
+          "selectExisting": "Selecciona uno existente…",
+          "link": "Asociar",
+          "photosAndFiles": "Fotos y archivos",
+          "quotes": "Cotizaciones",
+          "invoices": "Facturas",
+          "consents": "Consentimientos informados",
+          "clinicalNotes": "Notas de evolución",
+          "clinicalNotesHint": "Las notas de evolución solo se pueden asociar al crearlas (pestaña Médico), no después.",
+          "noProfileHint": "Este contacto aún no tiene un perfil médico — solo se pueden asociar facturas y cotizaciones."
+        }
       },
       "billingTab": {
         "invoices": "Facturas",
