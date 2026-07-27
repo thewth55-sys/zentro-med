@@ -13,6 +13,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "
 import { createClient } from "@/lib/supabase/client";
 import { getClinicalPhotoUrl } from "@/lib/storage/clinical-photos";
 import { ConsentTemplateDialog } from "@/components/contacts/consent-template-dialog";
+import { PdfViewer } from "@/components/pdf/pdf-viewer";
 import type { ConsentDocument, ConsentSignature, ConsentTemplate, PatientProfile } from "@/types";
 
 interface ConsentFormsTabProps {
@@ -56,6 +57,7 @@ export function ConsentFormsTab({ contactId }: ConsentFormsTabProps) {
   const [loadingTemplates, setLoadingTemplates] = useState(false);
   const [selectedTemplateId, setSelectedTemplateId] = useState("");
   const [templateDialogOpen, setTemplateDialogOpen] = useState(false);
+  const [viewDoc, setViewDoc] = useState<ConsentDocumentWithSignature | null>(null);
 
   const fetchTemplates = useCallback(async () => {
     setLoadingTemplates(true);
@@ -232,7 +234,11 @@ export function ConsentFormsTab({ contactId }: ConsentFormsTabProps) {
                 </div>
 
                 {signature ? (
-                  <div className="flex items-center gap-3 rounded-md border border-border bg-card p-2">
+                  <button
+                    type="button"
+                    onClick={() => setViewDoc(doc)}
+                    className="flex w-full items-center gap-3 rounded-md border border-border bg-card p-2 text-left hover:border-primary/50"
+                  >
                     {signatureUrls[doc.id] && (
                       // eslint-disable-next-line @next/next/no-img-element -- signed URL to a private bucket
                       <img
@@ -244,19 +250,9 @@ export function ConsentFormsTab({ contactId }: ConsentFormsTabProps) {
                     <div className="min-w-0 flex-1 text-xs text-muted-foreground">
                       <p className="truncate text-foreground">{signature.signer_name}</p>
                       <p>{new Date(signature.signed_at).toLocaleString()}</p>
+                      <p className="mt-0.5 text-primary">{t("viewFull")}</p>
                     </div>
-                    {signedPdfUrls[doc.id] && (
-                      <a
-                        href={signedPdfUrls[doc.id]!}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="flex shrink-0 items-center gap-1 text-xs font-medium text-primary hover:underline"
-                      >
-                        <Download className="size-3.5" />
-                        {t("downloadSignedPdf")}
-                      </a>
-                    )}
-                  </div>
+                  </button>
                 ) : (
                   <Button
                     size="sm"
@@ -382,6 +378,72 @@ export function ConsentFormsTab({ contactId }: ConsentFormsTabProps) {
           setSelectedTemplateId(tpl.id);
         }}
       />
+
+      <Dialog open={!!viewDoc} onOpenChange={(open) => !open && setViewDoc(null)}>
+        <DialogContent className="sm:max-w-2xl">
+          {viewDoc &&
+            (() => {
+              const signature = Array.isArray(viewDoc.signature) ? viewDoc.signature[0] : viewDoc.signature;
+              if (!signature) return null;
+              return (
+                <>
+                  <DialogHeader>
+                    <DialogTitle>{viewDoc.title}</DialogTitle>
+                  </DialogHeader>
+                  <div className="max-h-[75vh] space-y-4 overflow-y-auto pr-1">
+                    <div className="space-y-1">
+                      <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                        {t("signature")}
+                      </p>
+                      {signatureUrls[viewDoc.id] && (
+                        // eslint-disable-next-line @next/next/no-img-element -- signed URL to a private bucket
+                        <img
+                          src={signatureUrls[viewDoc.id]!}
+                          alt=""
+                          className="h-32 w-full max-w-xs rounded border border-border bg-white object-contain"
+                        />
+                      )}
+                      <p className="text-sm text-foreground">{signature.signer_name}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {new Date(signature.signed_at).toLocaleString()}
+                      </p>
+                    </div>
+
+                    <div className="space-y-1">
+                      <div className="flex items-center justify-between">
+                        <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                          {t("document")}
+                        </p>
+                        {signedPdfUrls[viewDoc.id] && (
+                          <a
+                            href={signedPdfUrls[viewDoc.id]!}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="flex items-center gap-1 text-xs font-medium text-primary hover:underline"
+                          >
+                            <Download className="size-3.5" />
+                            {t("downloadSignedPdf")}
+                          </a>
+                        )}
+                      </div>
+                      {viewDoc.source_type === "pdf" ? (
+                        signedPdfUrls[viewDoc.id] ? (
+                          <PdfViewer url={signedPdfUrls[viewDoc.id]!} width={560} />
+                        ) : (
+                          <p className="text-xs text-muted-foreground">{t("signedPdfUnavailable")}</p>
+                        )
+                      ) : (
+                        <div className="max-h-64 overflow-y-auto whitespace-pre-wrap rounded-md border border-border bg-muted/30 p-3 text-sm text-foreground">
+                          {viewDoc.content}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </>
+              );
+            })()}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

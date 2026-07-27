@@ -22,6 +22,7 @@ import { toast } from 'sonner';
 import { AlertTriangle, CheckCircle2, Loader2, ShieldCheck } from 'lucide-react';
 import SignaturePad from 'signature_pad';
 
+import { PdfViewer } from '@/components/pdf/pdf-viewer';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -222,7 +223,7 @@ export default function SignDocumentPage() {
           {(step === 'ready' || step === 'otp_sent') && (
             <>
               {pdfUrl ? (
-                <iframe src={pdfUrl} title={title} className="h-96 w-full rounded-md border border-border" />
+                <PdfViewer url={pdfUrl} width={440} />
               ) : (
                 <div className="max-h-64 overflow-y-auto whitespace-pre-wrap rounded-md border border-border bg-muted/30 p-3 text-sm text-foreground">
                   {content}
