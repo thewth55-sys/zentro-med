@@ -93,13 +93,16 @@ export async function uploadSignatureImage(
 /** Uploads a reusable PDF consent template (migration 074), from the
  *  browser client — staff are authenticated, so the normal "Members
  *  can upload" storage policy already covers this, same as
- *  uploadClinicalPhoto. */
+ *  uploadClinicalPhoto. Filename goes through buildMediaPath's
+ *  sanitizer (spaces/accents/parens in the original filename
+ *  otherwise trip Supabase Storage's "Invalid key" check). */
 export async function uploadConsentTemplatePdf(
   accountId: string,
   file: File,
 ): Promise<{ path: string }> {
   const supabase = createClient();
-  const path = `account-${accountId}/consent-templates/${Date.now()}-${file.name}`;
+  const accountScopedPath = buildMediaPath(accountId, file.name);
+  const path = accountScopedPath.replace(`account-${accountId}/`, `account-${accountId}/consent-templates/`);
   const { error } = await supabase.storage.from(BUCKET).upload(path, file, {
     cacheControl: "3600",
     upsert: false,
