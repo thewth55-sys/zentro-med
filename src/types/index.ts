@@ -612,13 +612,24 @@ export interface VisitPhoto {
 export type ConsentDocumentStatus = 'pending' | 'signed' | 'declined' | 'expired';
 export type ConsentDocumentSourceType = 'text' | 'pdf';
 
-export type StampFieldType = 'signature' | 'signer_name' | 'signed_date';
+export type StampFieldType = 'signature' | 'signer_name' | 'signed_date' | 'custom_text';
 
 /** One independently-positioned element stamped onto a PDF at signing
  *  time (migration 075) — `x`/`y` are page-relative fractions with a
- *  bottom-left origin, matching pdf-lib's coordinate system directly. */
+ *  bottom-left origin, matching pdf-lib's coordinate system directly.
+ *  `id` disambiguates same-type fields — only 'custom_text' ever has
+ *  more than one instance; the other three types are capped at one
+ *  each by the picker UI. `label`/`value` only apply to 'custom_text':
+ *  `label` is the prompt staff set once on the template (e.g.
+ *  "Procedimiento"); `value` is filled in per-patient when a document
+ *  is created from that template (see consent-forms-tab.tsx), then
+ *  stamped as-is at signing time — the other three types compute
+ *  their stamped text from the signer's name/the signing date instead. */
 export interface StampField {
+  id: string;
   type: StampFieldType;
+  label?: string;
+  value?: string;
   page: number;
   x: number;
   y: number;

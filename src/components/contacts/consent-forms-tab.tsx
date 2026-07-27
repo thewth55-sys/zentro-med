@@ -56,6 +56,7 @@ export function ConsentFormsTab({ contactId }: ConsentFormsTabProps) {
   const [templates, setTemplates] = useState<ConsentTemplate[]>([]);
   const [loadingTemplates, setLoadingTemplates] = useState(false);
   const [selectedTemplateId, setSelectedTemplateId] = useState("");
+  const [customFieldValues, setCustomFieldValues] = useState<Record<string, string>>({});
   const [templateDialogOpen, setTemplateDialogOpen] = useState(false);
   const [viewDoc, setViewDoc] = useState<ConsentDocumentWithSignature | null>(null);
 
@@ -126,17 +127,16 @@ export function ConsentFormsTab({ contactId }: ConsentFormsTabProps) {
   function openCreateDialog() {
     setCreateMode("text");
     setSelectedTemplateId("");
+    setCustomFieldValues({});
     setCreateOpen(true);
     void fetchTemplates();
   }
 
+  const selectedTemplate = templates.find((tpl) => tpl.id === selectedTemplateId);
+  const templateCustomFields = selectedTemplate?.stamp_fields?.filter((f) => f.type === "custom_text") ?? [];
+
   async function handleCreate() {
     if (!profile) return;
-
-    const body: Record<string, string> =
-      createMode === "template"
-        ? { patientProfileId: profile.id, templateId: selectedTemplateId }
-        : { patientProfileId: profile.id, title: draftTitle.trim(), content: draftContent.trim() };
 
     if (createMode === "template" && !selectedTemplateId) {
       toast.error(t("templateRequired"));
@@ -146,6 +146,15 @@ export function ConsentFormsTab({ contactId }: ConsentFormsTabProps) {
       toast.error(t("titleAndContentRequired"));
       return;
     }
+    if (createMode === "template" && templateCustomFields.some((f) => !customFieldValues[f.id]?.trim())) {
+      toast.error(t("customFieldsRequired"));
+      return;
+    }
+
+    const body: Record<string, unknown> =
+      createMode === "template"
+        ? { patientProfileId: profile.id, templateId: selectedTemplateId, customFieldValues }
+        : { patientProfileId: profile.id, title: draftTitle.trim(), content: draftContent.trim() };
 
     setCreating(true);
     try {
@@ -161,6 +170,7 @@ export function ConsentFormsTab({ contactId }: ConsentFormsTabProps) {
       setDraftTitle("");
       setDraftContent("");
       setSelectedTemplateId("");
+      setCustomFieldValues({});
       await fetchDocuments(profile.id);
     } catch (err) {
       console.error("Create consent document error:", err);
@@ -344,7 +354,10 @@ export function ConsentFormsTab({ contactId }: ConsentFormsTabProps) {
                 ) : (
                   <select
                     value={selectedTemplateId}
-                    onChange={(e) => setSelectedTemplateId(e.target.value)}
+                    onChange={(e) => {
+                      setSelectedTemplateId(e.target.value);
+                      setCustomFieldValues({});
+                    }}
                     className="h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm"
                   >
                     <option value="">{t("selectTemplate")}</option>
@@ -355,6 +368,17 @@ export function ConsentFormsTab({ contactId }: ConsentFormsTabProps) {
                     ))}
                   </select>
                 )}
+                {templateCustomFields.map((field) => (
+                  <div key={field.id} className="space-y-1">
+                    <Label className="text-xs text-muted-foreground">{field.label}</Label>
+                    <Input
+                      value={customFieldValues[field.id] ?? ""}
+                      onChange={(e) =>
+                        setCustomFieldValues((prev) => ({ ...prev, [field.id]: e.target.value }))
+                      }
+                    />
+                  </div>
+                ))}
               </div>
             )}
           </div>

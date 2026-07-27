@@ -630,6 +630,7 @@
         "noTemplates": "Aún no hay plantillas — crea una nueva.",
         "selectTemplate": "Selecciona una plantilla",
         "templateRequired": "Selecciona una plantilla",
+        "customFieldsRequired": "Completa todos los campos adicionales de la plantilla",
         "status": {
           "pending": "Pendiente",
           "signed": "Firmado",
@@ -645,8 +646,12 @@
           "invalidType": "Solo se admiten archivos PDF",
           "stampHint": "Haz clic en el botón del dato que quieres ubicar y luego haz clic sobre el PDF",
           "clickToPlace": "Haz clic en el PDF para ubicar: {field}",
+          "dragToReposition": "Arrastra un campo ya ubicado para moverlo.",
           "renderingPdf": "Cargando PDF…",
           "pageOf": "Página {page} de {total}",
+          "addCustomField": "+ Otro campo",
+          "customFieldLabelPlaceholder": "ej. Procedimiento",
+          "add": "Agregar",
           "field": {
             "signature": "Firma",
             "signer_name": "Nombre",

@@ -1,11 +1,15 @@
 // ============================================================
-// Server-side only — embeds a patient's signature image, name, and
-// signed date onto an existing PDF template, each at its own
-// independently-configured position (migration 075's
-// consent_templates/consent_documents.stamp_fields). Does NOT rewrite
-// any other text in the document — see migration 074's module comment
-// for why (PDFs aren't easily editable like a Word doc; only these
-// three elements' positions are configurable per template).
+// Server-side only — embeds a patient's signature image, name, signed
+// date, and any staff-defined custom text fields onto an existing PDF
+// template, each at its own independently-configured position
+// (migration 075's consent_templates/consent_documents.stamp_fields).
+// Does NOT rewrite any other text in the document — see migration
+// 074's module comment for why (PDFs aren't easily editable like a
+// Word doc; only these elements' positions are configurable per
+// template). custom_text fields carry their own `value`, filled in
+// per-patient when the document was created from the template (see
+// consent-forms-tab.tsx) — unlike signer_name/signed_date, which are
+// only known here, at signing time.
 // ============================================================
 
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
@@ -46,7 +50,8 @@ export async function stampSignatureOntoPdf(params: StampSignatureParams): Promi
       const sigHeight = (signatureImage.height / signatureImage.width) * sigWidth;
       page.drawImage(signatureImage, { x, y, width: sigWidth, height: sigHeight });
     } else {
-      const text = field.type === "signer_name" ? params.signerName : dateLabel;
+      const text =
+        field.type === "signer_name" ? params.signerName : field.type === "signed_date" ? dateLabel : field.value ?? "";
       page.drawText(text, { x, y, size: 8, font, color: rgb(0.25, 0.25, 0.25) });
     }
   }

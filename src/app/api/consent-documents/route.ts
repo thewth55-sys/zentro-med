@@ -19,6 +19,7 @@ import { NextResponse } from "next/server";
 
 import { requireRole, toErrorResponse } from "@/lib/auth/account";
 import { CLINICAL_PHOTOS_BUCKET } from "@/lib/storage/clinical-photos";
+import type { StampField } from "@/types";
 
 export async function GET(request: Request) {
   try {
@@ -70,6 +71,22 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: "Template not found" }, { status: 404 });
       }
 
+      const templateFields = (template.stamp_fields ?? []) as StampField[];
+      const customFieldValues = (body?.customFieldValues ?? {}) as Record<string, unknown>;
+      const customFields = templateFields.filter((f) => f.type === "custom_text");
+      for (const field of customFields) {
+        const value = customFieldValues[field.id];
+        if (typeof value !== "string" || !value.trim()) {
+          return NextResponse.json(
+            { error: `Falta un valor para el campo "${field.label}"` },
+            { status: 400 },
+          );
+        }
+      }
+      const documentFields: StampField[] = templateFields.map((f) =>
+        f.type === "custom_text" ? { ...f, value: (customFieldValues[f.id] as string).trim() } : f,
+      );
+
       const documentId = randomUUID();
       const destPath = `account-${accountId}/consent-documents/${documentId}.pdf`;
 
@@ -102,7 +119,7 @@ export async function POST(request: Request) {
           template_id: template.id,
           pdf_storage_path: destPath,
           pdf_hash: pdfHash,
-          stamp_fields: template.stamp_fields,
+          stamp_fields: documentFields,
           created_by: userId,
         })
         .select("*")

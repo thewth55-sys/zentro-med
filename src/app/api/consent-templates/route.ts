@@ -12,23 +12,31 @@ import { NextResponse } from "next/server";
 import { requireRole, toErrorResponse } from "@/lib/auth/account";
 import type { StampField, StampFieldType } from "@/types";
 
-const STAMP_FIELD_TYPES: StampFieldType[] = ["signature", "signer_name", "signed_date"];
+const STAMP_FIELD_TYPES: StampFieldType[] = ["signature", "signer_name", "signed_date", "custom_text"];
+const MAX_LABEL_LEN = 60;
 
 function parseStampFields(input: unknown): StampField[] | null {
   if (!Array.isArray(input) || input.length === 0) return null;
   const fields: StampField[] = [];
   for (const raw of input) {
     if (typeof raw !== "object" || raw === null) return null;
-    const { type, page, x, y } = raw as Record<string, unknown>;
+    const { id, type, label, page, x, y } = raw as Record<string, unknown>;
+    if (typeof id !== "string" || !id) return null;
     if (typeof type !== "string" || !STAMP_FIELD_TYPES.includes(type as StampFieldType)) return null;
     if (!Number.isInteger(page) || (page as number) < 1) return null;
     if (typeof x !== "number" || !(x >= 0 && x <= 1)) return null;
     if (typeof y !== "number" || !(y >= 0 && y <= 1)) return null;
-    fields.push({ type: type as StampFieldType, page: page as number, x, y });
+    let fieldLabel: string | undefined;
+    if (type === "custom_text") {
+      if (typeof label !== "string" || !label.trim()) return null;
+      fieldLabel = label.trim().slice(0, MAX_LABEL_LEN);
+    }
+    fields.push({ id, type: type as StampFieldType, label: fieldLabel, page: page as number, x, y });
   }
   // A signature image is the one legally-required element (Ley 527 /
-  // Decreto 2364 — see migration 072's module comment); name/date are
-  // optional extra context staff can place wherever they like.
+  // Decreto 2364 — see migration 072's module comment); name/date and
+  // any custom fields are optional extra context staff can place
+  // wherever they like.
   if (!fields.some((f) => f.type === "signature")) return null;
   return fields;
 }

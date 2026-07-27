@@ -630,6 +630,7 @@
         "noTemplates": "No templates yet — create one.",
         "selectTemplate": "Select a template",
         "templateRequired": "Select a template",
+        "customFieldsRequired": "Fill in all of the template's extra fields",
         "status": {
           "pending": "Pending",
           "signed": "Signed",
@@ -645,8 +646,12 @@
           "invalidType": "Only PDF files are supported",
           "stampHint": "Click a field's button, then click on the PDF to place it",
           "clickToPlace": "Click on the PDF to place: {field}",
+          "dragToReposition": "Drag a placed field to move it.",
           "renderingPdf": "Loading PDF…",
           "pageOf": "Page {page} of {total}",
+          "addCustomField": "+ Other field",
+          "customFieldLabelPlaceholder": "e.g. Procedure",
+          "add": "Add",
           "field": {
             "signature": "Signature",
             "signer_name": "Name",
