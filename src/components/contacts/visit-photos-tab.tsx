@@ -40,6 +40,28 @@ function isImageType(contentType?: string | null): boolean {
   return !!contentType && contentType.startsWith("image/");
 }
 
+const EXTENSION_CONTENT_TYPES: Record<string, string> = {
+  png: "image/png",
+  jpg: "image/jpeg",
+  jpeg: "image/jpeg",
+  webp: "image/webp",
+  pdf: "application/pdf",
+  doc: "application/msword",
+  docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+};
+
+/** Files uploaded before migration 070 added file_name/content_type
+ *  have both columns NULL — fall back to what storage_path (which
+ *  always keeps the original extension, see buildMediaPath) can tell us. */
+function displayFile(file: VisitPhoto): { fileName: string | null; contentType: string | null } {
+  const baseName = file.storage_path.split("/").pop() ?? "";
+  const extension = baseName.split(".").pop()?.toLowerCase();
+  return {
+    fileName: file.file_name ?? (baseName || null),
+    contentType: file.content_type ?? (extension ? (EXTENSION_CONTENT_TYPES[extension] ?? null) : null),
+  };
+}
+
 /**
  * Archivos tab — durable file history per patient (photos, signed
  * PDFs, referral letters, etc.), uploaded to the private
@@ -211,31 +233,34 @@ export function VisitPhotosTab({ contactId }: VisitPhotosTabProps) {
         <p className="py-8 text-center text-sm text-muted-foreground">{t("empty")}</p>
       ) : (
         <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-5">
-          {files.map((file) => (
-            <button
-              key={file.id}
-              type="button"
-              onClick={() => openFile(file)}
-              title={file.file_name ?? undefined}
-              className="group flex flex-col gap-1 rounded-md text-left"
-            >
-              <div className="relative flex aspect-square items-center justify-center overflow-hidden rounded-md border border-border bg-muted group-hover:border-primary/50">
-                {isImageType(file.content_type) ? (
-                  file.url ? (
-                    // eslint-disable-next-line @next/next/no-img-element -- signed URL to a private bucket, not a Next-optimizable static asset
-                    <img src={file.url} alt="" className="size-full object-cover" />
+          {files.map((file) => {
+            const { fileName, contentType } = displayFile(file);
+            return (
+              <button
+                key={file.id}
+                type="button"
+                onClick={() => openFile(file)}
+                title={fileName ?? undefined}
+                className="group flex flex-col gap-1 rounded-md text-left"
+              >
+                <div className="relative flex aspect-square items-center justify-center overflow-hidden rounded-md border border-border bg-muted group-hover:border-primary/50">
+                  {isImageType(contentType) ? (
+                    file.url ? (
+                      // eslint-disable-next-line @next/next/no-img-element -- signed URL to a private bucket, not a Next-optimizable static asset
+                      <img src={file.url} alt="" className="size-full object-cover" />
+                    ) : (
+                      <Loader2 className="size-5 animate-spin text-muted-foreground" />
+                    )
                   ) : (
-                    <Loader2 className="size-5 animate-spin text-muted-foreground" />
-                  )
-                ) : (
-                  <FileText className="size-8 text-muted-foreground" />
-                )}
-              </div>
-              <p className="truncate px-0.5 text-[11px] text-foreground">
-                {file.file_name || t("untitledFile")}
-              </p>
-            </button>
-          ))}
+                    <FileText className="size-8 text-muted-foreground" />
+                  )}
+                </div>
+                <p className="truncate px-0.5 text-[11px] text-foreground">
+                  {fileName || t("untitledFile")}
+                </p>
+              </button>
+            );
+          })}
         </div>
       )}
 
@@ -274,7 +299,7 @@ export function VisitPhotosTab({ contactId }: VisitPhotosTabProps) {
           "Abrir" link instead since browsers can't preview those inline. */}
       <Dialog open={!!viewerFile} onOpenChange={(open) => !open && setViewerFile(null)}>
         <DialogContent className="sm:max-w-2xl">
-          {viewerFile && isImageType(viewerFile.content_type) ? (
+          {viewerFile && isImageType(displayFile(viewerFile).contentType) ? (
             viewerFile.url && (
               // eslint-disable-next-line @next/next/no-img-element -- signed URL to a private bucket
               <img src={viewerFile.url} alt="" className="max-h-[70vh] w-full rounded-md object-contain" />
@@ -283,7 +308,7 @@ export function VisitPhotosTab({ contactId }: VisitPhotosTabProps) {
             <div className="flex flex-col items-center gap-3 rounded-md border border-border bg-muted/30 py-10">
               <FileText className="size-10 text-muted-foreground" />
               <p className="max-w-full truncate px-4 text-sm text-foreground">
-                {viewerFile?.file_name || t("untitledFile")}
+                {(viewerFile && displayFile(viewerFile).fileName) || t("untitledFile")}
               </p>
               {viewerFile?.url && (
                 <a
