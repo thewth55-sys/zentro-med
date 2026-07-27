@@ -11,7 +11,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import type { ClinicalNote, ClinicalNoteAddendum, Doctor, PatientProfile } from "@/types";
+import { getClinicalPhotoUrl } from "@/lib/storage/clinical-photos";
+import type {
+  ClinicalNote,
+  ClinicalNoteAddendum,
+  ClinicalNoteSignature,
+  Doctor,
+  PatientProfile,
+} from "@/types";
 
 interface MedicalTabProps {
   contactId: string;
@@ -34,6 +41,9 @@ export function MedicalTab({ contactId }: MedicalTabProps) {
   const [doctors, setDoctors] = useState<Doctor[]>([]);
   const [notes, setNotes] = useState<ClinicalNote[]>([]);
   const [addendaByNote, setAddendaByNote] = useState<Record<string, ClinicalNoteAddendum[]>>({});
+  const [signaturesByNote, setSignaturesByNote] = useState<Record<string, ClinicalNoteSignature>>({});
+  const [signatureUrlsByNote, setSignatureUrlsByNote] = useState<Record<string, string | null>>({});
+  const [sendingSignatureFor, setSendingSignatureFor] = useState<string | null>(null);
 
   // Profile form state
   const [bloodType, setBloodType] = useState("");
@@ -90,10 +100,42 @@ export function MedicalTab({ contactId }: MedicalTabProps) {
           (grouped[a.clinical_note_id] ??= []).push(a);
         }
         setAddendaByNote(grouped);
+
+        const { data: signatures } = await supabase
+          .from("clinical_note_signatures")
+          .select("*")
+          .in("clinical_note_id", rows.map((n) => n.id));
+        const sigRows = (signatures ?? []) as ClinicalNoteSignature[];
+        const sigMap: Record<string, ClinicalNoteSignature> = {};
+        for (const s of sigRows) sigMap[s.clinical_note_id] = s;
+        setSignaturesByNote(sigMap);
+
+        const urls: Record<string, string | null> = {};
+        await Promise.all(
+          sigRows.map(async (s) => {
+            urls[s.clinical_note_id] = await getClinicalPhotoUrl(s.signature_storage_path);
+          }),
+        );
+        setSignatureUrlsByNote(urls);
       }
     },
     [supabase]
   );
+
+  async function handleSendForSignature(noteId: string) {
+    setSendingSignatureFor(noteId);
+    try {
+      const res = await fetch(`/api/clinical-notes/${noteId}/send-for-signature`, { method: "POST" });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data?.error ?? "failed");
+      toast.success(t("signatureRequestSent", { email: data.sentTo }));
+    } catch (err) {
+      console.error("Send note for signature error:", err);
+      toast.error(err instanceof Error ? err.message : t("signatureRequestFailed"));
+    } finally {
+      setSendingSignatureFor(null);
+    }
+  }
 
   useEffect(() => {
     let cancelled = false;
@@ -536,6 +578,36 @@ export function MedicalTab({ contactId }: MedicalTabProps) {
                   {t("addAddendum")}
                 </button>
               )}
+
+              <div className="mt-2.5 border-t border-border/60 pt-2.5">
+                {signaturesByNote[note.id] ? (
+                  <div className="flex items-center gap-2.5">
+                    {signatureUrlsByNote[note.id] && (
+                      // eslint-disable-next-line @next/next/no-img-element -- signed URL to a private bucket
+                      <img
+                        src={signatureUrlsByNote[note.id]!}
+                        alt=""
+                        className="h-9 w-16 shrink-0 rounded border border-border bg-white object-contain"
+                      />
+                    )}
+                    <p className="text-[11px] text-muted-foreground">
+                      {t("signedByPatient", {
+                        name: signaturesByNote[note.id].signer_name,
+                        date: dateFormatter.format(new Date(signaturesByNote[note.id].signed_at)),
+                      })}
+                    </p>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => handleSendForSignature(note.id)}
+                    disabled={sendingSignatureFor === note.id}
+                    className="text-xs text-primary hover:text-primary/80 disabled:opacity-50"
+                  >
+                    {sendingSignatureFor === note.id ? t("sendingSignatureRequest") : t("requestPatientSignature")}
+                  </button>
+                )}
+              </div>
             </div>
           ))}
         </div>

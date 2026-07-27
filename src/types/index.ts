@@ -537,6 +537,9 @@ export interface ClinicalNote {
   appointment_id: string | null;
   chief_complaint: string;
   findings_and_plan: string;
+  /** Generated column — SHA-256 of chief_complaint + findings_and_plan
+   *  (migration 073), snapshotted at patient-signing time. */
+  content_hash?: string;
   signed_at: string;
   created_by?: string | null;
   created_at: string;
@@ -640,10 +643,13 @@ export interface ConsentSignature {
 /** The emailed link + OTP mechanism. `otp_code_hash`/`otp_attempts`/
  *  `otp_verified_at`/`redeemed_at` are only ever written by the
  *  request_signature_otp/verify_signature_otp/submit_signature RPCs. */
+/** Points at exactly one signable target — consent_document_id XOR
+ *  clinical_note_id (migration 073's num_nonnulls check). */
 export interface SignatureRequest {
   id: string;
   account_id: string;
-  consent_document_id: string;
+  consent_document_id?: string | null;
+  clinical_note_id?: string | null;
   token_hash: string;
   delivered_to_email: string;
   otp_expires_at?: string | null;
@@ -653,6 +659,22 @@ export interface SignatureRequest {
   expires_at: string;
   created_by?: string | null;
   created_at: string;
+}
+
+/** Read-only from the client — every row is written by
+ *  submit_signature() (migration 073), never a direct insert. */
+export interface ClinicalNoteSignature {
+  id: string;
+  account_id: string;
+  clinical_note_id: string;
+  signer_name: string;
+  signer_email: string;
+  signature_storage_path: string;
+  otp_verified_at: string;
+  document_hash_at_signing: string;
+  ip_address?: string | null;
+  user_agent?: string | null;
+  signed_at: string;
 }
 
 export type BroadcastStatus = 'draft' | 'scheduled' | 'sending' | 'sent' | 'failed';
