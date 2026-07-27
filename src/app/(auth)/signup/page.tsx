@@ -98,11 +98,17 @@ function SignupPageInner() {
     //     StartCheckoutRedirect sends them straight into Stripe
     //     Checkout instead of the empty trial dashboard
     //   - plain trial   → /dashboard
-    const next = inviteToken
+    const rawNext = inviteToken
       ? `/join/${encodeURIComponent(inviteToken)}`
       : purchasePlan
         ? `/dashboard?startCheckout=${purchasePlan}`
         : "/dashboard";
+    // Flags the destination so it shows a "your account is confirmed"
+    // toast (see AuthConfirmedToast in the root layout) — baked in
+    // here, not in /auth/callback itself, since that route is shared
+    // with password-reset and impersonation links that shouldn't get
+    // this toast.
+    const next = `${rawNext}${rawNext.includes("?") ? "&" : "?"}auth=confirmed`;
     const emailRedirectTo = `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`;
 
     const { data, error } = await supabase.auth.signUp({

@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
-import { Loader2, CalendarDays } from "lucide-react";
+import { Loader2, CalendarDays, Plus } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
@@ -15,6 +15,7 @@ import esLocale from "@fullcalendar/core/locales/es";
 
 import { createClient } from "@/lib/supabase/client";
 import { useCan } from "@/hooks/use-can";
+import { Button } from "@/components/ui/button";
 import type { Appointment, AppointmentStatus, Doctor, DoctorAvailabilityBlock, Room, ServiceType } from "@/types";
 import { AppointmentEditorDialog, type AppointmentDraft } from "./appointment-editor-dialog";
 
@@ -34,6 +35,20 @@ function colorForDoctor(doctorId: string): string {
   let hash = 0;
   for (let i = 0; i < doctorId.length; i++) hash = (hash * 31 + doctorId.charCodeAt(i)) >>> 0;
   return AVAILABILITY_PALETTE[hash % AVAILABILITY_PALETTE.length];
+}
+
+// Used by the "Nueva cita" button (see openCreateDraft below) — mobile
+// touch devices don't reliably trigger FullCalendar's drag-to-select
+// (it needs a long-press before a drag starts, which isn't obvious),
+// so a plain button that opens the same create dialog with a sensible
+// default time is the reliable path on a phone.
+function roundToNextHalfHour(d: Date): Date {
+  const result = new Date(d);
+  result.setSeconds(0, 0);
+  const minutes = result.getMinutes();
+  const add = minutes === 0 ? 0 : minutes <= 30 ? 30 - minutes : 60 - minutes;
+  result.setMinutes(minutes + add);
+  return result;
 }
 
 interface CalendarEvent {
@@ -267,6 +282,20 @@ export function AgendaCalendarView() {
     }
   }
 
+  function openCreateDraft() {
+    if (!canEdit) return;
+    const startAt = roundToNextHalfHour(new Date());
+    const endAt = new Date(startAt.getTime() + 30 * 60_000);
+    setDraft({
+      mode: "create",
+      startAt: startAt.toISOString(),
+      endAt: endAt.toISOString(),
+      doctorId: doctorFilter || undefined,
+      roomId: roomFilter || undefined,
+    });
+    setEditorOpen(true);
+  }
+
   function handleSelect(info: { startStr: string; endStr: string; view: { calendar: { unselect: () => void } } }) {
     if (!canEdit) return;
     setDraft({
@@ -321,6 +350,16 @@ export function AgendaCalendarView() {
           ))}
         </select>
         {loading && <Loader2 className="size-4 animate-spin text-muted-foreground" />}
+        {canEdit && (
+          <Button
+            size="sm"
+            onClick={openCreateDraft}
+            className="ml-auto bg-primary text-primary-foreground hover:bg-primary/90"
+          >
+            <Plus className="size-3.5" />
+            {t("newAppointment")}
+          </Button>
+        )}
       </div>
 
       <div className="overflow-x-hidden rounded-lg border border-border bg-card p-2 sm:p-3">

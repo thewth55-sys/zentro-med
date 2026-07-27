@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import type { Metadata, Viewport } from "next";
 import { NextIntlClientProvider } from 'next-intl';
 import { getLocale, getMessages } from 'next-intl/server';
@@ -8,6 +9,7 @@ import { ThemeProvider } from "@/hooks/use-theme";
 import { ThemedToaster } from "@/components/themed-toaster";
 import { PwaRegister } from "@/components/pwa-register";
 import { ZohoDeskWidget } from "@/components/zoho-desk-widget";
+import { AuthConfirmedToast } from "@/components/auth/auth-confirmed-toast";
 import {
   DEFAULT_MODE,
   DEFAULT_THEME,
@@ -128,6 +130,9 @@ export default async function RootLayout({
             {children}
             <ThemedToaster />
             <PwaRegister />
+            <Suspense fallback={null}>
+              <AuthConfirmedToast />
+            </Suspense>
           </ThemeProvider>
         </NextIntlClientProvider>
         <ZohoDeskWidget />

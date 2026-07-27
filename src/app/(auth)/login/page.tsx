@@ -40,7 +40,14 @@ function LoginPageInner() {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState<string | null>(null);
+  // Surfaces /auth/callback's failure redirect (expired/invalid
+  // confirmation, password-reset, or impersonation link) instead of
+  // silently dropping the ?error= param on a blank login page.
+  const [error, setError] = useState<string | null>(() =>
+    searchParams.get("error") === "auth_callback_failed"
+      ? t("authCallbackFailedError")
+      : null,
+  );
   const [loading, setLoading] = useState(false);
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
   const captchaRequired = Boolean(process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY);

@@ -4,6 +4,7 @@
     "titleWelcome": "Bienvenido de nuevo",
     "descAccept": "Inicia sesión y te llevaremos a la invitación.",
     "descWelcome": "Inicia sesión en tu cuenta",
+    "authCallbackFailedError": "El enlace de confirmación no es válido o ya expiró. Intenta iniciar sesión o solicita uno nuevo.",
     "emailLabel": "Correo electrónico",
     "emailPlaceholder": "tu@ejemplo.com",
     "passwordLabel": "Contraseña",
@@ -13,6 +14,9 @@
     "signIn": "Iniciar sesión",
     "noAccount": "¿No tienes una cuenta?",
     "createAccount": "Crear cuenta"
+  },
+  "Auth": {
+    "emailConfirmed": "¡Tu cuenta quedó confirmada!"
   },
   "SignupPage": {
     "title": "Crear cuenta",

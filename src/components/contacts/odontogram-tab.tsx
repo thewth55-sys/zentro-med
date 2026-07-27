@@ -51,6 +51,98 @@ const CONDITION_STYLE: Record<ToothCondition, string> = {
   bridge: "border-indigo-500 bg-indigo-500/20 text-indigo-600",
 };
 
+interface ToothButtonProps {
+  number: number;
+  tooth?: OdontogramTooth;
+  isOpen: boolean;
+  onOpenChange: (open: boolean) => void;
+  onOpenEditor: (toothNumber: number) => void;
+  draftCondition: ToothCondition;
+  onDraftConditionChange: (condition: ToothCondition) => void;
+  draftNotes: string;
+  onDraftNotesChange: (notes: string) => void;
+  onSave: () => void;
+  saving: boolean;
+  t: (key: string, values?: Record<string, string | number>) => string;
+}
+
+// Module-level, NOT declared inside OdontogramTab — a component
+// function created fresh on every parent render gets a new identity,
+// so React remounts it (and everything inside, including the
+// Textarea) instead of just re-rendering it. That was silently
+// dropping focus from the notes field after every keystroke, since
+// each setDraftNotes() call re-rendered OdontogramTab and therefore
+// redefined this component. Closure state (teeth, draftNotes, etc.)
+// is passed in as props instead.
+function ToothButton({
+  number,
+  tooth,
+  isOpen,
+  onOpenChange,
+  onOpenEditor,
+  draftCondition,
+  onDraftConditionChange,
+  draftNotes,
+  onDraftNotesChange,
+  onSave,
+  saving,
+  t,
+}: ToothButtonProps) {
+  const condition = tooth?.condition ?? "healthy";
+  return (
+    <Popover open={isOpen} onOpenChange={onOpenChange}>
+      <PopoverTrigger
+        render={
+          <button
+            type="button"
+            onClick={() => onOpenEditor(number)}
+            title={tooth?.notes ?? undefined}
+            className={cn(
+              "flex size-9 shrink-0 items-center justify-center rounded-md border text-[11px] font-medium transition-colors hover:opacity-80",
+              CONDITION_STYLE[condition],
+            )}
+          />
+        }
+      >
+        {number}
+      </PopoverTrigger>
+      <PopoverContent className="w-64 space-y-3">
+        <p className="text-sm font-medium text-popover-foreground">
+          {t("toothLabel", { number })}
+        </p>
+        <div className="space-y-1.5">
+          <Label className="text-xs text-muted-foreground">{t("condition")}</Label>
+          <Select value={draftCondition} onValueChange={(v) => v && onDraftConditionChange(v as ToothCondition)}>
+            <SelectTrigger className="h-8 text-sm">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {CONDITIONS.map((c) => (
+                <SelectItem key={c} value={c}>
+                  {t(`conditions.${c}`)}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-1.5">
+          <Label className="text-xs text-muted-foreground">{t("notes")}</Label>
+          <Textarea
+            value={draftNotes}
+            onChange={(e) => onDraftNotesChange(e.target.value)}
+            rows={2}
+            className="text-sm"
+          />
+        </div>
+        <Button size="sm" onClick={onSave} disabled={saving} className="w-full">
+          {saving ? <Loader2 className="size-3.5 animate-spin" /> : null}
+          {t("save")}
+        </Button>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
 /**
  * Odontograma tab — current per-tooth status chart. Only available
  * once the contact has a patient_profiles row (migration 038's "a
@@ -146,61 +238,23 @@ export function OdontogramTab({ contactId }: OdontogramTabProps) {
     }
   }
 
-  function ToothButton({ number }: { number: number }) {
-    const tooth = teeth[number];
-    const condition = tooth?.condition ?? "healthy";
-    return (
-      <Popover open={openTooth === number} onOpenChange={(open) => !open && setOpenTooth(null)}>
-        <PopoverTrigger
-          render={
-            <button
-              type="button"
-              onClick={() => openToothEditor(number)}
-              title={tooth?.notes ?? undefined}
-              className={cn(
-                "flex size-9 shrink-0 items-center justify-center rounded-md border text-[11px] font-medium transition-colors hover:opacity-80",
-                CONDITION_STYLE[condition],
-              )}
-            />
-          }
-        >
-          {number}
-        </PopoverTrigger>
-        <PopoverContent className="w-64 space-y-3">
-          <p className="text-sm font-medium text-popover-foreground">
-            {t("toothLabel", { number })}
-          </p>
-          <div className="space-y-1.5">
-            <Label className="text-xs text-muted-foreground">{t("condition")}</Label>
-            <Select value={draftCondition} onValueChange={(v) => v && setDraftCondition(v as ToothCondition)}>
-              <SelectTrigger className="h-8 text-sm">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {CONDITIONS.map((c) => (
-                  <SelectItem key={c} value={c}>
-                    {t(`conditions.${c}`)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="space-y-1.5">
-            <Label className="text-xs text-muted-foreground">{t("notes")}</Label>
-            <Textarea
-              value={draftNotes}
-              onChange={(e) => setDraftNotes(e.target.value)}
-              rows={2}
-              className="text-sm"
-            />
-          </div>
-          <Button size="sm" onClick={saveTooth} disabled={saving} className="w-full">
-            {saving ? <Loader2 className="size-3.5 animate-spin" /> : null}
-            {t("save")}
-          </Button>
-        </PopoverContent>
-      </Popover>
-    );
+  // Plain object builder, not a component — safe to recreate every
+  // render (unlike ToothButton itself, this never gets mounted as a
+  // JSX element type, so it has no remount-identity concern).
+  function toothButtonProps(number: number): Omit<ToothButtonProps, "number"> {
+    return {
+      tooth: teeth[number],
+      isOpen: openTooth === number,
+      onOpenChange: (open) => !open && setOpenTooth(null),
+      onOpenEditor: openToothEditor,
+      draftCondition,
+      onDraftConditionChange: setDraftCondition,
+      draftNotes,
+      onDraftNotesChange: setDraftNotes,
+      onSave: saveTooth,
+      saving,
+      t,
+    };
   }
 
   if (loading) {
@@ -224,20 +278,20 @@ export function OdontogramTab({ contactId }: OdontogramTabProps) {
       <div className="space-y-2 overflow-x-auto rounded-lg border border-border bg-muted/30 p-4">
         <div className="flex w-max items-center justify-center gap-1.5">
           {UPPER_RIGHT.map((n) => (
-            <ToothButton key={n} number={n} />
+            <ToothButton key={n} number={n} {...toothButtonProps(n)} />
           ))}
           <div className="mx-1 h-9 w-px bg-border" />
           {UPPER_LEFT.map((n) => (
-            <ToothButton key={n} number={n} />
+            <ToothButton key={n} number={n} {...toothButtonProps(n)} />
           ))}
         </div>
         <div className="flex w-max items-center justify-center gap-1.5">
           {LOWER_RIGHT.map((n) => (
-            <ToothButton key={n} number={n} />
+            <ToothButton key={n} number={n} {...toothButtonProps(n)} />
           ))}
           <div className="mx-1 h-9 w-px bg-border" />
           {LOWER_LEFT.map((n) => (
-            <ToothButton key={n} number={n} />
+            <ToothButton key={n} number={n} {...toothButtonProps(n)} />
           ))}
         </div>
       </div>

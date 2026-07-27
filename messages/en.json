@@ -4,6 +4,7 @@
     "titleWelcome": "Welcome back",
     "descAccept": "Sign in and we'll take you to the invitation.",
     "descWelcome": "Sign in to your account",
+    "authCallbackFailedError": "This confirmation link is invalid or expired. Try signing in or request a new one.",
     "emailLabel": "Email",
     "emailPlaceholder": "you@example.com",
     "passwordLabel": "Password",
@@ -13,6 +14,9 @@
     "signIn": "Sign in",
     "noAccount": "Don't have an account?",
     "createAccount": "Create account"
+  },
+  "Auth": {
+    "emailConfirmed": "Your account is confirmed!"
   },
   "SignupPage": {
     "title": "Create account",
