@@ -169,11 +169,7 @@ export function VisitPhotosTab({ contactId }: VisitPhotosTabProps) {
   }
 
   function openFile(file: FileWithUrl) {
-    if (isImageType(file.content_type)) {
-      setViewerFile(file);
-    } else if (file.url) {
-      window.open(file.url, "_blank", "noopener,noreferrer");
-    }
+    setViewerFile(file);
   }
 
   if (loading) {
@@ -214,37 +210,30 @@ export function VisitPhotosTab({ contactId }: VisitPhotosTabProps) {
       {files.length === 0 ? (
         <p className="py-8 text-center text-sm text-muted-foreground">{t("empty")}</p>
       ) : (
-        <div className="space-y-1.5">
+        <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-5">
           {files.map((file) => (
             <button
               key={file.id}
               type="button"
               onClick={() => openFile(file)}
-              className="flex w-full items-center gap-3 rounded-md border border-border bg-muted/30 p-2 text-left hover:bg-muted/60"
+              title={file.file_name ?? undefined}
+              className="group flex flex-col gap-1 rounded-md text-left"
             >
-              <div className="flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-md border border-border bg-muted">
+              <div className="relative flex aspect-square items-center justify-center overflow-hidden rounded-md border border-border bg-muted group-hover:border-primary/50">
                 {isImageType(file.content_type) ? (
                   file.url ? (
                     // eslint-disable-next-line @next/next/no-img-element -- signed URL to a private bucket, not a Next-optimizable static asset
                     <img src={file.url} alt="" className="size-full object-cover" />
                   ) : (
-                    <Loader2 className="size-4 animate-spin text-muted-foreground" />
+                    <Loader2 className="size-5 animate-spin text-muted-foreground" />
                   )
                 ) : (
-                  <FileText className="size-5 text-muted-foreground" />
+                  <FileText className="size-8 text-muted-foreground" />
                 )}
               </div>
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-sm text-foreground">
-                  {file.file_name || t("untitledFile")}
-                </p>
-                {file.caption && (
-                  <p className="truncate text-xs text-muted-foreground">{file.caption}</p>
-                )}
-              </div>
-              <span className="shrink-0 text-[11px] text-muted-foreground">
-                {new Date(file.created_at).toLocaleDateString()}
-              </span>
+              <p className="truncate px-0.5 text-[11px] text-foreground">
+                {file.file_name || t("untitledFile")}
+              </p>
             </button>
           ))}
         </div>
@@ -281,12 +270,32 @@ export function VisitPhotosTab({ contactId }: VisitPhotosTabProps) {
         </DialogContent>
       </Dialog>
 
-      {/* Image viewer */}
+      {/* File viewer — image preview inline, non-images (PDF/Word) get an
+          "Abrir" link instead since browsers can't preview those inline. */}
       <Dialog open={!!viewerFile} onOpenChange={(open) => !open && setViewerFile(null)}>
         <DialogContent className="sm:max-w-2xl">
-          {viewerFile?.url && (
-            // eslint-disable-next-line @next/next/no-img-element -- signed URL to a private bucket
-            <img src={viewerFile.url} alt="" className="max-h-[70vh] w-full rounded-md object-contain" />
+          {viewerFile && isImageType(viewerFile.content_type) ? (
+            viewerFile.url && (
+              // eslint-disable-next-line @next/next/no-img-element -- signed URL to a private bucket
+              <img src={viewerFile.url} alt="" className="max-h-[70vh] w-full rounded-md object-contain" />
+            )
+          ) : (
+            <div className="flex flex-col items-center gap-3 rounded-md border border-border bg-muted/30 py-10">
+              <FileText className="size-10 text-muted-foreground" />
+              <p className="max-w-full truncate px-4 text-sm text-foreground">
+                {viewerFile?.file_name || t("untitledFile")}
+              </p>
+              {viewerFile?.url && (
+                <a
+                  href={viewerFile.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs font-medium text-primary hover:text-primary/80"
+                >
+                  {t("open")}
+                </a>
+              )}
+            </div>
           )}
           <div className="flex items-center justify-between">
             <div className="min-w-0">

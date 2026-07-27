@@ -108,7 +108,20 @@ export async function POST(
       footerNote: `Enviado por ${brandName} a través de Zentro Med.`,
     });
 
-    await sendEmail({ to: contact.email, subject: `Documento para firmar — ${document.title}`, html });
+    try {
+      await sendEmail({ to: contact.email, subject: `Documento para firmar — ${document.title}`, html });
+    } catch (emailErr) {
+      console.error("[POST .../consent-documents/[id]/send] email send error:", emailErr);
+      return NextResponse.json(
+        {
+          error:
+            emailErr instanceof Error
+              ? `No se pudo enviar el correo: ${emailErr.message}`
+              : "No se pudo enviar el correo",
+        },
+        { status: 502 },
+      );
+    }
 
     return NextResponse.json({ ok: true, sentTo: contact.email, expiresAt: expiresAt.toISOString() });
   } catch (err) {

@@ -660,7 +660,8 @@
         "deleted": "Archivo eliminado",
         "deleteFailed": "Error al eliminar el archivo",
         "delete": "Eliminar",
-        "close": "Cerrar"
+        "close": "Cerrar",
+        "open": "Abrir"
       },
       "appointmentsTab": {
         "empty": "Aún no hay citas.",

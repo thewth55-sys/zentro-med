@@ -660,7 +660,8 @@
         "deleted": "File deleted",
         "deleteFailed": "Failed to delete the file",
         "delete": "Delete",
-        "close": "Close"
+        "close": "Close",
+        "open": "Open"
       },
       "appointmentsTab": {
         "empty": "No appointments yet.",
