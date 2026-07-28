@@ -37,6 +37,17 @@ import {
   X,
   DollarSign,
   LayoutTemplate,
+  User,
+  Tags,
+  StickyNote,
+  Stethoscope,
+  FileSignature,
+  Smile,
+  Image as ImageIcon,
+  CalendarClock,
+  Receipt,
+  Settings2,
+  Handshake,
 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { showsOdontogram } from '@/lib/specialties';
@@ -469,77 +480,58 @@ export function ContactDetailView({ contactId }: ContactDetailViewProps) {
             {/* Tabs */}
             <Tabs defaultValue="details" className="flex flex-col">
             <div className="relative mx-4 mt-3">
-              <TabsList className="w-full justify-start overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden bg-muted/50 border-b border-border pr-6">
-                <TabsTrigger
-                  value="details"
-                  className="data-active:bg-muted data-active:text-primary text-muted-foreground shrink-0"
-                >
+              <TabsList
+                variant="line"
+                className="group-data-horizontal/tabs:h-auto w-full justify-start gap-1 overflow-x-auto border-b border-border pr-6 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              >
+                <TabsTrigger value="details" className="h-auto shrink-0 gap-1.5 px-3 py-2.5 text-muted-foreground data-active:text-primary">
+                  <User className="size-4" />
                   {t('tabs.details')}
                 </TabsTrigger>
-                <TabsTrigger
-                  value="tags"
-                  className="data-active:bg-muted data-active:text-primary text-muted-foreground shrink-0"
-                >
+                <TabsTrigger value="tags" className="h-auto shrink-0 gap-1.5 px-3 py-2.5 text-muted-foreground data-active:text-primary">
+                  <Tags className="size-4" />
                   {t('tabs.tags')}
                 </TabsTrigger>
-                <TabsTrigger
-                  value="notes"
-                  className="data-active:bg-muted data-active:text-primary text-muted-foreground shrink-0"
-                >
+                <TabsTrigger value="notes" className="h-auto shrink-0 gap-1.5 px-3 py-2.5 text-muted-foreground data-active:text-primary">
+                  <StickyNote className="size-4" />
                   {t('tabs.notes')}
                 </TabsTrigger>
-                <TabsTrigger
-                  value="medical"
-                  className="data-active:bg-muted data-active:text-primary text-muted-foreground shrink-0"
-                >
+                <TabsTrigger value="medical" className="h-auto shrink-0 gap-1.5 px-3 py-2.5 text-muted-foreground data-active:text-primary">
+                  <Stethoscope className="size-4" />
                   {t('tabs.medical')}
                 </TabsTrigger>
-                <TabsTrigger
-                  value="consent"
-                  className="data-active:bg-muted data-active:text-primary text-muted-foreground shrink-0"
-                >
+                <TabsTrigger value="consent" className="h-auto shrink-0 gap-1.5 px-3 py-2.5 text-muted-foreground data-active:text-primary">
+                  <FileSignature className="size-4" />
                   {t('tabs.consent')}
                 </TabsTrigger>
                 {showOdontogram && (
-                  <TabsTrigger
-                    value="odontogram"
-                    className="data-active:bg-muted data-active:text-primary text-muted-foreground shrink-0"
-                  >
+                  <TabsTrigger value="odontogram" className="h-auto shrink-0 gap-1.5 px-3 py-2.5 text-muted-foreground data-active:text-primary">
+                    <Smile className="size-4" />
                     {t('tabs.odontogram')}
                   </TabsTrigger>
                 )}
-                <TabsTrigger
-                  value="photos"
-                  className="data-active:bg-muted data-active:text-primary text-muted-foreground shrink-0"
-                >
+                <TabsTrigger value="photos" className="h-auto shrink-0 gap-1.5 px-3 py-2.5 text-muted-foreground data-active:text-primary">
+                  <ImageIcon className="size-4" />
                   {t('tabs.photos')}
                 </TabsTrigger>
-                <TabsTrigger
-                  value="appointments"
-                  className="data-active:bg-muted data-active:text-primary text-muted-foreground shrink-0"
-                >
+                <TabsTrigger value="appointments" className="h-auto shrink-0 gap-1.5 px-3 py-2.5 text-muted-foreground data-active:text-primary">
+                  <CalendarClock className="size-4" />
                   {t('tabs.appointments')}
                 </TabsTrigger>
-                <TabsTrigger
-                  value="billing"
-                  className="data-active:bg-muted data-active:text-primary text-muted-foreground shrink-0"
-                >
+                <TabsTrigger value="billing" className="h-auto shrink-0 gap-1.5 px-3 py-2.5 text-muted-foreground data-active:text-primary">
+                  <Receipt className="size-4" />
                   {t('tabs.billing')}
                 </TabsTrigger>
-                <TabsTrigger
-                  value="custom"
-                  className="data-active:bg-muted data-active:text-primary text-muted-foreground shrink-0"
-                >
+                <TabsTrigger value="custom" className="h-auto shrink-0 gap-1.5 px-3 py-2.5 text-muted-foreground data-active:text-primary">
+                  <Settings2 className="size-4" />
                   {t('tabs.custom')}
                 </TabsTrigger>
-                <TabsTrigger
-                  value="deals"
-                  className="data-active:bg-muted data-active:text-primary text-muted-foreground shrink-0"
-                >
+                <TabsTrigger value="deals" className="h-auto shrink-0 gap-1.5 px-3 py-2.5 text-muted-foreground data-active:text-primary">
+                  <Handshake className="size-4" />
                   {t('tabs.deals')}
                 </TabsTrigger>
               </TabsList>
-              <div className="pointer-events-none absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-muted/80 to-transparent" />
+              <div className="pointer-events-none absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-popover to-transparent" />
             </div>
 
               {/* Details Tab */}

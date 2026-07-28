@@ -37,6 +37,7 @@ import { TodayAppointments } from '@/components/dashboard/today-appointments'
 import { NextAppointmentCard } from '@/components/dashboard/next-appointment-card'
 import { ResponseTimeChart } from '@/components/dashboard/response-time-chart'
 import { ActivityFeed } from '@/components/dashboard/activity-feed'
+import { AnnouncementsCarousel } from '@/components/dashboard/announcements-carousel'
 
 import { useTranslations } from 'next-intl'
 
@@ -143,6 +144,12 @@ export default function DashboardPage() {
         </p>
       </div>
 
+      {/* Next appointment */}
+      <NextAppointmentCard item={nextAppointment} loading={nextAppointmentLoading} />
+
+      {/* Admin-controlled promos/announcements */}
+      <AnnouncementsCarousel />
+
       {/* Metric cards */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {metricsLoading || !metrics ? (
@@ -216,9 +223,6 @@ export default function DashboardPage() {
           </>
         )}
       </div>
-
-      {/* Next appointment */}
-      <NextAppointmentCard item={nextAppointment} loading={nextAppointmentLoading} />
 
       {/* Quick actions */}
       <QuickActions />

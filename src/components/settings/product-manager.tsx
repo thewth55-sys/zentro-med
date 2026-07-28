@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
-import { Loader2, Plus, Package, X } from 'lucide-react';
+import { Loader2, Plus, Package, Pencil, X } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/hooks/use-auth';
 import { useCan } from '@/hooks/use-can';
@@ -26,6 +26,7 @@ import {
 } from '@/components/ui/dialog';
 import { useTranslations } from 'next-intl';
 import type { Product } from '@/types';
+import { formatCurrency } from '@/lib/currency';
 
 /**
  * Billing catalog (products/services) — same fetch/inline-create/
@@ -34,7 +35,7 @@ import type { Product } from '@/types';
 export function ProductManager() {
   const t = useTranslations('Settings.billing.products');
   const supabase = createClient();
-  const { accountId, loading: authLoading } = useAuth();
+  const { accountId, defaultCurrency, loading: authLoading } = useAuth();
   const canEdit = useCan('edit-settings');
 
   const [loading, setLoading] = useState(true);
@@ -45,6 +46,12 @@ export function ProductManager() {
   const [deleting, setDeleting] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [productToDelete, setProductToDelete] = useState<Product | null>(null);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [productToEdit, setProductToEdit] = useState<Product | null>(null);
+  const [editName, setEditName] = useState('');
+  const [editPrice, setEditPrice] = useState('');
+  const [editDescription, setEditDescription] = useState('');
+  const [savingEdit, setSavingEdit] = useState(false);
 
   useEffect(() => {
     if (authLoading) return;
@@ -117,6 +124,50 @@ export function ProductManager() {
     setDeleteDialogOpen(true);
   }
 
+  function openEdit(product: Product) {
+    setProductToEdit(product);
+    setEditName(product.name);
+    setEditPrice(String(product.unit_price));
+    setEditDescription(product.description ?? '');
+    setEditDialogOpen(true);
+  }
+
+  async function handleSaveEdit() {
+    if (!productToEdit || !editName.trim()) return;
+    try {
+      setSavingEdit(true);
+      const { error } = await supabase
+        .from('products')
+        .update({
+          name: editName.trim(),
+          unit_price: Number(editPrice) || 0,
+          description: editDescription.trim() || null,
+        })
+        .eq('id', productToEdit.id);
+      if (error) throw error;
+      toast.success(t('updated'));
+      setProducts((prev) =>
+        prev.map((p) =>
+          p.id === productToEdit.id
+            ? {
+                ...p,
+                name: editName.trim(),
+                unit_price: Number(editPrice) || 0,
+                description: editDescription.trim() || null,
+              }
+            : p
+        )
+      );
+      setEditDialogOpen(false);
+      setProductToEdit(null);
+    } catch (err) {
+      console.error('Update product error:', err);
+      toast.error(t('updateFailed'));
+    } finally {
+      setSavingEdit(false);
+    }
+  }
+
   async function handleDelete() {
     if (!productToDelete) return;
     try {
@@ -134,8 +185,6 @@ export function ProductManager() {
       setDeleting(false);
     }
   }
-
-  const priceFormatter = new Intl.NumberFormat(undefined, { style: 'currency', currency: 'USD' });
 
   return (
     <Card>
@@ -163,7 +212,7 @@ export function ProductManager() {
                     <div className="flex items-baseline gap-2">
                       <span className="text-sm text-foreground">{product.name}</span>
                       <span className="text-xs text-muted-foreground">
-                        {priceFormatter.format(product.unit_price)}
+                        {formatCurrency(product.unit_price, defaultCurrency)}
                       </span>
                     </div>
                     <div className="flex items-center gap-3">
@@ -172,6 +221,15 @@ export function ProductManager() {
                         onCheckedChange={() => toggleActive(product)}
                         disabled={!canEdit}
                       />
+                      <button
+                        type="button"
+                        onClick={() => openEdit(product)}
+                        aria-label={t('editAria', { name: product.name })}
+                        disabled={!canEdit}
+                        className="rounded-full p-1 text-muted-foreground opacity-60 transition-opacity hover:bg-black/10 hover:opacity-100 disabled:pointer-events-none dark:hover:bg-white/10"
+                      >
+                        <Pencil className="size-3.5" />
+                      </button>
                       <button
                         type="button"
                         onClick={() => confirmDelete(product)}
@@ -242,6 +300,54 @@ export function ProductManager() {
                 </>
               ) : (
                 t('deleteTitle')
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>{t('editTitle')}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <Input
+              placeholder={t('namePlaceholder')}
+              value={editName}
+              onChange={(e) => setEditName(e.target.value)}
+              disabled={savingEdit}
+              maxLength={120}
+            />
+            <Input
+              type="number"
+              min={0}
+              step="0.01"
+              placeholder={t('pricePlaceholder')}
+              value={editPrice}
+              onChange={(e) => setEditPrice(e.target.value)}
+              disabled={savingEdit}
+            />
+            <Input
+              placeholder={t('descriptionPlaceholder')}
+              value={editDescription}
+              onChange={(e) => setEditDescription(e.target.value)}
+              disabled={savingEdit}
+              maxLength={500}
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setEditDialogOpen(false)} disabled={savingEdit}>
+              {t('cancel')}
+            </Button>
+            <Button onClick={handleSaveEdit} disabled={savingEdit || !editName.trim()}>
+              {savingEdit ? (
+                <>
+                  <Loader2 className="size-4 animate-spin" />
+                  {t('saving')}
+                </>
+              ) : (
+                t('save')
               )}
             </Button>
           </DialogFooter>

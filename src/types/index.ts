@@ -1277,3 +1277,20 @@ export interface InventoryMovement {
   created_by?: string | null;
   created_at: string;
 }
+
+/** Platform-admin-controlled promo/announcement shown in the dashboard carousel. */
+export interface PlatformAnnouncement {
+  id: string;
+  title: string;
+  body: string;
+  image_url?: string | null;
+  link_url?: string | null;
+  link_label?: string | null;
+  is_active: boolean;
+  starts_at?: string | null;
+  ends_at?: string | null;
+  sort_order: number;
+  created_by?: string | null;
+  created_at: string;
+  updated_at?: string;
+}

@@ -1488,7 +1488,10 @@
         "empty": "No transactions on this account yet.",
         "payment": "Payment received",
         "paymentFor": "Payment — Invoice {number}"
-      }
+      },
+      "editTransaction": "Edit transaction",
+      "transactionUpdated": "Transaction updated",
+      "transactionUpdateFailed": "Failed to update the transaction"
     },
     "inventory": {
       "subtitle": "Practice supplies, materials, and instruments.",
@@ -2643,7 +2646,14 @@
         "deleteTitle": "Remove product",
         "deleteConfirm": "Remove \"{name}\"? Existing quotes/invoices keep their history.",
         "cancel": "Cancel",
-        "deleting": "Removing..."
+        "deleting": "Removing...",
+        "edit": "Edit",
+        "editTitle": "Edit product",
+        "editAria": "Edit {name}",
+        "save": "Save",
+        "saving": "Saving...",
+        "updated": "Product updated",
+        "descriptionPlaceholder": "Description (optional)"
       },
       "taxes": {
         "title": "Tax rates",

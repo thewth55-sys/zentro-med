@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Loader2, Plus, Trash2 } from "lucide-react";
+import { Loader2, Pencil, Plus, Trash2 } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 import { useAuth } from "@/hooks/use-auth";
@@ -30,6 +30,9 @@ interface LedgerRow {
   /** Signed for display — positive (green) is money in, negative (red) is money out. */
   signedAmount: number;
   deletable: boolean;
+  /** Only set for kind === "transaction" — needed to prefill the edit form. */
+  direction?: BankTransactionDirection;
+  category?: BankTransactionCategory;
 }
 
 const DIRECTIONS: BankTransactionDirection[] = ["in", "out"];
@@ -57,6 +60,7 @@ export function BankAccountDetail({ account, open, onOpenChange, onChanged }: Ba
   const [loading, setLoading] = useState(true);
   const [rows, setRows] = useState<LedgerRow[]>([]);
   const [txFormOpen, setTxFormOpen] = useState(false);
+  const [editingTxId, setEditingTxId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
@@ -102,7 +106,14 @@ export function BankAccountDetail({ account, open, onOpenChange, onChanged }: Ba
       }));
 
       const transactionRows: LedgerRow[] = (transactionsRes.transactions ?? []).map(
-        (tx: { id: string; transaction_date: string; description: string; amount: number; direction: BankTransactionDirection }) => ({
+        (tx: {
+          id: string;
+          transaction_date: string;
+          description: string;
+          amount: number;
+          direction: BankTransactionDirection;
+          category: BankTransactionCategory;
+        }) => ({
           id: tx.id,
           date: tx.transaction_date,
           kind: "transaction",
@@ -110,6 +121,8 @@ export function BankAccountDetail({ account, open, onOpenChange, onChanged }: Ba
           amount: tx.amount,
           signedAmount: tx.direction === "in" ? tx.amount : -tx.amount,
           deletable: true,
+          direction: tx.direction,
+          category: tx.category,
         }),
       );
 
@@ -131,6 +144,7 @@ export function BankAccountDetail({ account, open, onOpenChange, onChanged }: Ba
   }, [open, load]);
 
   function openTxForm() {
+    setEditingTxId(null);
     setDirection("out");
     setCategory("other");
     setDescription("");
@@ -139,15 +153,28 @@ export function BankAccountDetail({ account, open, onOpenChange, onChanged }: Ba
     setTxFormOpen(true);
   }
 
-  async function handleCreateTransaction() {
+  function openEditTxForm(row: LedgerRow) {
+    setEditingTxId(row.id);
+    setDirection(row.direction ?? "out");
+    setCategory(row.category ?? "other");
+    setDescription(row.label);
+    setAmount(String(row.amount));
+    setTransactionDate(row.date.slice(0, 10));
+    setTxFormOpen(true);
+  }
+
+  async function handleSaveTransaction() {
     if (!description.trim() || !amount || Number(amount) <= 0) {
       toast.error(t("requiredFields"));
       return;
     }
     setSaving(true);
     try {
-      const res = await fetch(`/api/billing/bank-accounts/${account.id}/transactions`, {
-        method: "POST",
+      const url = editingTxId
+        ? `/api/billing/bank-accounts/${account.id}/transactions/${editingTxId}`
+        : `/api/billing/bank-accounts/${account.id}/transactions`;
+      const res = await fetch(url, {
+        method: editingTxId ? "PATCH" : "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           direction,
@@ -159,13 +186,16 @@ export function BankAccountDetail({ account, open, onOpenChange, onChanged }: Ba
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data?.error ?? "failed");
-      toast.success(t("transactionCreated"));
+      toast.success(editingTxId ? t("transactionUpdated") : t("transactionCreated"));
       setTxFormOpen(false);
+      setEditingTxId(null);
       await load();
       onChanged();
     } catch (err) {
-      console.error("Create bank transaction error:", err);
-      toast.error(err instanceof Error ? err.message : t("transactionCreateFailed"));
+      console.error("Save bank transaction error:", err);
+      toast.error(
+        err instanceof Error ? err.message : editingTxId ? t("transactionUpdateFailed") : t("transactionCreateFailed")
+      );
     } finally {
       setSaving(false);
     }
@@ -234,19 +264,29 @@ export function BankAccountDetail({ account, open, onOpenChange, onChanged }: Ba
                       {formatCurrency(row.amount, account.currency)}
                     </span>
                     {row.deletable && canManageMembers && (
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        disabled={deletingId === row.id}
-                        onClick={() => handleDeleteTransaction(row.id)}
-                      >
-                        {deletingId === row.id ? (
-                          <Loader2 className="size-3 animate-spin" />
-                        ) : (
-                          <Trash2 className="size-3 text-muted-foreground" />
-                        )}
-                      </Button>
+                      <>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => openEditTxForm(row)}
+                        >
+                          <Pencil className="size-3 text-muted-foreground" />
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          disabled={deletingId === row.id}
+                          onClick={() => handleDeleteTransaction(row.id)}
+                        >
+                          {deletingId === row.id ? (
+                            <Loader2 className="size-3 animate-spin" />
+                          ) : (
+                            <Trash2 className="size-3 text-muted-foreground" />
+                          )}
+                        </Button>
+                      </>
                     )}
                   </div>
                 </div>
@@ -259,7 +299,7 @@ export function BankAccountDetail({ account, open, onOpenChange, onChanged }: Ba
       <Dialog open={txFormOpen} onOpenChange={setTxFormOpen}>
         <DialogContent className="sm:max-w-sm">
           <DialogHeader>
-            <DialogTitle>{t("newTransaction")}</DialogTitle>
+            <DialogTitle>{editingTxId ? t("editTransaction") : t("newTransaction")}</DialogTitle>
           </DialogHeader>
           <div className="space-y-3">
             <div className="grid grid-cols-2 gap-3">
@@ -311,7 +351,7 @@ export function BankAccountDetail({ account, open, onOpenChange, onChanged }: Ba
             <Button variant="outline" size="sm" onClick={() => setTxFormOpen(false)} disabled={saving}>
               {t("form.cancel")}
             </Button>
-            <Button size="sm" onClick={handleCreateTransaction} disabled={saving}>
+            <Button size="sm" onClick={handleSaveTransaction} disabled={saving}>
               {saving ? <Loader2 className="size-3.5 animate-spin" /> : null}
               {t("form.save")}
             </Button>

@@ -1488,7 +1488,10 @@
         "empty": "Aún no hay movimientos en esta cuenta.",
         "payment": "Pago recibido",
         "paymentFor": "Pago — Factura {number}"
-      }
+      },
+      "editTransaction": "Editar movimiento",
+      "transactionUpdated": "Movimiento actualizado",
+      "transactionUpdateFailed": "No se pudo actualizar el movimiento"
     },
     "inventory": {
       "subtitle": "Insumos, materiales e instrumental del consultorio.",
@@ -2643,7 +2646,14 @@
         "deleteTitle": "Eliminar producto",
         "deleteConfirm": "¿Eliminar \"{name}\"? Las cotizaciones/facturas existentes conservan su historial.",
         "cancel": "Cancelar",
-        "deleting": "Eliminando..."
+        "deleting": "Eliminando...",
+        "edit": "Editar",
+        "editTitle": "Editar producto",
+        "editAria": "Editar {name}",
+        "save": "Guardar",
+        "saving": "Guardando...",
+        "updated": "Producto actualizado",
+        "descriptionPlaceholder": "Descripción (opcional)"
       },
       "taxes": {
         "title": "Tasas de impuesto",
