@@ -6,6 +6,8 @@ import { useTranslations } from "next-intl";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { QuoteList } from "@/components/billing/quote-list";
 import { InvoiceList } from "@/components/billing/invoice-list";
+import { ExpenseList } from "@/components/billing/expense-list";
+import { FinancialSummary } from "@/components/billing/financial-summary";
 import { ProductManager } from "@/components/settings/product-manager";
 
 export default function BillingPage() {
@@ -21,23 +23,35 @@ export default function BillingPage() {
         <p className="mt-1 text-sm text-muted-foreground">{t("subtitle")}</p>
       </div>
 
-      <Tabs defaultValue="invoices">
+      <Tabs defaultValue="summary">
         <TabsList className="bg-muted/50 border-b border-border">
+          <TabsTrigger value="summary" className="data-active:bg-muted data-active:text-primary text-muted-foreground">
+            {t("summary")}
+          </TabsTrigger>
           <TabsTrigger value="invoices" className="data-active:bg-muted data-active:text-primary text-muted-foreground">
             {t("invoices")}
           </TabsTrigger>
           <TabsTrigger value="quotes" className="data-active:bg-muted data-active:text-primary text-muted-foreground">
             {t("quotes")}
           </TabsTrigger>
+          <TabsTrigger value="expenses" className="data-active:bg-muted data-active:text-primary text-muted-foreground">
+            {t("expenses")}
+          </TabsTrigger>
           <TabsTrigger value="priceList" className="data-active:bg-muted data-active:text-primary text-muted-foreground">
             {t("priceList")}
           </TabsTrigger>
         </TabsList>
+        <TabsContent value="summary" className="pt-4">
+          <FinancialSummary />
+        </TabsContent>
         <TabsContent value="invoices" className="pt-4">
           <InvoiceList />
         </TabsContent>
         <TabsContent value="quotes" className="pt-4">
           <QuoteList />
+        </TabsContent>
+        <TabsContent value="expenses" className="pt-4">
+          <ExpenseList />
         </TabsContent>
         <TabsContent value="priceList" className="pt-4">
           <ProductManager />

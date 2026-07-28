@@ -1149,3 +1149,36 @@ export interface Payment {
   created_by?: string | null;
   created_at: string;
 }
+
+// ============================================================
+// Finance module, phase 1 (migration 078) — expenses, so a basic
+// profit/loss report (payments collected minus expenses) is possible
+// ahead of the later bank-accounts/cash-flow and inventory phases.
+// ============================================================
+
+export type ExpenseCategory =
+  | 'rent'
+  | 'payroll'
+  | 'supplies'
+  | 'utilities'
+  | 'marketing'
+  | 'equipment'
+  | 'taxes'
+  | 'software'
+  | 'other';
+
+export interface Expense {
+  id: string;
+  account_id: string;
+  category: ExpenseCategory;
+  description: string;
+  amount: number;
+  currency: string;
+  expense_date: string;
+  vendor?: string | null;
+  payment_method: PaymentMethod;
+  notes?: string | null;
+  created_by?: string | null;
+  created_at: string;
+  updated_at?: string;
+}

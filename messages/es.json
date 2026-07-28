@@ -1383,9 +1383,88 @@
     "page": {
       "title": "Facturación",
       "subtitle": "Cotizaciones, facturas y pagos de tus pacientes.",
+      "summary": "Resumen",
       "invoices": "Facturas",
       "quotes": "Cotizaciones",
+      "expenses": "Gastos",
       "priceList": "Lista de precios"
+    },
+    "expenseList": {
+      "subtitle": "Gastos del consultorio — renta, nómina, insumos y más.",
+      "newExpense": "Nuevo gasto",
+      "empty": "Aún no hay gastos registrados.",
+      "loadFailed": "No se pudieron cargar los gastos",
+      "createFailed": "No se pudo crear el gasto",
+      "created": "Gasto registrado",
+      "deleted": "Gasto eliminado",
+      "deleteFailed": "No se pudo eliminar el gasto",
+      "requiredFields": "La descripción y el monto son obligatorios",
+      "columns": {
+        "date": "Fecha",
+        "category": "Categoría",
+        "description": "Descripción",
+        "vendor": "Proveedor",
+        "amount": "Monto"
+      },
+      "form": {
+        "category": "Categoría",
+        "date": "Fecha",
+        "description": "Descripción",
+        "descriptionPlaceholder": "ej. Pago de arriendo de julio",
+        "amount": "Monto",
+        "paymentMethod": "Método de pago",
+        "vendor": "Proveedor",
+        "vendorPlaceholder": "ej. Arrendador, proveedor de insumos…",
+        "notes": "Notas",
+        "cancel": "Cancelar",
+        "save": "Guardar"
+      },
+      "categories": {
+        "rent": "Renta/Arriendo",
+        "payroll": "Nómina",
+        "supplies": "Insumos médicos",
+        "utilities": "Servicios públicos",
+        "marketing": "Marketing",
+        "equipment": "Equipo y mantenimiento",
+        "taxes": "Impuestos",
+        "software": "Software y suscripciones",
+        "other": "Otro"
+      },
+      "paymentMethods": {
+        "cash": "Efectivo",
+        "card": "Tarjeta",
+        "transfer": "Transferencia",
+        "other": "Otro"
+      }
+    },
+    "financialSummary": {
+      "subtitle": "Estimación de ingresos, gastos y ganancia neta.",
+      "loadFailed": "No se pudo cargar el resumen financiero",
+      "periods": {
+        "this_month": "Este mes",
+        "last_month": "Mes pasado",
+        "this_year": "Este año",
+        "all_time": "Todo"
+      },
+      "invoiced": "Total facturado",
+      "invoicedSubtitle": "{count} facturas",
+      "collected": "Total cobrado",
+      "expenses": "Total gastos",
+      "expensesSubtitle": "{count} gastos",
+      "netProfit": "Ganancia neta",
+      "netProfitSubtitle": "Cobrado menos gastos",
+      "byCategory": "Gastos por categoría",
+      "categories": {
+        "rent": "Renta/Arriendo",
+        "payroll": "Nómina",
+        "supplies": "Insumos médicos",
+        "utilities": "Servicios públicos",
+        "marketing": "Marketing",
+        "equipment": "Equipo y mantenimiento",
+        "taxes": "Impuestos",
+        "software": "Software y suscripciones",
+        "other": "Otro"
+      }
     },
     "lineItems": {
       "freeText": "Texto libre…",

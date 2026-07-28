@@ -1383,9 +1383,88 @@
     "page": {
       "title": "Billing",
       "subtitle": "Quotes, invoices, and payments for your patients.",
+      "summary": "Summary",
       "invoices": "Invoices",
       "quotes": "Quotes",
+      "expenses": "Expenses",
       "priceList": "Price list"
+    },
+    "expenseList": {
+      "subtitle": "Practice expenses — rent, payroll, supplies, and more.",
+      "newExpense": "New expense",
+      "empty": "No expenses recorded yet.",
+      "loadFailed": "Failed to load expenses",
+      "createFailed": "Failed to create the expense",
+      "created": "Expense recorded",
+      "deleted": "Expense deleted",
+      "deleteFailed": "Failed to delete the expense",
+      "requiredFields": "Description and amount are required",
+      "columns": {
+        "date": "Date",
+        "category": "Category",
+        "description": "Description",
+        "vendor": "Vendor",
+        "amount": "Amount"
+      },
+      "form": {
+        "category": "Category",
+        "date": "Date",
+        "description": "Description",
+        "descriptionPlaceholder": "e.g. July rent payment",
+        "amount": "Amount",
+        "paymentMethod": "Payment method",
+        "vendor": "Vendor",
+        "vendorPlaceholder": "e.g. Landlord, supplies vendor…",
+        "notes": "Notes",
+        "cancel": "Cancel",
+        "save": "Save"
+      },
+      "categories": {
+        "rent": "Rent",
+        "payroll": "Payroll",
+        "supplies": "Medical supplies",
+        "utilities": "Utilities",
+        "marketing": "Marketing",
+        "equipment": "Equipment & maintenance",
+        "taxes": "Taxes",
+        "software": "Software & subscriptions",
+        "other": "Other"
+      },
+      "paymentMethods": {
+        "cash": "Cash",
+        "card": "Card",
+        "transfer": "Transfer",
+        "other": "Other"
+      }
+    },
+    "financialSummary": {
+      "subtitle": "Income, expense, and net profit estimate.",
+      "loadFailed": "Failed to load the financial summary",
+      "periods": {
+        "this_month": "This month",
+        "last_month": "Last month",
+        "this_year": "This year",
+        "all_time": "All time"
+      },
+      "invoiced": "Total invoiced",
+      "invoicedSubtitle": "{count} invoices",
+      "collected": "Total collected",
+      "expenses": "Total expenses",
+      "expensesSubtitle": "{count} expenses",
+      "netProfit": "Net profit",
+      "netProfitSubtitle": "Collected minus expenses",
+      "byCategory": "Expenses by category",
+      "categories": {
+        "rent": "Rent",
+        "payroll": "Payroll",
+        "supplies": "Medical supplies",
+        "utilities": "Utilities",
+        "marketing": "Marketing",
+        "equipment": "Equipment & maintenance",
+        "taxes": "Taxes",
+        "software": "Software & subscriptions",
+        "other": "Other"
+      }
     },
     "lineItems": {
       "freeText": "Free text…",
