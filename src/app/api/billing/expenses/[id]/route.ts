@@ -7,7 +7,7 @@ const EXPENSE_CATEGORIES: ExpenseCategory[] = [
   'rent', 'payroll', 'supplies', 'utilities', 'marketing', 'equipment', 'taxes', 'software', 'other',
 ];
 const PAYMENT_METHODS: PaymentMethod[] = ['cash', 'card', 'transfer', 'other'];
-const PATCHABLE_FIELDS = ['category', 'description', 'amount', 'expense_date', 'vendor', 'payment_method', 'notes'] as const;
+const PATCHABLE_FIELDS = ['category', 'description', 'amount', 'expense_date', 'vendor', 'payment_method', 'bank_account_id', 'notes'] as const;
 
 export async function PATCH(
   request: Request,

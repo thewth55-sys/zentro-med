@@ -1387,6 +1387,7 @@
       "invoices": "Facturas",
       "quotes": "Cotizaciones",
       "expenses": "Gastos",
+      "bankAccounts": "Bancos",
       "priceList": "Lista de precios"
     },
     "expenseList": {
@@ -1415,6 +1416,8 @@
         "paymentMethod": "Método de pago",
         "vendor": "Proveedor",
         "vendorPlaceholder": "ej. Arrendador, proveedor de insumos…",
+        "bankAccount": "Cuenta bancaria",
+        "noBankAccount": "Sin cuenta asociada",
         "notes": "Notas",
         "cancel": "Cancelar",
         "save": "Guardar"
@@ -1435,6 +1438,55 @@
         "card": "Tarjeta",
         "transfer": "Transferencia",
         "other": "Otro"
+      }
+    },
+    "bankAccounts": {
+      "subtitle": "Cuentas bancarias del consultorio y su saldo estimado.",
+      "loadFailed": "No se pudieron cargar las cuentas bancarias",
+      "empty": "Aún no hay cuentas bancarias registradas.",
+      "newAccount": "Nueva cuenta",
+      "nameRequired": "El nombre de la cuenta es obligatorio",
+      "created": "Cuenta creada",
+      "createFailed": "No se pudo crear la cuenta",
+      "deleted": "Cuenta eliminada",
+      "deleteFailed": "No se pudo eliminar la cuenta",
+      "balance": "Saldo estimado",
+      "newTransaction": "Nuevo movimiento",
+      "requiredFields": "La descripción y el monto son obligatorios",
+      "transactionCreated": "Movimiento registrado",
+      "transactionCreateFailed": "No se pudo registrar el movimiento",
+      "transactionDeleteFailed": "No se pudo eliminar el movimiento",
+      "form": {
+        "name": "Nombre de la cuenta",
+        "namePlaceholder": "ej. Cuenta principal",
+        "bankName": "Banco",
+        "last4": "Últimos 4 dígitos",
+        "openingBalance": "Saldo inicial",
+        "direction": "Tipo",
+        "category": "Categoría",
+        "description": "Descripción",
+        "amount": "Monto",
+        "date": "Fecha",
+        "cancel": "Cancelar",
+        "save": "Guardar"
+      },
+      "directions": {
+        "in": "Entrada",
+        "out": "Salida"
+      },
+      "categories": {
+        "transfer": "Transferencia",
+        "owner_draw": "Retiro del dueño",
+        "capital_contribution": "Aporte de capital",
+        "bank_fee": "Comisión bancaria",
+        "interest": "Interés",
+        "other": "Otro"
+      },
+      "ledger": {
+        "title": "Movimientos",
+        "empty": "Aún no hay movimientos en esta cuenta.",
+        "payment": "Pago recibido",
+        "paymentFor": "Pago — Factura {number}"
       }
     },
     "financialSummary": {
@@ -1568,7 +1620,9 @@
       "saveFailed": "No se pudo registrar el pago",
       "paidAt": "Fecha de pago",
       "receipt": "Recibo",
-      "receiptFailed": "No se pudo generar el recibo"
+      "receiptFailed": "No se pudo generar el recibo",
+      "bankAccount": "Cuenta bancaria",
+      "noBankAccount": "Sin cuenta asociada"
     },
     "quoteList": {
       "subtitle": "Cotizaciones emitidas por esta cuenta.",

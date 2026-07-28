@@ -77,6 +77,7 @@ export async function POST(
         method,
         paid_at: body.paid_at || new Date().toISOString(),
         notes: body.notes || null,
+        bank_account_id: typeof body.bank_account_id === 'string' ? body.bank_account_id : null,
         created_by: userId,
       })
       .select('*')

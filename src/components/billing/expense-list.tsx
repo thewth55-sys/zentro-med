@@ -20,7 +20,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import type { Expense, ExpenseCategory, PaymentMethod } from "@/types";
+import type { BankAccount, Expense, ExpenseCategory, PaymentMethod } from "@/types";
 
 const CATEGORIES: ExpenseCategory[] = [
   "rent", "payroll", "supplies", "utilities", "marketing", "equipment", "taxes", "software", "other",
@@ -52,7 +52,16 @@ export function ExpenseList() {
   const [expenseDate, setExpenseDate] = useState(todayIso());
   const [vendor, setVendor] = useState("");
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("other");
+  const [bankAccountId, setBankAccountId] = useState("");
+  const [bankAccounts, setBankAccounts] = useState<BankAccount[]>([]);
   const [notes, setNotes] = useState("");
+
+  useEffect(() => {
+    fetch("/api/billing/bank-accounts")
+      .then((res) => res.json())
+      .then((data) => setBankAccounts((data.bankAccounts ?? []) as BankAccount[]))
+      .catch((err) => console.error("Failed to fetch bank accounts:", err));
+  }, []);
 
   const fetchExpenses = useCallback(async () => {
     setLoading(true);
@@ -79,6 +88,7 @@ export function ExpenseList() {
     setExpenseDate(todayIso());
     setVendor("");
     setPaymentMethod("other");
+    setBankAccountId("");
     setNotes("");
     setFormOpen(true);
   }
@@ -100,6 +110,7 @@ export function ExpenseList() {
           expense_date: expenseDate,
           vendor: vendor.trim() || undefined,
           payment_method: paymentMethod,
+          bank_account_id: bankAccountId || undefined,
           notes: notes.trim() || undefined,
         }),
       });
@@ -250,6 +261,23 @@ export function ExpenseList() {
               <Label className="text-xs text-muted-foreground">{t("form.vendor")}</Label>
               <Input value={vendor} onChange={(e) => setVendor(e.target.value)} placeholder={t("form.vendorPlaceholder")} />
             </div>
+            {bankAccounts.length > 0 && (
+              <div className="space-y-1.5">
+                <Label className="text-xs text-muted-foreground">{t("form.bankAccount")}</Label>
+                <select
+                  value={bankAccountId}
+                  onChange={(e) => setBankAccountId(e.target.value)}
+                  className="h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm"
+                >
+                  <option value="">{t("form.noBankAccount")}</option>
+                  {bankAccounts.map((acc) => (
+                    <option key={acc.id} value={acc.id}>
+                      {acc.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
             <div className="space-y-1.5">
               <Label className="text-xs text-muted-foreground">{t("form.notes")}</Label>
               <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} className="text-sm" />

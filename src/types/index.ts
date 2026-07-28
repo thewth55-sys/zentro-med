@@ -1146,6 +1146,8 @@ export interface Payment {
   method: PaymentMethod;
   paid_at: string;
   notes?: string | null;
+  /** Migration 079 — optional link to which bank account received this payment. */
+  bank_account_id?: string | null;
   created_by?: string | null;
   created_at: string;
 }
@@ -1177,8 +1179,56 @@ export interface Expense {
   expense_date: string;
   vendor?: string | null;
   payment_method: PaymentMethod;
+  /** Migration 079 — optional link to which bank account this was paid from. */
+  bank_account_id?: string | null;
   notes?: string | null;
   created_by?: string | null;
   created_at: string;
   updated_at?: string;
+}
+
+// ============================================================
+// Finance module, phase 2 (migration 079) — bank accounts + cash
+// flow. `computed_balance` is never stored — it's opening_balance
+// plus attributed payments/expenses/bank_transactions, summed in JS
+// the same way Phase 1's P&L summed invoices/expenses (see
+// financial-summary.tsx) — only present when the API route computed
+// it (the list endpoint does; a bare insert response won't).
+// ============================================================
+
+export interface BankAccount {
+  id: string;
+  account_id: string;
+  name: string;
+  bank_name?: string | null;
+  account_number_last4?: string | null;
+  currency: string;
+  opening_balance: number;
+  is_active: boolean;
+  computed_balance?: number;
+  created_by?: string | null;
+  created_at: string;
+  updated_at?: string;
+}
+
+export type BankTransactionDirection = 'in' | 'out';
+export type BankTransactionCategory =
+  | 'transfer'
+  | 'owner_draw'
+  | 'capital_contribution'
+  | 'bank_fee'
+  | 'interest'
+  | 'other';
+
+export interface BankTransaction {
+  id: string;
+  account_id: string;
+  bank_account_id: string;
+  direction: BankTransactionDirection;
+  category: BankTransactionCategory;
+  amount: number;
+  description: string;
+  transaction_date: string;
+  created_by?: string | null;
+  created_at: string;
 }

@@ -82,6 +82,7 @@ export async function POST(request: Request) {
         expense_date: typeof body?.expense_date === 'string' && body.expense_date ? body.expense_date : new Date().toISOString().slice(0, 10),
         vendor: typeof body?.vendor === 'string' ? body.vendor.trim() || null : null,
         payment_method: paymentMethod,
+        bank_account_id: typeof body?.bank_account_id === 'string' ? body.bank_account_id : null,
         notes: typeof body?.notes === 'string' ? body.notes.trim() || null : null,
         created_by: userId,
       })

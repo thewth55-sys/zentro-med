@@ -7,6 +7,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { QuoteList } from "@/components/billing/quote-list";
 import { InvoiceList } from "@/components/billing/invoice-list";
 import { ExpenseList } from "@/components/billing/expense-list";
+import { BankAccountList } from "@/components/billing/bank-account-list";
 import { FinancialSummary } from "@/components/billing/financial-summary";
 import { ProductManager } from "@/components/settings/product-manager";
 
@@ -37,6 +38,9 @@ export default function BillingPage() {
           <TabsTrigger value="expenses" className="data-active:bg-muted data-active:text-primary text-muted-foreground">
             {t("expenses")}
           </TabsTrigger>
+          <TabsTrigger value="bankAccounts" className="data-active:bg-muted data-active:text-primary text-muted-foreground">
+            {t("bankAccounts")}
+          </TabsTrigger>
           <TabsTrigger value="priceList" className="data-active:bg-muted data-active:text-primary text-muted-foreground">
             {t("priceList")}
           </TabsTrigger>
@@ -52,6 +56,9 @@ export default function BillingPage() {
         </TabsContent>
         <TabsContent value="expenses" className="pt-4">
           <ExpenseList />
+        </TabsContent>
+        <TabsContent value="bankAccounts" className="pt-4">
+          <BankAccountList />
         </TabsContent>
         <TabsContent value="priceList" className="pt-4">
           <ProductManager />

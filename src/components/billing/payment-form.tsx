@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Loader2, Plus } from "lucide-react";
 import { useTranslations } from "next-intl";
@@ -8,7 +8,7 @@ import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import type { PaymentMethod } from "@/types";
+import type { BankAccount, PaymentMethod } from "@/types";
 
 interface PaymentFormProps {
   invoiceId: string;
@@ -30,8 +30,17 @@ export function PaymentForm({ invoiceId, remaining, currency, onSaved }: Payment
   const [amount, setAmount] = useState(remaining > 0 ? String(remaining) : "");
   const [method, setMethod] = useState<PaymentMethod>("cash");
   const [paidAt, setPaidAt] = useState(todayLocalDate());
+  const [bankAccountId, setBankAccountId] = useState("");
+  const [bankAccounts, setBankAccounts] = useState<BankAccount[]>([]);
   const [saving, setSaving] = useState(false);
   const currencyFormatter = new Intl.NumberFormat(undefined, { style: "currency", currency });
+
+  useEffect(() => {
+    fetch("/api/billing/bank-accounts")
+      .then((res) => res.json())
+      .then((data) => setBankAccounts((data.bankAccounts ?? []) as BankAccount[]))
+      .catch((err) => console.error("Failed to fetch bank accounts:", err));
+  }, []);
 
   async function handleSubmit() {
     const value = Number(amount);
@@ -44,7 +53,12 @@ export function PaymentForm({ invoiceId, remaining, currency, onSaved }: Payment
       const res = await fetch(`/api/billing/invoices/${invoiceId}/payments`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ amount: value, method, paid_at: paidAt || undefined }),
+        body: JSON.stringify({
+          amount: value,
+          method,
+          paid_at: paidAt || undefined,
+          bank_account_id: bankAccountId || undefined,
+        }),
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
@@ -101,6 +115,23 @@ export function PaymentForm({ invoiceId, remaining, currency, onSaved }: Payment
           className="h-8 w-36 border-border bg-muted text-xs text-foreground"
         />
       </div>
+      {bankAccounts.length > 0 && (
+        <div className="space-y-1">
+          <Label className="text-xs text-muted-foreground">{t("bankAccount")}</Label>
+          <select
+            value={bankAccountId}
+            onChange={(e) => setBankAccountId(e.target.value)}
+            className="h-8 rounded-md border border-border bg-muted px-2 text-xs text-foreground outline-none focus:border-primary"
+          >
+            <option value="">{t("noBankAccount")}</option>
+            {bankAccounts.map((acc) => (
+              <option key={acc.id} value={acc.id}>
+                {acc.name}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
       <Button type="button" size="sm" onClick={handleSubmit} disabled={saving} className="h-8 text-xs">
         {saving ? <Loader2 className="size-3.5 animate-spin" /> : <Plus className="size-3.5" />}
         {t("addPayment")}

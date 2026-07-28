@@ -1387,6 +1387,7 @@
       "invoices": "Invoices",
       "quotes": "Quotes",
       "expenses": "Expenses",
+      "bankAccounts": "Banking",
       "priceList": "Price list"
     },
     "expenseList": {
@@ -1415,6 +1416,8 @@
         "paymentMethod": "Payment method",
         "vendor": "Vendor",
         "vendorPlaceholder": "e.g. Landlord, supplies vendor…",
+        "bankAccount": "Bank account",
+        "noBankAccount": "No linked account",
         "notes": "Notes",
         "cancel": "Cancel",
         "save": "Save"
@@ -1435,6 +1438,55 @@
         "card": "Card",
         "transfer": "Transfer",
         "other": "Other"
+      }
+    },
+    "bankAccounts": {
+      "subtitle": "Practice bank accounts and their estimated balance.",
+      "loadFailed": "Failed to load bank accounts",
+      "empty": "No bank accounts registered yet.",
+      "newAccount": "New account",
+      "nameRequired": "Account name is required",
+      "created": "Account created",
+      "createFailed": "Failed to create the account",
+      "deleted": "Account deleted",
+      "deleteFailed": "Failed to delete the account",
+      "balance": "Estimated balance",
+      "newTransaction": "New transaction",
+      "requiredFields": "Description and amount are required",
+      "transactionCreated": "Transaction recorded",
+      "transactionCreateFailed": "Failed to record the transaction",
+      "transactionDeleteFailed": "Failed to delete the transaction",
+      "form": {
+        "name": "Account name",
+        "namePlaceholder": "e.g. Main account",
+        "bankName": "Bank",
+        "last4": "Last 4 digits",
+        "openingBalance": "Opening balance",
+        "direction": "Direction",
+        "category": "Category",
+        "description": "Description",
+        "amount": "Amount",
+        "date": "Date",
+        "cancel": "Cancel",
+        "save": "Save"
+      },
+      "directions": {
+        "in": "Money in",
+        "out": "Money out"
+      },
+      "categories": {
+        "transfer": "Transfer",
+        "owner_draw": "Owner draw",
+        "capital_contribution": "Capital contribution",
+        "bank_fee": "Bank fee",
+        "interest": "Interest",
+        "other": "Other"
+      },
+      "ledger": {
+        "title": "Transactions",
+        "empty": "No transactions on this account yet.",
+        "payment": "Payment received",
+        "paymentFor": "Payment — Invoice {number}"
       }
     },
     "financialSummary": {
@@ -1568,7 +1620,9 @@
       "saveFailed": "Failed to record payment",
       "paidAt": "Payment date",
       "receipt": "Receipt",
-      "receiptFailed": "Could not generate the receipt"
+      "receiptFailed": "Could not generate the receipt",
+      "bankAccount": "Bank account",
+      "noBankAccount": "No linked account"
     },
     "quoteList": {
       "subtitle": "Quotes issued to this account.",
