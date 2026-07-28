@@ -1,46 +1,43 @@
 import type { Metadata } from "next";
 import Script from "next/script";
-import "./landing.css";
-import { STRUCTURED_DATA, LANDING_BODY_HTML, LANDING_BEHAVIOR_SCRIPT } from "./landing-content";
+import "../landing.css";
+import { LANDING_BEHAVIOR_SCRIPT } from "../landing-content";
+import { MARKETING_STRUCTURED_DATA, MARKETING_BODY_HTML } from "./marketing-content";
 
-// Public marketing landing — entry point for new-member signup/login.
-// Transcribed from the standalone zentro-med-landing.html design (own
-// CSS/fonts/tracking scripts, not the app's Tailwind design system).
-// Rendered as raw HTML via dangerouslySetInnerHTML so the original
-// inline onclick="..." handlers keep working once LANDING_SCRIPT (a
-// real <Script>, not innerHTML) defines the global functions they
-// call — script tags inside innerHTML never execute, but HTML
-// attribute handlers do once the referenced globals exist.
-//
-// Root layout.tsx sets robots: { index: false, follow: false } for
-// the whole app (it's a private CRM). This is the one page meant to
-// be crawled, so it overrides that here.
+// Zentro Med Marketing landing — cross-sell service page for consultorios
+// that already use (or are considering) Zentro CRM. Same raw-HTML-string
+// architecture as the root landing (src/app/page.tsx) — see that file's
+// own comment for why (dangerouslySetInnerHTML + a real <Script> for the
+// inline onclick="..." handlers). Reuses LANDING_BEHAVIOR_SCRIPT verbatim
+// (mobile menu / FAQ accordion / scroll-reveal are all generic DOM
+// queries, nothing root-landing-specific) instead of duplicating it.
 export const metadata: Metadata = {
-  title: "Zentro CRM — El CRM para consultorios médicos en Latinoamérica",
+  title: "Zentro Med Marketing — Marketing digital para consultorios médicos",
   description:
-    "CRM con WhatsApp, IA y automatizaciones para consultorios en Latinoamérica. 3 planes desde $39/mes. Prueba 30 días gratis, sin tarjeta.",
+    "Estrategia, contenido, campañas en Meta Ads y Google Ads, y reportes — gestionados por un equipo dedicado a consultorios médicos. Tu Zentro CRM viene incluido.",
   robots: { index: true, follow: true },
-  alternates: { canonical: "https://med.zentrolabs.com" },
+  alternates: { canonical: "https://med.zentrolabs.com/marketing" },
   openGraph: {
     type: "website",
-    siteName: "Zentro CRM",
-    title: "Zentro CRM — El CRM para consultorios médicos en Latinoamérica",
+    siteName: "Zentro Med Marketing",
+    title: "Zentro Med Marketing — Marketing digital para consultorios médicos",
     description:
-      "CRM con WhatsApp, IA y automatizaciones para consultorios en Latinoamérica. 3 planes desde $39/mes. Prueba 30 días gratis, sin tarjeta.",
-    url: "https://med.zentrolabs.com",
+      "Estrategia, contenido, campañas en Meta Ads y Google Ads, y reportes — gestionados por un equipo dedicado a consultorios médicos. Tu Zentro CRM viene incluido.",
+    url: "https://med.zentrolabs.com/marketing",
     // TODO: this image doesn't exist in /public yet — upload it before
     // this page ships, or Facebook/WhatsApp link previews show nothing.
-    images: ["https://med.zentrolabs.com/og-zentro-crm.png"],
+    images: ["https://med.zentrolabs.com/og-zentro-med-marketing.png"],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Zentro CRM — El CRM para consultorios médicos en Latinoamérica",
-    description: "CRM con WhatsApp, IA y automatizaciones para consultorios en Latinoamérica. 3 planes desde $39/mes.",
-    images: ["https://med.zentrolabs.com/og-zentro-crm.png"],
+    title: "Zentro Med Marketing — Marketing digital para consultorios médicos",
+    description:
+      "Estrategia, contenido, campañas en Meta Ads y Google Ads, y reportes — gestionados por un equipo dedicado a consultorios médicos.",
+    images: ["https://med.zentrolabs.com/og-zentro-med-marketing.png"],
   },
 };
 
-export default function LandingPage() {
+export default function MarketingPage() {
   return (
     <>
       <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -50,9 +47,9 @@ export default function LandingPage() {
         href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap"
         rel="stylesheet"
       />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(STRUCTURED_DATA) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(MARKETING_STRUCTURED_DATA) }} />
 
-      <div className="zm-landing" dangerouslySetInnerHTML={{ __html: LANDING_BODY_HTML }} />
+      <div className="zm-landing" dangerouslySetInnerHTML={{ __html: MARKETING_BODY_HTML }} />
 
       <Script id="zm-lucide" src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js" strategy="afterInteractive" />
       <Script

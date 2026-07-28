@@ -546,6 +546,7 @@ export const LANDING_BODY_HTML = `
     <div class="pricing-header reveal">
       <p class="section-label">// Planes</p>
       <h2 class="section-title">Un CRM. Un plan gratis. Tres niveles pagos.</h2>
+      <p class="section-sub" style="max-width:640px;margin:12px auto 0;">No es una plantilla clínica pensada para un solo país ni una sola especialidad — es un mismo sistema que se adapta a dermatología, ortopedia, odontología, psicología y más, en 7 países, con infraestructura de IA gestionada por Zentro incluida en tu cuota.</p>
     </div>
     <p class="pricing-sub-note">// Sin setup · Sin permanencia · Cancela cuando quieras</p>
     <div class="reveal fitme-grid">
@@ -590,7 +591,7 @@ export const LANDING_BODY_HTML = `
       <div class="plan-card">
         <span class="plan-badge badge-crm">Esencial</span>
         <div class="plan-name">Zentro CRM Esencial</div>
-        <div class="plan-price"><sup class="price-sym">$</sup><span class="price-amt" data-usd="49">49</span><sub>/mes</sub></div>
+        <div class="plan-price"><sup class="price-sym">$</sup><span class="price-amt" data-usd="39">39</span><sub>/mes</sub></div>
         <div class="plan-note">1 usuario incluido · +<span class="price-sym">$</span><span class="price-amt" data-usd="25">25</span> <span class="price-curr-label">USD</span> por usuario extra</div>
         <div class="plan-divider"></div>
         <div class="plan-features">
@@ -611,7 +612,7 @@ export const LANDING_BODY_HTML = `
       <div class="plan-card featured">
         <div class="plan-chip">⭐ Más popular</div>
         <div class="plan-name">Zentro CRM Profesional</div>
-        <div class="plan-price"><sup class="price-sym">$</sup><span class="price-amt" data-usd="99">99</span><sub>/mes</sub></div>
+        <div class="plan-price"><sup class="price-sym">$</sup><span class="price-amt" data-usd="79">79</span><sub>/mes</sub></div>
         <div class="plan-note">3 usuarios incluidos · +<span class="price-sym">$</span><span class="price-amt" data-usd="25">25</span> <span class="price-curr-label">USD</span> por usuario extra</div>
         <div class="plan-divider"></div>
         <div class="plan-features">
@@ -654,7 +655,7 @@ export const LANDING_BODY_HTML = `
     <p style="text-align:center;margin-top:20px;font-size:12px;color:var(--zm-muted2);font-family:'JetBrains Mono',monospace;line-height:1.8;">
       <span style="color:rgba(167,139,250,.7);">IA</span> = auto-respuestas + redacción asistida en WhatsApp, con infraestructura de IA gestionada por Zentro — no necesitas cuentas propias en OpenAI ni Anthropic. Cada plan incluye una cantidad mensual de respuestas de IA (ver detalle en cada plan); si tu consultorio la supera, puedes ampliarla desde $5 USD por cada 1.000 respuestas adicionales, sin cambiar de plan.<br>
       Zentro CRM es software de gestión comercial. No incluye gestión de campañas publicitarias — eso es <a href="#marketing" style="color:var(--zm-g3);font-weight:700;">Zentro Med Marketing</a>, un servicio aparte y opcional.<br>
-      Zentro Med no es un software de historia clínica ni de facturación tributaria.
+      Zentro CRM no es un software de historia clínica ni de facturación tributaria de un país específico — es una decisión deliberada: te mantiene flexible entre especialidades y entre países, sin atarte al formato clínico o fiscal de uno solo, y sin que cargues con la responsabilidad legal de un expediente clínico que no es tu core.
     </p>
   </div>
 </section>
@@ -671,22 +672,22 @@ export const LANDING_BODY_HTML = `
       <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:22px;">
         <div style="font-size:13px;font-weight:800;color:var(--zm-white);margin-bottom:6px;">Med Starter</div>
         <div style="font-size:22px;font-weight:800;color:#a5b4fc;margin-bottom:8px;">$249<span style="font-size:12px;color:rgba(255,255,255,.4);font-weight:600;"> USD/mes + setup $99</span></div>
-        <div style="font-size:12px;color:rgba(255,255,255,.5);line-height:1.6;">Incluye tu CRM Profesional (valor $99) + 1 campaña activa en Meta Ads + contenido mensual</div>
+        <div style="font-size:12px;color:rgba(255,255,255,.5);line-height:1.6;">Incluye tu CRM Profesional (valor $79) + 1 campaña activa en Meta Ads + contenido mensual</div>
       </div>
       <div style="background:rgba(99,102,241,.1);border:2px solid rgba(129,140,248,.5);border-radius:16px;padding:22px;position:relative;">
         <div style="position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:#818cf8;color:#1e1b4b;font-size:9px;font-weight:800;padding:3px 10px;border-radius:20px;text-transform:uppercase;letter-spacing:.05em;white-space:nowrap;">Recomendado</div>
         <div style="font-size:13px;font-weight:800;color:var(--zm-white);margin-bottom:6px;">Med Growth</div>
-        <div style="font-size:22px;font-weight:800;color:#a5b4fc;margin-bottom:8px;">$399<span style="font-size:12px;color:rgba(255,255,255,.4);font-weight:600;"> USD/mes + setup $99</span></div>
+        <div style="font-size:22px;font-weight:800;color:#a5b4fc;margin-bottom:8px;">$399<span style="font-size:12px;color:rgba(255,255,255,.4);font-weight:600;"> USD/mes + setup $199</span></div>
         <div style="font-size:12px;color:rgba(255,255,255,.55);line-height:1.6;">Incluye tu CRM Clínica (valor $149) + Meta + Google Ads + landing de especialidad</div>
       </div>
       <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:22px;">
         <div style="font-size:13px;font-weight:800;color:var(--zm-white);margin-bottom:6px;">Med Premium</div>
-        <div style="font-size:22px;font-weight:800;color:#a5b4fc;margin-bottom:8px;">$599<span style="font-size:12px;color:rgba(255,255,255,.4);font-weight:600;"> USD/mes + setup $149</span></div>
+        <div style="font-size:22px;font-weight:800;color:#a5b4fc;margin-bottom:8px;">$749<span style="font-size:12px;color:rgba(255,255,255,.4);font-weight:600;"> USD/mes + setup $299</span></div>
         <div style="font-size:12px;color:rgba(255,255,255,.5);line-height:1.6;">Incluye tu CRM Clínica (valor $149) + SEO local + account manager dedicado</div>
       </div>
     </div>
     <div class="reveal" style="text-align:center;margin-top:36px;">
-      <a href="https://zentrolabs.com/landing" class="btn btn-lg" style="background:#818cf8;color:#1e1b4b;" onclick="if(typeof gtag!=='undefined')gtag('event','cross_sell_click',{event_category:'cta',event_label:'crm_to_maas'});">Conocer Zentro Med Marketing →</a>
+      <a href="/marketing" class="btn btn-lg" style="background:#818cf8;color:#1e1b4b;" onclick="if(typeof gtag!=='undefined')gtag('event','cross_sell_click',{event_category:'cta',event_label:'crm_to_maas'});">Conocer Zentro Med Marketing →</a>
       <p style="margin-top:12px;font-size:12px;color:rgba(255,255,255,.35);font-family:'JetBrains Mono',monospace;">// Si ya tienes el CRM, el valor de tu plan se descuenta del precio de Marketing — nunca pagas dos veces</p>
     </div>
   </div>

@@ -89,7 +89,7 @@ export const PLAN_CONFIG: Record<Plan, PlanDefinition> = {
   },
   esencial: {
     id: "esencial",
-    basePriceUsd: 49,
+    basePriceUsd: 39,
     seatPriceUsd: 25,
     includedSeats: 1,
     patientLimit: 1000,
@@ -101,7 +101,7 @@ export const PLAN_CONFIG: Record<Plan, PlanDefinition> = {
   },
   profesional: {
     id: "profesional",
-    basePriceUsd: 99,
+    basePriceUsd: 79,
     seatPriceUsd: 25,
     includedSeats: 3,
     patientLimit: 5000,
