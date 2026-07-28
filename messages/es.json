@@ -1388,6 +1388,7 @@
       "quotes": "Cotizaciones",
       "expenses": "Gastos",
       "bankAccounts": "Bancos",
+      "inventory": "Inventario",
       "priceList": "Lista de precios"
     },
     "expenseList": {
@@ -1487,6 +1488,72 @@
         "empty": "Aún no hay movimientos en esta cuenta.",
         "payment": "Pago recibido",
         "paymentFor": "Pago — Factura {number}"
+      }
+    },
+    "inventory": {
+      "subtitle": "Insumos, materiales e instrumental del consultorio.",
+      "loadFailed": "No se pudo cargar el inventario",
+      "empty": "Aún no hay insumos registrados.",
+      "newItem": "Nuevo insumo",
+      "nameRequired": "El nombre es obligatorio",
+      "created": "Insumo creado",
+      "createFailed": "No se pudo crear el insumo",
+      "deleted": "Insumo eliminado",
+      "deleteFailed": "No se pudo eliminar el insumo",
+      "lowStockCount": "{count} insumos con stock bajo",
+      "currentStock": "Stock actual",
+      "lowStockWarning": "Por debajo del mínimo ({minimum})",
+      "newMovement": "Nuevo movimiento",
+      "requiredFields": "La cantidad es obligatoria",
+      "movementCreated": "Movimiento registrado",
+      "movementCreateFailed": "No se pudo registrar el movimiento",
+      "movementDeleteFailed": "No se pudo eliminar el movimiento",
+      "columns": {
+        "name": "Nombre",
+        "category": "Categoría",
+        "stock": "Stock",
+        "unitCost": "Costo unitario",
+        "supplier": "Proveedor"
+      },
+      "form": {
+        "name": "Nombre",
+        "category": "Categoría",
+        "sku": "SKU / Código",
+        "unit": "Unidad",
+        "unitPlaceholder": "ej. unidad, caja, ml",
+        "unitCost": "Costo unitario",
+        "initialStock": "Stock inicial",
+        "minimumStock": "Stock mínimo",
+        "supplier": "Proveedor",
+        "direction": "Tipo",
+        "reason": "Motivo",
+        "quantity": "Cantidad",
+        "date": "Fecha",
+        "notes": "Notas",
+        "cancel": "Cancelar",
+        "save": "Guardar"
+      },
+      "categories": {
+        "supplies": "Insumos médicos",
+        "materials": "Materiales",
+        "instruments": "Instrumental",
+        "equipment": "Equipo",
+        "other": "Otro"
+      },
+      "directions": {
+        "in": "Entrada",
+        "out": "Salida"
+      },
+      "reasons": {
+        "purchase": "Compra",
+        "consumption": "Consumo",
+        "waste": "Merma",
+        "adjustment": "Ajuste",
+        "other": "Otro"
+      },
+      "movements": {
+        "title": "Historial de movimientos",
+        "empty": "Aún no hay movimientos para este insumo."
       }
     },
     "financialSummary": {

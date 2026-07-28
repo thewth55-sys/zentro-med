@@ -1232,3 +1232,48 @@ export interface BankTransaction {
   created_by?: string | null;
   created_at: string;
 }
+
+// ============================================================
+// Finance module, phase 3 (migration 080) — inventory of supplies,
+// materials, and instruments. `computed_stock` is never stored —
+// same "opening balance + movements" shape as BankAccount's
+// computed_balance, summed server-side by the list route.
+// ============================================================
+
+export type InventoryCategory = 'supplies' | 'materials' | 'instruments' | 'equipment' | 'other';
+
+export interface InventoryItem {
+  id: string;
+  account_id: string;
+  name: string;
+  category: InventoryCategory;
+  sku?: string | null;
+  unit: string;
+  unit_cost?: number | null;
+  initial_stock: number;
+  minimum_stock: number;
+  supplier?: string | null;
+  is_active: boolean;
+  computed_stock?: number;
+  created_by?: string | null;
+  created_at: string;
+  updated_at?: string;
+}
+
+export type InventoryMovementDirection = 'in' | 'out';
+export type InventoryMovementReason = 'purchase' | 'consumption' | 'waste' | 'adjustment' | 'other';
+
+export interface InventoryMovement {
+  id: string;
+  account_id: string;
+  item_id: string;
+  direction: InventoryMovementDirection;
+  reason: InventoryMovementReason;
+  quantity: number;
+  unit_cost_at_time?: number | null;
+  expense_id?: string | null;
+  notes?: string | null;
+  movement_date: string;
+  created_by?: string | null;
+  created_at: string;
+}

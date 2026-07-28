@@ -8,6 +8,7 @@ import { QuoteList } from "@/components/billing/quote-list";
 import { InvoiceList } from "@/components/billing/invoice-list";
 import { ExpenseList } from "@/components/billing/expense-list";
 import { BankAccountList } from "@/components/billing/bank-account-list";
+import { InventoryList } from "@/components/billing/inventory-list";
 import { FinancialSummary } from "@/components/billing/financial-summary";
 import { ProductManager } from "@/components/settings/product-manager";
 
@@ -41,6 +42,9 @@ export default function BillingPage() {
           <TabsTrigger value="bankAccounts" className="data-active:bg-muted data-active:text-primary text-muted-foreground">
             {t("bankAccounts")}
           </TabsTrigger>
+          <TabsTrigger value="inventory" className="data-active:bg-muted data-active:text-primary text-muted-foreground">
+            {t("inventory")}
+          </TabsTrigger>
           <TabsTrigger value="priceList" className="data-active:bg-muted data-active:text-primary text-muted-foreground">
             {t("priceList")}
           </TabsTrigger>
@@ -59,6 +63,9 @@ export default function BillingPage() {
         </TabsContent>
         <TabsContent value="bankAccounts" className="pt-4">
           <BankAccountList />
+        </TabsContent>
+        <TabsContent value="inventory" className="pt-4">
+          <InventoryList />
         </TabsContent>
         <TabsContent value="priceList" className="pt-4">
           <ProductManager />

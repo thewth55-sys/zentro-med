@@ -1388,6 +1388,7 @@
       "quotes": "Quotes",
       "expenses": "Expenses",
       "bankAccounts": "Banking",
+      "inventory": "Inventory",
       "priceList": "Price list"
     },
     "expenseList": {
@@ -1487,6 +1488,72 @@
         "empty": "No transactions on this account yet.",
         "payment": "Payment received",
         "paymentFor": "Payment — Invoice {number}"
+      }
+    },
+    "inventory": {
+      "subtitle": "Practice supplies, materials, and instruments.",
+      "loadFailed": "Failed to load inventory",
+      "empty": "No inventory items registered yet.",
+      "newItem": "New item",
+      "nameRequired": "Name is required",
+      "created": "Item created",
+      "createFailed": "Failed to create the item",
+      "deleted": "Item deleted",
+      "deleteFailed": "Failed to delete the item",
+      "lowStockCount": "{count} items low on stock",
+      "currentStock": "Current stock",
+      "lowStockWarning": "Below the minimum ({minimum})",
+      "newMovement": "New movement",
+      "requiredFields": "Quantity is required",
+      "movementCreated": "Movement recorded",
+      "movementCreateFailed": "Failed to record the movement",
+      "movementDeleteFailed": "Failed to delete the movement",
+      "columns": {
+        "name": "Name",
+        "category": "Category",
+        "stock": "Stock",
+        "unitCost": "Unit cost",
+        "supplier": "Supplier"
+      },
+      "form": {
+        "name": "Name",
+        "category": "Category",
+        "sku": "SKU / Code",
+        "unit": "Unit",
+        "unitPlaceholder": "e.g. unit, box, ml",
+        "unitCost": "Unit cost",
+        "initialStock": "Initial stock",
+        "minimumStock": "Minimum stock",
+        "supplier": "Supplier",
+        "direction": "Direction",
+        "reason": "Reason",
+        "quantity": "Quantity",
+        "date": "Date",
+        "notes": "Notes",
+        "cancel": "Cancel",
+        "save": "Save"
+      },
+      "categories": {
+        "supplies": "Medical supplies",
+        "materials": "Materials",
+        "instruments": "Instruments",
+        "equipment": "Equipment",
+        "other": "Other"
+      },
+      "directions": {
+        "in": "In",
+        "out": "Out"
+      },
+      "reasons": {
+        "purchase": "Purchase",
+        "consumption": "Consumption",
+        "waste": "Waste",
+        "adjustment": "Adjustment",
+        "other": "Other"
+      },
+      "movements": {
+        "title": "Movement history",
+        "empty": "No movements for this item yet."
       }
     },
     "financialSummary": {
