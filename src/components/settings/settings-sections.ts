@@ -7,12 +7,12 @@ import {
   LayoutGrid,
   Palette,
   PlugZap,
-  Receipt,
   Shield,
   Tags,
   Target,
   User,
   UsersRound,
+  Wallet,
   Zap,
   type LucideIcon,
 } from 'lucide-react';
@@ -69,7 +69,7 @@ export const SECTION_META: Record<SettingsSection, SectionMeta> = {
   api: { id: 'api', label: 'API keys', icon: KeyRound, group: 'workspace' },
   conversions: { id: 'conversions', label: 'Conversions', icon: Target, group: 'workspace' },
   scheduling: { id: 'scheduling', label: 'Scheduling', icon: CalendarClock, group: 'workspace' },
-  billing: { id: 'billing', label: 'Billing', icon: Receipt, group: 'workspace' },
+  billing: { id: 'billing', label: 'Finance', icon: Wallet, group: 'workspace' },
   'billing-platform': { id: 'billing-platform', label: 'Subscription', icon: CreditCard, group: 'workspace' },
 };
 

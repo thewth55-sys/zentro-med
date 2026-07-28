@@ -86,7 +86,7 @@
     "contacts": "Patients",
     "pipelines": "Prospects",
     "agenda": "Agenda",
-    "billing": "Billing",
+    "billing": "Finance",
     "broadcasts": "Broadcasts",
     "automations": "Automations",
     "flows": "Flows",
@@ -1381,7 +1381,7 @@
   },
   "Billing": {
     "page": {
-      "title": "Billing",
+      "title": "Finance",
       "subtitle": "Quotes, invoices, and payments for your patients.",
       "summary": "Summary",
       "invoices": "Invoices",
@@ -2279,7 +2279,7 @@
       "api": "API keys",
       "conversions": "Conversions",
       "scheduling": "Scheduling",
-      "billing": "Billing",
+      "billing": "Finance",
       "billing-platform": "Subscription"
     },
     "groups": {
