@@ -326,20 +326,14 @@ export const LANDING_BODY_HTML = `
     <div class="solution-grid">
       <div class="solution-visual">
         <!-- MOCKUP: agenda del día -->
-        <div class="mockui">
-          <div class="mockui-bar">
-            <span class="mockui-bardot" style="background:#ef4444;"></span>
-            <span class="mockui-bardot" style="background:#f59e0b;"></span>
-            <span class="mockui-bardot" style="background:#22c55e;"></span>
-            <span class="mockui-url">app.zentrolabs.com/agenda</span>
-          </div>
-          <div class="mockui-agenda">
-            <div class="mockui-agenda-row"><span class="mockui-agenda-time">8:30</span><span class="mockui-agenda-name">Carlos E.</span><span class="mockui-agenda-pill ok">Confirmada</span></div>
-            <div class="mockui-agenda-row"><span class="mockui-agenda-time">9:15</span><span class="mockui-agenda-name">Lucía V.</span><span class="mockui-agenda-pill ok">Confirmada</span></div>
-            <div class="mockui-agenda-row"><span class="mockui-agenda-time">11:00</span><span class="mockui-agenda-name">Rodrigo M.</span><span class="mockui-agenda-pill pending">Pendiente</span></div>
-            <div class="mockui-agenda-row"><span class="mockui-agenda-time">15:30</span><span class="mockui-agenda-name">Diana P.</span><span class="mockui-agenda-pill ok">Confirmada</span></div>
-          </div>
-        </div>
+        <img
+          src="/landing/agenda-mockup.png"
+          width="1536"
+          height="1024"
+          alt="Vista de Agenda de Zentro CRM en escritorio y móvil, mostrando citas de la semana por doctor y consultorio"
+          style="width:100%;height:auto;display:block;border-radius:12px;"
+          loading="lazy"
+        >
         <p class="mockui-caption">// Agenda de hoy · Zentro CRM</p>
         <div>
           <p class="sol-tag">// Zentro Med CRM</p>
@@ -403,14 +397,14 @@ export const LANDING_BODY_HTML = `
   <div class="wrap">
     <div class="solution-grid reverse">
       <div class="solution-visual">
-        <div class="mockui-chat" style="gap:10px;">
-          <div class="mockui-bubble in">Hola, ¿tienen cita disponible esta semana y cuánto cuesta la consulta?</div>
-          <div class="mockui-bubble auto">🤖 Sí — tengo espacio el jueves 10:00am o viernes 4:00pm. La consulta general cuesta $80.000. ¿Cuál te queda mejor?</div>
-          <div class="mockui-bubble in">Viernes 4pm está perfecto</div>
-          <div class="mockui-bubble auto">🤖 Listo, quedas agendada el viernes 4:00pm con el Dr. Martínez. Te escribo 24h antes para confirmar.</div>
-          <div class="mockui-bubble in">Otra cosa, ¿me puede ver algo que me está doliendo hace días o mejor voy directo?</div>
-          <div class="mockui-bubble auto">🤖 Eso lo debe evaluar directamente el Dr. Martínez — te conecto con él ahora mismo para que te oriente. 👨‍⚕️</div>
-        </div>
+        <img
+          src="/landing/inbox-mockup.png"
+          width="1536"
+          height="1024"
+          alt="Bandeja de entrada de Zentro CRM mostrando una conversación de WhatsApp con respuesta automática de IA agendando una cita"
+          style="width:100%;height:auto;display:block;border-radius:12px;"
+          loading="lazy"
+        >
         <p class="mockui-caption" style="margin-top:14px;">// Incluida en tu plan — no necesitas cuentas propias en OpenAI ni Anthropic</p>
       </div>
       <div class="solution-copy">
