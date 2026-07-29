@@ -16,7 +16,6 @@ import {
   GitBranch,
   Globe,
   LayoutDashboard,
-  MessageSquare,
   Radio,
   Users,
   Wallet,
@@ -24,12 +23,15 @@ import {
   Zap,
   type LucideIcon,
 } from "lucide-react";
+import type { ComponentType, SVGProps } from "react";
+import { WhatsAppIcon } from "@/components/icons/whatsapp-icon";
 import type { GatedFeature } from "@/lib/billing-platform/features";
 
 export interface NavItem {
   href: string;
   labelKey: string;
-  icon: LucideIcon;
+  /** Most items use a lucide icon; a couple (WhatsApp) use a custom SVG with the same call shape. */
+  icon: LucideIcon | ComponentType<SVGProps<SVGSVGElement>>;
   /**
    * When true, the nav row renders a small "Beta" chip after the label.
    * Purely informational — doesn't affect routing or access.
@@ -47,7 +49,7 @@ export interface NavItem {
 
 export const navItems: NavItem[] = [
   { href: "/dashboard", labelKey: "dashboard", icon: LayoutDashboard },
-  { href: "/inbox", labelKey: "inbox", icon: MessageSquare, feature: "whatsapp_inbox" },
+  { href: "/inbox", labelKey: "inbox", icon: WhatsAppIcon, feature: "whatsapp_inbox" },
   { href: "/notifications", labelKey: "notifications", icon: Bell },
   { href: "/contacts", labelKey: "contacts", icon: Users },
   { href: "/pipelines", labelKey: "pipelines", icon: GitBranch },

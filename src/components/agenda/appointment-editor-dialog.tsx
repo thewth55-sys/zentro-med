@@ -20,7 +20,7 @@ import { Label } from "@/components/ui/label";
 import type { Appointment, AppointmentStatus, Contact, Doctor, Room, ServiceType } from "@/types";
 
 export type AppointmentDraft =
-  | { mode: "create"; startAt: string; endAt: string; doctorId?: string; roomId?: string }
+  | { mode: "create"; startAt: string; endAt: string; doctorId?: string; roomId?: string; contactId?: string }
   | { mode: "edit"; appointment: Appointment };
 
 interface AppointmentEditorDialogProps {
@@ -100,10 +100,21 @@ export function AppointmentEditorDialog({
       setStatus("pending");
       setNotes("");
       setContact(null);
+      if (draft.contactId) {
+        void supabase
+          .from("contacts")
+          .select("*")
+          .eq("id", draft.contactId)
+          .maybeSingle()
+          .then(({ data }) => {
+            if (data) setContact(data as Contact);
+          });
+      }
     }
     setContactQuery("");
     setContactResults([]);
     setConflictWarning(null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [draft]);
 
   const checkConflict = useCallback(
@@ -258,7 +269,14 @@ export function AppointmentEditorDialog({
         </DialogHeader>
 
         <div className="space-y-3">
-          {draft?.mode === "create" && (
+          {draft?.mode === "create" && draft.contactId && (
+            <div className="rounded-md border border-border bg-muted px-2.5 py-1.5 text-sm">
+              <p className="text-foreground">{contact?.name || contact?.phone || t("noContactSelected")}</p>
+              {contact?.phone && <p className="text-xs text-muted-foreground">{contact.phone}</p>}
+            </div>
+          )}
+
+          {draft?.mode === "create" && !draft.contactId && (
             <div className="space-y-1.5">
               <Label className="text-xs text-muted-foreground">{t("contact")}</Label>
               {contact ? (

@@ -81,7 +81,7 @@
   "Sidebar": {
     "title": "Zentro Med",
     "dashboard": "Panel",
-    "inbox": "Bandeja de entrada",
+    "inbox": "WhatsApp",
     "notifications": "Notificaciones",
     "contacts": "Pacientes",
     "pipelines": "Prospectos",
@@ -711,6 +711,7 @@
       "appointmentsTab": {
         "empty": "Aún no hay citas.",
         "loadFailed": "No se pudo cargar el historial de citas",
+        "newAppointment": "Nueva cita",
         "viewDocuments": "Ver documentos asociados →",
         "documents": {
           "loadFailed": "No se pudieron cargar los documentos de la cita",
@@ -1736,6 +1737,12 @@
         "overdue": "Vencida",
         "void": "Anulada"
       }
+    },
+    "newInvoicePage": {
+      "back": "Volver",
+      "appointment": "Cita asociada (opcional)",
+      "noAppointment": "Sin cita asociada",
+      "cancel": "Cancelar"
     }
   },
   "Flows": {

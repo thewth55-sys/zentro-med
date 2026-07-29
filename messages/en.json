@@ -81,7 +81,7 @@
   "Sidebar": {
     "title": "Zentro Med",
     "dashboard": "Dashboard",
-    "inbox": "Inbox",
+    "inbox": "WhatsApp",
     "notifications": "Notifications",
     "contacts": "Patients",
     "pipelines": "Prospects",
@@ -711,6 +711,7 @@
       "appointmentsTab": {
         "empty": "No appointments yet.",
         "loadFailed": "Failed to load appointment history",
+        "newAppointment": "New appointment",
         "viewDocuments": "View linked documents →",
         "documents": {
           "loadFailed": "Failed to load this appointment's documents",
@@ -1736,6 +1737,12 @@
         "overdue": "Overdue",
         "void": "Void"
       }
+    },
+    "newInvoicePage": {
+      "back": "Back",
+      "appointment": "Linked appointment (optional)",
+      "noAppointment": "No linked appointment",
+      "cancel": "Cancel"
     }
   },
   "Flows": {

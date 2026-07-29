@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/hooks/use-auth';
 import { formatCurrency } from '@/lib/currency';
@@ -56,11 +57,19 @@ interface ContactDetailViewProps {
   contactId: string;
 }
 
+const DETAIL_TABS = [
+  'details', 'tags', 'notes', 'medical', 'consent', 'odontogram',
+  'photos', 'appointments', 'billing', 'custom', 'deals',
+];
+
 export function ContactDetailView({ contactId }: ContactDetailViewProps) {
   const t = useTranslations('Contacts.detailView');
   const supabase = createClient();
   const { accountId, defaultCurrency, account } = useAuth();
   const showOdontogram = showsOdontogram(account?.specialty);
+  const searchParams = useSearchParams();
+  const requestedTab = searchParams.get('tab');
+  const initialTab = requestedTab && DETAIL_TABS.includes(requestedTab) ? requestedTab : 'details';
 
   const [contact, setContact] = useState<Contact | null>(null);
   const [loading, setLoading] = useState(false);
@@ -478,11 +487,11 @@ export function ContactDetailView({ contactId }: ContactDetailViewProps) {
             </div>
 
             {/* Tabs */}
-            <Tabs defaultValue="details" className="flex flex-col">
-            <div className="relative mx-4 mt-3">
+            <Tabs defaultValue={initialTab} className="flex flex-col">
+            <div className="mx-4 mt-3">
               <TabsList
                 variant="line"
-                className="group-data-horizontal/tabs:h-auto w-full justify-start gap-1 overflow-x-auto border-b border-border pr-6 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+                className="group-data-horizontal/tabs:h-auto w-full flex-wrap justify-start gap-1 border-b border-border"
               >
                 <TabsTrigger value="details" className="h-auto shrink-0 gap-1.5 px-3 py-2.5 text-muted-foreground data-active:text-primary">
                   <User className="size-4" />
@@ -531,7 +540,6 @@ export function ContactDetailView({ contactId }: ContactDetailViewProps) {
                   {t('tabs.deals')}
                 </TabsTrigger>
               </TabsList>
-              <div className="pointer-events-none absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-popover to-transparent" />
             </div>
 
               {/* Details Tab */}
@@ -585,14 +593,6 @@ export function ContactDetailView({ contactId }: ContactDetailViewProps) {
                       <Input
                         value={editEmail}
                         onChange={(e) => setEditEmail(e.target.value)}
-                        className="bg-muted border-border text-foreground h-8 text-sm"
-                      />
-                    </div>
-                    <div className="space-y-1.5">
-                      <Label className="text-muted-foreground text-xs">{t('company')}</Label>
-                      <Input
-                        value={editCompany}
-                        onChange={(e) => setEditCompany(e.target.value)}
                         className="bg-muted border-border text-foreground h-8 text-sm"
                       />
                     </div>

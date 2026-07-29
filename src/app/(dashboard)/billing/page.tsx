@@ -2,6 +2,7 @@
 
 import { BarChart3, Boxes, FileText, Landmark, Receipt, Tag, Wallet } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { useSearchParams } from "next/navigation";
 
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { QuoteList } from "@/components/billing/quote-list";
@@ -12,8 +13,13 @@ import { InventoryList } from "@/components/billing/inventory-list";
 import { FinancialSummary } from "@/components/billing/financial-summary";
 import { ProductManager } from "@/components/settings/product-manager";
 
+const BILLING_TABS = ["summary", "invoices", "quotes", "expenses", "bankAccounts", "inventory", "priceList"];
+
 export default function BillingPage() {
   const t = useTranslations("Billing.page");
+  const searchParams = useSearchParams();
+  const requestedTab = searchParams.get("tab");
+  const initialTab = requestedTab && BILLING_TABS.includes(requestedTab) ? requestedTab : "summary";
 
   return (
     <div className="space-y-6">
@@ -25,7 +31,7 @@ export default function BillingPage() {
         <p className="mt-1 text-sm text-muted-foreground">{t("subtitle")}</p>
       </div>
 
-      <Tabs defaultValue="summary">
+      <Tabs defaultValue={initialTab}>
         <div className="relative -mx-1">
           <TabsList
             variant="line"

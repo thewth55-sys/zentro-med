@@ -77,6 +77,7 @@ export async function POST(request: Request) {
         account_id: accountId,
         contact_id: body.contact_id,
         deal_id: body.deal_id || null,
+        appointment_id: body.appointment_id || null,
         invoice_number: invoiceNumber,
         due_date: body.due_date || null,
         subtotal: resolved.subtotal,

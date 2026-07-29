@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Loader2, Plus, Receipt } from "lucide-react";
 import { useTranslations } from "next-intl";
@@ -32,6 +33,7 @@ interface InvoiceListProps {
 
 export function InvoiceList({ contactId }: InvoiceListProps) {
   const t = useTranslations("Billing.invoiceList");
+  const router = useRouter();
 
   const [loading, setLoading] = useState(true);
   const [invoices, setInvoices] = useState<Invoice[]>([]);
@@ -60,8 +62,7 @@ export function InvoiceList({ contactId }: InvoiceListProps) {
   }, [fetchInvoices]);
 
   function openCreate() {
-    setEditingInvoice(null);
-    setFormOpen(true);
+    router.push(contactId ? `/billing/invoices/new?contact_id=${contactId}` : "/billing/invoices/new");
   }
 
   async function openEdit(invoiceId: string) {
