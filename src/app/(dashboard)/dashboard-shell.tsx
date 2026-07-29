@@ -7,6 +7,7 @@ import { Sidebar } from "@/components/layout/sidebar";
 import { Header } from "@/components/layout/header";
 import { PresenceHeartbeat } from "@/components/presence/presence-heartbeat";
 import { NotificationAlerts } from "@/components/notifications/notification-alerts";
+import { PushRegistration } from "@/components/notifications/push-registration";
 import { AccessBanner } from "@/components/billing-platform/access-banner";
 import { AccessLockOverlay } from "@/components/billing-platform/access-lock-overlay";
 import { StartCheckoutRedirect } from "@/components/billing-platform/start-checkout-redirect";
@@ -51,6 +52,9 @@ function DashboardShellInner({ children }: { children: React.ReactNode }) {
       {/* Plays a chime / fires a native popup on new messages or
           assignments while this tab is open. Headless — renders nothing. */}
       <NotificationAlerts />
+      {/* Registers this device's FCM token when running inside the
+          Capacitor Android app — no-op in a regular browser tab. */}
+      <PushRegistration />
       <StartCheckoutRedirect />
       <AccessLockOverlay />
       <Sidebar open={sidebarOpen} onClose={closeSidebar} />
