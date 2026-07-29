@@ -14,6 +14,15 @@ import { useAuth } from "@/hooks/use-auth";
  * let the SERVER push a notification even with the app fully closed
  * or the phone locked, which the browser Notification API can't do.
  *
+ * Gated behind NEXT_PUBLIC_FIREBASE_PUSH_ENABLED: the native
+ * @capacitor/push-notifications plugin throws a FATAL (uncatchable
+ * from JS — it crashes before the promise can reject) if the
+ * Android build has no google-services.json, because
+ * PushNotifications.register() calls straight into
+ * FirebaseMessaging.getInstance() with no FirebaseApp initialized.
+ * Flip this flag on only once google-services.json is in the native
+ * build AND FIREBASE_SERVICE_ACCOUNT_JSON is set server-side.
+ *
  * Mounted once per signed-in session (dashboard-shell.tsx), same
  * pattern as PresenceHeartbeat / NotificationAlerts.
  */
@@ -22,7 +31,8 @@ export function PushRegistration() {
   const router = useRouter();
 
   useEffect(() => {
-    if (!user || !Capacitor.isNativePlatform()) return;
+    const pushEnabled = process.env.NEXT_PUBLIC_FIREBASE_PUSH_ENABLED === "true";
+    if (!user || !pushEnabled || !Capacitor.isNativePlatform()) return;
 
     let registrationHandle: { remove: () => void } | undefined;
     let errorHandle: { remove: () => void } | undefined;
