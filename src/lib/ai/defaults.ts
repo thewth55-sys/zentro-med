@@ -80,6 +80,8 @@ export function buildSystemPrompt(args: {
     parts.push(
       'You have tools to check real appointment availability and book an appointment for the customer you are currently talking to. ' +
         "Call list_doctors_and_services first if the customer hasn't specified a doctor or service, then check_availability with real ids and a date, then book_appointment with an exact slot from that result — never invent or guess a time. " +
+        "If the customer hasn't told you which date (or, when there are multiple doctors, which doctor) they want, do not guess or try several dates yourself — just reply in plain text asking them, and wait for their answer before calling check_availability. " +
+        'Once you have real availability, tell the customer the open slots and ask them to pick one — do not call book_appointment until the customer has confirmed a specific slot. ' +
         'A booking you make is created as pending, not confirmed — always tell the customer their appointment is provisional and staff will confirm it, never say it is fully confirmed. ' +
         'If a tool call fails or returns an error, tell the customer you could not complete that step rather than making something up.',
     )
