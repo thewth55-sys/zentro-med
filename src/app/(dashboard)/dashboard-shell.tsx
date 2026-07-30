@@ -9,6 +9,7 @@ import { PresenceHeartbeat } from "@/components/presence/presence-heartbeat";
 import { NotificationAlerts } from "@/components/notifications/notification-alerts";
 import { PushRegistration } from "@/components/notifications/push-registration";
 import { BiometricLock } from "@/components/notifications/biometric-lock";
+import { NativeSessionSync } from "@/components/notifications/native-session-sync";
 import { AccessBanner } from "@/components/billing-platform/access-banner";
 import { AccessLockOverlay } from "@/components/billing-platform/access-lock-overlay";
 import { StartCheckoutRedirect } from "@/components/billing-platform/start-checkout-redirect";
@@ -57,6 +58,10 @@ function DashboardShellInner({ children }: { children: React.ReactNode }) {
         {/* Registers this device's FCM token when running inside the
             Capacitor Android app — no-op in a regular browser tab. */}
         <PushRegistration />
+        {/* Backs up the session to native storage on change — see
+            native-session.ts for why WebView cookies alone aren't
+            reliable enough on some Android OEMs. */}
+        <NativeSessionSync />
         <StartCheckoutRedirect />
         <AccessLockOverlay />
         <Sidebar open={sidebarOpen} onClose={closeSidebar} />

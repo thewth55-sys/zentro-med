@@ -1,9 +1,10 @@
 "use client";
 
-import { Suspense, useCallback, useState } from "react";
+import { Suspense, useCallback, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
+import { Capacitor } from "@capacitor/core";
 import { TurnstileWidget } from "@/components/auth/turnstile-widget";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,7 +16,9 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { UsersRound } from "lucide-react";
+import { UsersRound, Loader2 } from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
+import { loadNativeSession, clearNativeSession } from "@/lib/native-session";
 
 // `useSearchParams` opts the component out of static prerendering
 // unless it sits under a Suspense boundary. We split the form into
@@ -52,6 +55,52 @@ function LoginPageInner() {
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
   const captchaRequired = Boolean(process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY);
 
+  // Only reachable page without a session (middleware redirects every
+  // other protected path here). On the native app, the WebView's own
+  // cookie jar isn't reliably persisted across a full app close on
+  // every Android OEM — see native-session.ts. If we backed up a
+  // session to native storage before, try restoring it here before
+  // showing the login form at all.
+  //
+  // Starts `false` (matching SSR, which has no concept of "native")
+  // so there's no hydration mismatch — flips to `true` in the effect
+  // below, after mount, only on an actual native device.
+  const [restoring, setRestoring] = useState(false);
+
+  useEffect(() => {
+    if (!Capacitor.isNativePlatform()) return;
+    setRestoring(true);
+
+    (async () => {
+      const stored = await loadNativeSession();
+      if (!stored) {
+        setRestoring(false);
+        return;
+      }
+
+      const supabase = createClient();
+      const { error } = await supabase.auth.setSession({
+        access_token: stored.access_token,
+        refresh_token: stored.refresh_token,
+      });
+
+      if (error) {
+        console.error("Native session restore failed:", error);
+        await clearNativeSession();
+        setRestoring(false);
+        return;
+      }
+
+      // Hard navigation — the browser client just wrote fresh cookies
+      // via setSession(); a full load lets the server (middleware)
+      // see them too instead of relying on in-memory client state.
+      window.location.href = inviteToken
+        ? `/join/${encodeURIComponent(inviteToken)}`
+        : "/dashboard";
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const handleTurnstileExpire = useCallback(() => setTurnstileToken(null), []);
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -83,6 +132,14 @@ function LoginPageInner() {
       ? `/join/${encodeURIComponent(inviteToken)}`
       : "/dashboard";
   };
+
+  if (restoring) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <Loader2 className="size-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
