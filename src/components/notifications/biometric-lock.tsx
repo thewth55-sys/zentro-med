@@ -1,7 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Capacitor } from "@capacitor/core";
+import { App } from "@capacitor/app";
 import { BiometricAuth } from "@aparajita/capacitor-biometric-auth";
 import { Fingerprint, Loader2 } from "lucide-react";
 import { useTranslations } from "next-intl";
@@ -9,23 +10,38 @@ import { Button } from "@/components/ui/button";
 
 type LockStatus = "checking" | "unlocked" | "locked";
 
+// A background→foreground cycle shorter than this is almost certainly
+// our own biometric prompt's transient Activity opening and closing
+// (see the loop this caused — plugin-level resume events fire for
+// that too), or a system dialog like the notification-permission
+// prompt closing — not the user actually switching away and back.
+// Only a gap at least this long re-triggers the lock.
+const MIN_BACKGROUND_MS = 3000;
+
 /**
  * App-lock gate for the Android app — wraps the entire authenticated
  * shell (dashboard-shell.tsx) so patient records stay hidden behind
- * a biometric prompt every time the app opens OR resumes from the
- * background, independent of whether the underlying Supabase session
- * cookie is still valid. This is deliberately stricter than "only
- * re-auth when the session expires" — a clinic handling patient data
- * wants the extra layer even if someone picks up an already-unlocked
- * phone.
+ * a biometric prompt every time the app opens or is genuinely
+ * backgrounded and resumed, independent of whether the underlying
+ * Supabase session cookie is still valid.
+ *
+ * Uses @capacitor/app's appStateChange (real OS-level foreground/
+ * background transitions) instead of the biometric plugin's own
+ * addResumeListener — that one turned out to fire for ANY Activity
+ * resume within this app's own process, including the biometric
+ * prompt's own transient Activity closing and the notification
+ * permission dialog closing, which caused an infinite re-lock loop.
+ * Gating on elapsed background time (not just "did isActive flip")
+ * filters those out.
  *
  * No-ops entirely on the regular web app and on devices with no
- * biometry enrolled (checkBiometry().isAvailable === false) — never
- * lock out a user who has nothing to unlock with.
+ * biometry enrolled (checkBiometry().isAvailable === false).
  */
 export function BiometricLock({ children }: { children: React.ReactNode }) {
   const t = useTranslations("BiometricLock");
   const [status, setStatus] = useState<LockStatus>("checking");
+  const backgroundedAtRef = useRef<number | null>(null);
+  const biometryAvailableRef = useRef(false);
 
   const tryUnlock = useCallback(async () => {
     setStatus("checking");
@@ -48,7 +64,7 @@ export function BiometricLock({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    let resumeHandle: { remove: () => void } | undefined;
+    let appStateHandle: { remove: () => void } | undefined;
 
     (async () => {
       try {
@@ -57,20 +73,22 @@ export function BiometricLock({ children }: { children: React.ReactNode }) {
           setStatus("unlocked");
           return;
         }
+        biometryAvailableRef.current = true;
         await tryUnlock();
-        // IMPORTANT: only update `status` here, never call tryUnlock()
-        // (or anything else that invokes authenticate()) from inside
-        // this listener. authenticate() shows a native prompt via a
-        // transparent Activity (see the plugin's AndroidManifest) —
-        // opening/closing THAT activity itself fires a resume event,
-        // so auto-re-authenticating here creates an infinite
-        // lock → prompt → resume → lock loop. The official plugin
-        // README's own example does exactly this (info-only update);
-        // requiring one tap on the "unlock" button to re-authenticate
-        // is what breaks the cycle.
-        resumeHandle = await BiometricAuth.addResumeListener((info) => {
-          if (!info.isAvailable) return;
-          setStatus("locked");
+
+        appStateHandle = await App.addListener("appStateChange", ({ isActive }) => {
+          if (!biometryAvailableRef.current) return;
+
+          if (!isActive) {
+            backgroundedAtRef.current = Date.now();
+            return;
+          }
+
+          const backgroundedAt = backgroundedAtRef.current;
+          backgroundedAtRef.current = null;
+          if (backgroundedAt && Date.now() - backgroundedAt >= MIN_BACKGROUND_MS) {
+            setStatus("locked");
+          }
         });
       } catch (err) {
         console.error("[BiometricLock] checkBiometry threw:", err);
@@ -78,7 +96,7 @@ export function BiometricLock({ children }: { children: React.ReactNode }) {
       }
     })();
 
-    return () => resumeHandle?.remove();
+    return () => appStateHandle?.remove();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
