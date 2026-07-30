@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "633850606590",
+    "project_id": "zentro-med-e47f8",
+    "storage_bucket": "zentro-med-e47f8.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:633850606590:android:a323beb17bf533e93906af",
+        "android_client_info": {
+          "package_name": "com.zentrolabs.zentromed"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAJ7XcadSJNM0vZZigPP31FJZtHzoFFQas"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
