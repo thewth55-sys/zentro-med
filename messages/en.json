@@ -2685,5 +2685,18 @@
         "makeDefault": "Make default"
       }
     }
+  },
+  "BiometricLock": {
+    "reason": "Verify your identity to continue",
+    "cancel": "Cancel",
+    "androidTitle": "Zentro Med",
+    "lockedMessage": "The app is locked. Verify your identity to continue.",
+    "unlockButton": "Unlock"
+  },
+  "AndroidAppBanner": {
+    "title": "Zentro Med",
+    "subtitle": "Get the app for a better experience",
+    "download": "Download",
+    "dismiss": "Dismiss"
   }
 }

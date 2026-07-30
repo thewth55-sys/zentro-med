@@ -8,6 +8,7 @@ import { Header } from "@/components/layout/header";
 import { PresenceHeartbeat } from "@/components/presence/presence-heartbeat";
 import { NotificationAlerts } from "@/components/notifications/notification-alerts";
 import { PushRegistration } from "@/components/notifications/push-registration";
+import { BiometricLock } from "@/components/notifications/biometric-lock";
 import { AccessBanner } from "@/components/billing-platform/access-banner";
 import { AccessLockOverlay } from "@/components/billing-platform/access-lock-overlay";
 import { StartCheckoutRedirect } from "@/components/billing-platform/start-checkout-redirect";
@@ -45,26 +46,28 @@ function DashboardShellInner({ children }: { children: React.ReactNode }) {
   if (!user) return null;
 
   return (
-    <div className="flex h-screen overflow-hidden bg-background">
-      {/* Reports this tab's online/away presence once we know a user is
-          signed in. Headless — renders nothing. */}
-      <PresenceHeartbeat />
-      {/* Plays a chime / fires a native popup on new messages or
-          assignments while this tab is open. Headless — renders nothing. */}
-      <NotificationAlerts />
-      {/* Registers this device's FCM token when running inside the
-          Capacitor Android app — no-op in a regular browser tab. */}
-      <PushRegistration />
-      <StartCheckoutRedirect />
-      <AccessLockOverlay />
-      <Sidebar open={sidebarOpen} onClose={closeSidebar} />
-      <div className="flex flex-1 flex-col overflow-hidden">
-        <Header onOpenSidebar={() => setSidebarOpen(true)} />
-        <AccessBanner />
-        {/* Thinner horizontal padding on mobile so cards have room to breathe. */}
-        <main className="flex-1 overflow-y-auto p-4 sm:p-6">{children}</main>
+    <BiometricLock>
+      <div className="flex h-screen overflow-hidden bg-background">
+        {/* Reports this tab's online/away presence once we know a user is
+            signed in. Headless — renders nothing. */}
+        <PresenceHeartbeat />
+        {/* Plays a chime / fires a native popup on new messages or
+            assignments while this tab is open. Headless — renders nothing. */}
+        <NotificationAlerts />
+        {/* Registers this device's FCM token when running inside the
+            Capacitor Android app — no-op in a regular browser tab. */}
+        <PushRegistration />
+        <StartCheckoutRedirect />
+        <AccessLockOverlay />
+        <Sidebar open={sidebarOpen} onClose={closeSidebar} />
+        <div className="flex flex-1 flex-col overflow-hidden">
+          <Header onOpenSidebar={() => setSidebarOpen(true)} />
+          <AccessBanner />
+          {/* Thinner horizontal padding on mobile so cards have room to breathe. */}
+          <main className="flex-1 overflow-y-auto p-4 sm:p-6">{children}</main>
+        </div>
       </div>
-    </div>
+    </BiometricLock>
   );
 }
 

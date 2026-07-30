@@ -8,6 +8,7 @@ import "./globals.css";
 import { ThemeProvider } from "@/hooks/use-theme";
 import { ThemedToaster } from "@/components/themed-toaster";
 import { PwaRegister } from "@/components/pwa-register";
+import { AndroidAppBanner } from "@/components/android-app-banner";
 import { ZohoDeskWidget } from "@/components/zoho-desk-widget";
 import { AuthConfirmedToast } from "@/components/auth/auth-confirmed-toast";
 import {
@@ -130,6 +131,7 @@ export default async function RootLayout({
             {children}
             <ThemedToaster />
             <PwaRegister />
+            <AndroidAppBanner />
             <Suspense fallback={null}>
               <AuthConfirmedToast />
             </Suspense>
