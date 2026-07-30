@@ -53,18 +53,24 @@ export function BiometricLock({ children }: { children: React.ReactNode }) {
     (async () => {
       try {
         const result = await BiometricAuth.checkBiometry();
-        // TEMP diagnostic — remove once biometric availability detection
-        // is confirmed working across target devices.
-        console.log("[BiometricLock] checkBiometry:", JSON.stringify(result));
         if (!result.isAvailable) {
           setStatus("unlocked");
           return;
         }
         await tryUnlock();
+        // IMPORTANT: only update `status` here, never call tryUnlock()
+        // (or anything else that invokes authenticate()) from inside
+        // this listener. authenticate() shows a native prompt via a
+        // transparent Activity (see the plugin's AndroidManifest) —
+        // opening/closing THAT activity itself fires a resume event,
+        // so auto-re-authenticating here creates an infinite
+        // lock → prompt → resume → lock loop. The official plugin
+        // README's own example does exactly this (info-only update);
+        // requiring one tap on the "unlock" button to re-authenticate
+        // is what breaks the cycle.
         resumeHandle = await BiometricAuth.addResumeListener((info) => {
           if (!info.isAvailable) return;
           setStatus("locked");
-          void tryUnlock();
         });
       } catch (err) {
         console.error("[BiometricLock] checkBiometry threw:", err);
