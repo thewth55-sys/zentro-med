@@ -1,5 +1,5 @@
 import { AiError, type ProviderResult } from '../types'
-import { MAX_OUTPUT_TOKENS } from '../defaults'
+import { HANDOFF_SENTINEL, MAX_OUTPUT_TOKENS } from '../defaults'
 import {
   mergeConsecutive,
   normalizeUsage,
@@ -87,21 +87,40 @@ export async function generateOpenAi(args: ProviderArgs): Promise<ProviderResult
 
     const message = data?.choices?.[0]?.message
     const toolCalls = message?.tool_calls
-    if (toolCalls && toolCalls.length > 0 && executeTool && round < MAX_TOOL_ROUNDS) {
-      wireMessages.push({ role: 'assistant', content: message?.content ?? null, tool_calls: toolCalls })
-      for (const call of toolCalls) {
-        let parsedArgs: Record<string, unknown> = {}
-        try {
-          parsedArgs = JSON.parse(call.function.arguments || '{}')
-        } catch {
-          // Malformed tool-call arguments — the executor gets an empty
-          // object and returns its own "required field missing" error,
-          // which the model can react to same as any other tool error.
+    if (toolCalls && toolCalls.length > 0 && executeTool) {
+      if (round < MAX_TOOL_ROUNDS) {
+        wireMessages.push({ role: 'assistant', content: message?.content ?? null, tool_calls: toolCalls })
+        for (const call of toolCalls) {
+          let parsedArgs: Record<string, unknown> = {}
+          try {
+            parsedArgs = JSON.parse(call.function.arguments || '{}')
+          } catch {
+            // Malformed tool-call arguments — the executor gets an empty
+            // object and returns its own "required field missing" error,
+            // which the model can react to same as any other tool error.
+          }
+          const result = await executeTool(call.function.name, parsedArgs)
+          wireMessages.push({ role: 'tool', tool_call_id: call.id, content: result })
         }
-        const result = await executeTool(call.function.name, parsedArgs)
-        wireMessages.push({ role: 'tool', tool_call_id: call.id, content: result })
+        continue
       }
-      continue
+      // Round budget exhausted but the model still wants to call a
+      // tool (e.g. mid multi-step booking: list doctors → check
+      // availability → book). Previously this fell through to the
+      // "empty response" throw below (there's no content on a
+      // tool-only turn), which auto-reply.ts's catch-all only logs —
+      // no fallback message, and the conversation never gets flagged
+      // for a human, so it goes silent forever while the inbox still
+      // shows the bot as active. Hand off instead, same as any other
+      // case the bot can't confidently resolve.
+      return {
+        text: HANDOFF_SENTINEL,
+        usage: normalizeUsage({
+          prompt: totalPrompt,
+          completion: totalCompletion,
+          total: totalPrompt + totalCompletion,
+        }),
+      }
     }
 
     const text = message?.content
@@ -118,6 +137,8 @@ export async function generateOpenAi(args: ProviderArgs): Promise<ProviderResult
     return { text, usage }
   }
 
+  // Unreachable — every loop iteration above returns or throws. Only
+  // here to satisfy TypeScript's control-flow analysis of the `for`.
   throw new AiError('OpenAI kept calling tools without ever answering.', {
     code: 'tool_loop_exhausted',
   })

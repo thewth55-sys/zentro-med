@@ -1,5 +1,5 @@
 import { AiError, type ChatMessage, type ProviderResult } from '../types'
-import { MAX_OUTPUT_TOKENS } from '../defaults'
+import { HANDOFF_SENTINEL, MAX_OUTPUT_TOKENS } from '../defaults'
 import {
   mergeConsecutive,
   normalizeUsage,
@@ -106,15 +106,30 @@ export async function generateAnthropic(args: ProviderArgs): Promise<ProviderRes
       (b): b is Extract<AnthropicContentBlock, { type: 'tool_use' }> => b.type === 'tool_use',
     )
 
-    if (toolUseBlocks.length > 0 && executeTool && round < MAX_TOOL_ROUNDS) {
-      wireMessages.push({ role: 'assistant', content: blocks })
-      const resultBlocks: AnthropicContentBlock[] = []
-      for (const call of toolUseBlocks) {
-        const result = await executeTool(call.name, call.input)
-        resultBlocks.push({ type: 'tool_result', tool_use_id: call.id, content: result })
+    if (toolUseBlocks.length > 0 && executeTool) {
+      if (round < MAX_TOOL_ROUNDS) {
+        wireMessages.push({ role: 'assistant', content: blocks })
+        const resultBlocks: AnthropicContentBlock[] = []
+        for (const call of toolUseBlocks) {
+          const result = await executeTool(call.name, call.input)
+          resultBlocks.push({ type: 'tool_result', tool_use_id: call.id, content: result })
+        }
+        wireMessages.push({ role: 'user', content: resultBlocks })
+        continue
       }
-      wireMessages.push({ role: 'user', content: resultBlocks })
-      continue
+      // Round budget exhausted but the model still wants to call a
+      // tool (e.g. mid multi-step booking: list doctors → check
+      // availability → book). Previously this fell through to the
+      // "empty response" throw below (there's no text block on a
+      // tool-only turn), which auto-reply.ts's catch-all only logs —
+      // no fallback message, and the conversation never gets flagged
+      // for a human, so it goes silent forever while the inbox still
+      // shows the bot as active. Hand off instead, same as any other
+      // case the bot can't confidently resolve.
+      return {
+        text: HANDOFF_SENTINEL,
+        usage: normalizeUsage({ prompt: totalInput, completion: totalOutput }),
+      }
     }
 
     const text = blocks
@@ -132,6 +147,8 @@ export async function generateAnthropic(args: ProviderArgs): Promise<ProviderRes
     return { text, usage }
   }
 
+  // Unreachable — every loop iteration above returns or throws. Only
+  // here to satisfy TypeScript's control-flow analysis of the `for`.
   throw new AiError('Anthropic kept calling tools without ever answering.', {
     code: 'tool_loop_exhausted',
   })

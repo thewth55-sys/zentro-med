@@ -217,5 +217,28 @@ export async function dispatchInboundToAiReply(
       code: null,
       message: err instanceof Error ? err.message : 'Unknown auto-reply dispatch error',
     })
+
+    // Any failure here previously left the conversation exactly as it
+    // was — `ai_autoreply_disabled` untouched — so the inbox kept
+    // showing "AI is handling this" while every subsequent inbound
+    // silently hit the same error forever (an invalid key, a rate
+    // limit, a provider outage). Best-effort pause so a human at
+    // least sees the conversation needs attention instead of trusting
+    // a badge that no longer reflects reality. Deliberately swallow
+    // any error from this itself — the outer contract is "never
+    // throws", and a DB hiccup here shouldn't compound the original
+    // failure.
+    try {
+      await supabaseAdmin()
+        .from('conversations')
+        .update({
+          ai_autoreply_disabled: true,
+          ai_handoff_summary: 'Auto-reply paused after an internal error — see integration_errors for details.',
+        })
+        .eq('id', conversationId)
+        .eq('ai_autoreply_disabled', false)
+    } catch (pauseErr) {
+      console.error('[ai auto-reply] failed to pause conversation after dispatch error:', pauseErr)
+    }
   }
 }
