@@ -21,6 +21,7 @@ import { MembersTab } from '@/components/settings/members-tab';
 import { ApiKeysSettings } from '@/components/settings/api-keys-settings';
 import { ConversionTrackingConfig } from '@/components/settings/conversion-tracking-config';
 import { SchedulingPanel } from '@/components/settings/scheduling-panel';
+import { AppointmentRemindersConfig } from '@/components/settings/appointment-reminders-config';
 import { BillingPanel } from '@/components/settings/billing-panel';
 import { SubscriptionPanel } from '@/components/settings/subscription-panel';
 import {
@@ -77,6 +78,7 @@ export default function SettingsPage() {
     api: <ApiKeysSettings />,
     conversions: <ConversionTrackingConfig />,
     scheduling: <SchedulingPanel />,
+    reminders: <AppointmentRemindersConfig />,
     billing: <BillingPanel />,
     'billing-platform': <SubscriptionPanel />,
   };

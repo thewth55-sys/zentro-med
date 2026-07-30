@@ -1,4 +1,5 @@
 import {
+  BellRing,
   CalendarClock,
   Coins,
   CreditCard,
@@ -39,6 +40,7 @@ export const SETTINGS_SECTIONS = [
   'api',
   'conversions',
   'scheduling',
+  'reminders',
   'billing',
   'billing-platform',
 ] as const;
@@ -69,6 +71,7 @@ export const SECTION_META: Record<SettingsSection, SectionMeta> = {
   api: { id: 'api', label: 'API keys', icon: KeyRound, group: 'workspace' },
   conversions: { id: 'conversions', label: 'Conversions', icon: Target, group: 'workspace' },
   scheduling: { id: 'scheduling', label: 'Scheduling', icon: CalendarClock, group: 'workspace' },
+  reminders: { id: 'reminders', label: 'Reminders', icon: BellRing, group: 'workspace' },
   billing: { id: 'billing', label: 'Finance', icon: Wallet, group: 'workspace' },
   'billing-platform': { id: 'billing-platform', label: 'Subscription', icon: CreditCard, group: 'workspace' },
 };

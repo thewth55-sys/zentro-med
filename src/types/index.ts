@@ -359,6 +359,33 @@ export interface MessageTemplate {
   created_at: string;
 }
 
+/** Fixed set of appointment/contact fields a reminder template's
+ *  `{{N}}` placeholder can be bound to — resolved server-side in the
+ *  reminders cron, never trusted from the client beyond this enum. */
+export type ReminderVariableToken =
+  | 'contact_name'
+  | 'appointment_date'
+  | 'appointment_time'
+  | 'doctor_name'
+  | 'service_name'
+  | 'account_name';
+
+export type ReminderVariableMapping =
+  | { type: 'static'; value: string }
+  | { type: 'token'; value: ReminderVariableToken };
+
+export interface AppointmentReminderConfig {
+  id: string;
+  account_id: string;
+  is_active: boolean;
+  hours_before: number;
+  template_name: string | null;
+  template_language: string | null;
+  variable_mapping: Record<string, ReminderVariableMapping>;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface Pipeline {
   id: string;
   user_id: string;

@@ -2289,6 +2289,7 @@
       "api": "Claves de API",
       "conversions": "Conversiones",
       "scheduling": "Agendamiento",
+      "reminders": "Recordatorios",
       "billing": "Finanzas",
       "billing-platform": "Suscripción"
     },
@@ -2632,6 +2633,37 @@
         "linkedProduct": "Producto vinculado",
         "noLinkedProduct": "Sin producto vinculado"
       }
+    },
+    "reminders": {
+      "title": "Recordatorios de citas",
+      "description": "Envía automáticamente un recordatorio de WhatsApp a los pacientes antes de su cita, usando una plantilla de WhatsApp Business aprobada.",
+      "adminOnlyHint": "Solo un administrador puede cambiar esta configuración.",
+      "sectionTitle": "Recordatorio automático",
+      "sectionDesc": "Se envía una sola vez por cita, la cantidad de horas antes que definas — siempre que el paciente tenga un número de WhatsApp registrado.",
+      "enable": "Activar recordatorios automáticos",
+      "hoursBeforeLabel": "Horas antes de la cita",
+      "hoursBeforeHint": "Por ejemplo, 24 para enviarlo un día antes.",
+      "templateLabel": "Plantilla de WhatsApp",
+      "selectTemplate": "Selecciona una plantilla…",
+      "noApprovedTemplates": "Aún no tienes plantillas aprobadas por Meta. Ve a Configuración → Plantillas para crear y enviar una a revisión.",
+      "noVariables": "Esta plantilla no tiene variables que configurar.",
+      "mappingTypeToken": "Dato de la cita",
+      "mappingTypeStatic": "Texto fijo",
+      "token": {
+        "contact_name": "Nombre del paciente",
+        "appointment_date": "Fecha de la cita",
+        "appointment_time": "Hora de la cita",
+        "doctor_name": "Nombre del doctor",
+        "service_name": "Servicio",
+        "account_name": "Nombre de la clínica"
+      },
+      "invalidHours": "Las horas antes deben ser un número entero entre 1 y 336.",
+      "selectTemplateFirst": "Selecciona una plantilla antes de activar los recordatorios.",
+      "loadFailed": "No se pudo cargar la configuración.",
+      "saveFailed": "No se pudo guardar la configuración.",
+      "saveSuccess": "Configuración guardada.",
+      "saving": "Guardando…",
+      "save": "Guardar cambios"
     },
     "billing": {
       "title": "Facturación",
