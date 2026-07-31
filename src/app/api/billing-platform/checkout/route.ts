@@ -76,7 +76,10 @@ export async function POST(request: Request) {
       // (/admin/coupons) themselves at Stripe's hosted page — no admin
       // action needed for the self-service discount path.
       allow_promotion_codes: true,
-      success_url: `${siteUrl}/settings?tab=billing-platform&checkout=success`,
+      // `plan` lets the post-redirect client compute the Meta Pixel
+      // Purchase event's `value` without a second round-trip to Stripe
+      // (prices are static per plan — see PLAN_CONFIG).
+      success_url: `${siteUrl}/settings?tab=billing-platform&checkout=success&plan=${plan}`,
       cancel_url: `${siteUrl}/settings?tab=billing-platform&checkout=canceled`,
       subscription_data: {
         metadata: { account_id: account.id, plan, created_by: userId },

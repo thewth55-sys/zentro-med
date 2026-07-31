@@ -13,6 +13,7 @@ import { NativeSessionSync } from "@/components/notifications/native-session-syn
 import { AccessBanner } from "@/components/billing-platform/access-banner";
 import { AccessLockOverlay } from "@/components/billing-platform/access-lock-overlay";
 import { StartCheckoutRedirect } from "@/components/billing-platform/start-checkout-redirect";
+import { PurchaseConversionTracker } from "@/components/billing-platform/purchase-conversion-tracker";
 
 // Auth-gated dashboard shell. Extracted from the layout so the layout
 // itself can stay a server component and export metadata (noindex) —
@@ -63,6 +64,7 @@ function DashboardShellInner({ children }: { children: React.ReactNode }) {
             reliable enough on some Android OEMs. */}
         <NativeSessionSync />
         <StartCheckoutRedirect />
+        <PurchaseConversionTracker />
         <AccessLockOverlay />
         <Sidebar open={sidebarOpen} onClose={closeSidebar} />
         <div className="flex flex-1 flex-col overflow-hidden">
