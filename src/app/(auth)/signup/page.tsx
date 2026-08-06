@@ -15,9 +15,10 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { CheckCircle, UsersRound } from "lucide-react";
+import { CheckCircle, Eye, EyeOff, UsersRound } from "lucide-react";
 import { getPasswordStrengthError } from "@/lib/password-strength";
 import { ACCOUNT_SPECIALTIES, SPECIALTY_LABELS, DENTAL_SPECIALTY, type AccountSpecialty } from "@/lib/specialties";
+import { COUNTRY_DIAL_CODES, DEFAULT_COUNTRY_DIAL_CODE } from "@/lib/country-dial-codes";
 
 // Plans a visitor can land here wanting to buy directly from
 // /pricing (the trial itself isn't in this list — that's the no-param
@@ -71,6 +72,14 @@ function SignupPageInner() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [countryCode, setCountryCode] = useState(DEFAULT_COUNTRY_DIAL_CODE);
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [addressLine, setAddressLine] = useState("");
+  const [addressCity, setAddressCity] = useState("");
+  const [addressState, setAddressState] = useState("");
+  const [addressPostalCode, setAddressPostalCode] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -88,6 +97,12 @@ function SignupPageInner() {
     const strengthError = getPasswordStrengthError(password);
     if (strengthError) {
       setError(t(`passwordRule_${strengthError}` as Parameters<typeof t>[0]));
+      return;
+    }
+
+    const digitsOnlyPhone = phoneNumber.replace(/\D/g, "");
+    if (!inviteToken && !digitsOnlyPhone) {
+      setError(t("phoneRequired"));
       return;
     }
 
@@ -113,6 +128,16 @@ function SignupPageInner() {
     const next = `${rawNext}${rawNext.includes("?") ? "&" : "?"}auth=confirmed`;
     const emailRedirectTo = `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`;
 
+    // Free-text — accounts.address is a single column (see
+    // 046_account_address_tax_id.sql), so the separate street/city/
+    // state/postal-code inputs below are joined into one line here
+    // rather than adding four more DB columns for data that only ever
+    // renders as one address line on the quote PDF header.
+    const joinedAddress = [addressLine, addressCity, addressState, addressPostalCode]
+      .map((part) => part.trim())
+      .filter(Boolean)
+      .join(", ");
+
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
@@ -127,6 +152,11 @@ function SignupPageInner() {
           // seed accounts.specialty — controls whether the Odontograma
           // tab shows on a contact (see src/lib/specialties.ts).
           specialty: inviteToken ? undefined : specialty,
+          // Read by the same trigger (085_account_phone_signup.sql) to
+          // seed accounts.phone/address — an invited member joins an
+          // existing account, so these don't apply to them.
+          phone: inviteToken ? undefined : `${countryCode}${digitsOnlyPhone}`,
+          address: inviteToken ? undefined : joinedAddress || undefined,
         },
         emailRedirectTo,
       },
@@ -284,6 +314,83 @@ function SignupPageInner() {
               </div>
             )}
 
+            {!inviteToken && (
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="phoneNumber" className="text-muted-foreground">
+                  {t("phoneLabel")}
+                </Label>
+                <div className="flex gap-2">
+                  <select
+                    id="countryCode"
+                    value={countryCode}
+                    onChange={(e) => setCountryCode(e.target.value)}
+                    aria-label={t("countryCodeLabel")}
+                    className="h-10 w-28 shrink-0 rounded-md border border-border bg-muted px-2 text-sm text-foreground focus-visible:border-primary focus-visible:outline-none"
+                  >
+                    {COUNTRY_DIAL_CODES.map((c) => (
+                      <option key={c.iso} value={c.dialCode}>
+                        {c.name} {c.dialCode}
+                      </option>
+                    ))}
+                  </select>
+                  <Input
+                    id="phoneNumber"
+                    type="tel"
+                    placeholder={t("phonePlaceholder")}
+                    value={phoneNumber}
+                    onChange={(e) => setPhoneNumber(e.target.value)}
+                    required
+                    className="border-border bg-muted text-foreground placeholder:text-muted-foreground focus-visible:border-primary focus-visible:ring-primary/20"
+                  />
+                </div>
+              </div>
+            )}
+
+            {!inviteToken && (
+              <div className="flex flex-col gap-2">
+                <Label className="text-muted-foreground">
+                  {t("addressLabel")}{" "}
+                  <span className="text-xs font-normal text-muted-foreground/70">
+                    {t("optional")}
+                  </span>
+                </Label>
+                <Input
+                  id="addressLine"
+                  type="text"
+                  placeholder={t("addressLinePlaceholder")}
+                  value={addressLine}
+                  onChange={(e) => setAddressLine(e.target.value)}
+                  className="border-border bg-muted text-foreground placeholder:text-muted-foreground focus-visible:border-primary focus-visible:ring-primary/20"
+                />
+                <div className="grid grid-cols-2 gap-2">
+                  <Input
+                    id="addressCity"
+                    type="text"
+                    placeholder={t("addressCityPlaceholder")}
+                    value={addressCity}
+                    onChange={(e) => setAddressCity(e.target.value)}
+                    className="border-border bg-muted text-foreground placeholder:text-muted-foreground focus-visible:border-primary focus-visible:ring-primary/20"
+                  />
+                  <Input
+                    id="addressState"
+                    type="text"
+                    placeholder={t("addressStatePlaceholder")}
+                    value={addressState}
+                    onChange={(e) => setAddressState(e.target.value)}
+                    className="border-border bg-muted text-foreground placeholder:text-muted-foreground focus-visible:border-primary focus-visible:ring-primary/20"
+                  />
+                </div>
+                <Input
+                  id="addressPostalCode"
+                  type="text"
+                  placeholder={t("addressPostalCodePlaceholder")}
+                  value={addressPostalCode}
+                  onChange={(e) => setAddressPostalCode(e.target.value)}
+                  className="border-border bg-muted text-foreground placeholder:text-muted-foreground focus-visible:border-primary focus-visible:ring-primary/20 w-1/2"
+                />
+              </div>
+            )}
+
             <div className="flex flex-col gap-2">
               <Label htmlFor="email" className="text-muted-foreground">
                 {t("emailLabel")}
@@ -303,15 +410,25 @@ function SignupPageInner() {
               <Label htmlFor="password" className="text-muted-foreground">
                 {t("passwordLabel")}
               </Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder={t("passwordPlaceholder")}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                className="border-border bg-muted text-foreground placeholder:text-muted-foreground focus-visible:border-primary focus-visible:ring-primary/20"
-              />
+              <div className="relative">
+                <Input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  placeholder={t("passwordPlaceholder")}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  className="border-border bg-muted text-foreground placeholder:text-muted-foreground focus-visible:border-primary focus-visible:ring-primary/20 pr-10"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((v) => !v)}
+                  aria-label={showPassword ? t("hidePassword") : t("showPassword")}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                </button>
+              </div>
               <p className="text-xs text-muted-foreground">{t("passwordHint")}</p>
             </div>
 
@@ -319,15 +436,25 @@ function SignupPageInner() {
               <Label htmlFor="confirmPassword" className="text-muted-foreground">
                 {t("confirmPasswordLabel")}
               </Label>
-              <Input
-                id="confirmPassword"
-                type="password"
-                placeholder={t("confirmPasswordPlaceholder")}
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                required
-                className="border-border bg-muted text-foreground placeholder:text-muted-foreground focus-visible:border-primary focus-visible:ring-primary/20"
-              />
+              <div className="relative">
+                <Input
+                  id="confirmPassword"
+                  type={showConfirmPassword ? "text" : "password"}
+                  placeholder={t("confirmPasswordPlaceholder")}
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  required
+                  className="border-border bg-muted text-foreground placeholder:text-muted-foreground focus-visible:border-primary focus-visible:ring-primary/20 pr-10"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword((v) => !v)}
+                  aria-label={showConfirmPassword ? t("hidePassword") : t("showPassword")}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  {showConfirmPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                </button>
+              </div>
             </div>
 
             <Button
