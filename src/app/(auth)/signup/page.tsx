@@ -85,6 +85,7 @@ function SignupPageInner() {
   const [website, setWebsite] = useState("");
   const [socialLinks, setSocialLinks] = useState("");
   const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [acceptedPrivacy, setAcceptedPrivacy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -124,7 +125,7 @@ function SignupPageInner() {
       return;
     }
 
-    if (!acceptedTerms) {
+    if (!acceptedTerms || !acceptedPrivacy) {
       setError(t("termsRequired"));
       return;
     }
@@ -186,7 +187,7 @@ function SignupPageInner() {
           // license_number is personal (profiles), not account-level —
           // collected for every new user, invited or not.
           license_number: licenseNumber.trim(),
-          terms_accepted: acceptedTerms,
+          terms_accepted: acceptedTerms && acceptedPrivacy,
         },
         emailRedirectTo,
       },
@@ -540,37 +541,49 @@ function SignupPageInner() {
               </div>
             </div>
 
-            <div className="flex items-start gap-2">
-              <Checkbox
-                id="acceptedTerms"
-                checked={acceptedTerms}
-                onCheckedChange={(checked) => setAcceptedTerms(checked === true)}
-                className="mt-0.5"
-              />
-              <Label htmlFor="acceptedTerms" className="text-sm font-normal text-muted-foreground">
-                {t.rich("acceptTerms", {
-                  terms: (chunks: React.ReactNode) => (
-                    <a
-                      href="https://zentrolabs.com/terminos.html"
-                      target="_blank"
-                      rel="noreferrer"
-                      className="text-primary hover:text-primary/80 underline"
-                    >
-                      {chunks}
-                    </a>
-                  ),
-                  privacy: (chunks: React.ReactNode) => (
-                    <a
-                      href="https://zentrolabs.com/privacidad.html"
-                      target="_blank"
-                      rel="noreferrer"
-                      className="text-primary hover:text-primary/80 underline"
-                    >
-                      {chunks}
-                    </a>
-                  ),
-                })}
-              </Label>
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center gap-2">
+                <Checkbox
+                  id="acceptedTerms"
+                  checked={acceptedTerms}
+                  onCheckedChange={(checked) => setAcceptedTerms(checked === true)}
+                />
+                <Label htmlFor="acceptedTerms" className="text-sm font-normal text-muted-foreground">
+                  {t.rich("acceptTermsOnly", {
+                    terms: (chunks: React.ReactNode) => (
+                      <a
+                        href="https://zentrolabs.com/terminos.html"
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-primary hover:text-primary/80 underline"
+                      >
+                        {chunks}
+                      </a>
+                    ),
+                  })}
+                </Label>
+              </div>
+              <div className="flex items-center gap-2">
+                <Checkbox
+                  id="acceptedPrivacy"
+                  checked={acceptedPrivacy}
+                  onCheckedChange={(checked) => setAcceptedPrivacy(checked === true)}
+                />
+                <Label htmlFor="acceptedPrivacy" className="text-sm font-normal text-muted-foreground">
+                  {t.rich("acceptPrivacyOnly", {
+                    privacy: (chunks: React.ReactNode) => (
+                      <a
+                        href="https://zentrolabs.com/privacidad.html"
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-primary hover:text-primary/80 underline"
+                      >
+                        {chunks}
+                      </a>
+                    ),
+                  })}
+                </Label>
+              </div>
             </div>
 
             <Button
