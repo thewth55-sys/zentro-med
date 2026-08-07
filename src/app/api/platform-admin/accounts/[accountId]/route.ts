@@ -23,7 +23,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ acc
     const { data: account, error: accountErr } = await db
       .from("accounts")
       .select(
-        "id, name, owner_user_id, plan, subscription_status, trial_ends_at, included_seats, stripe_customer_id, stripe_subscription_id, created_at, feature_overrides, logo_url, ai_access_blocked, ai_response_limit_override",
+        "id, name, owner_user_id, plan, subscription_status, trial_ends_at, included_seats, stripe_customer_id, stripe_subscription_id, created_at, feature_overrides, logo_url, ai_access_blocked, ai_response_limit_override, phone, address, specialty, website, social_links",
       )
       .eq("id", accountId)
       .maybeSingle();
@@ -38,7 +38,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ acc
 
     const { data: members, error: membersErr } = await db
       .from("profiles")
-      .select("user_id, full_name, email, phone, account_role, google_calendar_connected, avatar_url")
+      .select("user_id, full_name, email, phone, license_number, account_role, google_calendar_connected, avatar_url")
       .eq("account_id", accountId)
       .order("account_role", { ascending: true });
 
@@ -175,6 +175,11 @@ export async function GET(_request: Request, { params }: { params: Promise<{ acc
         logoUrl: account.logo_url,
         aiAccessBlocked: account.ai_access_blocked,
         aiResponseLimitOverride: account.ai_response_limit_override,
+        phone: account.phone,
+        address: account.address,
+        specialty: account.specialty,
+        website: account.website,
+        socialLinks: account.social_links,
       },
       aiQuota: quota,
       recentErrors: (recentErrors ?? []).map((e) => ({
@@ -189,6 +194,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ acc
         fullName: m.full_name,
         email: m.email,
         phone: m.phone,
+        licenseNumber: m.license_number,
         role: m.account_role,
         avatarUrl: m.avatar_url,
       })),

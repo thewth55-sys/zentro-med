@@ -16,6 +16,7 @@ import {
   Laptop,
   Lock,
   Loader2,
+  MapPin,
   Notebook,
   Plug,
   Plus,
@@ -46,6 +47,7 @@ import {
   resolveFeatureAccess,
   type FeatureOverrides,
 } from "@/lib/billing-platform/features";
+import { SPECIALTY_LABELS, type AccountSpecialty } from "@/lib/specialties";
 
 interface AccountDetail {
   id: string;
@@ -62,6 +64,11 @@ interface AccountDetail {
   logoUrl: string | null;
   aiAccessBlocked: boolean;
   aiResponseLimitOverride: number | null;
+  phone: string | null;
+  address: string | null;
+  specialty: string | null;
+  website: string | null;
+  socialLinks: string | null;
 }
 
 interface AiQuota {
@@ -91,6 +98,7 @@ interface Member {
   fullName: string | null;
   email: string | null;
   phone: string | null;
+  licenseNumber: string | null;
   role: string;
   avatarUrl: string | null;
 }
@@ -679,6 +687,47 @@ export function AccountDetailPanel({ accountId }: { accountId: string }) {
         </div>
       </div>
 
+      <div className="rounded-lg border border-border p-4">
+        <div className="mb-3 flex items-center gap-2 text-sm font-medium text-foreground">
+          <MapPin className="size-4" /> Información de contacto
+        </div>
+        <div className="grid grid-cols-1 gap-x-6 gap-y-2 text-sm sm:grid-cols-2">
+          <div>
+            <span className="text-muted-foreground">Teléfono: </span>
+            <span className="text-foreground">{account.phone ?? "—"}</span>
+          </div>
+          <div>
+            <span className="text-muted-foreground">Especialidad: </span>
+            <span className="text-foreground">
+              {account.specialty ? (SPECIALTY_LABELS[account.specialty as AccountSpecialty] ?? account.specialty) : "—"}
+            </span>
+          </div>
+          <div className="sm:col-span-2">
+            <span className="text-muted-foreground">Domicilio: </span>
+            <span className="text-foreground">{account.address ?? "—"}</span>
+          </div>
+          <div>
+            <span className="text-muted-foreground">Sitio web: </span>
+            {account.website ? (
+              <a
+                href={account.website}
+                target="_blank"
+                rel="noreferrer"
+                className="text-primary hover:underline"
+              >
+                {account.website}
+              </a>
+            ) : (
+              <span className="text-foreground">—</span>
+            )}
+          </div>
+          <div>
+            <span className="text-muted-foreground">Redes sociales: </span>
+            <span className="text-foreground">{account.socialLinks ?? "—"}</span>
+          </div>
+        </div>
+      </div>
+
       <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
         <div className="rounded-lg border border-border p-4">
           <div className="mb-3 flex items-center gap-2 text-sm font-medium text-foreground">
@@ -731,6 +780,7 @@ export function AccountDetailPanel({ accountId }: { accountId: string }) {
                     <div className="truncate text-xs text-muted-foreground">
                       {member.email ?? "—"}
                       {member.phone ? ` · ${member.phone}` : ""}
+                      {member.licenseNumber ? ` · Cédula: ${member.licenseNumber}` : ""}
                     </div>
                   </div>
                 </div>

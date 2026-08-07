@@ -8,6 +8,7 @@ import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Card,
   CardContent,
@@ -80,6 +81,10 @@ function SignupPageInner() {
   const [addressCity, setAddressCity] = useState("");
   const [addressState, setAddressState] = useState("");
   const [addressPostalCode, setAddressPostalCode] = useState("");
+  const [licenseNumber, setLicenseNumber] = useState("");
+  const [website, setWebsite] = useState("");
+  const [socialLinks, setSocialLinks] = useState("");
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -103,6 +108,24 @@ function SignupPageInner() {
     const digitsOnlyPhone = phoneNumber.replace(/\D/g, "");
     if (!inviteToken && !digitsOnlyPhone) {
       setError(t("phoneRequired"));
+      return;
+    }
+
+    if (
+      !inviteToken &&
+      (!addressLine.trim() || !addressCity.trim() || !addressState.trim() || !addressPostalCode.trim())
+    ) {
+      setError(t("addressRequired"));
+      return;
+    }
+
+    if (!licenseNumber.trim()) {
+      setError(t("licenseNumberRequired"));
+      return;
+    }
+
+    if (!acceptedTerms) {
+      setError(t("termsRequired"));
       return;
     }
 
@@ -157,6 +180,13 @@ function SignupPageInner() {
           // existing account, so these don't apply to them.
           phone: inviteToken ? undefined : `${countryCode}${digitsOnlyPhone}`,
           address: inviteToken ? undefined : joinedAddress || undefined,
+          website: inviteToken ? undefined : website.trim() || undefined,
+          social_links: inviteToken ? undefined : socialLinks.trim() || undefined,
+          // Read by the same trigger (086_signup_required_fields.sql).
+          // license_number is personal (profiles), not account-level —
+          // collected for every new user, invited or not.
+          license_number: licenseNumber.trim(),
+          terms_accepted: acceptedTerms,
         },
         emailRedirectTo,
       },
@@ -274,6 +304,22 @@ function SignupPageInner() {
               />
             </div>
 
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="licenseNumber" className="text-muted-foreground">
+                {t("licenseNumberLabel")}
+              </Label>
+              <Input
+                id="licenseNumber"
+                type="text"
+                placeholder={t("licenseNumberPlaceholder")}
+                value={licenseNumber}
+                onChange={(e) => setLicenseNumber(e.target.value)}
+                required
+                className="border-border bg-muted text-foreground placeholder:text-muted-foreground focus-visible:border-primary focus-visible:ring-primary/20"
+              />
+              <p className="text-xs text-muted-foreground">{t("licenseNumberHint")}</p>
+            </div>
+
             {!inviteToken && (
               <div className="flex flex-col gap-2">
                 <Label htmlFor="brandName" className="text-muted-foreground">
@@ -348,18 +394,14 @@ function SignupPageInner() {
 
             {!inviteToken && (
               <div className="flex flex-col gap-2">
-                <Label className="text-muted-foreground">
-                  {t("addressLabel")}{" "}
-                  <span className="text-xs font-normal text-muted-foreground/70">
-                    {t("optional")}
-                  </span>
-                </Label>
+                <Label className="text-muted-foreground">{t("addressLabel")}</Label>
                 <Input
                   id="addressLine"
                   type="text"
                   placeholder={t("addressLinePlaceholder")}
                   value={addressLine}
                   onChange={(e) => setAddressLine(e.target.value)}
+                  required
                   className="border-border bg-muted text-foreground placeholder:text-muted-foreground focus-visible:border-primary focus-visible:ring-primary/20"
                 />
                 <div className="grid grid-cols-2 gap-2">
@@ -369,6 +411,7 @@ function SignupPageInner() {
                     placeholder={t("addressCityPlaceholder")}
                     value={addressCity}
                     onChange={(e) => setAddressCity(e.target.value)}
+                    required
                     className="border-border bg-muted text-foreground placeholder:text-muted-foreground focus-visible:border-primary focus-visible:ring-primary/20"
                   />
                   <Input
@@ -377,6 +420,7 @@ function SignupPageInner() {
                     placeholder={t("addressStatePlaceholder")}
                     value={addressState}
                     onChange={(e) => setAddressState(e.target.value)}
+                    required
                     className="border-border bg-muted text-foreground placeholder:text-muted-foreground focus-visible:border-primary focus-visible:ring-primary/20"
                   />
                 </div>
@@ -386,7 +430,46 @@ function SignupPageInner() {
                   placeholder={t("addressPostalCodePlaceholder")}
                   value={addressPostalCode}
                   onChange={(e) => setAddressPostalCode(e.target.value)}
+                  required
                   className="border-border bg-muted text-foreground placeholder:text-muted-foreground focus-visible:border-primary focus-visible:ring-primary/20 w-1/2"
+                />
+              </div>
+            )}
+
+            {!inviteToken && (
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="website" className="text-muted-foreground">
+                  {t("websiteLabel")}{" "}
+                  <span className="text-xs font-normal text-muted-foreground/70">
+                    {t("optional")}
+                  </span>
+                </Label>
+                <Input
+                  id="website"
+                  type="url"
+                  placeholder={t("websitePlaceholder")}
+                  value={website}
+                  onChange={(e) => setWebsite(e.target.value)}
+                  className="border-border bg-muted text-foreground placeholder:text-muted-foreground focus-visible:border-primary focus-visible:ring-primary/20"
+                />
+              </div>
+            )}
+
+            {!inviteToken && (
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="socialLinks" className="text-muted-foreground">
+                  {t("socialLinksLabel")}{" "}
+                  <span className="text-xs font-normal text-muted-foreground/70">
+                    {t("optional")}
+                  </span>
+                </Label>
+                <Input
+                  id="socialLinks"
+                  type="text"
+                  placeholder={t("socialLinksPlaceholder")}
+                  value={socialLinks}
+                  onChange={(e) => setSocialLinks(e.target.value)}
+                  className="border-border bg-muted text-foreground placeholder:text-muted-foreground focus-visible:border-primary focus-visible:ring-primary/20"
                 />
               </div>
             )}
@@ -455,6 +538,39 @@ function SignupPageInner() {
                   {showConfirmPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
                 </button>
               </div>
+            </div>
+
+            <div className="flex items-start gap-2">
+              <Checkbox
+                id="acceptedTerms"
+                checked={acceptedTerms}
+                onCheckedChange={(checked) => setAcceptedTerms(checked === true)}
+                className="mt-0.5"
+              />
+              <Label htmlFor="acceptedTerms" className="text-sm font-normal text-muted-foreground">
+                {t.rich("acceptTerms", {
+                  terms: (chunks: React.ReactNode) => (
+                    <a
+                      href="https://zentrolabs.com/terminos.html"
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-primary hover:text-primary/80 underline"
+                    >
+                      {chunks}
+                    </a>
+                  ),
+                  privacy: (chunks: React.ReactNode) => (
+                    <a
+                      href="https://zentrolabs.com/privacidad.html"
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-primary hover:text-primary/80 underline"
+                    >
+                      {chunks}
+                    </a>
+                  ),
+                })}
+              </Label>
             </div>
 
             <Button
