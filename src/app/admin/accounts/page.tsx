@@ -32,6 +32,7 @@ interface AdminAccount {
   seatsUsed: number;
   portalClientId: string | null;
   createdAt: string;
+  tags: { id: string; label: string }[];
 }
 
 const PLAN_LABEL: Record<Plan, string> = {
@@ -137,6 +138,7 @@ export default function AdminAccountsPage() {
                 <TableHead>Plan</TableHead>
                 <TableHead>Estado</TableHead>
                 <TableHead>Asientos</TableHead>
+                <TableHead>Etiquetas</TableHead>
                 <TableHead>Creada</TableHead>
                 <TableHead className="text-right">Acción</TableHead>
               </TableRow>
@@ -165,6 +167,22 @@ export default function AdminAccountsPage() {
                   </TableCell>
                   <TableCell>
                     {account.seatsUsed} / {account.includedSeats}
+                  </TableCell>
+                  <TableCell>
+                    {account.tags.length === 0 ? (
+                      <span className="text-muted-foreground">—</span>
+                    ) : (
+                      <div className="flex flex-wrap gap-1">
+                        {account.tags.map((tag) => (
+                          <span
+                            key={tag.id}
+                            className="inline-flex items-center rounded-full bg-secondary px-2 py-0.5 text-xs text-secondary-foreground"
+                          >
+                            {tag.label}
+                          </span>
+                        ))}
+                      </div>
+                    )}
                   </TableCell>
                   <TableCell className="text-muted-foreground">
                     {new Date(account.createdAt).toLocaleDateString()}

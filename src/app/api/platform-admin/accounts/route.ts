@@ -50,6 +50,19 @@ export async function GET() {
       profilesByAccount.set(profile.account_id, list);
     }
 
+    const { data: tags, error: tagsErr } = await admin.from("account_tags").select("id, account_id, label");
+    if (tagsErr) {
+      console.error("[GET /api/platform-admin/accounts] tags fetch error:", tagsErr);
+      return NextResponse.json({ error: "Failed to load accounts" }, { status: 500 });
+    }
+
+    const tagsByAccount = new Map<string, { id: string; label: string }[]>();
+    for (const tag of tags ?? []) {
+      const list = tagsByAccount.get(tag.account_id) ?? [];
+      list.push({ id: tag.id, label: tag.label });
+      tagsByAccount.set(tag.account_id, list);
+    }
+
     const result = (accounts ?? []).map((account) => {
       const members = profilesByAccount.get(account.id) ?? [];
       const owner =
@@ -69,6 +82,7 @@ export async function GET() {
         seatsUsed: members.length,
         portalClientId: account.portal_client_id,
         createdAt: account.created_at,
+        tags: tagsByAccount.get(account.id) ?? [],
       };
     });
 

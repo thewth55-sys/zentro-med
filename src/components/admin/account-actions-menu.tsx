@@ -24,9 +24,11 @@ import {
   Mail,
   MoreHorizontal,
   RotateCcw,
+  Trash2,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -61,6 +63,12 @@ interface AccountActionsMenuProps {
   /** Parent re-fetches the accounts list after any state-changing action. */
   onChanged: () => void;
 }
+
+// Mirrors the server-side check in
+// /api/platform-admin/accounts/[accountId]'s DELETE handler — used
+// here only to decide whether to show/enable the menu item; the
+// route re-validates regardless, so this is UX, not the real gate.
+const DEMO_EMAIL_DOMAIN = "@internal.zentrolabs.com";
 
 const PLAN_OPTIONS: { value: Plan; label: string }[] = [
   { value: "trial", label: "Prueba" },
@@ -103,8 +111,11 @@ export function AccountActionsMenu({
   const [planDialogOpen, setPlanDialogOpen] = useState(false);
   const [draftPlan, setDraftPlan] = useState<Plan>(plan);
   const [draftStatus, setDraftStatus] = useState<SubscriptionStatus>(subscriptionStatus);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState("");
 
   const isSuspended = subscriptionStatus === "suspended";
+  const isDemoAccount = !!ownerEmail && ownerEmail.toLowerCase().endsWith(DEMO_EMAIL_DOMAIN);
 
   async function handleImpersonateConfirm() {
     setBusyAction("impersonate");
@@ -198,6 +209,22 @@ export function AccountActionsMenu({
     }
   }
 
+  async function handleDeleteConfirm() {
+    setBusyAction("delete");
+    try {
+      const res = await fetch(`/api/platform-admin/accounts/${accountId}`, { method: "DELETE" });
+      const data = await res.json().catch(() => null);
+      if (!res.ok) throw new Error(data?.error ?? "No se pudo eliminar la cuenta");
+      toast.success("Cuenta eliminada");
+      setDeleteOpen(false);
+      onChanged();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "No se pudo eliminar la cuenta");
+    } finally {
+      setBusyAction(null);
+    }
+  }
+
   return (
     <>
       <DropdownMenu>
@@ -255,6 +282,19 @@ export function AccountActionsMenu({
             {isSuspended ? <RotateCcw className="size-4" /> : <Ban className="size-4" />}
             {isSuspended ? "Reactivar cuenta" : "Suspender cuenta"}
           </DropdownMenuItem>
+          {isDemoAccount && (
+            <DropdownMenuItem
+              disabled={busyAction !== null}
+              onClick={() => {
+                setDeleteConfirmText("");
+                setDeleteOpen(true);
+              }}
+              className="text-destructive focus:text-destructive"
+            >
+              <Trash2 className="size-4" />
+              Eliminar cuenta demo
+            </DropdownMenuItem>
+          )}
         </DropdownMenuContent>
       </DropdownMenu>
 
@@ -339,6 +379,43 @@ export function AccountActionsMenu({
             <Button onClick={handleSavePlan} disabled={busyAction === "set-plan"}>
               {busyAction === "set-plan" ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
               Guardar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>¿Eliminar la cuenta demo &ldquo;{accountName}&rdquo;?</DialogTitle>
+            <DialogDescription>
+              Esto borra permanentemente la cuenta y todo lo que contiene (contactos,
+              conversaciones, citas, usuarios) — no se puede deshacer. Para confirmar, escribe el
+              nombre exacto de la cuenta:{" "}
+              <span className="text-foreground">{accountName}</span>
+            </DialogDescription>
+          </DialogHeader>
+          <Input
+            value={deleteConfirmText}
+            onChange={(e) => setDeleteConfirmText(e.target.value)}
+            placeholder={accountName}
+            autoFocus
+          />
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setDeleteOpen(false)}
+              disabled={busyAction === "delete"}
+            >
+              Cancelar
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleDeleteConfirm}
+              disabled={busyAction === "delete" || deleteConfirmText !== accountName}
+            >
+              {busyAction === "delete" ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+              Eliminar cuenta
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -7,11 +7,20 @@
 
 import { NextResponse } from "next/server";
 
-import { requirePlatformAdmin } from "@/lib/auth/platform-admin";
+import { requirePlatformAdmin, resolveAccountOwner, logPlatformAdminAction } from "@/lib/auth/platform-admin";
 import { toErrorResponse } from "@/lib/auth/account";
 import { supabaseAdmin } from "@/lib/billing-platform/admin-client";
 import { getStripeClient } from "@/lib/billing-platform/stripe";
 import { getAiResponseQuotaStatus } from "@/lib/ai/quota";
+import { checkRateLimit, rateLimitResponse, RATE_LIMITS } from "@/lib/rate-limit";
+
+/** Deletion is restricted to demo accounts — the ones the "Crear
+ *  cuenta demo" flow creates with a synthetic
+ *  demo-<id>@internal.zentrolabs.com owner (see
+ *  /api/platform-admin/accounts/demo). Real customer accounts are
+ *  never deletable from the admin panel, even by a platform admin —
+ *  suspending is the only destructive-ish action available for those. */
+const DEMO_EMAIL_DOMAIN = "@internal.zentrolabs.com";
 
 export async function GET(_request: Request, { params }: { params: Promise<{ accountId: string }> }) {
   try {
@@ -251,6 +260,79 @@ export async function GET(_request: Request, { params }: { params: Promise<{ acc
         createdAt: n.created_at,
       })),
     });
+  } catch (err) {
+    return toErrorResponse(err);
+  }
+}
+
+/**
+ * DELETE /api/platform-admin/accounts/[accountId] — permanently
+ * deletes a demo account and every user that belonged to it.
+ *
+ * Gated to accounts whose OWNER email ends in
+ * `@internal.zentrolabs.com` — the domain the demo-account creator
+ * stamps on its synthetic owner. Real customer accounts 404 here even
+ * for a platform admin; there is no way to delete a paying customer's
+ * data from this endpoint.
+ *
+ * Order matters: `accounts.owner_user_id` is `ON DELETE RESTRICT`
+ * against `auth.users`, so the account row must be deleted first
+ * (cascading away profiles/contacts/conversations/etc. scoped to it)
+ * — only then can the now-unreferenced auth.users rows be deleted,
+ * otherwise the owner's user row would block on the account row that
+ * still points at it.
+ */
+export async function DELETE(_request: Request, { params }: { params: Promise<{ accountId: string }> }) {
+  try {
+    const admin = await requirePlatformAdmin();
+    const { accountId } = await params;
+
+    const limit = checkRateLimit(`platformAdmin:delete:${admin.userId}`, RATE_LIMITS.adminAction);
+    if (!limit.success) return rateLimitResponse(limit);
+
+    const owner = await resolveAccountOwner(accountId);
+    if (!owner) {
+      return NextResponse.json({ error: "Account not found" }, { status: 404 });
+    }
+
+    if (!owner.ownerEmail.toLowerCase().endsWith(DEMO_EMAIL_DOMAIN)) {
+      return NextResponse.json(
+        { error: "Solo se pueden eliminar cuentas demo (@internal.zentrolabs.com)" },
+        { status: 403 },
+      );
+    }
+
+    const db = supabaseAdmin();
+
+    const { data: memberRows } = await db.from("profiles").select("user_id").eq("account_id", accountId);
+    const memberUserIds = (memberRows ?? []).map((m) => m.user_id as string);
+
+    const { error: deleteErr } = await db.from("accounts").delete().eq("id", accountId);
+    if (deleteErr) {
+      console.error("[DELETE /api/platform-admin/accounts/:id] account delete error:", deleteErr);
+      return NextResponse.json({ error: "Failed to delete account" }, { status: 500 });
+    }
+
+    // Best-effort — the account (and everything scoped to it) is
+    // already gone at this point regardless of whether the auth users
+    // themselves clean up successfully.
+    for (const userId of memberUserIds) {
+      const { error: userDeleteErr } = await db.auth.admin.deleteUser(userId);
+      if (userDeleteErr) {
+        console.error(`[DELETE /api/platform-admin/accounts/:id] failed to delete auth user ${userId}:`, userDeleteErr);
+      }
+    }
+
+    await logPlatformAdminAction({
+      adminUserId: admin.userId,
+      adminEmail: admin.email,
+      action: "delete_account",
+      targetAccountId: owner.accountId,
+      targetUserId: owner.ownerUserId,
+      metadata: { accountName: owner.accountName, ownerEmail: owner.ownerEmail },
+    });
+
+    return NextResponse.json({ ok: true });
   } catch (err) {
     return toErrorResponse(err);
   }
