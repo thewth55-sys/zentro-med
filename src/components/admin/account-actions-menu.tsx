@@ -53,6 +53,7 @@ import {
 } from "@/components/ui/select";
 import { createClient } from "@/lib/supabase/client";
 import type { Plan, SubscriptionStatus } from "@/lib/billing-platform/plans";
+import { IMPERSONATION_SESSION_FLAG } from "@/lib/auth/impersonation-flag";
 
 interface AccountActionsMenuProps {
   accountId: string;
@@ -137,6 +138,10 @@ export function AccountActionsMenu({
         toast.error(`No se pudo establecer la sesión: ${error.message}`);
         return;
       }
+      // Read by use-auth.tsx's SIGNED_IN handler right after this
+      // redirect lands, then cleared — flags the login-events row this
+      // produces as an admin session, not the customer's own.
+      sessionStorage.setItem(IMPERSONATION_SESSION_FLAG, "1");
       window.location.href = "/dashboard";
     } catch (err) {
       console.error("[AccountActionsMenu] impersonate failed:", err);

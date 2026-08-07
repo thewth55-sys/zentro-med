@@ -8,6 +8,13 @@ import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Table,
   TableBody,
   TableCell,
@@ -33,6 +40,24 @@ interface AdminAccount {
   portalClientId: string | null;
   createdAt: string;
   tags: { id: string; label: string }[];
+  /** Most recent NON-impersonation login (see
+   *  087_login_events_impersonation_flag.sql) — null if the account
+   *  has never had a real login logged. */
+  lastActiveAt: string | null;
+}
+
+/** Below this many days since the last real login, an account counts
+ *  as "sin actividad reciente" for the activity filter/badge. */
+const INACTIVE_THRESHOLD_DAYS = 30;
+
+type ActivityFilter = "all" | "active" | "inactive";
+
+function daysSince(dateIso: string): number {
+  return (Date.now() - new Date(dateIso).getTime()) / (1000 * 60 * 60 * 24);
+}
+
+function isRecentlyActive(lastActiveAt: string | null): boolean {
+  return !!lastActiveAt && daysSince(lastActiveAt) <= INACTIVE_THRESHOLD_DAYS;
 }
 
 const PLAN_LABEL: Record<Plan, string> = {
@@ -64,6 +89,7 @@ export default function AdminAccountsPage() {
   const [accounts, setAccounts] = useState<AdminAccount[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
+  const [activityFilter, setActivityFilter] = useState<ActivityFilter>("all");
 
   async function loadAccounts() {
     try {
@@ -81,14 +107,19 @@ export default function AdminAccountsPage() {
   }, []);
 
   const query = search.trim().toLowerCase();
-  const filteredAccounts =
-    accounts && query
-      ? accounts.filter((account) =>
-          [account.name, account.ownerName, account.ownerEmail]
+  const filteredAccounts = accounts
+    ?.filter((account) =>
+      !query
+        ? true
+        : [account.name, account.ownerName, account.ownerEmail]
             .filter(Boolean)
             .some((field) => field!.toLowerCase().includes(query)),
-        )
-      : accounts;
+    )
+    .filter((account) => {
+      if (activityFilter === "all") return true;
+      const active = isRecentlyActive(account.lastActiveAt);
+      return activityFilter === "active" ? active : !active;
+    });
 
   return (
     <div>
@@ -106,6 +137,16 @@ export default function AdminAccountsPage() {
             onChange={(e) => setSearch(e.target.value)}
             className="sm:max-w-xs"
           />
+          <Select value={activityFilter} onValueChange={(v) => v && setActivityFilter(v as ActivityFilter)}>
+            <SelectTrigger className="sm:w-56">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Toda actividad</SelectItem>
+              <SelectItem value="active">Activas (últimos {INACTIVE_THRESHOLD_DAYS} días)</SelectItem>
+              <SelectItem value="inactive">Sin actividad reciente</SelectItem>
+            </SelectContent>
+          </Select>
           <CreateDemoAccountDialog onCreated={loadAccounts} />
         </div>
       </div>
@@ -126,7 +167,9 @@ export default function AdminAccountsPage() {
         </p>
       ) : filteredAccounts && filteredAccounts.length === 0 ? (
         <p className="py-12 text-center text-sm text-muted-foreground">
-          Ninguna cuenta coincide con &ldquo;{search}&rdquo;.
+          {search
+            ? <>Ninguna cuenta coincide con &ldquo;{search}&rdquo;.</>
+            : "Ninguna cuenta coincide con este filtro."}
         </p>
       ) : (
         <div className="rounded-lg border border-border">
@@ -139,6 +182,7 @@ export default function AdminAccountsPage() {
                 <TableHead>Estado</TableHead>
                 <TableHead>Asientos</TableHead>
                 <TableHead>Etiquetas</TableHead>
+                <TableHead>Última actividad</TableHead>
                 <TableHead>Creada</TableHead>
                 <TableHead className="text-right">Acción</TableHead>
               </TableRow>
@@ -182,6 +226,21 @@ export default function AdminAccountsPage() {
                           </span>
                         ))}
                       </div>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    {account.lastActiveAt ? (
+                      <span
+                        className={
+                          isRecentlyActive(account.lastActiveAt) ? "text-foreground" : "text-muted-foreground"
+                        }
+                      >
+                        {new Date(account.lastActiveAt).toLocaleDateString()}
+                      </span>
+                    ) : (
+                      <Badge variant="outline" className="text-muted-foreground">
+                        Sin actividad
+                      </Badge>
                     )}
                   </TableCell>
                   <TableCell className="text-muted-foreground">

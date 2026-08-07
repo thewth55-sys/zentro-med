@@ -25,6 +25,14 @@ export async function POST(request: Request) {
   const limit = checkRateLimit(`logSession:${user.id}`, RATE_LIMITS.logSession);
   if (!limit.success) return rateLimitResponse(limit);
 
+  // Client-supplied, trusted: this only affects an analytics label
+  // (see 087_login_events_impersonation_flag.sql) with no privilege
+  // implication — the real impersonation audit trail is
+  // platform_admin_audit_log, written server-side and unrelated to
+  // this flag.
+  const body = (await request.json().catch(() => null)) as { impersonation?: unknown } | null;
+  const isImpersonation = body?.impersonation === true;
+
   const { data: profile } = await supabase
     .from("profiles")
     .select("account_id")
@@ -43,6 +51,7 @@ export async function POST(request: Request) {
     browser: parseBrowser(userAgent),
     device: parseDevice(userAgent),
     country,
+    is_impersonation: isImpersonation,
   });
 
   if (error) {

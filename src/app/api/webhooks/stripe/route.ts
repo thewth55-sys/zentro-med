@@ -4,6 +4,50 @@ import type Stripe from "stripe";
 import { getStripeClient } from "@/lib/billing-platform/stripe";
 import { supabaseAdmin } from "@/lib/billing-platform/admin-client";
 import type { SubscriptionStatus } from "@/lib/billing-platform/plans";
+import { encrypt } from "@/lib/whatsapp/encryption";
+import { AI_PROVIDER_DEFAULT_MODEL } from "@/lib/ai/defaults";
+
+/**
+ * Auto-provisions `ai_configs` with a Zentro-Labs-owned OpenAI key the
+ * first time an account goes paid, so the AI features already
+ * marketed at every paid tier (Esencial+) work immediately with no
+ * manual "paste your OpenAI key" step. OpenAI's API has no endpoint
+ * to mint a *new* project API key programmatically (key creation is
+ * dashboard-only, by design — see their own docs), so this uses one
+ * shared key across every account instead of a key-per-account; the
+ * per-account monthly response cap (`ai_configs`/plan's
+ * `aiResponseLimitMonthly`, already enforced in `getAiResponseQuotaStatus`)
+ * is what bounds cost per customer, exactly like it already bounds a
+ * BYO key's usage today — nothing about that quota path changes.
+ *
+ * Deliberately a no-op (not an error) when:
+ *   - `ZENTRO_MANAGED_OPENAI_API_KEY` isn't set (feature opt-in via env)
+ *   - the account already has an `ai_configs` row — never overwrites
+ *     a config the account holder set up themselves (own key, custom
+ *     system prompt, etc.), whether from a prior activation or a
+ *     manual save in Settings → Agentes IA.
+ * `is_active`/`auto_reply_enabled` are left false (the columns'
+ * own defaults) — a customer's WhatsApp shouldn't start auto-replying
+ * the moment they pay without them explicitly turning it on.
+ */
+async function provisionManagedAiConfig(accountId: string): Promise<void> {
+  const managedKey = process.env.ZENTRO_MANAGED_OPENAI_API_KEY;
+  if (!managedKey) return;
+
+  const db = supabaseAdmin();
+  const { data: existing } = await db.from("ai_configs").select("id").eq("account_id", accountId).maybeSingle();
+  if (existing) return;
+
+  const { error } = await db.from("ai_configs").insert({
+    account_id: accountId,
+    provider: "openai",
+    model: AI_PROVIDER_DEFAULT_MODEL.openai,
+    api_key: encrypt(managedKey),
+  });
+  if (error) {
+    console.error(`[stripe webhook] failed to auto-provision ai_configs for account ${accountId}:`, error);
+  }
+}
 
 /**
  * POST /api/webhooks/stripe — the only place subscription lifecycle
@@ -49,6 +93,7 @@ export async function POST(request: Request) {
             stripe_subscription_id: session.subscription,
           })
           .eq("id", accountId);
+        await provisionManagedAiConfig(accountId);
         // Fase B: notify Portal that `accountId` is now paid (plan, status).
         break;
       }

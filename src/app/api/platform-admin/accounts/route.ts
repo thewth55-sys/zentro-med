@@ -63,6 +63,29 @@ export async function GET() {
       tagsByAccount.set(tag.account_id, list);
     }
 
+    // Last REAL login per account — excludes rows produced by a
+    // platform admin's own "Impersonar" session (see
+    // 087_login_events_impersonation_flag.sql), which would otherwise
+    // make a dormant account look freshly active every time support
+    // opens it. Ordered so the first row per account_id is the most
+    // recent.
+    const { data: loginEvents, error: loginEventsErr } = await admin
+      .from("login_events")
+      .select("account_id, created_at")
+      .eq("is_impersonation", false)
+      .not("account_id", "is", null)
+      .order("created_at", { ascending: false });
+    if (loginEventsErr) {
+      console.error("[GET /api/platform-admin/accounts] login_events fetch error:", loginEventsErr);
+      return NextResponse.json({ error: "Failed to load accounts" }, { status: 500 });
+    }
+
+    const lastActiveByAccount = new Map<string, string>();
+    for (const event of loginEvents ?? []) {
+      if (!event.account_id || lastActiveByAccount.has(event.account_id)) continue;
+      lastActiveByAccount.set(event.account_id, event.created_at);
+    }
+
     const result = (accounts ?? []).map((account) => {
       const members = profilesByAccount.get(account.id) ?? [];
       const owner =
@@ -83,6 +106,7 @@ export async function GET() {
         portalClientId: account.portal_client_id,
         createdAt: account.created_at,
         tags: tagsByAccount.get(account.id) ?? [],
+        lastActiveAt: lastActiveByAccount.get(account.id) ?? null,
       };
     });
 

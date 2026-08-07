@@ -16,6 +16,7 @@ import { DEFAULT_CURRENCY } from "@/lib/currency";
 import { DENTAL_SPECIALTY } from "@/lib/specialties";
 import type { Plan, SubscriptionStatus } from "@/lib/billing-platform/plans";
 import type { FeatureOverrides } from "@/lib/billing-platform/features";
+import { IMPERSONATION_SESSION_FLAG } from "@/lib/auth/impersonation-flag";
 import {
   canEditSettings as canEditSettingsFor,
   canManageMembers as canManageMembersFor,
@@ -338,7 +339,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // Fire-and-forget: this must never block or fail the sign-in
         // it's piggybacking on.
         if (event === "SIGNED_IN") {
-          void fetch("/api/auth/log-session", { method: "POST" }).catch(() => {});
+          const isImpersonation = sessionStorage.getItem(IMPERSONATION_SESSION_FLAG) === "1";
+          if (isImpersonation) sessionStorage.removeItem(IMPERSONATION_SESSION_FLAG);
+          void fetch("/api/auth/log-session", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ impersonation: isImpersonation }),
+          }).catch(() => {});
         }
       } else {
         lastFetchedUserIdRef.current = null;
