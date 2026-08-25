@@ -54,6 +54,9 @@ function LoginPageInner() {
   const [loading, setLoading] = useState(false);
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
   const captchaRequired = Boolean(process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY);
+  // El widget avisa cuando no logra resolver (error/timeout) y el servidor
+  // está en fail-open: en ese caso dejamos continuar sin token.
+  const [captchaUnavailable, setCaptchaUnavailable] = useState(false);
 
   // Only reachable page without a session (middleware redirects every
   // other protected path here). On the native app, the WebView's own
@@ -208,11 +211,15 @@ function LoginPageInner() {
               />
             </div>
 
-            <TurnstileWidget onVerify={setTurnstileToken} onExpire={handleTurnstileExpire} />
+            <TurnstileWidget
+              onVerify={setTurnstileToken}
+              onExpire={handleTurnstileExpire}
+              onUnavailable={setCaptchaUnavailable}
+            />
 
             <Button
               type="submit"
-              disabled={loading || (captchaRequired && !turnstileToken)}
+              disabled={loading || (captchaRequired && !turnstileToken && !captchaUnavailable)}
               className="mt-2 h-10 w-full bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
             >
               {loading ? t('signingIn') : t('signIn')}

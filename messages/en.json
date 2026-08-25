@@ -13,7 +13,10 @@
     "signingIn": "Signing in...",
     "signIn": "Sign in",
     "noAccount": "Don't have an account?",
-    "createAccount": "Create account"
+    "createAccount": "Create account",
+    "captchaFailed": "Couldn't complete verification. Check the device's date and time (set it to automatic) and your connection (private DNS / VPN).",
+    "captchaRetry": "Retry",
+    "captchaContinueAnyway": "You can continue anyway."
   },
   "Auth": {
     "emailConfirmed": "Your account is confirmed!"

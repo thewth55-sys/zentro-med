@@ -51,14 +51,27 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Email and password are required" }, { status: 400 });
   }
 
-  if (process.env.TURNSTILE_SECRET_KEY && !turnstileToken) {
-    return NextResponse.json({ error: "Please complete the CAPTCHA" }, { status: 400 });
-  }
-
+  // Fail-open opcional: con NEXT_PUBLIC_TURNSTILE_FAIL_OPEN='true', un token
+  // ausente o inválido NO bloquea el login. Pensado para dispositivos que no
+  // logran resolver Turnstile (reloj desfasado, DNS/VPN, WebView viejo) y
+  // quedarían totalmente bloqueados. Siguen protegiendo la contraseña (y el
+  // resto de controles de la cuenta). Por defecto (sin la env) es estricto.
+  const captchaFailOpen = process.env.NEXT_PUBLIC_TURNSTILE_FAIL_OPEN === "true";
   const remoteIp = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? null;
-  const captchaValid = await verifyTurnstileToken(turnstileToken, remoteIp);
-  if (!captchaValid) {
-    return NextResponse.json({ error: "CAPTCHA verification failed" }, { status: 400 });
+
+  if (process.env.TURNSTILE_SECRET_KEY && !turnstileToken) {
+    if (!captchaFailOpen) {
+      return NextResponse.json({ error: "Please complete the CAPTCHA" }, { status: 400 });
+    }
+    console.warn("[auth/login] Turnstile token ausente — permitido por TURNSTILE_FAIL_OPEN");
+  } else {
+    const captchaValid = await verifyTurnstileToken(turnstileToken, remoteIp);
+    if (!captchaValid) {
+      if (!captchaFailOpen) {
+        return NextResponse.json({ error: "CAPTCHA verification failed" }, { status: 400 });
+      }
+      console.warn("[auth/login] Turnstile inválido — permitido por TURNSTILE_FAIL_OPEN");
+    }
   }
 
   const supabase = await createClient();
