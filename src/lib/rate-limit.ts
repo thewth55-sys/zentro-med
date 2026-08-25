@@ -162,6 +162,14 @@ export const RATE_LIMITS = {
    *  client). 10/min per user is generous for legitimate multi-tab
    *  sign-ins while bounding a script hammering the endpoint. */
   logSession: { limit: 10, windowMs: 60_000 },
+  /** Login attempt (per IP+email). 10/min bounds password/2FA brute-force
+   *  against one account while leaving room for a real user fat-fingering
+   *  their password a few times. */
+  login: { limit: 10, windowMs: 60_000 },
+  /** 2FA code verification (per IP+challenge). Tighter than login — a real
+   *  user types one code (maybe retries once); this caps guessing the
+   *  6-digit code, on top of the per-challenge attempt counter. */
+  login2fa: { limit: 8, windowMs: 60_000 },
   /** Public REST API (`/api/v1/*`), keyed per API key. 120/min ≈ 2
    *  req/s sustained — comfortable for a polling integration or an
    *  automation firing on inbound events, while bounding a runaway

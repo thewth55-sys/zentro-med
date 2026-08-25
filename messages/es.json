@@ -16,7 +16,14 @@
     "createAccount": "Crear cuenta",
     "captchaFailed": "No se pudo completar la verificación. Revisa la fecha y hora del dispositivo (ponla en automática) y tu conexión (DNS privado / VPN).",
     "captchaRetry": "Reintentar",
-    "captchaContinueAnyway": "Puedes continuar de todas formas."
+    "captchaContinueAnyway": "Puedes continuar de todas formas.",
+    "codeSentTo": "Enviamos un código de verificación a {email}. Ingrésalo para continuar.",
+    "codeLabel": "Código de verificación",
+    "rememberDevice": "Recordar este dispositivo por 60 días",
+    "verify": "Verificar",
+    "verifying": "Verificando...",
+    "codeError": "No pudimos verificar el código.",
+    "backToLogin": "Volver al inicio de sesión"
   },
   "Auth": {
     "emailConfirmed": "¡Tu cuenta quedó confirmada!"

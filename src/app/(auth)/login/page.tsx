@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { Capacitor } from "@capacitor/core";
 import { TurnstileWidget } from "@/components/auth/turnstile-widget";
+import { PasswordInput } from "@/components/auth/password-input";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -57,6 +58,13 @@ function LoginPageInner() {
   // El widget avisa cuando no logra resolver (error/timeout) y el servidor
   // está en fail-open: en ese caso dejamos continuar sin token.
   const [captchaUnavailable, setCaptchaUnavailable] = useState(false);
+
+  // 2FA por correo (solo dispositivos nuevos). Cuando el paso 1 responde
+  // `mfaRequired`, guardamos el challengeId y mostramos el paso del código.
+  const [mfaChallengeId, setMfaChallengeId] = useState<string | null>(null);
+  const [code, setCode] = useState("");
+  const [rememberDevice, setRememberDevice] = useState(false);
+  const [verifying, setVerifying] = useState(false);
 
   // Only reachable page without a session (middleware redirects every
   // other protected path here). On the native app, the WebView's own
@@ -127,10 +135,46 @@ function LoginPageInner() {
       return;
     }
 
+    // Dispositivo nuevo → pedir el código 2FA antes de entrar.
+    if (data.mfaRequired) {
+      setMfaChallengeId(data.challengeId);
+      setLoading(false);
+      return;
+    }
+
     // Hard navigation, not router.push — the session cookies were just
     // set by the server route, and a full load guarantees the browser
     // Supabase client (and every server component) reads them fresh
     // instead of relying on stale in-memory client state.
+    window.location.href = inviteToken
+      ? `/join/${encodeURIComponent(inviteToken)}`
+      : "/dashboard";
+  };
+
+  const handleVerify = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!mfaChallengeId) return;
+    setError(null);
+    setVerifying(true);
+
+    const res = await fetch("/api/auth/login/verify", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ challengeId: mfaChallengeId, code, rememberDevice }),
+    });
+    const data = await res.json().catch(() => ({}));
+
+    if (!res.ok) {
+      setError(data.error || t("codeError"));
+      setVerifying(false);
+      // Reto expirado/agotado → volver al formulario de login.
+      if (res.status === 400 || res.status === 429) {
+        setMfaChallengeId(null);
+        setCode("");
+      }
+      return;
+    }
+
     window.location.href = inviteToken
       ? `/join/${encodeURIComponent(inviteToken)}`
       : "/dashboard";
@@ -166,6 +210,59 @@ function LoginPageInner() {
           </CardDescription>
         </CardHeader>
         <CardContent>
+          {mfaChallengeId ? (
+            <form onSubmit={handleVerify} className="flex flex-col gap-4">
+              {error && (
+                <div className="rounded-lg border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-400">
+                  {error}
+                </div>
+              )}
+              <p className="text-sm text-muted-foreground">{t('codeSentTo', { email })}</p>
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="code" className="text-muted-foreground">
+                  {t('codeLabel')}
+                </Label>
+                <Input
+                  id="code"
+                  inputMode="numeric"
+                  autoComplete="one-time-code"
+                  maxLength={6}
+                  placeholder="••••••"
+                  value={code}
+                  onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))}
+                  required
+                  className="border-border bg-muted text-center text-lg tracking-[0.5em] text-foreground focus-visible:border-primary focus-visible:ring-primary/20"
+                />
+              </div>
+              <label className="flex items-center gap-2 text-sm text-muted-foreground">
+                <input
+                  type="checkbox"
+                  checked={rememberDevice}
+                  onChange={(e) => setRememberDevice(e.target.checked)}
+                  className="size-4 accent-primary"
+                />
+                {t('rememberDevice')}
+              </label>
+              <Button
+                type="submit"
+                disabled={verifying || code.length < 6}
+                className="mt-2 h-10 w-full bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+              >
+                {verifying ? t('verifying') : t('verify')}
+              </Button>
+              <button
+                type="button"
+                onClick={() => {
+                  setMfaChallengeId(null);
+                  setCode("");
+                  setError(null);
+                }}
+                className="text-center text-sm text-muted-foreground hover:text-foreground"
+              >
+                {t('backToLogin')}
+              </button>
+            </form>
+          ) : (
           <form onSubmit={handleLogin} className="flex flex-col gap-4">
             {error && (
               <div className="rounded-lg border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-400">
@@ -200,9 +297,8 @@ function LoginPageInner() {
                   {t('forgotPassword')}
                 </Link>
               </div>
-              <Input
+              <PasswordInput
                 id="password"
-                type="password"
                 placeholder={t('passwordPlaceholder')}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -225,6 +321,7 @@ function LoginPageInner() {
               {loading ? t('signingIn') : t('signIn')}
             </Button>
           </form>
+          )}
 
           {/* Public self-signup is deliberately not advertised here —
               new accounts are meant to come from the marketing
