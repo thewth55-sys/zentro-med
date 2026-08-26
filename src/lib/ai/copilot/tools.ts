@@ -1,6 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { ToolDefinition } from '../types'
 import { sendMessageToConversation } from '@/lib/whatsapp/send-message'
+import { COPILOT_NAME } from './branding'
 
 /**
  * Copiloto de IA hacia el usuario (personal de la clínica). Herramientas
@@ -28,6 +29,8 @@ export interface ProposedAction {
 }
 
 export type CopilotActionType =
+  | 'crear_contacto'
+  | 'registrar_paciente'
   | 'crear_nota'
   | 'agendar_cita'
   | 'confirmar_cita'
@@ -58,11 +61,11 @@ export function buildCopilotSystemPrompt(
   memories: string[] = [],
 ): string {
   const lines = [
-    `Eres el copiloto de IA de ${clinicName ?? 'la clínica'} dentro del CRM.`,
-    'Asistes al PERSONAL de la clínica (no al paciente). Responde en español, claro y conciso.',
+    `Te llamas ${COPILOT_NAME}, el asistente de IA de ${clinicName ?? 'la clínica'} dentro del CRM.`,
+    `Asistes al PERSONAL de la clínica (no al paciente). Si te preguntan tu nombre, eres ${COPILOT_NAME}. Responde en español, claro y conciso.`,
     '',
     'Puedes CONSULTAR: un resumen del día, próximas citas, conversaciones sin responder, contactos/pacientes, el historial clínico de un paciente, doctores, servicios, negocios del pipeline y sus etapas.',
-    'Puedes PROPONER acciones (requieren confirmación del usuario): crear una nota, agendar / confirmar / cancelar una cita, enviar un WhatsApp, mover un negocio de etapa y registrar una nota de evolución clínica.',
+    'Puedes PROPONER acciones (requieren confirmación del usuario): crear un contacto, registrar un paciente nuevo, crear una nota, agendar / confirmar / cancelar una cita, enviar un WhatsApp, mover un negocio de etapa y registrar una nota de evolución clínica.',
     'Tienes MEMORIA persistente por médico: usa la herramienta recordar para guardar datos estables.',
     '',
     'Reglas:',
@@ -185,6 +188,32 @@ export const COPILOT_TOOLS: ToolDefinition[] = [
   },
   // ---- acción (propuesta, NO ejecución) ----
   {
+    name: 'crear_contacto',
+    description:
+      'PROPONE crear un contacto nuevo (nombre + teléfono). Antes, verifica con buscar_contacto que no exista ya por ese teléfono.',
+    parameters: {
+      type: 'object',
+      properties: {
+        nombre: { type: 'string', description: 'Nombre del contacto.' },
+        telefono: { type: 'string', description: 'Teléfono (obligatorio).' },
+      },
+      required: ['nombre', 'telefono'],
+    },
+  },
+  {
+    name: 'registrar_paciente',
+    description:
+      'PROPONE registrar un PACIENTE nuevo: crea el contacto (si no existe por ese teléfono) y le abre expediente de paciente. Úsalo para "registra a este paciente".',
+    parameters: {
+      type: 'object',
+      properties: {
+        nombre: { type: 'string', description: 'Nombre del paciente.' },
+        telefono: { type: 'string', description: 'Teléfono (obligatorio).' },
+      },
+      required: ['nombre', 'telefono'],
+    },
+  },
+  {
     name: 'crear_nota',
     description:
       'PROPONE crear una nota simple en el expediente de un contacto. Primero identifica el contacto con buscar_contacto.',
@@ -303,6 +332,10 @@ export function createCopilotExecutor(ctx: CopilotContext, proposals: ProposedAc
           return await historialPaciente(ctx, args)
         case 'recordar':
           return await recordar(ctx, args)
+        case 'crear_contacto':
+          return proponerCrearContacto(proposals, args)
+        case 'registrar_paciente':
+          return proponerRegistrarPaciente(proposals, args)
         case 'crear_nota':
           return proponerCrearNota(proposals, args)
         case 'agendar_cita':
@@ -518,6 +551,30 @@ async function recordar(ctx: CopilotContext, args: Record<string, unknown>): Pro
 
 // ---- Tools de acción (propuesta, NO ejecución) ----
 
+function proponerCrearContacto(proposals: ProposedAction[], args: Record<string, unknown>): string {
+  const nombre = String(args.nombre ?? '').trim()
+  const telefono = String(args.telefono ?? '').trim()
+  if (!nombre || !telefono) return JSON.stringify({ error: 'Se requieren nombre y teléfono.' })
+  proposals.push({
+    type: 'crear_contacto',
+    summary: `Crear contacto: ${nombre} (${telefono})`,
+    params: { nombre, telefono },
+  })
+  return proposalAck()
+}
+
+function proponerRegistrarPaciente(proposals: ProposedAction[], args: Record<string, unknown>): string {
+  const nombre = String(args.nombre ?? '').trim()
+  const telefono = String(args.telefono ?? '').trim()
+  if (!nombre || !telefono) return JSON.stringify({ error: 'Se requieren nombre y teléfono.' })
+  proposals.push({
+    type: 'registrar_paciente',
+    summary: `Registrar paciente: ${nombre} (${telefono})`,
+    params: { nombre, telefono },
+  })
+  return proposalAck()
+}
+
 function proponerCrearNota(proposals: ProposedAction[], args: Record<string, unknown>): string {
   const contactId = String(args.contact_id ?? '').trim()
   const texto = String(args.texto ?? '').trim()
@@ -616,6 +673,55 @@ export async function executeCopilotAction(
 ): Promise<{ ok: boolean; message: string }> {
   try {
     switch (type) {
+      case 'crear_contacto': {
+        const nombre = String(params.nombre ?? '').trim()
+        const telefono = String(params.telefono ?? '').trim()
+        if (!nombre || !telefono) return fail('Faltan nombre o teléfono.')
+        const { error } = await ctx.supabase.from('contacts').insert({
+          account_id: ctx.accountId,
+          user_id: ctx.userId,
+          phone: telefono,
+          name: nombre,
+        })
+        if (error) {
+          return fail(
+            error.code === '23505' ? 'Ya existe un contacto con ese teléfono.' : error.message,
+          )
+        }
+        return ok('Contacto creado.')
+      }
+      case 'registrar_paciente': {
+        const nombre = String(params.nombre ?? '').trim()
+        const telefono = String(params.telefono ?? '').trim()
+        if (!nombre || !telefono) return fail('Faltan nombre o teléfono.')
+        // Busca el contacto por teléfono (RLS = cuenta); si no existe, lo crea.
+        const { data: existing } = await ctx.supabase
+          .from('contacts')
+          .select('id')
+          .eq('phone', telefono)
+          .maybeSingle<{ id: string }>()
+        let contactId = existing?.id ?? null
+        if (!contactId) {
+          const { data: inserted, error: cErr } = await ctx.supabase
+            .from('contacts')
+            .insert({ account_id: ctx.accountId, user_id: ctx.userId, phone: telefono, name: nombre })
+            .select('id')
+            .single()
+          if (cErr) return fail(cErr.message)
+          contactId = inserted.id
+        }
+        // Abre expediente de paciente (patient_profiles.contact_id es UNIQUE).
+        const { error: pErr } = await ctx.supabase.from('patient_profiles').insert({
+          account_id: ctx.accountId,
+          contact_id: contactId,
+          created_by: ctx.userId,
+        })
+        if (pErr) {
+          if (pErr.code === '23505') return ok('El contacto ya estaba registrado como paciente.')
+          return fail(pErr.message)
+        }
+        return ok('Paciente registrado.')
+      }
       case 'crear_nota': {
         const contactId = String(params.contact_id ?? '').trim()
         const texto = String(params.texto ?? '').trim()

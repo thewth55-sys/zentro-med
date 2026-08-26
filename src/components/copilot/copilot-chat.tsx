@@ -6,6 +6,7 @@ import { Check, Loader2, Mic, Plus, Send, SlidersHorizontal, Sparkles, Square, V
 
 import { Button } from "@/components/ui/button";
 import { CopilotOnboarding, type CopilotProfileData } from "@/components/copilot/copilot-onboarding";
+import { COPILOT_NAME } from "@/lib/ai/copilot/branding";
 
 interface ChatTurn {
   role: "user" | "assistant";
@@ -264,7 +265,7 @@ export function CopilotChat() {
           <Sparkles className="size-5" />
         </span>
         <div className="min-w-0 flex-1">
-          <h1 className="text-lg font-semibold text-foreground">Copiloto de IA</h1>
+          <h1 className="text-lg font-semibold text-foreground">{COPILOT_NAME}</h1>
           <p className="truncate text-xs text-muted-foreground">
             Pregunta sobre tus datos o pide acciones — las acciones se confirman antes de ejecutarse.
           </p>
@@ -294,8 +295,9 @@ export function CopilotChat() {
           <div className="flex h-full flex-col items-center justify-center gap-4 text-center">
             <Sparkles className="size-8 text-muted-foreground" />
             <p className="max-w-sm text-sm text-muted-foreground">
-              Soy tu copiloto. Puedo consultar citas, conversaciones, pacientes y negocios, y proponer
-              acciones (agendar, enviar WhatsApp, mover un negocio, notas) que tú confirmas.
+              Soy {COPILOT_NAME}, tu asistente. Puedo consultar citas, conversaciones, pacientes y
+              negocios, y proponer acciones (registrar pacientes, agendar, enviar WhatsApp, mover un
+              negocio, notas) que tú confirmas.
             </p>
             <div className="flex flex-wrap justify-center gap-2">
               {SUGGESTIONS.map((s) => (

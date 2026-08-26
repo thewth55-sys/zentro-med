@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { Loader2, Sparkles } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { COPILOT_NAME } from "@/lib/ai/copilot/branding";
 
 export interface CopilotProfileData {
   addressAs: string | null;
@@ -67,7 +68,7 @@ export function CopilotOnboarding({ mode, initial, onSaved, onCancel }: Props) {
         </span>
         <div>
           <h1 className="text-lg font-semibold text-foreground">
-            {mode === "onboarding" ? "Configuremos tu copiloto" : "Preferencias del copiloto"}
+            {mode === "onboarding" ? `Configuremos a ${COPILOT_NAME}` : `Preferencias de ${COPILOT_NAME}`}
           </h1>
           <p className="text-xs text-muted-foreground">
             {mode === "onboarding"
