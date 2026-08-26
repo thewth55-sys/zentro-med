@@ -4,6 +4,7 @@ import { supabaseAdmin } from "@/lib/billing-platform/admin-client";
 import { timingSafeSecretEqual } from "@/lib/cron/verify-secret";
 import { resolveFeatureAccess, type FeatureOverrides } from "@/lib/billing-platform/features";
 import type { Plan } from "@/lib/billing-platform/plans";
+import { isWithinBusinessHoursNow } from "@/lib/scheduling/business-hours";
 
 /**
  * GET /api/conversation-reminders/cron
@@ -29,9 +30,10 @@ import type { Plan } from "@/lib/billing-platform/plans";
  * El reloj se detiene (fila borrada por trigger) cuando un agente humano
  * responde o se cierra la conversación.
  *
- * Nota: a diferencia del CRM hermano, aquí NO hay regla de horario nocturno
- * porque zentro aún no tiene `business_hours`/`accounts.timezone`. Cuando se
- * agregue esa feature, se puede suprimir los tramos cortos de noche.
+ * Regla nocturna: fuera del horario de la clínica (accounts.timezone +
+ * business_hours) se suprimen los tramos cortos — solo se dispara el
+ * recordatorio horario. Si la cuenta no tiene horarios configurados, se
+ * trata como abierta 24/7 (curva completa).
  */
 
 const GAP_MINUTES = [5, 10, 20, 40];
@@ -90,6 +92,16 @@ export async function GET(request: Request) {
     return ok;
   }
 
+  // Cache de "¿la cuenta está abierta ahora?" por cuenta en esta corrida.
+  const openCache = new Map<string, boolean>();
+  async function accountOpenNow(accountId: string): Promise<boolean> {
+    const cached = openCache.get(accountId);
+    if (cached !== undefined) return cached;
+    const { open } = await isWithinBusinessHoursNow(admin, accountId, new Date(now));
+    openCache.set(accountId, open);
+    return open;
+  }
+
   let processed = 0;
   let notified = 0;
 
@@ -97,7 +109,13 @@ export async function GET(request: Request) {
     try {
       const lastEvent = new Date(row.last_reminder_at ?? row.pending_since).getTime();
       const elapsedMin = (now - lastEvent) / 60_000;
-      if (elapsedMin < gapMinutes(row.reminder_count)) continue;
+
+      let requiredMin = gapMinutes(row.reminder_count);
+      // Regla nocturna: fuera de horario, solo el recordatorio horario.
+      if (!(await accountOpenNow(row.account_id))) {
+        requiredMin = Math.max(requiredMin, HOURLY_MIN);
+      }
+      if (elapsedMin < requiredMin) continue;
 
       // Gate premium por cuenta.
       if (!(await accountEntitled(row.account_id))) continue;
