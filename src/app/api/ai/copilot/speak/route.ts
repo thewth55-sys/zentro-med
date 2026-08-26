@@ -7,6 +7,19 @@ import { managedOpenAiKey } from '@/lib/ai/copilot/managed-config'
 
 const MAX_CHARS = 4000
 
+/** Limpia el texto para la lectura por voz: quita emojis y markdown para
+ *  que la voz no lea "asterisco asterisco" ni describa los emojis. */
+function stripForSpeech(text: string): string {
+  return text
+    .replace(/\*\*(.*?)\*\*/g, '$1')
+    .replace(/[*_`]/g, '')
+    .replace(/^\s*[-•]\s*/gm, '')
+    .replace(/[\p{Extended_Pictographic}️‍]/gu, '')
+    .replace(/[ \t]{2,}/g, ' ')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim()
+}
+
 /** Lee un ajuste de voz (0–1) de env, con default y clamp. */
 function envNum(v: string | undefined, def: number): number {
   const n = v === undefined ? NaN : Number(v)
@@ -43,10 +56,11 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json().catch(() => null)
-    const text = typeof body?.text === 'string' ? body.text.trim().slice(0, MAX_CHARS) : ''
-    if (!text) {
+    const raw = typeof body?.text === 'string' ? body.text.trim().slice(0, MAX_CHARS) : ''
+    if (!raw) {
       return NextResponse.json({ error: 'Falta el texto.' }, { status: 400 })
     }
+    const text = stripForSpeech(raw) || raw
 
     const audio = await synthesize(text)
     if (!audio) {

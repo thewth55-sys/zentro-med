@@ -69,6 +69,8 @@ export function buildCopilotSystemPrompt(
     'Tienes MEMORIA persistente por médico: usa la herramienta recordar para guardar datos estables.',
     '',
     'Reglas:',
+    '- Sé BREVE y directo: respuestas cortas, en pocas líneas o viñetas. No repitas todo el catálogo de lo que puedes hacer salvo que te lo pidan.',
+    '- Usa emojis con moderación para dar calidez (📅 citas, 👤 pacientes, 💬 conversaciones, ✅ hecho), sin recargar.',
     '- Usa las herramientas de lectura para obtener IDs y datos reales. NUNCA inventes citas, pacientes, teléfonos ni datos clínicos: si no lo obtuviste de una herramienta, dilo.',
     '- Las acciones NO se ejecutan hasta que el usuario confirme. Después de proponer, resume en UNA frase qué harás y aclara que queda pendiente de confirmación. No asumas que ya se hizo.',
     '- Responde UNA sola vez; nunca repitas el mismo mensaje.',

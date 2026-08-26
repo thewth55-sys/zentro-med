@@ -13,6 +13,34 @@ interface ChatTurn {
   content: string;
 }
 
+// Render ligero de markdown para las respuestas de Zen: **negritas**,
+// viñetas y saltos de línea (sin dependencias externas).
+function renderInline(text: string) {
+  return text.split(/(\*\*[^*]+\*\*)/g).map((part, i) =>
+    /^\*\*[^*]+\*\*$/.test(part) ? (
+      <strong key={i}>{part.slice(2, -2)}</strong>
+    ) : (
+      <span key={i}>{part}</span>
+    ),
+  );
+}
+
+function renderRich(text: string) {
+  return text.split("\n").map((line, i) => {
+    const bullet = /^\s*[-•]\s+(.*)$/.exec(line);
+    if (bullet) {
+      return (
+        <div key={i} className="flex gap-2">
+          <span className="select-none text-muted-foreground">•</span>
+          <span>{renderInline(bullet[1])}</span>
+        </div>
+      );
+    }
+    if (line.trim() === "") return <div key={i} className="h-2" aria-hidden="true" />;
+    return <div key={i}>{renderInline(line)}</div>;
+  });
+}
+
 interface ProposedAction {
   type: string;
   summary: string;
@@ -344,8 +372,8 @@ export function CopilotChat() {
             ) : (
               <div key={i} className="flex justify-start">
                 <div className="flex max-w-[85%] flex-col items-start gap-1">
-                  <div className="whitespace-pre-wrap rounded-2xl rounded-bl-sm bg-muted px-4 py-2 text-sm text-foreground">
-                    {turn.content}
+                  <div className="rounded-2xl rounded-bl-sm bg-muted px-4 py-2 text-sm text-foreground">
+                    {renderRich(turn.content)}
                   </div>
                   {turn.content.trim() ? (
                     <button
@@ -424,8 +452,10 @@ export function CopilotChat() {
 
         {loading ? (
           <div className="flex justify-start">
-            <div className="flex items-center gap-2 rounded-2xl bg-muted px-4 py-2 text-sm text-muted-foreground">
-              <Loader2 className="size-4 animate-spin" /> Pensando…
+            <div className="flex items-center gap-1.5 rounded-2xl rounded-bl-sm bg-muted px-4 py-3.5">
+              <span className="size-2 animate-bounce rounded-full bg-muted-foreground/60 [animation-delay:-0.3s]" />
+              <span className="size-2 animate-bounce rounded-full bg-muted-foreground/60 [animation-delay:-0.15s]" />
+              <span className="size-2 animate-bounce rounded-full bg-muted-foreground/60" />
             </div>
           </div>
         ) : null}
