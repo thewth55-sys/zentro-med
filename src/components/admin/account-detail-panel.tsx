@@ -191,6 +191,12 @@ const COPILOT_ACTION_LABEL: Record<string, string> = {
   enviar_whatsapp: "Envió un WhatsApp",
   mover_negocio_etapa: "Movió un negocio de etapa",
   crear_nota_evolucion: "Registró una nota de evolución",
+  registrar_gasto: "Registró un gasto",
+  crear_servicio: "Creó un servicio",
+  crear_producto: "Creó un producto",
+  crear_articulo_inventario: "Creó un artículo de inventario",
+  registrar_movimiento_inventario: "Registró movimiento de inventario",
+  crear_factura: "Generó una factura",
 };
 
 const PLAN_LABEL: Record<Plan, string> = {

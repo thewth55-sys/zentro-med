@@ -1,6 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { ToolDefinition } from '../types'
 import { sendMessageToConversation } from '@/lib/whatsapp/send-message'
+import { resolveBillingLines, type RawLineInput } from '@/lib/billing/resolve-items'
 import { COPILOT_NAME } from './branding'
 
 /**
@@ -39,6 +40,12 @@ export type CopilotActionType =
   | 'enviar_whatsapp'
   | 'mover_negocio_etapa'
   | 'crear_nota_evolucion'
+  | 'registrar_gasto'
+  | 'crear_servicio'
+  | 'crear_producto'
+  | 'crear_articulo_inventario'
+  | 'registrar_movimiento_inventario'
+  | 'crear_factura'
 
 // ------------------------------------------------------------
 // Prompt de sistema del copiloto.
@@ -67,6 +74,7 @@ export function buildCopilotSystemPrompt(
     '',
     'Puedes CONSULTAR: un resumen del día, próximas citas, conversaciones sin responder, contactos/pacientes, el historial clínico de un paciente, doctores, servicios, negocios del pipeline y sus etapas.',
     'Puedes PROPONER acciones (requieren confirmación del usuario): crear o actualizar un contacto (nombre, teléfono, correo, empresa), registrar un paciente nuevo, crear una nota, agendar / confirmar / cancelar una cita, enviar un WhatsApp, mover un negocio de etapa y registrar una nota de evolución clínica.',
+    'Finanzas e inventario: puedes registrar gastos, crear servicios, crear productos (lista de precios), crear artículos de inventario, registrar movimientos de inventario (entradas/salidas) y generar facturas.',
     'También eres el GUÍA/SOPORTE de la plataforma: si el usuario no sabe dónde configurar o encontrar algo, oriéntalo con los pasos exactos usando el "Mapa de la plataforma" de abajo.',
     'Tienes MEMORIA persistente por médico: usa la herramienta recordar para guardar datos estables.',
     '',
@@ -202,6 +210,21 @@ export const COPILOT_TOOLS: ToolDefinition[] = [
       },
       required: ['patient_profile_id'],
     },
+  },
+  {
+    name: 'listar_productos',
+    description: 'Lista productos activos (lista de precios). Devuelve id, nombre y precio unitario.',
+    parameters: { type: 'object', properties: {} },
+  },
+  {
+    name: 'listar_inventario',
+    description: 'Lista artículos de inventario activos. Devuelve id, nombre, unidad y stock mínimo. Úsalo para obtener el item_id de un movimiento.',
+    parameters: { type: 'object', properties: {} },
+  },
+  {
+    name: 'listar_gastos',
+    description: 'Lista los gastos más recientes. Devuelve fecha, categoría, descripción y monto.',
+    parameters: { type: 'object', properties: {} },
   },
   {
     name: 'recordar',
@@ -344,6 +367,102 @@ export const COPILOT_TOOLS: ToolDefinition[] = [
       required: ['patient_profile_id', 'motivo', 'hallazgos_plan'],
     },
   },
+  {
+    name: 'registrar_gasto',
+    description: 'PROPONE registrar un gasto. Categorías: rent, payroll, supplies, utilities, marketing, equipment, taxes, software, other. Métodos: cash, card, transfer, other.',
+    parameters: {
+      type: 'object',
+      properties: {
+        descripcion: { type: 'string', description: 'Descripción del gasto.' },
+        monto: { type: 'number', description: 'Monto (mayor a 0).' },
+        categoria: { type: 'string', description: 'Categoría (por defecto other).' },
+        metodo_pago: { type: 'string', description: 'cash | card | transfer | other (por defecto other).' },
+        proveedor: { type: 'string', description: 'Proveedor (opcional).' },
+        fecha: { type: 'string', description: 'Fecha YYYY-MM-DD (por defecto hoy).' },
+      },
+      required: ['descripcion', 'monto'],
+    },
+  },
+  {
+    name: 'crear_servicio',
+    description: 'PROPONE crear un tipo de servicio (para la agenda). Requiere nombre y duración en minutos.',
+    parameters: {
+      type: 'object',
+      properties: {
+        nombre: { type: 'string', description: 'Nombre del servicio.' },
+        duracion_min: { type: 'number', description: 'Duración en minutos (por defecto 30).' },
+      },
+      required: ['nombre'],
+    },
+  },
+  {
+    name: 'crear_producto',
+    description: 'PROPONE crear un producto en la lista de precios. Requiere nombre y precio unitario.',
+    parameters: {
+      type: 'object',
+      properties: {
+        nombre: { type: 'string', description: 'Nombre del producto.' },
+        precio: { type: 'number', description: 'Precio unitario.' },
+        descripcion: { type: 'string', description: 'Descripción (opcional).' },
+      },
+      required: ['nombre', 'precio'],
+    },
+  },
+  {
+    name: 'crear_articulo_inventario',
+    description: 'PROPONE crear un artículo de inventario. Categorías: supplies, materials, instruments, equipment, other.',
+    parameters: {
+      type: 'object',
+      properties: {
+        nombre: { type: 'string', description: 'Nombre del artículo.' },
+        unidad: { type: 'string', description: 'Unidad (por defecto "unidad").' },
+        stock_inicial: { type: 'number', description: 'Stock inicial (por defecto 0).' },
+        stock_minimo: { type: 'number', description: 'Stock mínimo de alerta (por defecto 0).' },
+        costo_unitario: { type: 'number', description: 'Costo unitario (opcional).' },
+        categoria: { type: 'string', description: 'Categoría (por defecto supplies).' },
+      },
+      required: ['nombre'],
+    },
+  },
+  {
+    name: 'registrar_movimiento_inventario',
+    description: 'PROPONE registrar una entrada o salida de inventario. Requiere item_id (de listar_inventario), dirección (in/out) y cantidad. Motivos: purchase, consumption, waste, adjustment, other.',
+    parameters: {
+      type: 'object',
+      properties: {
+        item_id: { type: 'string', description: 'UUID del artículo (de listar_inventario).' },
+        direccion: { type: 'string', description: '"in" (entrada) o "out" (salida).' },
+        cantidad: { type: 'number', description: 'Cantidad (mayor a 0).' },
+        motivo: { type: 'string', description: 'purchase | consumption | waste | adjustment | other.' },
+      },
+      required: ['item_id', 'direccion', 'cantidad'],
+    },
+  },
+  {
+    name: 'crear_factura',
+    description: 'PROPONE generar una factura para un contacto con una o varias líneas. Primero identifica el contacto con buscar_contacto. Cada línea: descripción, cantidad y precio unitario.',
+    parameters: {
+      type: 'object',
+      properties: {
+        contact_id: { type: 'string', description: 'UUID del contacto (de buscar_contacto).' },
+        lineas: {
+          type: 'array',
+          description: 'Líneas de la factura.',
+          items: {
+            type: 'object',
+            properties: {
+              descripcion: { type: 'string' },
+              cantidad: { type: 'number' },
+              precio_unitario: { type: 'number' },
+            },
+            required: ['descripcion', 'cantidad', 'precio_unitario'],
+          },
+        },
+        notas: { type: 'string', description: 'Notas de la factura (opcional).' },
+      },
+      required: ['contact_id', 'lineas'],
+    },
+  },
 ]
 
 // ------------------------------------------------------------
@@ -373,6 +492,12 @@ export function createCopilotExecutor(ctx: CopilotContext, proposals: ProposedAc
           return await resumenDelDia(ctx)
         case 'historial_paciente':
           return await historialPaciente(ctx, args)
+        case 'listar_productos':
+          return await listarProductos(ctx)
+        case 'listar_inventario':
+          return await listarInventario(ctx)
+        case 'listar_gastos':
+          return await listarGastos(ctx)
         case 'recordar':
           return await recordar(ctx, args)
         case 'crear_contacto':
@@ -395,6 +520,18 @@ export function createCopilotExecutor(ctx: CopilotContext, proposals: ProposedAc
           return proponerMoverNegocio(proposals, args)
         case 'crear_nota_evolucion':
           return proponerNotaEvolucion(proposals, args)
+        case 'registrar_gasto':
+          return proponerRegistrarGasto(proposals, args)
+        case 'crear_servicio':
+          return proponerCrearServicio(proposals, args)
+        case 'crear_producto':
+          return proponerCrearProducto(proposals, args)
+        case 'crear_articulo_inventario':
+          return proponerCrearArticulo(proposals, args)
+        case 'registrar_movimiento_inventario':
+          return proponerMovimientoInventario(proposals, args)
+        case 'crear_factura':
+          return proponerCrearFactura(proposals, args)
         default:
           return JSON.stringify({ error: `Herramienta desconocida: ${name}` })
       }
@@ -580,6 +717,38 @@ async function historialPaciente(ctx: CopilotContext, args: Record<string, unkno
   return JSON.stringify({ total: notas.length, notas })
 }
 
+async function listarProductos(ctx: CopilotContext): Promise<string> {
+  const { data, error } = await ctx.supabase
+    .from('products')
+    .select('id, name, unit_price')
+    .eq('is_active', true)
+    .order('name', { ascending: true })
+    .limit(100)
+  if (error) return JSON.stringify({ error: error.message })
+  return JSON.stringify({ total: (data ?? []).length, productos: data ?? [] })
+}
+
+async function listarInventario(ctx: CopilotContext): Promise<string> {
+  const { data, error } = await ctx.supabase
+    .from('inventory_items')
+    .select('id, name, unit, minimum_stock, unit_cost')
+    .eq('is_active', true)
+    .order('name', { ascending: true })
+    .limit(100)
+  if (error) return JSON.stringify({ error: error.message })
+  return JSON.stringify({ total: (data ?? []).length, articulos: data ?? [] })
+}
+
+async function listarGastos(ctx: CopilotContext): Promise<string> {
+  const { data, error } = await ctx.supabase
+    .from('expenses')
+    .select('id, expense_date, category, description, amount, currency')
+    .order('expense_date', { ascending: false })
+    .limit(30)
+  if (error) return JSON.stringify({ error: error.message })
+  return JSON.stringify({ total: (data ?? []).length, gastos: data ?? [] })
+}
+
 // La memoria SÍ escribe al instante (es la libreta del propio copiloto, no un
 // dato clínico), así que no pasa por el flujo de confirmación.
 async function recordar(ctx: CopilotContext, args: Record<string, unknown>): Promise<string> {
@@ -724,6 +893,100 @@ function proponerNotaEvolucion(proposals: ProposedAction[], args: Record<string,
       hallazgos_plan: hallazgosPlan,
       doctor_id: optionalId(args.doctor_id),
     },
+  })
+  return proposalAck()
+}
+
+function proponerRegistrarGasto(proposals: ProposedAction[], args: Record<string, unknown>): string {
+  const descripcion = String(args.descripcion ?? '').trim()
+  const monto = Number(args.monto)
+  if (!descripcion || !Number.isFinite(monto) || monto <= 0) {
+    return JSON.stringify({ error: 'Se requieren descripción y un monto mayor a 0.' })
+  }
+  proposals.push({
+    type: 'registrar_gasto',
+    summary: `Registrar gasto: ${descripcion} — ${monto}`,
+    params: {
+      descripcion,
+      monto,
+      categoria: String(args.categoria ?? 'other'),
+      metodo_pago: String(args.metodo_pago ?? 'other'),
+      proveedor: optionalId(args.proveedor),
+      fecha: optionalId(args.fecha),
+    },
+  })
+  return proposalAck()
+}
+
+function proponerCrearServicio(proposals: ProposedAction[], args: Record<string, unknown>): string {
+  const nombre = String(args.nombre ?? '').trim()
+  if (!nombre) return JSON.stringify({ error: 'Falta el nombre del servicio.' })
+  const duracion = clampNumber(args.duracion_min, 30, 5, 480)
+  proposals.push({
+    type: 'crear_servicio',
+    summary: `Crear servicio: ${nombre} (${duracion} min)`,
+    params: { nombre, duracion_min: duracion },
+  })
+  return proposalAck()
+}
+
+function proponerCrearProducto(proposals: ProposedAction[], args: Record<string, unknown>): string {
+  const nombre = String(args.nombre ?? '').trim()
+  const precio = Number(args.precio)
+  if (!nombre || !Number.isFinite(precio) || precio < 0) {
+    return JSON.stringify({ error: 'Se requieren nombre y un precio válido.' })
+  }
+  proposals.push({
+    type: 'crear_producto',
+    summary: `Crear producto: ${nombre} — ${precio}`,
+    params: { nombre, precio, descripcion: optionalId(args.descripcion) },
+  })
+  return proposalAck()
+}
+
+function proponerCrearArticulo(proposals: ProposedAction[], args: Record<string, unknown>): string {
+  const nombre = String(args.nombre ?? '').trim()
+  if (!nombre) return JSON.stringify({ error: 'Falta el nombre del artículo.' })
+  proposals.push({
+    type: 'crear_articulo_inventario',
+    summary: `Crear artículo de inventario: ${nombre}`,
+    params: {
+      nombre,
+      unidad: String(args.unidad ?? 'unidad'),
+      stock_inicial: args.stock_inicial,
+      stock_minimo: args.stock_minimo,
+      costo_unitario: args.costo_unitario,
+      categoria: String(args.categoria ?? 'supplies'),
+    },
+  })
+  return proposalAck()
+}
+
+function proponerMovimientoInventario(proposals: ProposedAction[], args: Record<string, unknown>): string {
+  const itemId = String(args.item_id ?? '').trim()
+  const direccion = String(args.direccion ?? '').trim()
+  const cantidad = Number(args.cantidad)
+  if (!itemId || (direccion !== 'in' && direccion !== 'out') || !Number.isFinite(cantidad) || cantidad <= 0) {
+    return JSON.stringify({ error: 'Se requieren item_id, dirección (in/out) y cantidad > 0.' })
+  }
+  proposals.push({
+    type: 'registrar_movimiento_inventario',
+    summary: `${direccion === 'in' ? 'Entrada' : 'Salida'} de inventario: ${cantidad}`,
+    params: { item_id: itemId, direccion, cantidad, motivo: String(args.motivo ?? 'other') },
+  })
+  return proposalAck()
+}
+
+function proponerCrearFactura(proposals: ProposedAction[], args: Record<string, unknown>): string {
+  const contactId = String(args.contact_id ?? '').trim()
+  const lineas = Array.isArray(args.lineas) ? args.lineas : []
+  if (!contactId || lineas.length === 0) {
+    return JSON.stringify({ error: 'Se requieren contact_id y al menos una línea.' })
+  }
+  proposals.push({
+    type: 'crear_factura',
+    summary: `Generar factura con ${lineas.length} línea(s)`,
+    params: { contact_id: contactId, lineas, notas: optionalId(args.notas) },
   })
   return proposalAck()
 }
@@ -883,6 +1146,143 @@ export async function executeCopilotAction(
           created_by: ctx.userId,
         })
         return error ? fail(error.message) : ok('Nota de evolución registrada.')
+      }
+      case 'registrar_gasto': {
+        const descripcion = String(params.descripcion ?? '').trim()
+        const monto = Number(params.monto)
+        if (!descripcion || !Number.isFinite(monto) || monto <= 0) return fail('Datos de gasto inválidos.')
+        const catOk = ['rent', 'payroll', 'supplies', 'utilities', 'marketing', 'equipment', 'taxes', 'software', 'other']
+        const pmOk = ['cash', 'card', 'transfer', 'other']
+        const categoria = catOk.includes(String(params.categoria)) ? String(params.categoria) : 'other'
+        const metodo = pmOk.includes(String(params.metodo_pago)) ? String(params.metodo_pago) : 'other'
+        const fecha = optionalId(params.fecha)
+        const { error } = await ctx.supabase.from('expenses').insert({
+          account_id: ctx.accountId,
+          description: descripcion,
+          amount: monto,
+          category: categoria,
+          payment_method: metodo,
+          vendor: optionalId(params.proveedor),
+          ...(fecha ? { expense_date: fecha } : {}),
+          created_by: ctx.userId,
+        })
+        return error ? fail(error.message) : ok('Gasto registrado.')
+      }
+      case 'crear_servicio': {
+        const nombre = String(params.nombre ?? '').trim()
+        if (!nombre) return fail('Falta el nombre del servicio.')
+        const duracion = clampNumber(params.duracion_min, 30, 5, 480)
+        const { error } = await ctx.supabase
+          .from('service_types')
+          .insert({ account_id: ctx.accountId, name: nombre, duration_minutes: duracion })
+        return error ? fail(error.message) : ok('Servicio creado.')
+      }
+      case 'crear_producto': {
+        const nombre = String(params.nombre ?? '').trim()
+        const precio = Number(params.precio)
+        if (!nombre || !Number.isFinite(precio) || precio < 0) return fail('Datos de producto inválidos.')
+        const { error } = await ctx.supabase
+          .from('products')
+          .insert({ account_id: ctx.accountId, name: nombre, unit_price: precio, description: optionalId(params.descripcion) })
+        return error ? fail(error.message) : ok('Producto creado.')
+      }
+      case 'crear_articulo_inventario': {
+        const nombre = String(params.nombre ?? '').trim()
+        if (!nombre) return fail('Falta el nombre del artículo.')
+        const catOk = ['supplies', 'materials', 'instruments', 'equipment', 'other']
+        const categoria = catOk.includes(String(params.categoria)) ? String(params.categoria) : 'supplies'
+        const cost = Number(params.costo_unitario)
+        const { error } = await ctx.supabase.from('inventory_items').insert({
+          account_id: ctx.accountId,
+          name: nombre,
+          category: categoria,
+          unit: String(params.unidad ?? 'unidad') || 'unidad',
+          initial_stock: Number.isFinite(Number(params.stock_inicial)) ? Number(params.stock_inicial) : 0,
+          minimum_stock: Number.isFinite(Number(params.stock_minimo)) ? Number(params.stock_minimo) : 0,
+          unit_cost: Number.isFinite(cost) ? cost : null,
+          created_by: ctx.userId,
+        })
+        return error ? fail(error.message) : ok('Artículo de inventario creado.')
+      }
+      case 'registrar_movimiento_inventario': {
+        const itemId = String(params.item_id ?? '').trim()
+        const direccion = String(params.direccion ?? '').trim()
+        const cantidad = Number(params.cantidad)
+        if (!itemId || (direccion !== 'in' && direccion !== 'out') || !Number.isFinite(cantidad) || cantidad <= 0) {
+          return fail('Datos de movimiento inválidos.')
+        }
+        const reasonOk = ['purchase', 'consumption', 'waste', 'adjustment', 'other']
+        const motivo = reasonOk.includes(String(params.motivo)) ? String(params.motivo) : 'other'
+        const { error } = await ctx.supabase.from('inventory_movements').insert({
+          account_id: ctx.accountId,
+          item_id: itemId,
+          direction: direccion,
+          quantity: cantidad,
+          reason: motivo,
+          created_by: ctx.userId,
+        })
+        return error
+          ? fail(error.message)
+          : ok(direccion === 'in' ? 'Entrada de inventario registrada.' : 'Salida de inventario registrada.')
+      }
+      case 'crear_factura': {
+        const contactId = String(params.contact_id ?? '').trim()
+        const lineasRaw = Array.isArray(params.lineas) ? params.lineas : []
+        if (!contactId || lineasRaw.length === 0) return fail('Faltan el contacto o las líneas.')
+        const rawItems: RawLineInput[] = []
+        for (const l of lineasRaw) {
+          if (!l || typeof l !== 'object') continue
+          const row = l as Record<string, unknown>
+          const descripcion = String(row.descripcion ?? '').trim()
+          const cantidad = Number(row.cantidad)
+          const precio = Number(row.precio_unitario)
+          if (!descripcion || !Number.isFinite(cantidad) || cantidad <= 0 || !Number.isFinite(precio) || precio < 0) continue
+          rawItems.push({ description: descripcion, quantity: cantidad, unit_price: precio })
+        }
+        if (rawItems.length === 0) return fail('Las líneas de la factura no son válidas.')
+        let resolved
+        try {
+          resolved = await resolveBillingLines(ctx.supabase, ctx.accountId, rawItems, null, 0)
+        } catch (e) {
+          return fail(e instanceof Error ? e.message : 'Líneas inválidas.')
+        }
+        const { data: account } = await ctx.supabase
+          .from('accounts')
+          .select('default_currency')
+          .eq('id', ctx.accountId)
+          .maybeSingle<{ default_currency: string | null }>()
+        const { data: invoiceNumber, error: numErr } = await ctx.supabase.rpc('next_billing_number', {
+          p_account_id: ctx.accountId,
+          p_doc_type: 'invoice',
+        })
+        if (numErr || !invoiceNumber) return fail('No se pudo generar el número de factura.')
+        const { data: invoice, error: insErr } = await ctx.supabase
+          .from('invoices')
+          .insert({
+            account_id: ctx.accountId,
+            contact_id: contactId,
+            invoice_number: invoiceNumber,
+            subtotal: resolved.subtotal,
+            tax_total: resolved.taxTotal,
+            discount_type: resolved.discountType,
+            discount_value: resolved.discountValue,
+            discount_amount: resolved.discountAmount,
+            total: resolved.total,
+            currency: account?.default_currency ?? 'USD',
+            notes: optionalId(params.notas),
+            created_by: ctx.userId,
+          })
+          .select('id')
+          .single()
+        if (insErr || !invoice) return fail(insErr?.message ?? 'No se pudo crear la factura.')
+        const { error: itemsErr } = await ctx.supabase
+          .from('invoice_items')
+          .insert(resolved.items.map((it) => ({ ...it, account_id: ctx.accountId, invoice_id: invoice.id })))
+        if (itemsErr) {
+          await ctx.supabase.from('invoices').delete().eq('id', invoice.id)
+          return fail('No se pudieron guardar las líneas de la factura.')
+        }
+        return ok(`Factura ${invoiceNumber} creada (borrador).`)
       }
       default:
         return fail(`Acción no soportada: ${type}`)
