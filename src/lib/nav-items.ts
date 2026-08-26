@@ -17,6 +17,7 @@ import {
   Globe,
   LayoutDashboard,
   Radio,
+  Sparkles,
   Users,
   Wallet,
   Workflow,
@@ -59,6 +60,7 @@ export const navItems: NavItem[] = [
   { href: "/automations", labelKey: "automations", icon: Zap, feature: "automations" },
   { href: "/flows", labelKey: "flows", icon: Workflow, beta: true, feature: "automations" },
   { href: "/agents", labelKey: "aiAgents", icon: Bot, feature: "ai_autoreply" },
+  { href: "/copilot", labelKey: "copilot", icon: Sparkles, beta: true, feature: "ai_copilot" },
   { href: "/landing", labelKey: "landing", icon: Globe, feature: "landing_builder" },
 ];
 

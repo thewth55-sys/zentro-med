@@ -111,6 +111,7 @@ export function Sidebar({ open = false, onClose }: SidebarProps) {
     conversation_reminders: useHasFeature("conversation_reminders"),
     clinic_hours: useHasFeature("clinic_hours"),
     booking_page: useHasFeature("booking_page"),
+    ai_copilot: useHasFeature("ai_copilot"),
   };
   // Only surface the account-name strip when it actually carries
   // information. A solo user's personal account is named after them

@@ -17,6 +17,7 @@ import {
   CreditCard,
   Laptop,
   Smartphone,
+  Sparkles,
   Lock,
   Loader2,
   MapPin,
@@ -170,6 +171,25 @@ interface Note {
   createdAt: string;
 }
 
+interface CopilotAction {
+  id: string;
+  actionType: string;
+  status: "ok" | "failed";
+  error: string | null;
+  userName: string | null;
+  createdAt: string;
+}
+
+const COPILOT_ACTION_LABEL: Record<string, string> = {
+  crear_nota: "Creó una nota",
+  agendar_cita: "Agendó una cita",
+  confirmar_cita: "Confirmó una cita",
+  cancelar_cita: "Canceló una cita",
+  enviar_whatsapp: "Envió un WhatsApp",
+  mover_negocio_etapa: "Movió un negocio de etapa",
+  crear_nota_evolucion: "Registró una nota de evolución",
+};
+
 const PLAN_LABEL: Record<Plan, string> = {
   trial: "Prueba",
   esencial: "Esencial",
@@ -228,6 +248,7 @@ export function AccountDetailPanel({ accountId }: { accountId: string }) {
   const [notes, setNotes] = useState<Note[]>([]);
   const [integrations, setIntegrations] = useState<Integrations | null>(null);
   const [sessions, setSessions] = useState<Session[]>([]);
+  const [copilotActions, setCopilotActions] = useState<CopilotAction[]>([]);
   const [aiQuota, setAiQuota] = useState<AiQuota | null>(null);
   const [recentErrors, setRecentErrors] = useState<IntegrationError[]>([]);
   const [responseLimitDraft, setResponseLimitDraft] = useState("");
@@ -291,6 +312,7 @@ export function AccountDetailPanel({ accountId }: { accountId: string }) {
       setNotes(body.notes ?? []);
       setIntegrations(body.integrations ?? null);
       setSessions(body.sessions ?? []);
+      setCopilotActions(body.copilotActions ?? []);
       setAiQuota(body.aiQuota ?? null);
       setRecentErrors(body.recentErrors ?? []);
       setResponseLimitDraft(
@@ -1259,6 +1281,53 @@ export function AccountDetailPanel({ accountId }: { accountId: string }) {
                         s.device ?? "—"
                       )}
                     </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      <div className="rounded-lg border border-border p-4">
+        <div className="mb-3 flex items-center gap-2 text-sm font-medium text-foreground">
+          <Sparkles className="size-4" /> Actividad del copiloto de IA
+        </div>
+        {copilotActions.length === 0 ? (
+          <p className="text-sm text-muted-foreground">Sin acciones del copiloto todavía.</p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="text-left text-xs text-muted-foreground">
+                  <th className="pb-2 pr-4 font-normal">Acción</th>
+                  <th className="pb-2 pr-4 font-normal">Confirmó</th>
+                  <th className="pb-2 pr-4 font-normal">Estado</th>
+                  <th className="pb-2 font-normal">Fecha</th>
+                </tr>
+              </thead>
+              <tbody>
+                {copilotActions.map((a) => (
+                  <tr key={a.id} className="border-t border-border">
+                    <td className="py-2 pr-4 text-foreground">
+                      {COPILOT_ACTION_LABEL[a.actionType] ?? a.actionType}
+                    </td>
+                    <td className="py-2 pr-4 text-muted-foreground">{a.userName ?? "—"}</td>
+                    <td className="py-2 pr-4">
+                      {a.status === "ok" ? (
+                        <span className="inline-flex items-center rounded-full bg-emerald-500/15 px-1.5 py-0.5 text-[10px] font-medium text-emerald-600 dark:text-emerald-400">
+                          Ejecutada
+                        </span>
+                      ) : (
+                        <span
+                          title={a.error ?? undefined}
+                          className="inline-flex items-center rounded-full bg-destructive/15 px-1.5 py-0.5 text-[10px] font-medium text-destructive"
+                        >
+                          Falló
+                        </span>
+                      )}
+                    </td>
+                    <td className="py-2 text-muted-foreground">{new Date(a.createdAt).toLocaleString()}</td>
                   </tr>
                 ))}
               </tbody>

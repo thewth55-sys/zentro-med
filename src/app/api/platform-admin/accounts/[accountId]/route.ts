@@ -106,6 +106,16 @@ export async function GET(_request: Request, { params }: { params: Promise<{ acc
       }
     }
 
+    // Actividad reciente del copiloto de IA: acciones confirmadas + ejecutadas.
+    // No exponemos `params` aquí (pueden traer texto clínico) — solo qué acción,
+    // quién la confirmó y si salió bien; el contenido vive en su propio registro.
+    const { data: copilotRows } = await db
+      .from("ai_copilot_actions")
+      .select("id, user_id, action_type, status, error, created_at")
+      .eq("account_id", accountId)
+      .order("created_at", { ascending: false })
+      .limit(20);
+
     let payments: {
       id: string;
       status: string;
@@ -232,6 +242,17 @@ export async function GET(_request: Request, { params }: { params: Promise<{ acc
         };
       }),
       payments,
+      copilotActions: (copilotRows ?? []).map((a) => {
+        const member = (members ?? []).find((m) => m.user_id === a.user_id);
+        return {
+          id: a.id,
+          actionType: a.action_type,
+          status: a.status,
+          error: a.error,
+          userName: member?.full_name ?? member?.email ?? null,
+          createdAt: a.created_at,
+        };
+      }),
       integrations: {
         ai: aiConfig
           ? {

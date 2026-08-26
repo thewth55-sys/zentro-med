@@ -25,7 +25,8 @@ export type GatedFeature =
   | "landing_builder"
   | "conversation_reminders"
   | "clinic_hours"
-  | "booking_page";
+  | "booking_page"
+  | "ai_copilot";
 
 export const GATED_FEATURES: GatedFeature[] = [
   "automations",
@@ -36,6 +37,7 @@ export const GATED_FEATURES: GatedFeature[] = [
   "conversation_reminders",
   "clinic_hours",
   "booking_page",
+  "ai_copilot",
 ];
 
 export const FEATURE_LABEL: Record<GatedFeature, string> = {
@@ -47,6 +49,7 @@ export const FEATURE_LABEL: Record<GatedFeature, string> = {
   conversation_reminders: "Recordatorios de conversación",
   clinic_hours: "Horarios por consultorio",
   booking_page: "Página de reserva personalizada",
+  ai_copilot: "Copiloto de IA",
 };
 
 /** `accounts.feature_overrides` — absent key falls back to the plan default. */
@@ -86,6 +89,10 @@ const FEATURE_MIN_PLAN: Record<GatedFeature, Plan[]> = {
   // portada, bio, botones de contacto/redes). La reserva básica sigue para
   // todos; la marca/personalización es premium. Profesional+.
   booking_page: ["profesional", "clinica"],
+  // Copiloto de IA hacia el personal de la clínica (chat con acceso a los
+  // datos de la cuenta + acciones con confirmación). Función premium que
+  // consume tokens del proveedor de la cuenta → Profesional+.
+  ai_copilot: ["profesional", "clinica"],
 };
 
 export function planHasFeature(plan: Plan, feature: GatedFeature): boolean {
