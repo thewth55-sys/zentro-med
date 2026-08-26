@@ -78,7 +78,7 @@ export async function POST(request: Request) {
 
     const { error: planErr } = await admin
       .from("accounts")
-      .update({ plan })
+      .update({ plan, is_demo: true })
       .eq("id", account.id);
     if (planErr) {
       console.error("[POST .../accounts/demo] plan update error:", planErr);

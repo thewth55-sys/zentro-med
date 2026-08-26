@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect } from "react";
-import { LayoutDashboard, History, Megaphone, ShieldCheck, Ticket, Users, UserCog, X } from "lucide-react";
+import { LayoutDashboard, History, Megaphone, ShieldCheck, Smartphone, Ticket, Users, UserCog, X } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
@@ -12,6 +12,7 @@ const NAV_ITEMS = [
   { href: "/admin/accounts", label: "Cuentas", icon: Users, exact: false },
   { href: "/admin/coupons", label: "Cupones", icon: Ticket, exact: true },
   { href: "/admin/announcements", label: "Avisos", icon: Megaphone, exact: true },
+  { href: "/admin/simulador", label: "Simulador demo", icon: Smartphone, exact: true },
   { href: "/admin/audit-log", label: "Log de auditoría", icon: History, exact: true },
   { href: "/admin/team", label: "Equipo interno", icon: UserCog, exact: true },
 ];

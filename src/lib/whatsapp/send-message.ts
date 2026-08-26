@@ -34,6 +34,7 @@ import {
   interactivePayloadPreviewText,
   type InteractiveMessagePayload,
 } from '@/lib/whatsapp/interactive';
+import { randomUUID } from 'node:crypto';
 import { decrypt, encrypt, isLegacyFormat } from '@/lib/whatsapp/encryption';
 import { logIntegrationError } from '@/lib/integration-errors/log';
 import { supabaseAdmin } from '@/lib/flows/admin-client';
@@ -257,37 +258,52 @@ export async function sendMessageToConversation(
     );
   }
 
-  // WhatsApp config, account-scoped.
-  const { data: config, error: configError } = await db
-    .from('whatsapp_config')
-    .select('*')
-    .eq('account_id', accountId)
-    .single();
+  // ¿Cuenta demo? El envío saliente puentea Meta (simulador de ventas): no
+  // hay número real conectado, así que el mensaje solo se persiste localmente
+  // y fluye por el pipeline. Las cuentas reales (is_demo=false) no cambian.
+  const { data: acct } = await db
+    .from('accounts')
+    .select('is_demo')
+    .eq('id', accountId)
+    .maybeSingle();
+  const isDemo = acct?.is_demo === true;
 
-  if (configError || !config) {
-    throw new SendMessageError(
-      'whatsapp_not_configured',
-      'WhatsApp not configured. Please set up your WhatsApp integration first.',
-      400
-    );
-  }
-
-  const accessToken = decrypt(config.access_token);
-
-  // Self-heal legacy CBC ciphertexts. Fire-and-forget; idempotent.
-  if (isLegacyFormat(config.access_token)) {
-    void db
+  // WhatsApp config, account-scoped. Solo para cuentas reales — las demo no
+  // tienen config y puentean Meta más abajo.
+  let config: { id: string; phone_number_id: string; access_token: string } | null = null;
+  let accessToken = '';
+  if (!isDemo) {
+    const { data: cfg, error: configError } = await db
       .from('whatsapp_config')
-      .update({ access_token: encrypt(accessToken) })
-      .eq('id', config.id)
-      .then(({ error }: { error: { message: string } | null }) => {
-        if (error) {
-          console.warn(
-            '[send-message] access_token GCM upgrade failed:',
-            error.message
-          );
-        }
-      });
+      .select('*')
+      .eq('account_id', accountId)
+      .single();
+
+    if (configError || !cfg) {
+      throw new SendMessageError(
+        'whatsapp_not_configured',
+        'WhatsApp not configured. Please set up your WhatsApp integration first.',
+        400
+      );
+    }
+    config = cfg;
+    accessToken = decrypt(cfg.access_token);
+
+    // Self-heal legacy CBC ciphertexts. Fire-and-forget; idempotent.
+    if (isLegacyFormat(cfg.access_token)) {
+      void db
+        .from('whatsapp_config')
+        .update({ access_token: encrypt(accessToken) })
+        .eq('id', cfg.id)
+        .then(({ error }: { error: { message: string } | null }) => {
+          if (error) {
+            console.warn(
+              '[send-message] access_token GCM upgrade failed:',
+              error.message
+            );
+          }
+        });
+    }
   }
 
   // Resolve the reply target to its Meta message_id. The parent must
@@ -342,7 +358,7 @@ export async function sendMessageToConversation(
   const attempt = async (phone: string): Promise<string> => {
     if (messageType === 'template') {
       const result = await sendTemplateMessage({
-        phoneNumberId: config.phone_number_id,
+        phoneNumberId: config!.phone_number_id,
         accessToken,
         to: phone,
         templateName: templateName!,
@@ -356,7 +372,7 @@ export async function sendMessageToConversation(
     }
     if (isMediaKind) {
       const result = await sendMediaMessage({
-        phoneNumberId: config.phone_number_id,
+        phoneNumberId: config!.phone_number_id,
         accessToken,
         to: phone,
         kind: messageType as MediaKind,
@@ -371,7 +387,7 @@ export async function sendMessageToConversation(
       const p = interactivePayload!;
       if (p.kind === 'buttons') {
         const result = await sendInteractiveButtons({
-          phoneNumberId: config.phone_number_id,
+          phoneNumberId: config!.phone_number_id,
           accessToken,
           to: phone,
           bodyText: p.body,
@@ -383,7 +399,7 @@ export async function sendMessageToConversation(
         return result.messageId;
       }
       const result = await sendInteractiveList({
-        phoneNumberId: config.phone_number_id,
+        phoneNumberId: config!.phone_number_id,
         accessToken,
         to: phone,
         bodyText: p.body,
@@ -396,7 +412,7 @@ export async function sendMessageToConversation(
       return result.messageId;
     }
     const result = await sendTextMessage({
-      phoneNumberId: config.phone_number_id,
+      phoneNumberId: config!.phone_number_id,
       accessToken,
       to: phone,
       text: contentText!,
@@ -410,6 +426,11 @@ export async function sendMessageToConversation(
   // back to the contact so the next send goes straight through.
   let waMessageId = '';
   let workingPhone = sanitizedPhone;
+  if (isDemo) {
+    // Simulador de ventas: sin Meta. Id local sintético; el mensaje se
+    // persiste igual y aparece en vivo en la conversación.
+    waMessageId = `demo-${randomUUID()}`;
+  } else {
   try {
     const variants = phoneVariants(sanitizedPhone);
     let lastError: unknown = null;
@@ -449,6 +470,7 @@ export async function sendMessageToConversation(
       message,
     });
     throw new SendMessageError('meta_error', `Meta API error: ${message}`, 502);
+  }
   }
 
   if (workingPhone !== sanitizedPhone) {
@@ -544,7 +566,7 @@ export async function sendMessageToConversation(
   }
 
   let conversion: SendMessageResult['conversion'] = null;
-  if (isFirstReply) {
+  if (isFirstReply && !isDemo) {
     await dispatchConversionEvent(db, accountId, 'first_reply', {
       phone: sanitizedPhone,
       email: contact.email ?? undefined,
