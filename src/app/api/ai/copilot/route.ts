@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { requireRole, toErrorResponse } from '@/lib/auth/account'
 import { checkRateLimit, rateLimitResponse, RATE_LIMITS } from '@/lib/rate-limit'
-import { loadAiConfig } from '@/lib/ai/config'
+import { buildManagedAiConfig } from '@/lib/ai/copilot/managed-config'
 import { generateReply } from '@/lib/ai/generate'
 import { logAiUsage } from '@/lib/ai/usage'
 import { getAiResponseQuotaStatus } from '@/lib/ai/quota'
@@ -74,20 +74,14 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Last message must be from the user' }, { status: 400 })
     }
 
-    const config = await loadAiConfig(supabase, accountId).catch((err) => {
-      console.error('[ai/copilot] loadAiConfig error:', err)
-      throw new AiError('Stored API key could not be decrypted.', {
-        code: 'key_decrypt_failed',
-        status: 400,
-      })
-    })
+    // Config GESTIONADA por la plataforma (no la BYO de la cuenta): el
+    // copiloto es una función de planes de pago y el médico no configura
+    // ninguna API. Ver managed-config.ts.
+    const config = buildManagedAiConfig()
     if (!config) {
       return NextResponse.json(
-        {
-          error: 'AI assistant is not set up. Enable it in Settings → AI Assistant.',
-          code: 'ai_not_configured',
-        },
-        { status: 400 },
+        { error: 'El copiloto no está configurado en el servidor.', code: 'copilot_not_configured' },
+        { status: 503 },
       )
     }
 
