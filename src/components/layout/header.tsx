@@ -19,25 +19,7 @@ import {
 import { ModeToggle } from "@/components/layout/mode-toggle";
 import { LocaleToggle } from "@/components/layout/locale-toggle";
 import { HelpButton } from "@/components/layout/help-button";
-
-const pageTitles: Record<string, string> = {
-  "/dashboard": "dashboard",
-  "/inbox": "inbox",
-  "/notifications": "notifications",
-  "/contacts": "contacts",
-  "/pipelines": "pipelines",
-  "/broadcasts": "broadcasts",
-  "/automations": "automations",
-  "/settings": "settings",
-};
-
-function getPageTitleKey(pathname: string): string {
-  if (pageTitles[pathname]) return pageTitles[pathname];
-  const match = Object.entries(pageTitles).find(([path]) =>
-    pathname.startsWith(path),
-  );
-  return match ? match[1] : "dashboard";
-}
+import { navItems } from "@/lib/nav-items";
 
 interface HeaderProps {
   /** Wired to the shell's drawer state. Used only on mobile — the
@@ -49,9 +31,20 @@ import { useTranslations } from "next-intl";
 
 export function Header({ onOpenSidebar }: HeaderProps) {
   const t = useTranslations("Header");
+  const tNav = useTranslations("Sidebar");
   const pathname = usePathname();
   const { profile, signOut } = useAuth();
-  const titleKey = getPageTitleKey(pathname);
+
+  // Título de la pantalla actual, tomado del nav real (así cada pantalla
+  // muestra su propio nombre — incluido Zen — y no cae siempre a "Panel").
+  const current = [...navItems]
+    .sort((a, b) => b.href.length - a.href.length)
+    .find((it) => pathname === it.href || pathname.startsWith(`${it.href}/`));
+  const title = current
+    ? tNav(current.labelKey)
+    : pathname.startsWith("/settings")
+      ? t("settings")
+      : tNav("dashboard");
 
   const initial =
     profile?.full_name?.charAt(0)?.toUpperCase() ??
@@ -71,7 +64,7 @@ export function Header({ onOpenSidebar }: HeaderProps) {
           <Menu className="h-5 w-5" />
         </button>
         <h1 className="truncate text-base font-semibold text-foreground sm:text-lg">
-          {t(titleKey as string)}
+          {title}
         </h1>
       </div>
 

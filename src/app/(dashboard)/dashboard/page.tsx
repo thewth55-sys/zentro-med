@@ -38,6 +38,7 @@ import { NextAppointmentCard } from '@/components/dashboard/next-appointment-car
 import { ResponseTimeChart } from '@/components/dashboard/response-time-chart'
 import { ActivityFeed } from '@/components/dashboard/activity-feed'
 import { AnnouncementsCarousel } from '@/components/dashboard/announcements-carousel'
+import { ZenRecommendations } from '@/components/dashboard/zen-recommendations'
 
 import { useTranslations } from 'next-intl'
 
@@ -146,6 +147,9 @@ export default function DashboardPage() {
 
       {/* Next appointment */}
       <NextAppointmentCard item={nextAppointment} loading={nextAppointmentLoading} />
+
+      {/* Recomendaciones de Zen + CTA al chat */}
+      <ZenRecommendations />
 
       {/* Admin-controlled promos/announcements */}
       <AnnouncementsCarousel />

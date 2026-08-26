@@ -9,7 +9,6 @@ import { ThemeProvider } from "@/hooks/use-theme";
 import { ThemedToaster } from "@/components/themed-toaster";
 import { PwaRegister } from "@/components/pwa-register";
 import { AndroidAppBanner } from "@/components/android-app-banner";
-import { ZohoDeskWidget } from "@/components/zoho-desk-widget";
 import { AuthConfirmedToast } from "@/components/auth/auth-confirmed-toast";
 import {
   DEFAULT_MODE,
@@ -137,7 +136,6 @@ export default async function RootLayout({
             </Suspense>
           </ThemeProvider>
         </NextIntlClientProvider>
-        <ZohoDeskWidget />
       </body>
     </html>
   );

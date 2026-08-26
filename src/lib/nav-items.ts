@@ -50,6 +50,7 @@ export interface NavItem {
 
 export const navItems: NavItem[] = [
   { href: "/dashboard", labelKey: "dashboard", icon: LayoutDashboard },
+  { href: "/copilot", labelKey: "copilot", icon: Sparkles, beta: true, feature: "ai_copilot" },
   { href: "/inbox", labelKey: "inbox", icon: WhatsAppIcon, feature: "whatsapp_inbox" },
   { href: "/notifications", labelKey: "notifications", icon: Bell },
   { href: "/contacts", labelKey: "contacts", icon: Users },
@@ -60,7 +61,6 @@ export const navItems: NavItem[] = [
   { href: "/automations", labelKey: "automations", icon: Zap, feature: "automations" },
   { href: "/flows", labelKey: "flows", icon: Workflow, beta: true, feature: "automations" },
   { href: "/agents", labelKey: "aiAgents", icon: Bot, feature: "ai_autoreply" },
-  { href: "/copilot", labelKey: "copilot", icon: Sparkles, beta: true, feature: "ai_copilot" },
   { href: "/landing", labelKey: "landing", icon: Globe, feature: "landing_builder" },
 ];
 
