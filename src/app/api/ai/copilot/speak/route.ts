@@ -7,6 +7,13 @@ import { managedOpenAiKey } from '@/lib/ai/copilot/managed-config'
 
 const MAX_CHARS = 4000
 
+/** Lee un ajuste de voz (0–1) de env, con default y clamp. */
+function envNum(v: string | undefined, def: number): number {
+  const n = v === undefined ? NaN : Number(v)
+  if (!Number.isFinite(n)) return def
+  return Math.min(1, Math.max(0, n))
+}
+
 /**
  * POST /api/ai/copilot/speak  (agent+, plan premium)
  *
@@ -68,7 +75,14 @@ async function synthesize(text: string): Promise<ArrayBuffer | null> {
         body: JSON.stringify({
           text,
           model_id: process.env.ELEVENLABS_MODEL || 'eleven_multilingual_v2',
-          voice_settings: { stability: 0.5, similarity_boost: 0.75 },
+          // Entonación y calidez ajustables (0–1): stability más baja = más
+          // expresiva/variada; style más alto = más cálida/emotiva.
+          voice_settings: {
+            stability: envNum(process.env.ELEVENLABS_STABILITY, 0.4),
+            similarity_boost: envNum(process.env.ELEVENLABS_SIMILARITY, 0.8),
+            style: envNum(process.env.ELEVENLABS_STYLE, 0.3),
+            use_speaker_boost: process.env.ELEVENLABS_SPEAKER_BOOST !== 'false',
+          },
         }),
         signal: AbortSignal.timeout(60_000),
       })

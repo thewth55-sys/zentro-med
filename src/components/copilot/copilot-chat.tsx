@@ -54,22 +54,40 @@ export function CopilotChat() {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [turns, actions, loading]);
 
-  async function loadProfile() {
+  async function loadProfile(): Promise<CopilotProfileData | null> {
     try {
       const res = await fetch("/api/ai/copilot/profile", { cache: "no-store" });
       const body = await res.json().catch(() => null);
       if (res.ok) {
         setOnboarded(Boolean(body?.onboarded));
         setProfileData(body?.profile ?? null);
-      } else {
-        // Si no se puede leer (p. ej. permisos), no bloqueamos el chat.
-        setOnboarded(true);
+        return (body?.profile ?? null) as CopilotProfileData | null;
       }
+      // Si no se puede leer (p. ej. permisos), no bloqueamos el chat.
+      setOnboarded(true);
+      return null;
     } catch {
       setOnboarded(true);
+      return null;
     } finally {
       setProfileLoading(false);
     }
+  }
+
+  // Saludo de presentación tras el onboarding: dice qué puede hacer y
+  // reproduce su voz (el click de "Empezar" habilita el audio del navegador).
+  function seedGreeting(profile: CopilotProfileData | null) {
+    const saludo = profile?.addressAs ? `Hola, ${profile.addressAs}.` : "¡Hola!";
+    const esp = profile?.specialty ? ` Veo que tu área es ${profile.specialty}.` : "";
+    const text =
+      `${saludo} Soy ${COPILOT_NAME}, tu asistente.${esp}\n\n` +
+      "Puedo ayudarte a:\n" +
+      "• Consultar tu día: citas, conversaciones sin responder y expedientes.\n" +
+      "• Registrar pacientes, agendar/confirmar/cancelar citas, enviar WhatsApp y anotar notas de evolución — siempre con tu confirmación.\n" +
+      "• Recordar tus preferencias para las próximas sesiones.\n\n" +
+      "Dime qué necesitas, por texto o por voz 🎤. Y puedes escuchar mis respuestas con 🔊.";
+    setTurns([{ role: "assistant", content: text }]);
+    void speak(text, 0, true);
   }
 
   useEffect(() => {
@@ -177,7 +195,7 @@ export function CopilotChat() {
     setPlayingId(null);
   }
 
-  async function speak(text: string, id: number) {
+  async function speak(text: string, id: number, silent = false) {
     if (playingId === id) {
       stopAudio();
       return;
@@ -210,7 +228,7 @@ export function CopilotChat() {
       setPlayingId(id);
       await audio.play();
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Error al reproducir");
+      if (!silent) toast.error(err instanceof Error ? err.message : "Error al reproducir");
     } finally {
       setTtsBusyId(null);
     }
@@ -250,8 +268,11 @@ export function CopilotChat() {
         mode={onboarded ? "edit" : "onboarding"}
         initial={profileData}
         onSaved={() => {
+          const wasOnboarding = !onboarded;
           setEditingProfile(false);
-          void loadProfile();
+          void loadProfile().then((p) => {
+            if (wasOnboarding) seedGreeting(p);
+          });
         }}
         onCancel={editingProfile ? () => setEditingProfile(false) : undefined}
       />
