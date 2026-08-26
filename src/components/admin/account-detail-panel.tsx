@@ -182,6 +182,7 @@ interface CopilotAction {
 
 const COPILOT_ACTION_LABEL: Record<string, string> = {
   crear_contacto: "Creó un contacto",
+  actualizar_contacto: "Actualizó un contacto",
   registrar_paciente: "Registró un paciente",
   crear_nota: "Creó una nota",
   agendar_cita: "Agendó una cita",
