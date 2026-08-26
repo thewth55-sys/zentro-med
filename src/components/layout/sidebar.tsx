@@ -106,6 +106,9 @@ export function Sidebar({ open = false, onClose }: SidebarProps) {
     whatsapp_inbox: useHasFeature("whatsapp_inbox"),
     broadcasts: useHasFeature("broadcasts"),
     landing_builder: useHasFeature("landing_builder"),
+    // Sin ítem de nav propio (es un gate de fondo del cron), pero el Record
+    // debe ser exhaustivo sobre GatedFeature.
+    conversation_reminders: useHasFeature("conversation_reminders"),
   };
   // Only surface the account-name strip when it actually carries
   // information. A solo user's personal account is named after them

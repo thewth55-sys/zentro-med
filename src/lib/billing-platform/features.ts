@@ -22,7 +22,8 @@ export type GatedFeature =
   | "ai_autoreply"
   | "whatsapp_inbox"
   | "broadcasts"
-  | "landing_builder";
+  | "landing_builder"
+  | "conversation_reminders";
 
 export const GATED_FEATURES: GatedFeature[] = [
   "automations",
@@ -30,6 +31,7 @@ export const GATED_FEATURES: GatedFeature[] = [
   "whatsapp_inbox",
   "broadcasts",
   "landing_builder",
+  "conversation_reminders",
 ];
 
 export const FEATURE_LABEL: Record<GatedFeature, string> = {
@@ -38,6 +40,7 @@ export const FEATURE_LABEL: Record<GatedFeature, string> = {
   whatsapp_inbox: "Bandeja de WhatsApp",
   broadcasts: "Difusiones",
   landing_builder: "Constructor de landing",
+  conversation_reminders: "Recordatorios de conversación",
 };
 
 /** `accounts.feature_overrides` — absent key falls back to the plan default. */
@@ -64,6 +67,11 @@ const FEATURE_MIN_PLAN: Record<GatedFeature, Plan[]> = {
   // "Mini-sitio propio del consultorio" is a Profesional-only pf-new
   // line item — not on Esencial's feature list.
   landing_builder: ["profesional", "clinica"],
+  // Recordatorios escalados de conversaciones sin responder. No tiene una
+  // pantalla propia (es un comportamiento de fondo del inbox, gateado en el
+  // cron), pero se lista aquí para respetar el override por cuenta del
+  // platform-admin. Función premium → Profesional+.
+  conversation_reminders: ["profesional", "clinica"],
 };
 
 export function planHasFeature(plan: Plan, feature: GatedFeature): boolean {
