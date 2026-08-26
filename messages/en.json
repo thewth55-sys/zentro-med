@@ -482,6 +482,7 @@
         "activity": "Activity",
         "notes": "Notes",
         "medical": "Medical",
+        "guardians": "Guardians",
         "consent": "Consent forms",
         "odontogram": "Odontogram",
         "photos": "Files",

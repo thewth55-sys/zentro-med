@@ -12,6 +12,7 @@ import {
   type TemplateSendValues,
 } from '@/components/inbox/template-picker';
 import { MedicalTab } from '@/components/contacts/medical-tab';
+import { GuardiansTab } from '@/components/contacts/guardians-tab';
 import { ConsentFormsTab } from '@/components/contacts/consent-forms-tab';
 import { OdontogramTab } from '@/components/contacts/odontogram-tab';
 import { VisitPhotosTab } from '@/components/contacts/visit-photos-tab';
@@ -39,6 +40,7 @@ import {
   DollarSign,
   LayoutTemplate,
   User,
+  Users,
   Tags,
   StickyNote,
   Stethoscope,
@@ -58,7 +60,7 @@ interface ContactDetailViewProps {
 }
 
 const DETAIL_TABS = [
-  'details', 'tags', 'notes', 'medical', 'consent', 'odontogram',
+  'details', 'tags', 'notes', 'medical', 'guardians', 'consent', 'odontogram',
   'photos', 'appointments', 'billing', 'custom', 'deals',
 ];
 
@@ -509,6 +511,10 @@ export function ContactDetailView({ contactId }: ContactDetailViewProps) {
                   <Stethoscope className="size-4" />
                   {t('tabs.medical')}
                 </TabsTrigger>
+                <TabsTrigger value="guardians" className="h-auto shrink-0 gap-1.5 px-3 py-2.5 text-muted-foreground data-active:text-primary">
+                  <Users className="size-4" />
+                  {t('tabs.guardians')}
+                </TabsTrigger>
                 <TabsTrigger value="consent" className="h-auto shrink-0 gap-1.5 px-3 py-2.5 text-muted-foreground data-active:text-primary">
                   <FileSignature className="size-4" />
                   {t('tabs.consent')}
@@ -743,6 +749,10 @@ export function ContactDetailView({ contactId }: ContactDetailViewProps) {
               </TabsContent>
 
               {/* Medical Tab */}
+              <TabsContent value="guardians" className="px-4 py-3">
+                {contactId && <GuardiansTab contactId={contactId} />}
+              </TabsContent>
+
               <TabsContent value="medical" className="px-4 py-3">
                 {contactId && <MedicalTab contactId={contactId} />}
               </TabsContent>
