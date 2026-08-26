@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/billing-platform/admin-client";
 import { computeAvailableSlots } from "@/lib/scheduling/public-booking";
+import { resolveFeatureAccess, type FeatureOverrides } from "@/lib/billing-platform/features";
+import type { Plan } from "@/lib/billing-platform/plans";
 import { checkRateLimit, getClientIp, rateLimitResponse, RATE_LIMITS } from "@/lib/rate-limit";
 
 /**
@@ -26,6 +28,7 @@ export async function GET(
   const doctorId = url.searchParams.get("doctor_id");
   const serviceTypeId = url.searchParams.get("service_type_id");
   const date = url.searchParams.get("date");
+  const roomId = url.searchParams.get("room_id");
 
   if (!doctorId || !serviceTypeId || !date || !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
     return NextResponse.json(
@@ -38,12 +41,18 @@ export async function GET(
 
   const { data: account } = await admin
     .from("accounts")
-    .select("id, public_booking_enabled")
+    .select("id, public_booking_enabled, plan, feature_overrides")
     .eq("public_booking_slug", slug)
     .maybeSingle();
   if (!account || !account.public_booking_enabled) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
+
+  const clinicHoursEnabled = resolveFeatureAccess(
+    account.plan as Plan,
+    "clinic_hours",
+    account.feature_overrides as FeatureOverrides | null,
+  );
 
   const [{ data: doctor }, { data: serviceType }] = await Promise.all([
     admin
@@ -76,6 +85,8 @@ export async function GET(
     slotMinutes: serviceType.duration_minutes,
     rangeStart,
     rangeEnd: rangeEnd.toISOString(),
+    roomId: roomId || null,
+    useClinicHours: clinicHoursEnabled,
   });
 
   return NextResponse.json({ slots });

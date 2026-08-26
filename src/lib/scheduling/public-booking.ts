@@ -2,6 +2,9 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { decrypt } from "@/lib/whatsapp/encryption";
 import { refreshAccessToken, getFreeBusy } from "@/lib/google-calendar/client";
 import { chunkIntoSlots, subtractRanges, type TimeRange } from "./availability";
+import { computeClinicRanges } from "./business-hours";
+import { resolveFeatureAccess, type FeatureOverrides } from "@/lib/billing-platform/features";
+import type { Plan } from "@/lib/billing-platform/plans";
 
 /**
  * Server-only slot computation for the public booking widget
@@ -24,9 +27,15 @@ export async function computeAvailableSlots(
     slotMinutes: number;
     rangeStart: string; // ISO
     rangeEnd: string; // ISO
+    /** Consultorio elegido — cuando se pasa junto con `useClinicHours`, los
+     *  slots se acotan al horario de ese consultorio (feature premium). */
+    roomId?: string | null;
+    /** Solo cuentas Profesional+ aplican el horario de clínica; Esencial
+     *  conserva el comportamiento previo (solo bloques del médico). */
+    useClinicHours?: boolean;
   },
 ): Promise<TimeRange[]> {
-  const { accountId, doctorId, slotMinutes, rangeStart, rangeEnd } = params;
+  const { accountId, doctorId, slotMinutes, rangeStart, rangeEnd, roomId, useClinicHours } = params;
 
   const [blocksRes, apptsRes, doctorRes] = await Promise.all([
     admin
@@ -77,7 +86,30 @@ export async function computeAvailableSlots(
     }
   }
 
-  const free = subtractRanges(declaredBlocks, busy);
+  // Horario de clínica por consultorio (premium): si está habilitado y el
+  // consultorio tiene horario, se usa como base — si el médico declaró
+  // bloques ese día se intersectan con el horario; si no, el horario de
+  // clínica ES la base. Sin habilitar / sin horario → bloques del médico
+  // como siempre (Esencial no cambia).
+  let base: TimeRange[] = declaredBlocks;
+  if (useClinicHours && roomId) {
+    const { ranges: clinicRanges, configured } = await computeClinicRanges(
+      admin,
+      accountId,
+      rangeStart,
+      rangeEnd,
+      roomId,
+    );
+    if (configured) {
+      base =
+        declaredBlocks.length > 0
+          ? // declaredBlocks ∩ clinicRanges  ==  A − (A − B)
+            subtractRanges(declaredBlocks, subtractRanges(declaredBlocks, clinicRanges))
+          : clinicRanges;
+    }
+  }
+
+  const free = subtractRanges(base, busy);
   const slots = chunkIntoSlots(free, slotMinutes);
 
   // Drop anything that's already started — a visitor browsing "today"
@@ -91,6 +123,11 @@ export interface PublicBookingConfig {
   accountName: string;
   doctors: { id: string; name: string; specialty: string | null }[];
   serviceTypes: { id: string; name: string; duration_minutes: number }[];
+  /** Consultorios activos (ubicaciones). El widget muestra un selector de
+   *  ubicación solo cuando `clinicHoursEnabled` y hay al menos uno. */
+  rooms: { id: string; name: string }[];
+  /** ¿La cuenta tiene la feature premium de horarios por consultorio? */
+  clinicHoursEnabled: boolean;
 }
 
 /**
@@ -105,13 +142,13 @@ export async function getPublicBookingConfig(
 ): Promise<PublicBookingConfig | null> {
   const { data: account } = await admin
     .from("accounts")
-    .select("id, name, public_booking_enabled")
+    .select("id, name, public_booking_enabled, plan, feature_overrides")
     .eq("public_booking_slug", slug)
     .maybeSingle();
 
   if (!account || !account.public_booking_enabled) return null;
 
-  const [{ data: doctors }, { data: serviceTypes }] = await Promise.all([
+  const [{ data: doctors }, { data: serviceTypes }, { data: rooms }] = await Promise.all([
     admin
       .from("doctors")
       .select("id, name, specialty")
@@ -124,12 +161,26 @@ export async function getPublicBookingConfig(
       .eq("account_id", account.id)
       .eq("is_active", true)
       .order("name"),
+    admin
+      .from("rooms")
+      .select("id, name")
+      .eq("account_id", account.id)
+      .eq("is_active", true)
+      .order("name"),
   ]);
+
+  const clinicHoursEnabled = resolveFeatureAccess(
+    account.plan as Plan,
+    "clinic_hours",
+    account.feature_overrides as FeatureOverrides | null,
+  );
 
   return {
     accountId: account.id,
     accountName: account.name,
     doctors: doctors ?? [],
     serviceTypes: serviceTypes ?? [],
+    rooms: rooms ?? [],
+    clinicHoursEnabled,
   };
 }

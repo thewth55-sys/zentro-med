@@ -3,6 +3,8 @@ import { supabaseAdmin } from "@/lib/billing-platform/admin-client";
 import { findExistingContact, isUniqueViolation } from "@/lib/contacts/dedupe";
 import { normalizePhone } from "@/lib/whatsapp/phone-utils";
 import { computeAvailableSlots } from "@/lib/scheduling/public-booking";
+import { resolveFeatureAccess, type FeatureOverrides } from "@/lib/billing-platform/features";
+import type { Plan } from "@/lib/billing-platform/plans";
 import { notifyAccountTeam } from "@/lib/email/notify-team";
 import { escapeHtml } from "@/lib/email/branded-template";
 import { checkRateLimit, getClientIp, rateLimitResponse, RATE_LIMITS } from "@/lib/rate-limit";
@@ -14,6 +16,7 @@ interface BookBody {
   name?: string;
   phone?: string;
   email?: string;
+  room_id?: string;
 }
 
 /**
@@ -54,11 +57,35 @@ export async function POST(
 
   const { data: account } = await admin
     .from("accounts")
-    .select("id, owner_user_id, public_booking_enabled")
+    .select("id, owner_user_id, public_booking_enabled, plan, feature_overrides")
     .eq("public_booking_slug", slug)
     .maybeSingle();
   if (!account || !account.public_booking_enabled) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
+
+  const clinicHoursEnabled = resolveFeatureAccess(
+    account.plan as Plan,
+    "clinic_hours",
+    account.feature_overrides as FeatureOverrides | null,
+  );
+
+  // Consultorio (opcional): solo se usa/valida cuando la cuenta tiene la
+  // feature premium; si no, se ignora y la cita queda sin consultorio (igual
+  // que antes). Debe pertenecer a la cuenta y estar activo.
+  let roomId: string | null = null;
+  if (clinicHoursEnabled && body.room_id) {
+    const { data: room } = await admin
+      .from("rooms")
+      .select("id")
+      .eq("id", body.room_id)
+      .eq("account_id", account.id)
+      .eq("is_active", true)
+      .maybeSingle();
+    if (!room) {
+      return NextResponse.json({ error: "Room not found" }, { status: 404 });
+    }
+    roomId = room.id;
   }
 
   const [{ data: doctor }, { data: serviceType }] = await Promise.all([
@@ -100,6 +127,8 @@ export async function POST(
     slotMinutes: serviceType.duration_minutes,
     rangeStart: dayStart.toISOString(),
     rangeEnd: dayEnd.toISOString(),
+    roomId,
+    useClinicHours: clinicHoursEnabled,
   });
   const stillAvailable = freshSlots.some((s) => s.start_at === startAt.toISOString());
   if (!stillAvailable) {
@@ -147,6 +176,7 @@ export async function POST(
       account_id: account.id,
       contact_id: contactId,
       doctor_id: doctor.id,
+      room_id: roomId,
       service_type_id: serviceType.id,
       start_at: startAt.toISOString(),
       end_at: endAt.toISOString(),

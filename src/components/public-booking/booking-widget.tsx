@@ -37,6 +37,11 @@ export function BookingWidget({
 }) {
   const [serviceTypeId, setServiceTypeId] = useState(config.serviceTypes[0]?.id ?? "");
   const [doctorId, setDoctorId] = useState(config.doctors[0]?.id ?? "");
+  // Ubicación (consultorio) — solo cuando la cuenta tiene horarios por
+  // consultorio (premium). Con una sola ubicación se elige sola; con varias
+  // se muestra un selector.
+  const showRooms = config.clinicHoursEnabled && config.rooms.length > 0;
+  const [roomId, setRoomId] = useState(showRooms ? config.rooms[0].id : "");
   const [date, setDate] = useState(todayIso());
   const [slots, setSlots] = useState<Slot[]>([]);
   const [slotsLoading, setSlotsLoading] = useState(false);
@@ -54,12 +59,13 @@ export function BookingWidget({
     setSelectedSlot(null);
     setSlotsLoading(true);
     const params = new URLSearchParams({ doctor_id: doctorId, service_type_id: serviceTypeId, date });
+    if (roomId) params.set("room_id", roomId);
     fetch(`/api/public/booking/${encodeURIComponent(slug)}/slots?${params.toString()}`)
       .then((res) => res.json())
       .then((data) => setSlots(data.slots ?? []))
       .catch(() => setSlots([]))
       .finally(() => setSlotsLoading(false));
-  }, [slug, serviceTypeId, doctorId, date]);
+  }, [slug, serviceTypeId, doctorId, roomId, date]);
 
   const canSubmit = useMemo(
     () => !!selectedSlot && name.trim().length > 1 && phone.trim().length >= 8,
@@ -81,6 +87,7 @@ export function BookingWidget({
           name,
           phone,
           email: email || undefined,
+          room_id: roomId || undefined,
         }),
       });
       const data = await res.json();
@@ -153,6 +160,24 @@ export function BookingWidget({
               </Select>
             </div>
           </div>
+
+          {showRooms && config.rooms.length > 1 && (
+            <div className="space-y-2">
+              <Label>Ubicación</Label>
+              <Select value={roomId} onValueChange={(v) => setRoomId(v ?? "")}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Elige una ubicación" />
+                </SelectTrigger>
+                <SelectContent>
+                  {config.rooms.map((r) => (
+                    <SelectItem key={r.id} value={r.id}>
+                      {r.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
 
           <div className="space-y-2">
             <Label htmlFor="booking-date">Fecha</Label>
