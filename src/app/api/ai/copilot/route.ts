@@ -30,6 +30,25 @@ import {
  * lectura corren con el cliente RLS-scoped, así que quedan limitadas a la
  * cuenta del usuario; las de acción NO se ejecutan aquí.
  */
+/**
+ * Colapsa una respuesta que quedó exactamente duplicada (mismo bloque
+ * repetido, con o sin separador de espacios). Algunos modelos pequeños
+ * repiten verbatim; esto evita que el médico vea el mensaje dos veces.
+ */
+function collapseDoubled(text: string): string {
+  const t = text.trim()
+  const n = t.length
+  if (n < 40) return t
+  const mid = Math.floor(n / 2)
+  for (let i = mid - 3; i <= mid + 3; i++) {
+    if (i <= 0 || i >= n) continue
+    const a = t.slice(0, i).trim()
+    const b = t.slice(i).trim()
+    if (a.length > 20 && a === b) return a
+  }
+  return t
+}
+
 export async function POST(request: Request) {
   try {
     const { supabase, accountId, userId } = await requireRole('agent')
@@ -153,7 +172,7 @@ export async function POST(request: Request) {
       console.error('[ai/copilot] usage log skipped:', logErr)
     }
 
-    return NextResponse.json({ reply: text, proposedActions: proposals })
+    return NextResponse.json({ reply: collapseDoubled(text), proposedActions: proposals })
   } catch (err) {
     if (err instanceof AiError) {
       return NextResponse.json({ error: err.message, code: err.code }, { status: err.status })
