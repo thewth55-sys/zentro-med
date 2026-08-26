@@ -7,6 +7,7 @@ import { Check, Loader2, Mic, Plus, Send, SlidersHorizontal, Sparkles, Square, V
 import { Button } from "@/components/ui/button";
 import { CopilotOnboarding, type CopilotProfileData } from "@/components/copilot/copilot-onboarding";
 import { COPILOT_NAME } from "@/lib/ai/copilot/branding";
+import { useAuth } from "@/hooks/use-auth";
 
 interface ChatTurn {
   role: "user" | "assistant";
@@ -77,10 +78,39 @@ export function CopilotChat() {
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const { profile } = useAuth();
+  const storageKey = profile?.id ? `zen-chat:${profile.id}` : null;
+  const restoredRef = useRef(false);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [turns, actions, loading]);
+
+  // Restaura el historial guardado (una vez, cuando ya conocemos al usuario)
+  // para que sobreviva al cambiar de sección / pestaña / recargar.
+  useEffect(() => {
+    if (!storageKey || restoredRef.current) return;
+    restoredRef.current = true;
+    try {
+      const raw = localStorage.getItem(storageKey);
+      if (raw) {
+        const saved = JSON.parse(raw) as ChatTurn[];
+        if (Array.isArray(saved) && saved.length > 0) setTurns(saved);
+      }
+    } catch {
+      /* almacenamiento no disponible */
+    }
+  }, [storageKey]);
+
+  // Persiste el historial (por usuario) tras cada cambio, ya restaurado.
+  useEffect(() => {
+    if (!storageKey || !restoredRef.current) return;
+    try {
+      localStorage.setItem(storageKey, JSON.stringify(turns.slice(-40)));
+    } catch {
+      /* almacenamiento lleno / no disponible */
+    }
+  }, [turns, storageKey]);
 
   async function loadProfile(): Promise<CopilotProfileData | null> {
     try {
@@ -186,6 +216,13 @@ export function CopilotChat() {
     setTurns([]);
     setActions([]);
     setInput("");
+    if (storageKey) {
+      try {
+        localStorage.removeItem(storageKey);
+      } catch {
+        /* ignore */
+      }
+    }
   }
 
   async function startRecording() {
