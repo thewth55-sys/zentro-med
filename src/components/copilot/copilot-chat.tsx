@@ -7,7 +7,6 @@ import { Check, Loader2, Mic, Plus, Send, SlidersHorizontal, Sparkles, Square, V
 import { Button } from "@/components/ui/button";
 import { CopilotOnboarding, type CopilotProfileData } from "@/components/copilot/copilot-onboarding";
 import { COPILOT_NAME } from "@/lib/ai/copilot/branding";
-import { useAuth } from "@/hooks/use-auth";
 
 interface ChatTurn {
   role: "user" | "assistant";
@@ -78,39 +77,40 @@ export function CopilotChat() {
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const audioRef = useRef<HTMLAudioElement | null>(null);
-  const { profile } = useAuth();
-  const storageKey = profile?.id ? `zen-chat:${profile.id}` : null;
   const restoredRef = useRef(false);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [turns, actions, loading]);
 
-  // Restaura el historial guardado (una vez, cuando ya conocemos al usuario)
-  // para que sobreviva al cambiar de sección / pestaña / recargar.
+  // Restaura el historial desde la base (una vez) — así sigue al médico
+  // entre dispositivos, no solo en este navegador.
   useEffect(() => {
-    if (!storageKey || restoredRef.current) return;
-    restoredRef.current = true;
-    try {
-      const raw = localStorage.getItem(storageKey);
-      if (raw) {
-        const saved = JSON.parse(raw) as ChatTurn[];
-        if (Array.isArray(saved) && saved.length > 0) setTurns(saved);
+    (async () => {
+      try {
+        const res = await fetch("/api/ai/copilot/history", { cache: "no-store" });
+        const body = await res.json().catch(() => null);
+        if (res.ok && Array.isArray(body?.turns) && body.turns.length > 0) {
+          setTurns(body.turns as ChatTurn[]);
+        }
+      } catch {
+        /* sin conexión: se sigue en memoria */
+      } finally {
+        restoredRef.current = true;
       }
-    } catch {
-      /* almacenamiento no disponible */
-    }
-  }, [storageKey]);
+    })();
+  }, []);
 
-  // Persiste el historial (por usuario) tras cada cambio, ya restaurado.
+  // Persiste el historial en la base tras cada cambio (una vez restaurado),
+  // fire-and-forget para no bloquear la UI.
   useEffect(() => {
-    if (!storageKey || !restoredRef.current) return;
-    try {
-      localStorage.setItem(storageKey, JSON.stringify(turns.slice(-40)));
-    } catch {
-      /* almacenamiento lleno / no disponible */
-    }
-  }, [turns, storageKey]);
+    if (!restoredRef.current) return;
+    void fetch("/api/ai/copilot/history", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ turns: turns.slice(-40) }),
+    }).catch(() => {});
+  }, [turns]);
 
   async function loadProfile(): Promise<CopilotProfileData | null> {
     try {
@@ -216,13 +216,7 @@ export function CopilotChat() {
     setTurns([]);
     setActions([]);
     setInput("");
-    if (storageKey) {
-      try {
-        localStorage.removeItem(storageKey);
-      } catch {
-        /* ignore */
-      }
-    }
+    void fetch("/api/ai/copilot/history", { method: "DELETE" }).catch(() => {});
   }
 
   async function startRecording() {
@@ -497,6 +491,20 @@ export function CopilotChat() {
           </div>
         ) : null}
       </div>
+
+      {recording ? (
+        <div className="mt-2 flex items-center gap-2 rounded-lg bg-destructive/10 px-3 py-2 text-sm font-medium text-destructive">
+          <span className="relative flex size-2.5">
+            <span className="absolute inline-flex size-full animate-ping rounded-full bg-destructive/70" />
+            <span className="relative inline-flex size-2.5 rounded-full bg-destructive" />
+          </span>
+          Grabando nota de voz… toca el micrófono para enviarla.
+        </div>
+      ) : transcribing ? (
+        <div className="mt-2 flex items-center gap-2 rounded-lg bg-muted px-3 py-2 text-sm text-muted-foreground">
+          <Loader2 className="size-4 animate-spin" /> Transcribiendo tu nota de voz…
+        </div>
+      ) : null}
 
       <form
         onSubmit={(e) => {
