@@ -30,8 +30,11 @@ export async function POST(request: Request) {
   // implication — the real impersonation audit trail is
   // platform_admin_audit_log, written server-side and unrelated to
   // this flag.
-  const body = (await request.json().catch(() => null)) as { impersonation?: unknown } | null;
+  const body = (await request.json().catch(() => null)) as
+    | { impersonation?: unknown; native?: unknown }
+    | null;
   const isImpersonation = body?.impersonation === true;
+  const isNative = body?.native === true;
 
   const { data: profile } = await supabase
     .from("profiles")
@@ -52,6 +55,7 @@ export async function POST(request: Request) {
     device: parseDevice(userAgent),
     country,
     is_impersonation: isImpersonation,
+    is_native: isNative,
   });
 
   if (error) {

@@ -83,10 +83,28 @@ export async function GET(_request: Request, { params }: { params: Promise<{ acc
 
     const { data: loginEvents } = await db
       .from("login_events")
-      .select("user_id, ip_address, browser, device, country, created_at")
+      .select("user_id, ip_address, browser, device, country, created_at, is_native")
       .eq("account_id", accountId)
       .order("created_at", { ascending: false })
       .limit(5);
+
+    // Estado de push por miembro: ¿tiene algún dispositivo (app) registrado
+    // para recibir notificaciones? Clave para diagnosticar "no me llegan las
+    // notificaciones" — sin token, el push nunca llega aunque la campana sí.
+    const memberUserIds = (members ?? []).map((m) => m.user_id as string);
+    const pushByUser = new Map<string, { platform: string; updatedAt: string }[]>();
+    if (memberUserIds.length > 0) {
+      const { data: pushRows } = await db
+        .from("push_tokens")
+        .select("user_id, platform, updated_at")
+        .in("user_id", memberUserIds)
+        .order("updated_at", { ascending: false });
+      for (const row of pushRows ?? []) {
+        const list = pushByUser.get(row.user_id) ?? [];
+        list.push({ platform: row.platform as string, updatedAt: row.updated_at as string });
+        pushByUser.set(row.user_id, list);
+      }
+    }
 
     let payments: {
       id: string;
@@ -198,15 +216,21 @@ export async function GET(_request: Request, { params }: { params: Promise<{ acc
         message: e.message,
         createdAt: e.created_at,
       })),
-      members: (members ?? []).map((m) => ({
-        userId: m.user_id,
-        fullName: m.full_name,
-        email: m.email,
-        phone: m.phone,
-        licenseNumber: m.license_number,
-        role: m.account_role,
-        avatarUrl: m.avatar_url,
-      })),
+      members: (members ?? []).map((m) => {
+        const push = pushByUser.get(m.user_id) ?? [];
+        return {
+          userId: m.user_id,
+          fullName: m.full_name,
+          email: m.email,
+          phone: m.phone,
+          licenseNumber: m.license_number,
+          role: m.account_role,
+          avatarUrl: m.avatar_url,
+          // Notificaciones push: dispositivos (app) registrados por este usuario.
+          pushDevices: push.map((p) => p.platform),
+          pushLastAt: push[0]?.updatedAt ?? null,
+        };
+      }),
       payments,
       integrations: {
         ai: aiConfig
@@ -250,6 +274,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ acc
           device: s.device,
           country: s.country,
           createdAt: s.created_at,
+          isNative: s.is_native ?? false,
         };
       }),
       tags: (tags ?? []).map((t) => ({ id: t.id, label: t.label })),

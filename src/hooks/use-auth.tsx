@@ -17,6 +17,7 @@ import { DENTAL_SPECIALTY } from "@/lib/specialties";
 import type { Plan, SubscriptionStatus } from "@/lib/billing-platform/plans";
 import type { FeatureOverrides } from "@/lib/billing-platform/features";
 import { IMPERSONATION_SESSION_FLAG } from "@/lib/auth/impersonation-flag";
+import { isNativePlatform } from "@/lib/native-session";
 import {
   canEditSettings as canEditSettingsFor,
   canManageMembers as canManageMembersFor,
@@ -344,7 +345,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           void fetch("/api/auth/log-session", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ impersonation: isImpersonation }),
+            body: JSON.stringify({ impersonation: isImpersonation, native: isNativePlatform() }),
           }).catch(() => {});
         }
       } else {

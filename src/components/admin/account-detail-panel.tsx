@@ -11,9 +11,12 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import {
   AlertTriangle,
+  BellOff,
+  BellRing,
   Bot,
   CreditCard,
   Laptop,
+  Smartphone,
   Lock,
   Loader2,
   MapPin,
@@ -101,6 +104,9 @@ interface Member {
   licenseNumber: string | null;
   role: string;
   avatarUrl: string | null;
+  /** Plataformas de push registradas (android/ios/web). Vacío = sin app para push. */
+  pushDevices: string[];
+  pushLastAt: string | null;
 }
 
 interface Payment {
@@ -142,6 +148,7 @@ interface Session {
   device: string | null;
   country: string | null;
   createdAt: string;
+  isNative?: boolean;
 }
 
 interface HistoryEvent {
@@ -782,6 +789,25 @@ export function AccountDetailPanel({ accountId }: { accountId: string }) {
                       {member.phone ? ` · ${member.phone}` : ""}
                       {member.licenseNumber ? ` · Cédula: ${member.licenseNumber}` : ""}
                     </div>
+                    <div className="mt-0.5">
+                      {member.pushDevices.length > 0 ? (
+                        <span
+                          title={member.pushLastAt ? `Último registro: ${new Date(member.pushLastAt).toLocaleString()}` : undefined}
+                          className="inline-flex items-center gap-1 rounded-full bg-emerald-500/15 px-1.5 py-0.5 text-[10px] font-medium text-emerald-600 dark:text-emerald-400"
+                        >
+                          <BellRing className="size-3" />
+                          Push: {member.pushDevices.join(", ")}
+                        </span>
+                      ) : (
+                        <span
+                          title="Este usuario no ha registrado ningún dispositivo para push. Debe abrir la app, iniciar sesión y aceptar el permiso de notificaciones."
+                          className="inline-flex items-center gap-1 rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground"
+                        >
+                          <BellOff className="size-3" />
+                          Sin push registrado
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
                 <div className="flex shrink-0 items-center gap-2">
@@ -1223,8 +1249,16 @@ export function AccountDetailPanel({ accountId }: { accountId: string }) {
                     <td className="py-2 pr-4 text-muted-foreground">{new Date(s.createdAt).toLocaleString()}</td>
                     <td className="py-2 pr-4 text-muted-foreground">{s.ipAddress ?? "—"}</td>
                     <td className="py-2 pr-4 text-muted-foreground">{s.country ?? "—"}</td>
-                    <td className="py-2 pr-4 text-muted-foreground">{s.browser ?? "—"}</td>
-                    <td className="py-2 text-muted-foreground">{s.device ?? "—"}</td>
+                    <td className="py-2 pr-4 text-muted-foreground">{s.isNative ? "App" : (s.browser ?? "—")}</td>
+                    <td className="py-2 text-muted-foreground">
+                      {s.isNative ? (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-1.5 py-0.5 text-[10px] font-medium text-primary">
+                          <Smartphone className="size-3" /> App Android
+                        </span>
+                      ) : (
+                        s.device ?? "—"
+                      )}
+                    </td>
                   </tr>
                 ))}
               </tbody>

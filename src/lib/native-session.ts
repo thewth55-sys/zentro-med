@@ -45,3 +45,12 @@ export async function clearNativeSession(): Promise<void> {
   if (!Capacitor.isNativePlatform()) return;
   await Preferences.remove({ key: SESSION_KEY });
 }
+
+/**
+ * ¿Corriendo dentro de la app nativa (Capacitor) y no en un navegador web?
+ * Se envía a /api/auth/log-session para que "Sesiones recientes" en /admin
+ * pueda distinguir un login desde la app de uno desde el navegador.
+ */
+export function isNativePlatform(): boolean {
+  return Capacitor.isNativePlatform();
+}
