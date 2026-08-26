@@ -109,6 +109,7 @@ export function Sidebar({ open = false, onClose }: SidebarProps) {
     // Sin ítem de nav propio (es un gate de fondo del cron), pero el Record
     // debe ser exhaustivo sobre GatedFeature.
     conversation_reminders: useHasFeature("conversation_reminders"),
+    clinic_hours: useHasFeature("clinic_hours"),
   };
   // Only surface the account-name strip when it actually carries
   // information. A solo user's personal account is named after them

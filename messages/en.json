@@ -2580,6 +2580,7 @@
       "adminOnlyHint": "Only admins and owners can change this configuration."
     },
     "scheduling": {
+      "businessHours": {"title": "Hours per room", "description": "Service days and hours per room (location). Used as the base for the slots offered on the public booking page.", "timezoneLabel": "Time zone", "open": "Opens", "close": "Closes", "closed": "Closed", "save": "Save hours", "saving": "Saving...", "saved": "Hours saved", "saveFailed": "Could not save hours", "loadFailed": "Failed to load hours", "invalidRange": "Closing time must be after opening time.", "days": {"0": "Sunday", "1": "Monday", "2": "Tuesday", "3": "Wednesday", "4": "Thursday", "5": "Friday", "6": "Saturday"}, "roomLabel": "Room", "noRooms": "Create a room first in the Rooms section; hours are set per room."},
       "title": "Scheduling",
       "description": "Manage the doctors, exam rooms, and treatment types used to schedule appointments from the pipeline.",
       "doctors": {

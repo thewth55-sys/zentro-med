@@ -2,10 +2,12 @@
 
 import { useTranslations } from 'next-intl';
 
+import { PlanGate } from '@/components/billing-platform/plan-gate';
 import { DoctorManager } from './doctor-manager';
 import { RoomManager } from './room-manager';
 import { ServiceTypeManager } from './service-type-manager';
 import { PublicBookingSettings } from './public-booking-settings';
+import { BusinessHoursManager } from './business-hours-manager';
 import { SettingsPanelHead } from './settings-panel-head';
 
 /**
@@ -24,6 +26,9 @@ export function SchedulingPanel() {
       <DoctorManager />
       <RoomManager />
       <ServiceTypeManager />
+      <PlanGate feature="clinic_hours" featureLabel="Horarios por consultorio">
+        <BusinessHoursManager />
+      </PlanGate>
       <PublicBookingSettings />
     </section>
   );

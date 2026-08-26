@@ -2580,6 +2580,7 @@
       "adminOnlyHint": "Solo admins y propietarios pueden cambiar esta configuración."
     },
     "scheduling": {
+      "businessHours": {"title": "Horario por consultorio", "description": "Días y horas de servicio de cada consultorio (ubicación). Se usan como base de los horarios que ofrece la página de agendamiento en línea.", "timezoneLabel": "Zona horaria", "open": "Abre", "close": "Cierra", "closed": "Cerrado", "save": "Guardar horario", "saving": "Guardando...", "saved": "Horario guardado", "saveFailed": "No se pudo guardar el horario", "loadFailed": "Error al cargar el horario", "invalidRange": "La hora de cierre debe ser posterior a la de apertura.", "days": {"0": "Domingo", "1": "Lunes", "2": "Martes", "3": "Miércoles", "4": "Jueves", "5": "Viernes", "6": "Sábado"}, "roomLabel": "Consultorio", "noRooms": "Primero crea un consultorio en la sección de Consultorios; el horario se define por consultorio."},
       "title": "Agendamiento",
       "description": "Gestiona los doctores, consultorios y tipos de tratamiento usados para agendar citas desde el pipeline.",
       "doctors": {

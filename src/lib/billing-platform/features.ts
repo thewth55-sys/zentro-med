@@ -23,7 +23,8 @@ export type GatedFeature =
   | "whatsapp_inbox"
   | "broadcasts"
   | "landing_builder"
-  | "conversation_reminders";
+  | "conversation_reminders"
+  | "clinic_hours";
 
 export const GATED_FEATURES: GatedFeature[] = [
   "automations",
@@ -32,6 +33,7 @@ export const GATED_FEATURES: GatedFeature[] = [
   "broadcasts",
   "landing_builder",
   "conversation_reminders",
+  "clinic_hours",
 ];
 
 export const FEATURE_LABEL: Record<GatedFeature, string> = {
@@ -41,6 +43,7 @@ export const FEATURE_LABEL: Record<GatedFeature, string> = {
   broadcasts: "Difusiones",
   landing_builder: "Constructor de landing",
   conversation_reminders: "Recordatorios de conversación",
+  clinic_hours: "Horarios por consultorio",
 };
 
 /** `accounts.feature_overrides` — absent key falls back to the plan default. */
@@ -72,6 +75,10 @@ const FEATURE_MIN_PLAN: Record<GatedFeature, Plan[]> = {
   // cron), pero se lista aquí para respetar el override por cuenta del
   // platform-admin. Función premium → Profesional+.
   conversation_reminders: ["profesional", "clinica"],
+  // Horarios de servicio por consultorio + multi-ubicación. La reserva
+  // pública de Esencial sigue funcionando con los bloques del médico; esto
+  // añade el horario de clínica por consultorio y varias ubicaciones. Premium.
+  clinic_hours: ["profesional", "clinica"],
 };
 
 export function planHasFeature(plan: Plan, feature: GatedFeature): boolean {
