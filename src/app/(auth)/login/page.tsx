@@ -47,11 +47,12 @@ function LoginPageInner() {
   // Surfaces /auth/callback's failure redirect (expired/invalid
   // confirmation, password-reset, or impersonation link) instead of
   // silently dropping the ?error= param on a blank login page.
-  const [error, setError] = useState<string | null>(() =>
-    searchParams.get("error") === "auth_callback_failed"
-      ? t("authCallbackFailedError")
-      : null,
-  );
+  const [error, setError] = useState<string | null>(() => {
+    const e = searchParams.get("error");
+    if (e === "no_account") return t("errorNoAccount");
+    if (e === "auth_callback_failed") return t("authCallbackFailedError");
+    return null;
+  });
   const [loading, setLoading] = useState(false);
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
   const captchaRequired = Boolean(process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY);
@@ -65,6 +66,32 @@ function LoginPageInner() {
   const [code, setCode] = useState("");
   const [rememberDevice, setRememberDevice] = useState(false);
   const [verifying, setVerifying] = useState(false);
+
+  // Login con Google (solo web — Google bloquea OAuth en el WebView de la app).
+  // Restringido a usuarios existentes: el gate está en /auth/callback.
+  const [googleLoading, setGoogleLoading] = useState(false);
+  const googleAvailable = !Capacitor.isNativePlatform();
+
+  const handleGoogleLogin = async () => {
+    setError(null);
+    setGoogleLoading(true);
+    try {
+      const supabase = createClient();
+      const next = inviteToken ? `/join/${encodeURIComponent(inviteToken)}` : "/dashboard";
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: { redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}` },
+      });
+      if (error) {
+        setError(error.message);
+        setGoogleLoading(false);
+      }
+      // En éxito, el navegador se redirige a Google — no reseteamos loading.
+    } catch {
+      setError(t("authCallbackFailedError"));
+      setGoogleLoading(false);
+    }
+  };
 
   // Only reachable page without a session (middleware redirects every
   // other protected path here). On the native app, the WebView's own
@@ -321,6 +348,35 @@ function LoginPageInner() {
               {loading ? t('signingIn') : t('signIn')}
             </Button>
           </form>
+          )}
+
+          {!mfaChallengeId && googleAvailable && (
+            <>
+              <div className="my-4 flex items-center gap-3">
+                <div className="h-px flex-1 bg-border" />
+                <span className="text-xs text-muted-foreground">{t('orContinue')}</span>
+                <div className="h-px flex-1 bg-border" />
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleGoogleLogin}
+                disabled={googleLoading}
+                className="h-10 w-full gap-2"
+              >
+                {googleLoading ? (
+                  <Loader2 className="size-4 animate-spin" />
+                ) : (
+                  <svg className="size-4" viewBox="0 0 48 48" aria-hidden="true">
+                    <path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.9 2.4 30.5 0 24 0 14.6 0 6.4 5.4 2.5 13.2l7.9 6.1C12.3 13.2 17.7 9.5 24 9.5z" />
+                    <path fill="#4285F4" d="M46.1 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.4c-.5 2.9-2.1 5.3-4.6 7l7.1 5.5c4.2-3.9 6.6-9.6 6.6-16.4z" />
+                    <path fill="#FBBC05" d="M10.4 28.3c-.5-1.4-.8-3-.8-4.8s.3-3.3.8-4.8l-7.9-6.1C.9 15.9 0 19.8 0 23.5s.9 7.6 2.5 10.9l7.9-6.1z" />
+                    <path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.1-5.5c-2 1.3-4.6 2.1-8.8 2.1-6.3 0-11.7-3.7-13.6-9.8l-7.9 6.1C6.4 42.6 14.6 48 24 48z" />
+                  </svg>
+                )}
+                {t('continueWithGoogle')}
+              </Button>
+            </>
           )}
 
           {/* Public self-signup is deliberately not advertised here —

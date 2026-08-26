@@ -23,7 +23,10 @@
     "verify": "Verificar",
     "verifying": "Verificando...",
     "codeError": "No pudimos verificar el código.",
-    "backToLogin": "Volver al inicio de sesión"
+    "backToLogin": "Volver al inicio de sesión",
+    "errorNoAccount": "Esa cuenta de Google no tiene acceso. Inicia sesión con Google solo si ya tienes una cuenta; para registrarte, usa el formulario.",
+    "orContinue": "o",
+    "continueWithGoogle": "Continuar con Google"
   },
   "Auth": {
     "emailConfirmed": "¡Tu cuenta quedó confirmada!"

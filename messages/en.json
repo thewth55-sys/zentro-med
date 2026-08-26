@@ -23,7 +23,10 @@
     "verify": "Verify",
     "verifying": "Verifying...",
     "codeError": "We couldn't verify the code.",
-    "backToLogin": "Back to sign in"
+    "backToLogin": "Back to sign in",
+    "errorNoAccount": "That Google account doesn't have access. Sign in with Google only if you already have an account; to register, use the form.",
+    "orContinue": "or",
+    "continueWithGoogle": "Continue with Google"
   },
   "Auth": {
     "emailConfirmed": "Your account is confirmed!"

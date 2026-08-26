@@ -14,6 +14,7 @@
 import { NextResponse } from "next/server";
 
 import { createClient } from "@/lib/supabase/server";
+import { supabaseAdmin } from "@/lib/billing-platform/admin-client";
 
 // Resolution order mirrors getBaseUrl() in
 // /api/account/invitations/route.ts: NEXT_PUBLIC_SITE_URL first, then
@@ -51,6 +52,31 @@ export async function GET(request: Request) {
     const supabase = await createClient();
     const { error } = await supabase.auth.exchangeCodeForSession(code);
     if (!error) {
+      // Gate del login social: "Continuar con Google" es solo para usuarios
+      // que YA tienen cuenta. Si el usuario NO tiene perfil (correo social sin
+      // cuenta; handle_new_user ya no aprovisiona para OAuth — ver 094), se
+      // rechaza y se limpia el usuario huérfano. Los flujos con cuenta (reset
+      // de contraseña, impersonación, usuarios existentes) sí tienen perfil y
+      // pasan sin problema. El registro de cuentas nuevas es por el formulario.
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (user) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("user_id")
+          .eq("user_id", user.id)
+          .maybeSingle();
+        if (!profile) {
+          await supabase.auth.signOut();
+          try {
+            await supabaseAdmin().auth.admin.deleteUser(user.id);
+          } catch (delErr) {
+            console.error("[GET /auth/callback] orphan user cleanup failed:", delErr);
+          }
+          return NextResponse.redirect(`${baseUrl}/login?error=no_account`);
+        }
+      }
       return NextResponse.redirect(`${baseUrl}${next}`);
     }
     console.error("[GET /auth/callback] exchangeCodeForSession failed:", error);
