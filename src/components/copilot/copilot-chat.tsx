@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { Check, Loader2, Mic, Plus, Send, Sparkles, Square, X } from "lucide-react";
+import { Check, Loader2, Mic, Plus, Send, Sparkles, Square, Volume2, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 
@@ -37,9 +37,12 @@ export function CopilotChat() {
   const [loading, setLoading] = useState(false);
   const [recording, setRecording] = useState(false);
   const [transcribing, setTranscribing] = useState(false);
+  const [ttsBusyId, setTtsBusyId] = useState<number | null>(null);
+  const [playingId, setPlayingId] = useState<number | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
@@ -105,6 +108,7 @@ export function CopilotChat() {
 
   function resetChat() {
     if (loading) return;
+    stopAudio();
     setTurns([]);
     setActions([]);
     setInput("");
@@ -135,6 +139,53 @@ export function CopilotChat() {
   function stopRecording() {
     mediaRecorderRef.current?.stop();
     setRecording(false);
+  }
+
+  function stopAudio() {
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current = null;
+    }
+    setPlayingId(null);
+  }
+
+  async function speak(text: string, id: number) {
+    if (playingId === id) {
+      stopAudio();
+      return;
+    }
+    stopAudio();
+    setTtsBusyId(id);
+    try {
+      const res = await fetch("/api/ai/copilot/speak", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text }),
+      });
+      if (!res.ok) {
+        const b = await res.json().catch(() => null);
+        throw new Error(b?.error ?? "No se pudo generar el audio.");
+      }
+      const url = URL.createObjectURL(await res.blob());
+      const audio = new Audio(url);
+      audioRef.current = audio;
+      audio.onended = () => {
+        setPlayingId(null);
+        audioRef.current = null;
+        URL.revokeObjectURL(url);
+      };
+      audio.onerror = () => {
+        setPlayingId(null);
+        audioRef.current = null;
+        URL.revokeObjectURL(url);
+      };
+      setPlayingId(id);
+      await audio.play();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Error al reproducir");
+    } finally {
+      setTtsBusyId(null);
+    }
   }
 
   async function transcribe(blob: Blob) {
@@ -201,19 +252,44 @@ export function CopilotChat() {
             </div>
           </div>
         ) : (
-          turns.map((turn, i) => (
-            <div key={i} className={turn.role === "user" ? "flex justify-end" : "flex justify-start"}>
-              <div
-                className={
-                  turn.role === "user"
-                    ? "max-w-[85%] whitespace-pre-wrap rounded-2xl rounded-br-sm bg-primary px-4 py-2 text-sm text-primary-foreground"
-                    : "max-w-[85%] whitespace-pre-wrap rounded-2xl rounded-bl-sm bg-muted px-4 py-2 text-sm text-foreground"
-                }
-              >
-                {turn.content}
+          turns.map((turn, i) =>
+            turn.role === "user" ? (
+              <div key={i} className="flex justify-end">
+                <div className="max-w-[85%] whitespace-pre-wrap rounded-2xl rounded-br-sm bg-primary px-4 py-2 text-sm text-primary-foreground">
+                  {turn.content}
+                </div>
               </div>
-            </div>
-          ))
+            ) : (
+              <div key={i} className="flex justify-start">
+                <div className="flex max-w-[85%] flex-col items-start gap-1">
+                  <div className="whitespace-pre-wrap rounded-2xl rounded-bl-sm bg-muted px-4 py-2 text-sm text-foreground">
+                    {turn.content}
+                  </div>
+                  {turn.content.trim() ? (
+                    <button
+                      type="button"
+                      onClick={() => speak(turn.content, i)}
+                      className="flex items-center gap-1 px-1 text-[11px] text-muted-foreground hover:text-foreground"
+                    >
+                      {ttsBusyId === i ? (
+                        <>
+                          <Loader2 className="size-3 animate-spin" /> Generando…
+                        </>
+                      ) : playingId === i ? (
+                        <>
+                          <Square className="size-3" /> Detener
+                        </>
+                      ) : (
+                        <>
+                          <Volume2 className="size-3" /> Escuchar
+                        </>
+                      )}
+                    </button>
+                  ) : null}
+                </div>
+              </div>
+            ),
+          )
         )}
 
         {/* Tarjetas de acción propuesta (confirmación humana) */}

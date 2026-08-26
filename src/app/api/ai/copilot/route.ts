@@ -102,9 +102,18 @@ export async function POST(request: Request) {
       )
     }
 
+    // Memoria persistente de ESTE médico (RLS: solo la suya) → al prompt.
+    const { data: memoryRows } = await supabase
+      .from('ai_copilot_memory')
+      .select('content')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+      .limit(50)
+    const memories = (memoryRows ?? []).map((m) => m.content as string)
+
     const proposals: ProposedAction[] = []
     const executeTool = createCopilotExecutor({ supabase, accountId, userId }, proposals)
-    const systemPrompt = buildCopilotSystemPrompt(account?.name ?? null)
+    const systemPrompt = buildCopilotSystemPrompt(account?.name ?? null, memories)
 
     const { text, usage } = await generateReply({
       config,
