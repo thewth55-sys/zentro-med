@@ -2,9 +2,10 @@
 
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { Check, Loader2, Mic, Plus, Send, Sparkles, Square, Volume2, X } from "lucide-react";
+import { Check, Loader2, Mic, Plus, Send, SlidersHorizontal, Sparkles, Square, Volume2, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { CopilotOnboarding, type CopilotProfileData } from "@/components/copilot/copilot-onboarding";
 
 interface ChatTurn {
   role: "user" | "assistant";
@@ -39,6 +40,10 @@ export function CopilotChat() {
   const [transcribing, setTranscribing] = useState(false);
   const [ttsBusyId, setTtsBusyId] = useState<number | null>(null);
   const [playingId, setPlayingId] = useState<number | null>(null);
+  const [profileLoading, setProfileLoading] = useState(true);
+  const [onboarded, setOnboarded] = useState(false);
+  const [editingProfile, setEditingProfile] = useState(false);
+  const [profileData, setProfileData] = useState<CopilotProfileData | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
@@ -47,6 +52,28 @@ export function CopilotChat() {
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [turns, actions, loading]);
+
+  async function loadProfile() {
+    try {
+      const res = await fetch("/api/ai/copilot/profile", { cache: "no-store" });
+      const body = await res.json().catch(() => null);
+      if (res.ok) {
+        setOnboarded(Boolean(body?.onboarded));
+        setProfileData(body?.profile ?? null);
+      } else {
+        // Si no se puede leer (p. ej. permisos), no bloqueamos el chat.
+        setOnboarded(true);
+      }
+    } catch {
+      setOnboarded(true);
+    } finally {
+      setProfileLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    void loadProfile();
+  }, []);
 
   async function send(text: string) {
     const trimmed = text.trim();
@@ -208,6 +235,28 @@ export function CopilotChat() {
 
   const empty = turns.length === 0;
 
+  if (profileLoading) {
+    return (
+      <div className="flex h-[calc(100vh-8rem)] items-center justify-center text-muted-foreground">
+        <Loader2 className="size-5 animate-spin" />
+      </div>
+    );
+  }
+
+  if (!onboarded || editingProfile) {
+    return (
+      <CopilotOnboarding
+        mode={onboarded ? "edit" : "onboarding"}
+        initial={profileData}
+        onSaved={() => {
+          setEditingProfile(false);
+          void loadProfile();
+        }}
+        onCancel={editingProfile ? () => setEditingProfile(false) : undefined}
+      />
+    );
+  }
+
   return (
     <div className="mx-auto flex h-[calc(100vh-8rem)] max-w-3xl flex-col">
       <header className="mb-3 flex items-center gap-3">
@@ -225,6 +274,16 @@ export function CopilotChat() {
             <Plus className="size-4" /> Nueva
           </Button>
         ) : null}
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setEditingProfile(true)}
+          className="shrink-0"
+          title="Preferencias del copiloto"
+          aria-label="Preferencias del copiloto"
+        >
+          <SlidersHorizontal className="size-4" />
+        </Button>
       </header>
 
       <div

@@ -13,6 +13,7 @@ import {
   COPILOT_TOOLS,
   buildCopilotSystemPrompt,
   createCopilotExecutor,
+  type CopilotProfile,
   type ProposedAction,
 } from '@/lib/ai/copilot/tools'
 
@@ -102,18 +103,34 @@ export async function POST(request: Request) {
       )
     }
 
-    // Memoria persistente de ESTE médico (RLS: solo la suya) → al prompt.
-    const { data: memoryRows } = await supabase
-      .from('ai_copilot_memory')
-      .select('content')
-      .eq('user_id', userId)
-      .order('created_at', { ascending: false })
-      .limit(50)
+    // Perfil base (onboarding) + memoria persistente de ESTE médico (RLS:
+    // solo lo suyo) → al prompt.
+    const [{ data: profileRow }, { data: memoryRows }] = await Promise.all([
+      supabase
+        .from('ai_copilot_profile')
+        .select('address_as, specialty, tone, base_context')
+        .eq('user_id', userId)
+        .maybeSingle(),
+      supabase
+        .from('ai_copilot_memory')
+        .select('content')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false })
+        .limit(50),
+    ])
+    const profile: CopilotProfile | null = profileRow
+      ? {
+          addressAs: profileRow.address_as,
+          specialty: profileRow.specialty,
+          tone: profileRow.tone,
+          baseContext: profileRow.base_context,
+        }
+      : null
     const memories = (memoryRows ?? []).map((m) => m.content as string)
 
     const proposals: ProposedAction[] = []
     const executeTool = createCopilotExecutor({ supabase, accountId, userId }, proposals)
-    const systemPrompt = buildCopilotSystemPrompt(account?.name ?? null, memories)
+    const systemPrompt = buildCopilotSystemPrompt(account?.name ?? null, profile, memories)
 
     const { text, usage } = await generateReply({
       config,
