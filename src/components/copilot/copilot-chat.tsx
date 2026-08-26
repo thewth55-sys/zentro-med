@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { Check, Loader2, Mic, Plus, Send, SlidersHorizontal, Sparkles, Square, Volume2, X } from "lucide-react";
+import { Check, Loader2, Mic, Play, Plus, Send, SlidersHorizontal, Sparkles, Square, Volume2, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { CopilotOnboarding, type CopilotProfileData } from "@/components/copilot/copilot-onboarding";
@@ -11,6 +11,8 @@ import { COPILOT_NAME } from "@/lib/ai/copilot/branding";
 interface ChatTurn {
   role: "user" | "assistant";
   content: string;
+  /** Nota de voz enviada por el médico (blob URL en sesión; no se persiste). */
+  audioUrl?: string;
 }
 
 // Render ligero de markdown para las respuestas de Zen: **negritas**,
@@ -152,10 +154,11 @@ export function CopilotChat() {
     void loadProfile();
   }, []);
 
-  async function send(text: string) {
+  async function send(text: string, audioUrl?: string) {
     const trimmed = text.trim();
     if (!trimmed || loading) return;
-    const nextTurns: ChatTurn[] = [...turns, { role: "user", content: trimmed }];
+    const userTurn: ChatTurn = { role: "user", content: trimmed, ...(audioUrl ? { audioUrl } : {}) };
+    const nextTurns: ChatTurn[] = [...turns, userTurn];
     setTurns(nextTurns);
     setInput("");
     setLoading(true);
@@ -163,7 +166,7 @@ export function CopilotChat() {
       const res = await fetch("/api/ai/copilot", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: nextTurns }),
+        body: JSON.stringify({ messages: nextTurns.map((t) => ({ role: t.role, content: t.content })) }),
       });
       const body = await res.json().catch(() => null);
       if (!res.ok) {
@@ -302,13 +305,41 @@ export function CopilotChat() {
       const body = await res.json().catch(() => null);
       if (!res.ok) throw new Error(body?.error ?? "No se pudo transcribir el audio.");
       const text = (body?.text ?? "").trim();
-      if (text) setInput((prev) => (prev ? `${prev} ${text}` : text));
-      else toast.error("No se detectó voz en el audio.");
+      if (!text) {
+        toast.error("No se detectó voz en el audio.");
+        return;
+      }
+      // Estilo WhatsApp: se envía como nota de voz (audio reproducible +
+      // su transcripción como pie), no solo texto en el input.
+      const audioUrl = URL.createObjectURL(blob);
+      void send(text, audioUrl);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Error al transcribir");
     } finally {
       setTranscribing(false);
     }
+  }
+
+  // Reproduce una nota de voz del médico (blob local), reutilizando el
+  // mismo control de reproducción que la voz de Zen.
+  function playClip(url: string, id: number) {
+    if (playingId === id) {
+      stopAudio();
+      return;
+    }
+    stopAudio();
+    const audio = new Audio(url);
+    audioRef.current = audio;
+    audio.onended = () => {
+      setPlayingId(null);
+      audioRef.current = null;
+    };
+    audio.onerror = () => {
+      setPlayingId(null);
+      audioRef.current = null;
+    };
+    setPlayingId(id);
+    void audio.play().catch(() => setPlayingId(null));
   }
 
   const empty = turns.length === 0;
@@ -396,8 +427,35 @@ export function CopilotChat() {
           turns.map((turn, i) =>
             turn.role === "user" ? (
               <div key={i} className="flex justify-end">
-                <div className="max-w-[85%] whitespace-pre-wrap rounded-2xl rounded-br-sm bg-primary px-4 py-2 text-sm text-primary-foreground">
-                  {turn.content}
+                <div className="max-w-[85%] rounded-2xl rounded-br-sm bg-primary px-3.5 py-2 text-sm text-primary-foreground">
+                  {turn.audioUrl ? (
+                    <button
+                      type="button"
+                      onClick={() => playClip(turn.audioUrl as string, i)}
+                      className="flex items-center gap-2.5"
+                      aria-label="Reproducir nota de voz"
+                    >
+                      <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary-foreground/20">
+                        {playingId === i ? (
+                          <Square className="size-4" />
+                        ) : (
+                          <Play className="size-4" />
+                        )}
+                      </span>
+                      <span className="font-medium">Nota de voz</span>
+                    </button>
+                  ) : null}
+                  {turn.content ? (
+                    <div
+                      className={
+                        turn.audioUrl
+                          ? "mt-1.5 whitespace-pre-wrap text-xs text-primary-foreground/90"
+                          : "whitespace-pre-wrap"
+                      }
+                    >
+                      {turn.content}
+                    </div>
+                  ) : null}
                 </div>
               </div>
             ) : (
@@ -410,7 +468,7 @@ export function CopilotChat() {
                     <button
                       type="button"
                       onClick={() => speak(turn.content, i)}
-                      className="flex items-center gap-1 px-1 text-[11px] text-muted-foreground hover:text-foreground"
+                      className="mt-1 inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-2.5 py-1 text-xs font-medium text-foreground shadow-sm hover:bg-muted"
                     >
                       {ttsBusyId === i ? (
                         <>
