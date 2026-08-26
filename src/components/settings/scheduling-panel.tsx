@@ -8,6 +8,7 @@ import { RoomManager } from './room-manager';
 import { ServiceTypeManager } from './service-type-manager';
 import { PublicBookingSettings } from './public-booking-settings';
 import { BusinessHoursManager } from './business-hours-manager';
+import { BookingPageEditor } from './booking-page-editor';
 import { SettingsPanelHead } from './settings-panel-head';
 
 /**
@@ -30,6 +31,9 @@ export function SchedulingPanel() {
         <BusinessHoursManager />
       </PlanGate>
       <PublicBookingSettings />
+      <PlanGate feature="booking_page" featureLabel="Página de reserva personalizada">
+        <BookingPageEditor />
+      </PlanGate>
     </section>
   );
 }

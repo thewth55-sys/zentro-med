@@ -110,6 +110,7 @@ export function Sidebar({ open = false, onClose }: SidebarProps) {
     // debe ser exhaustivo sobre GatedFeature.
     conversation_reminders: useHasFeature("conversation_reminders"),
     clinic_hours: useHasFeature("clinic_hours"),
+    booking_page: useHasFeature("booking_page"),
   };
   // Only surface the account-name strip when it actually carries
   // information. A solo user's personal account is named after them

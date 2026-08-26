@@ -118,16 +118,47 @@ export async function computeAvailableSlots(
   return slots.filter((s) => new Date(s.start_at) > now);
 }
 
+/** Personalización "link-in-bio" de la página pública (accounts.booking_page). */
+export interface BookingPageConfig {
+  accentColor?: string | null;
+  coverImageUrl?: string | null;
+  coverColor?: string | null;
+  logoUrl?: string | null;
+  headline?: string | null;
+  tagline?: string | null;
+  bio?: string | null;
+  contact?: {
+    whatsapp?: string | null;
+    phone?: string | null;
+    email?: string | null;
+    mapUrl?: string | null;
+  } | null;
+  social?: {
+    instagram?: string | null;
+    facebook?: string | null;
+    tiktok?: string | null;
+    web?: string | null;
+  } | null;
+  showServices?: boolean;
+  showDoctors?: boolean;
+  showAddress?: boolean;
+}
+
 export interface PublicBookingConfig {
   accountId: string;
   accountName: string;
+  accountLogoUrl: string | null;
+  address: string | null;
+  page: BookingPageConfig;
   doctors: { id: string; name: string; specialty: string | null }[];
   serviceTypes: { id: string; name: string; duration_minutes: number }[];
   /** Consultorios activos (ubicaciones). El widget muestra un selector de
    *  ubicación solo cuando `clinicHoursEnabled` y hay al menos uno. */
-  rooms: { id: string; name: string }[];
+  rooms: { id: string; name: string; address: string | null }[];
   /** ¿La cuenta tiene la feature premium de horarios por consultorio? */
   clinicHoursEnabled: boolean;
+  /** ¿La cuenta tiene la feature premium de personalización link-in-bio? */
+  bookingPageEnabled: boolean;
 }
 
 /**
@@ -142,7 +173,7 @@ export async function getPublicBookingConfig(
 ): Promise<PublicBookingConfig | null> {
   const { data: account } = await admin
     .from("accounts")
-    .select("id, name, public_booking_enabled, plan, feature_overrides")
+    .select("id, name, public_booking_enabled, plan, feature_overrides, logo_url, address, booking_page")
     .eq("public_booking_slug", slug)
     .maybeSingle();
 
@@ -163,24 +194,28 @@ export async function getPublicBookingConfig(
       .order("name"),
     admin
       .from("rooms")
-      .select("id, name")
+      .select("id, name, address")
       .eq("account_id", account.id)
       .eq("is_active", true)
       .order("name"),
   ]);
 
-  const clinicHoursEnabled = resolveFeatureAccess(
-    account.plan as Plan,
-    "clinic_hours",
-    account.feature_overrides as FeatureOverrides | null,
-  );
+  const overrides = account.feature_overrides as FeatureOverrides | null;
+  const clinicHoursEnabled = resolveFeatureAccess(account.plan as Plan, "clinic_hours", overrides);
+  const bookingPageEnabled = resolveFeatureAccess(account.plan as Plan, "booking_page", overrides);
 
   return {
     accountId: account.id,
     accountName: account.name,
+    accountLogoUrl: account.logo_url ?? null,
+    address: account.address ?? null,
+    // La personalización solo se aplica si la cuenta tiene la feature premium;
+    // si no, la página usa los valores por defecto (nombre + acento de marca).
+    page: bookingPageEnabled ? ((account.booking_page as BookingPageConfig | null) ?? {}) : {},
     doctors: doctors ?? [],
     serviceTypes: serviceTypes ?? [],
     rooms: rooms ?? [],
     clinicHoursEnabled,
+    bookingPageEnabled,
   };
 }

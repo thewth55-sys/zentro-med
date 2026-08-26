@@ -24,7 +24,8 @@ export type GatedFeature =
   | "broadcasts"
   | "landing_builder"
   | "conversation_reminders"
-  | "clinic_hours";
+  | "clinic_hours"
+  | "booking_page";
 
 export const GATED_FEATURES: GatedFeature[] = [
   "automations",
@@ -34,6 +35,7 @@ export const GATED_FEATURES: GatedFeature[] = [
   "landing_builder",
   "conversation_reminders",
   "clinic_hours",
+  "booking_page",
 ];
 
 export const FEATURE_LABEL: Record<GatedFeature, string> = {
@@ -44,6 +46,7 @@ export const FEATURE_LABEL: Record<GatedFeature, string> = {
   landing_builder: "Constructor de landing",
   conversation_reminders: "Recordatorios de conversación",
   clinic_hours: "Horarios por consultorio",
+  booking_page: "Página de reserva personalizada",
 };
 
 /** `accounts.feature_overrides` — absent key falls back to the plan default. */
@@ -79,6 +82,10 @@ const FEATURE_MIN_PLAN: Record<GatedFeature, Plan[]> = {
   // pública de Esencial sigue funcionando con los bloques del médico; esto
   // añade el horario de clínica por consultorio y varias ubicaciones. Premium.
   clinic_hours: ["profesional", "clinica"],
+  // Personalización link-in-bio de la página pública de reserva (colores,
+  // portada, bio, botones de contacto/redes). La reserva básica sigue para
+  // todos; la marca/personalización es premium. Profesional+.
+  booking_page: ["profesional", "clinica"],
 };
 
 export function planHasFeature(plan: Plan, feature: GatedFeature): boolean {
