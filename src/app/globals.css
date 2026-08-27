@@ -127,9 +127,9 @@ html[data-mode="dark"] {
 }
 
 html[data-mode="light"] {
-  /* Fondo con un tinte gris-cálido para que las cards blancas floten
-     (antes fondo 0.99 y cards 1.0 eran casi idénticos → todo plano). */
-  --background: oklch(0.965 0.004 240);
+  /* Fondo blanco (look clínico limpio). Las cards se separan del blanco con
+     borde + sombra suave, no con contraste de fondo. */
+  --background: oklch(0.995 0.001 240);
   --foreground: oklch(0.20 0.012 250);
   --card: oklch(1 0 0);
   --card-2: oklch(0.978 0.004 240);

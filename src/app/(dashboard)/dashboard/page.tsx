@@ -34,11 +34,10 @@ import { SkeletonCard } from '@/components/dashboard/skeleton'
 import { QuickActions } from '@/components/dashboard/quick-actions'
 import { ConversationsChart } from '@/components/dashboard/conversations-chart'
 import { TodayAppointments } from '@/components/dashboard/today-appointments'
-import { NextAppointmentCard } from '@/components/dashboard/next-appointment-card'
+import { DashboardHero } from '@/components/dashboard/dashboard-hero'
 import { ResponseTimeChart } from '@/components/dashboard/response-time-chart'
 import { ActivityFeed } from '@/components/dashboard/activity-feed'
 import { AnnouncementsCarousel } from '@/components/dashboard/announcements-carousel'
-import { ZenRecommendations } from '@/components/dashboard/zen-recommendations'
 
 import { useTranslations } from 'next-intl'
 
@@ -137,19 +136,8 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-5">
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">{t('title')}</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          {t('description')}
-        </p>
-      </div>
-
-      {/* Next appointment */}
-      <NextAppointmentCard item={nextAppointment} loading={nextAppointmentLoading} />
-
-      {/* Recomendaciones de Zen + CTA al chat */}
-      <ZenRecommendations />
+      {/* Hero: saludo + próxima cita + recomendaciones de Zen incorporadas */}
+      <DashboardHero nextAppointment={nextAppointment} nextAppointmentLoading={nextAppointmentLoading} />
 
       {/* Admin-controlled promos/announcements */}
       <AnnouncementsCarousel />
