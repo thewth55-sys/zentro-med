@@ -16,6 +16,7 @@ import esLocale from "@fullcalendar/core/locales/es";
 import { createClient } from "@/lib/supabase/client";
 import { useCan } from "@/hooks/use-can";
 import { Button } from "@/components/ui/button";
+import { PageHeader } from "@/components/layout/page-header";
 import type { Appointment, AppointmentStatus, Doctor, DoctorAvailabilityBlock, Room, ServiceType } from "@/types";
 import { AppointmentEditorDialog, type AppointmentDraft } from "./appointment-editor-dialog";
 
@@ -317,18 +318,16 @@ export function AgendaCalendarView() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between gap-3">
-        <div>
-          <h1 className="flex items-center gap-2 text-2xl font-bold text-foreground">
-            <CalendarDays className="size-6 text-primary" />
-            {t("title")}
-          </h1>
-          <p className="mt-1 text-sm text-muted-foreground">{t("subtitle")}</p>
-        </div>
-        {!canEdit && (
-          <p className="hidden max-w-xs text-right text-xs text-muted-foreground sm:block">{t("readOnly")}</p>
-        )}
-      </div>
+      <PageHeader
+        icon={CalendarDays}
+        title={t("title")}
+        description={t("subtitle")}
+        actions={
+          !canEdit ? (
+            <p className="hidden max-w-xs text-right text-xs text-muted-foreground sm:block">{t("readOnly")}</p>
+          ) : undefined
+        }
+      />
 
       <div className="flex flex-wrap items-center gap-2">
         <select

@@ -12,6 +12,7 @@ import { BankAccountList } from "@/components/billing/bank-account-list";
 import { InventoryList } from "@/components/billing/inventory-list";
 import { FinancialSummary } from "@/components/billing/financial-summary";
 import { ProductManager } from "@/components/settings/product-manager";
+import { PageHeader } from "@/components/layout/page-header";
 
 const BILLING_TABS = ["summary", "invoices", "quotes", "expenses", "bankAccounts", "inventory", "priceList"];
 
@@ -23,13 +24,7 @@ export default function BillingPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="flex items-center gap-2 text-2xl font-bold text-foreground">
-          <Wallet className="size-6 text-primary" />
-          {t("title")}
-        </h1>
-        <p className="mt-1 text-sm text-muted-foreground">{t("subtitle")}</p>
-      </div>
+      <PageHeader icon={Wallet} title={t("title")} description={t("subtitle")} />
 
       <Tabs defaultValue={initialTab}>
         <div className="relative -mx-1">

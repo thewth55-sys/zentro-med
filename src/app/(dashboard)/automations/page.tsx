@@ -44,6 +44,7 @@ import { AUTOMATION_TEMPLATES, type TemplateSlug } from "@/lib/automations/templ
 import { triggerMeta, formatRelative } from "@/lib/automations/trigger-meta"
 import { cn } from "@/lib/utils"
 import { PlanGate } from "@/components/billing-platform/plan-gate"
+import { PageHeader } from "@/components/layout/page-header"
 
 const TEMPLATE_ORDER: TemplateSlug[] = [
   "welcome_message",
@@ -162,23 +163,22 @@ export default function AutomationsPage() {
   return (
     <PlanGate feature="automations" featureLabel="Automatizaciones y Flows">
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">{t("title")}</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            {t("subtitle")}
-          </p>
-        </div>
-        <GatedButton
-          canAct={canCreate}
-          gateReason="create automations"
-          onClick={() => router.push("/automations/new")}
-          className="bg-primary text-primary-foreground hover:bg-primary/90"
-        >
-          <Plus className="h-4 w-4" />
-          {t("create")}
-        </GatedButton>
-      </div>
+      <PageHeader
+        icon={Zap}
+        title={t("title")}
+        description={t("subtitle")}
+        actions={
+          <GatedButton
+            canAct={canCreate}
+            gateReason="create automations"
+            onClick={() => router.push("/automations/new")}
+            className="bg-primary text-primary-foreground hover:bg-primary/90"
+          >
+            <Plus className="h-4 w-4" />
+            {t("create")}
+          </GatedButton>
+        }
+      />
 
       {showTemplates && (
         <section>

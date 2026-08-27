@@ -55,6 +55,7 @@ import {
 import { ContactForm } from '@/components/contacts/contact-form';
 import { ImportModal } from '@/components/contacts/import-modal';
 import { CustomFieldsManager } from '@/components/contacts/custom-fields-manager';
+import { PageHeader } from '@/components/layout/page-header';
 import { useCan } from '@/hooks/use-can';
 import { GatedButton } from '@/components/ui/gated-button';
 import { useTranslations } from 'next-intl';
@@ -379,55 +380,54 @@ export default function ContactsPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">{t('title')}</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            {totalCount > 0 ? t('subtitle', { count: totalCount }) : t('subtitleZero')}
-          </p>
-        </div>
-        {/* Secondary actions (Campos personalizados, Importar) collapse to
-            icon-only below sm — three full-width-text buttons here would
-            overflow a 375px viewport and, since nothing between this row
-            and <main> clips horizontally, drag the WHOLE page sideways
-            rather than just wrapping. flex-wrap is a safety net; the
-            icon-only collapse is what actually keeps this row within
-            phone width. Labels stay in the accessibility tree via
-            sr-only so screen readers still hear the full name. */}
-        <div className="flex flex-wrap items-center gap-2">
-          {canEditSettings && (
-            <Button
+      <PageHeader
+        icon={Users}
+        title={t('title')}
+        description={totalCount > 0 ? t('subtitle', { count: totalCount }) : t('subtitleZero')}
+        actions={
+          /* Secondary actions (Campos personalizados, Importar) collapse to
+             icon-only below sm — three full-width-text buttons here would
+             overflow a 375px viewport and, since nothing between this row
+             and <main> clips horizontally, drag the WHOLE page sideways
+             rather than just wrapping. flex-wrap is a safety net; the
+             icon-only collapse is what actually keeps this row within
+             phone width. Labels stay in the accessibility tree via
+             sr-only so screen readers still hear the full name. */
+          <>
+            {canEditSettings && (
+              <Button
+                variant="outline"
+                onClick={() => setCustomFieldsOpen(true)}
+                className="border-border text-muted-foreground hover:bg-muted"
+                title={t('customFieldsBtn')}
+              >
+                <SlidersHorizontal className="size-4" />
+                <span className="sr-only sm:not-sr-only">{t('customFieldsBtn')}</span>
+              </Button>
+            )}
+            <GatedButton
               variant="outline"
-              onClick={() => setCustomFieldsOpen(true)}
+              canAct={canEdit}
+              gateReason="add or import contacts"
+              onClick={() => setImportOpen(true)}
               className="border-border text-muted-foreground hover:bg-muted"
-              title={t('customFieldsBtn')}
+              title={t('importBtn')}
             >
-              <SlidersHorizontal className="size-4" />
-              <span className="sr-only sm:not-sr-only">{t('customFieldsBtn')}</span>
-            </Button>
-          )}
-          <GatedButton
-            variant="outline"
-            canAct={canEdit}
-            gateReason="add or import contacts"
-            onClick={() => setImportOpen(true)}
-            className="border-border text-muted-foreground hover:bg-muted"
-            title={t('importBtn')}
-          >
-            <Upload className="size-4" />
-            <span className="sr-only sm:not-sr-only">{t('importBtn')}</span>
-          </GatedButton>
-          <GatedButton
-            canAct={canEdit}
-            gateReason="add or import contacts"
-            onClick={openAddForm}
-            className="bg-primary hover:bg-primary/90 text-primary-foreground"
-          >
-            <Plus className="size-4" />
-            {t('addContactBtn')}
-          </GatedButton>
-        </div>
-      </div>
+              <Upload className="size-4" />
+              <span className="sr-only sm:not-sr-only">{t('importBtn')}</span>
+            </GatedButton>
+            <GatedButton
+              canAct={canEdit}
+              gateReason="add or import contacts"
+              onClick={openAddForm}
+              className="bg-primary hover:bg-primary/90 text-primary-foreground"
+            >
+              <Plus className="size-4" />
+              {t('addContactBtn')}
+            </GatedButton>
+          </>
+        }
+      />
 
       {/* Search + tag filter */}
       <div className="space-y-2">

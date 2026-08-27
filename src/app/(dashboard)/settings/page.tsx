@@ -1,8 +1,11 @@
 'use client';
 
 import { useMemo, type ReactNode } from 'react';
+import { Settings } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
+
+import { PageHeader } from '@/components/layout/page-header';
 
 import { useAuth } from '@/hooks/use-auth';
 import { useTheme } from '@/hooks/use-theme';
@@ -85,14 +88,7 @@ export default function SettingsPage() {
 
   return (
     <div>
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight text-foreground">
-          {t('pageTitle')}
-        </h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          {t('pageDesc')}
-        </p>
-      </div>
+      <PageHeader icon={Settings} title={t('pageTitle')} description={t('pageDesc')} />
 
       <div className="mt-6 grid gap-6 lg:grid-cols-[236px_minmax(0,1fr)] lg:items-start">
         <SettingsRail active={section} onSelect={go} hints={hints} />

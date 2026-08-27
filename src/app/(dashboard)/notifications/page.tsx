@@ -12,6 +12,7 @@ import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { useNotificationSoundPref } from "@/hooks/use-notification-sound-pref";
+import { PageHeader } from "@/components/layout/page-header";
 
 // Icon per notification type. Only one type exists today
 // (conversation_assigned) but this keeps future types a one-line add.
@@ -183,27 +184,26 @@ export default function NotificationsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">Notifications</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Conversations other teammates assign to you show up here.
-          </p>
-        </div>
-        <Button
-          variant="outline"
-          size="sm"
-          disabled={unreadIds.length === 0 || markingAll}
-          onClick={markAllRead}
-        >
-          {markingAll ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : (
-            <CheckCheck className="h-4 w-4" />
-          )}
-          Mark all as read
-        </Button>
-      </div>
+      <PageHeader
+        icon={Bell}
+        title="Notifications"
+        description="Conversations other teammates assign to you show up here."
+        actions={
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={unreadIds.length === 0 || markingAll}
+            onClick={markAllRead}
+          >
+            {markingAll ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <CheckCheck className="h-4 w-4" />
+            )}
+            Mark all as read
+          </Button>
+        }
+      />
 
       <div className="flex flex-col gap-4 rounded-xl border border-border bg-card p-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3">
