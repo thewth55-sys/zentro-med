@@ -150,6 +150,7 @@ export default function DashboardPage() {
           <>
             <MetricCard
               title={t('activeConversations')}
+              accent="teal"
               value={metrics.activeConversations.current.toLocaleString()}
               icon={MessageSquare}
               delta={{
@@ -163,6 +164,7 @@ export default function DashboardPage() {
             />
             <MetricCard
               title={t('newContactsToday')}
+              accent="indigo"
               value={metrics.newContactsToday.current.toLocaleString()}
               icon={UserPlus}
               delta={{
@@ -177,6 +179,7 @@ export default function DashboardPage() {
             />
             <MetricCard
               title={t('conversionRate')}
+              accent="sky"
               value={`${metrics.conversionRate.current}%`}
               icon={TrendingUp}
               delta={{
@@ -190,6 +193,7 @@ export default function DashboardPage() {
             />
             <MetricCard
               title={t('revenueCollected')}
+              accent="green"
               value={`${metrics.revenueCollectedRatio.current}%`}
               icon={Receipt}
               subtitle={t('revenueCollectedSubtitle', {
@@ -199,12 +203,14 @@ export default function DashboardPage() {
             />
             <MetricCard
               title={t('noShowRate')}
+              accent="amber"
               value={`${metrics.noShowRate.current}%`}
               icon={CalendarX}
               subtitle={t('noShowSubtitle', { value: metrics.noShowRate.previous })}
             />
             <MetricCard
               title={t('newPatients')}
+              accent="rose"
               value={`${metrics.newPatientsRatio.current}%`}
               icon={Users}
               subtitle={t('newPatientsSubtitle', {
