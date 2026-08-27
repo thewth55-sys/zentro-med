@@ -134,6 +134,14 @@ function LineSvg({
   const incomingPath = data.map((p, i) => `${i === 0 ? 'M' : 'L'}${xFor(i)},${yFor(p.incoming)}`).join(' ')
   const outgoingPath = data.map((p, i) => `${i === 0 ? 'M' : 'L'}${xFor(i)},${yFor(p.outgoing)}`).join(' ')
 
+  // Area fills: same polyline, closed down to the baseline, so each
+  // series reads as a tinted region (mockup look) without changing the
+  // underlying data. Lines + endpoints draw on top of the fills.
+  const baseline = PADDING.top + chartH
+  const lastIdx = data.length - 1
+  const incomingArea = `${incomingPath} L${xFor(lastIdx)},${baseline} L${xFor(0)},${baseline} Z`
+  const outgoingArea = `${outgoingPath} L${xFor(lastIdx)},${baseline} L${xFor(0)},${baseline} Z`
+
   // Mouse-move: use the SVG's current screen-CTM to map clientX
   // back to viewBox coordinates. The previous rect-based math
   // assumed the viewBox filled the SVG DOM box linearly, but
@@ -202,6 +210,17 @@ function LineSvg({
         role="img"
         aria-label={t('ariaLabel')}
       >
+        <defs>
+          <linearGradient id="conv-incoming-fill" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#3b82f6" stopOpacity={0.22} />
+            <stop offset="100%" stopColor="#3b82f6" stopOpacity={0} />
+          </linearGradient>
+          <linearGradient id="conv-outgoing-fill" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#7c3aed" stopOpacity={0.18} />
+            <stop offset="100%" stopColor="#7c3aed" stopOpacity={0} />
+          </linearGradient>
+        </defs>
+
         {/* Y-axis gridlines + labels */}
         {ticks.map((t) => {
           const y = yFor(t)
@@ -243,6 +262,10 @@ function LineSvg({
           ) : null,
         )}
 
+        {/* Area fills under each series */}
+        <path d={outgoingArea} fill="url(#conv-outgoing-fill)" stroke="none" />
+        <path d={incomingArea} fill="url(#conv-incoming-fill)" stroke="none" />
+
         {/* Outgoing polyline (violet) */}
         <path
           d={outgoingPath}
@@ -261,6 +284,10 @@ function LineSvg({
           strokeLinecap="round"
           strokeLinejoin="round"
         />
+
+        {/* Emphasized endpoints (latest value) */}
+        <circle cx={xFor(lastIdx)} cy={yFor(data[lastIdx].outgoing)} r={3.5} fill="#7c3aed" stroke="var(--card)" strokeWidth={1.5} />
+        <circle cx={xFor(lastIdx)} cy={yFor(data[lastIdx].incoming)} r={3.5} fill="#3b82f6" stroke="var(--card)" strokeWidth={1.5} />
 
         {/* Hover crosshair */}
         {hover !== null && (

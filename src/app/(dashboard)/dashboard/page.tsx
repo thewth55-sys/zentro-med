@@ -17,6 +17,7 @@ import {
   loadActivity,
   loadConversationsSeries,
   loadMetrics,
+  loadSparklines,
   loadTodayAppointments,
   loadNextAppointment,
   loadResponseTime,
@@ -25,6 +26,7 @@ import type {
   ActivityItem,
   ConversationsSeriesPoint,
   MetricsBundle,
+  SparklineBundle,
   TodayAppointmentItem,
   ResponseTimeSummary,
 } from '@/lib/dashboard/types'
@@ -48,6 +50,7 @@ export default function DashboardPage() {
   const { defaultCurrency } = useAuth()
   const [metrics, setMetrics] = useState<MetricsBundle | null>(null)
   const [metricsLoading, setMetricsLoading] = useState(true)
+  const [sparks, setSparks] = useState<SparklineBundle | null>(null)
 
   const [range, setRange] = useState<RangeDays>(30)
   // Keep a cache per range so switching tabs doesn't re-fetch what we
@@ -87,6 +90,12 @@ export default function DashboardPage() {
       .then((s) => setSeries((prev) => ({ ...prev, 30: s })))
       .catch((err) => console.error('[dashboard] series failed:', err))
       .finally(() => setSeriesLoading(false))
+
+    // KPI sparklines — non-critical, so no loading gate; cards render
+    // fine without them and the mini-charts fade in when ready.
+    void loadSparklines(db)
+      .then((s) => setSparks(s))
+      .catch((err) => console.error('[dashboard] sparklines failed:', err))
 
     void loadTodayAppointments(db)
       .then((a) => setTodayAppointments(a))
@@ -151,6 +160,7 @@ export default function DashboardPage() {
             <MetricCard
               title={t('activeConversations')}
               accent="teal"
+              spark={sparks?.conversations}
               value={metrics.activeConversations.current.toLocaleString()}
               icon={MessageSquare}
               delta={{
@@ -165,6 +175,7 @@ export default function DashboardPage() {
             <MetricCard
               title={t('newContactsToday')}
               accent="indigo"
+              spark={sparks?.contacts}
               value={metrics.newContactsToday.current.toLocaleString()}
               icon={UserPlus}
               delta={{
@@ -194,6 +205,7 @@ export default function DashboardPage() {
             <MetricCard
               title={t('revenueCollected')}
               accent="green"
+              spark={sparks?.revenue}
               value={`${metrics.revenueCollectedRatio.current}%`}
               icon={Receipt}
               subtitle={t('revenueCollectedSubtitle', {

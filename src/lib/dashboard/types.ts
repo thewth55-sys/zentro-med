@@ -32,6 +32,21 @@ export interface ConversationsSeriesPoint {
   outgoing: number
 }
 
+/**
+ * 14-day daily series used for the tiny sparklines on the KPI cards.
+ * Only the metrics with an honest per-day series live here — the
+ * window-ratio metrics (conversion, no-show, new-vs-returning) don't
+ * have a clean daily value, so they render without a sparkline.
+ */
+export interface SparklineBundle {
+  /** New conversations opened per day. */
+  conversations: number[]
+  /** New contacts created per day. */
+  contacts: number[]
+  /** Amount collected (payments) per day. */
+  revenue: number[]
+}
+
 export interface TodayAppointmentItem {
   id: string
   startAt: string

@@ -19,6 +19,30 @@ const STATUS_STYLES: Record<TodayAppointmentItem['status'], string> = {
 
 const timeFormatter = new Intl.DateTimeFormat('es-MX', { hour: 'numeric', minute: '2-digit' })
 
+// Deterministic avatar tint per patient so the same person keeps the
+// same color across renders (like the mockup's colored initials).
+const AVATAR_TINTS = [
+  'bg-teal-500/15 text-teal-600 dark:text-teal-300',
+  'bg-indigo-500/15 text-indigo-600 dark:text-indigo-300',
+  'bg-amber-500/15 text-amber-600 dark:text-amber-300',
+  'bg-rose-500/15 text-rose-600 dark:text-rose-300',
+  'bg-sky-500/15 text-sky-600 dark:text-sky-300',
+  'bg-primary/12 text-primary',
+]
+
+function initials(name: string): string {
+  const parts = name.trim().split(/\s+/).filter(Boolean)
+  if (parts.length === 0) return '—'
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase()
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
+}
+
+function tintFor(name: string): string {
+  let h = 0
+  for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) >>> 0
+  return AVATAR_TINTS[h % AVATAR_TINTS.length]
+}
+
 /**
  * Replaces the old sales-pipeline donut on the dashboard — a clinic's
  * day-to-day operational question is "who's coming in today", not
@@ -58,29 +82,41 @@ export function TodayAppointments({
         </div>
       ) : (
         <ul className="flex-1 divide-y divide-border overflow-y-auto">
-          {items.map((appt) => (
-            <li key={appt.id} className="flex items-center gap-3 px-5 py-2.5">
-              <span className="w-14 shrink-0 text-sm font-medium tabular-nums text-foreground">
-                {timeFormatter.format(new Date(appt.startAt))}
-              </span>
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-sm text-foreground">
-                  {appt.patientName || t('noPatient')}
-                </p>
-                <p className="truncate text-xs text-muted-foreground">
-                  {[appt.doctorName, appt.serviceTypeName].filter(Boolean).join(' · ') || t('noDetails')}
-                </p>
-              </div>
-              <span
-                className={cn(
-                  'shrink-0 rounded-full border px-2 py-0.5 text-[11px] font-medium',
-                  STATUS_STYLES[appt.status],
-                )}
-              >
-                {tStatus(appt.status)}
-              </span>
-            </li>
-          ))}
+          {items.map((appt) => {
+            const name = appt.patientName || t('noPatient')
+            return (
+              <li key={appt.id} className="flex items-center gap-3 px-5 py-3">
+                <span
+                  className={cn(
+                    'flex size-9 shrink-0 items-center justify-center rounded-full text-xs font-semibold',
+                    tintFor(name),
+                  )}
+                  aria-hidden="true"
+                >
+                  {initials(name)}
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium text-foreground">{name}</p>
+                  <p className="truncate text-xs text-muted-foreground">
+                    {[appt.doctorName, appt.serviceTypeName].filter(Boolean).join(' · ') || t('noDetails')}
+                  </p>
+                </div>
+                <div className="flex shrink-0 flex-col items-end gap-1">
+                  <span className="text-sm font-medium tabular-nums text-foreground">
+                    {timeFormatter.format(new Date(appt.startAt))}
+                  </span>
+                  <span
+                    className={cn(
+                      'rounded-full border px-2 py-0.5 text-[11px] font-medium',
+                      STATUS_STYLES[appt.status],
+                    )}
+                  >
+                    {tStatus(appt.status)}
+                  </span>
+                </div>
+              </li>
+            )
+          })}
         </ul>
       )}
     </section>

@@ -13,6 +13,7 @@ import type {
   MetricsBundle,
   ResponseTimeBucket,
   ResponseTimeSummary,
+  SparklineBundle,
   TodayAppointmentItem,
 } from './types'
 
@@ -229,6 +230,51 @@ export async function loadConversationsSeries(
   }
 
   return keys.map((day) => ({ day, ...(buckets.get(day) ?? { incoming: 0, outgoing: 0 }) }))
+}
+
+// --- 2b. KPI sparklines (14-day daily series) -------------------------
+
+/**
+ * Tiny 14-day daily series for the KPI card sparklines. Only the three
+ * metrics that have an honest per-day value (new conversations, new
+ * contacts, collected revenue) — the window-ratio KPIs are intentionally
+ * left out rather than faking a daily trend. All aggregation is
+ * client-side and RLS-scoped like the rest of this module.
+ */
+export async function loadSparklines(db: DB): Promise<SparklineBundle> {
+  const days = 14
+  const start = daysAgoStart(days - 1).toISOString()
+  const keys = lastNDayKeys(days)
+
+  const [convRes, contactRes, payRes] = await Promise.all([
+    db.from('conversations').select('created_at').gte('created_at', start),
+    db.from('contacts').select('created_at').gte('created_at', start),
+    db.from('payments').select('paid_at, amount').gte('paid_at', start),
+  ])
+
+  const zero = () => new Map<string, number>(keys.map((k) => [k, 0]))
+  const convBuckets = zero()
+  const contactBuckets = zero()
+  const revBuckets = zero()
+
+  for (const r of (convRes.data ?? []) as { created_at: string }[]) {
+    const k = localDayKey(r.created_at)
+    if (convBuckets.has(k)) convBuckets.set(k, convBuckets.get(k)! + 1)
+  }
+  for (const r of (contactRes.data ?? []) as { created_at: string }[]) {
+    const k = localDayKey(r.created_at)
+    if (contactBuckets.has(k)) contactBuckets.set(k, contactBuckets.get(k)! + 1)
+  }
+  for (const r of (payRes.data ?? []) as { paid_at: string; amount: number }[]) {
+    const k = localDayKey(r.paid_at)
+    if (revBuckets.has(k)) revBuckets.set(k, revBuckets.get(k)! + (r.amount ?? 0))
+  }
+
+  return {
+    conversations: keys.map((k) => convBuckets.get(k) ?? 0),
+    contacts: keys.map((k) => contactBuckets.get(k) ?? 0),
+    revenue: keys.map((k) => revBuckets.get(k) ?? 0),
+  }
 }
 
 // --- 3. Today's appointments --------------------------------------------
