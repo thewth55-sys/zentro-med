@@ -14,7 +14,7 @@ Every request authenticates with an **API key**, sent as a bearer
 token:
 
 ```
-Authorization: Bearer wacrm_live_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+Authorization: Bearer zentro_live_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 ```
 
 Keys are **account-scoped**: a key acts on exactly one account, the
@@ -103,7 +103,7 @@ and to discover its scopes.
 
 ```bash
 curl https://your-crm.example.com/api/v1/me \
-  -H "Authorization: Bearer wacrm_live_xxx"
+  -H "Authorization: Bearer zentro_live_xxx"
 ```
 
 ```json
@@ -123,7 +123,7 @@ finds-or-creates the contact + conversation, then sends.
 
 ```bash
 curl -X POST https://your-crm.example.com/api/v1/messages \
-  -H "Authorization: Bearer wacrm_live_xxx" \
+  -H "Authorization: Bearer zentro_live_xxx" \
   -H "Content-Type: application/json" \
   -d '{ "to": "+14155550123", "type": "text", "text": "Hi 👋" }'
 ```
@@ -228,7 +228,7 @@ returns fast — poll `GET /api/v1/broadcasts/{id}` for progress.
 
 ```bash
 curl -X POST https://your-crm.example.com/api/v1/broadcasts \
-  -H "Authorization: Bearer wacrm_live_xxx" \
+  -H "Authorization: Bearer zentro_live_xxx" \
   -H "Content-Type: application/json" \
   -d '{
         "name": "July promo",
@@ -307,7 +307,7 @@ All under scope `webhooks:manage`.
 
 ```bash
 curl -X POST https://your-crm.example.com/api/v1/webhooks \
-  -H "Authorization: Bearer wacrm_live_xxx" \
+  -H "Authorization: Bearer zentro_live_xxx" \
   -H "Content-Type: application/json" \
   -d '{ "url": "https://example.com/hooks/wacrm", "events": ["message.received"] }'
 # → 201 { "data": { "id": "…", "url": "…", "events": [...], "secret": "whsec_…" } }
