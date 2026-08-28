@@ -4,7 +4,7 @@
   "private": true,
   "description": "Zentro Med — CRM/EHR médico multi-tenant para clínicas, con agenda, expediente clínico, facturación y bandeja de WhatsApp nativa.",
   "license": "MIT",
-  "author": "Arnas Donauskas",
+  "author": "Zentro Labs",
   "homepage": "https://github.com/thewth55-sys/zentro-med",
   "repository": {
     "type": "git",
