@@ -121,6 +121,9 @@ export function Sidebar({ open = false, onClose }: SidebarProps) {
     // Sin ítem de nav propio (vive dentro de Ajustes → Agenda), mismo
     // motivo que conversation_reminders arriba.
     payment_gateway: useHasFeature("payment_gateway"),
+    // Sin ítem de nav propio (vive dentro de la ficha de cada médico en
+    // Ajustes → Agenda), mismo motivo que payment_gateway arriba.
+    intake_forms: useHasFeature("intake_forms"),
   };
   // Only surface the account-name strip when it actually carries
   // information. A solo user's personal account is named after them

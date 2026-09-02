@@ -136,11 +136,11 @@ export interface CollectInputNodeConfig {
   next_node_key: string;
 }
 
-export type ConditionOperator =
-  | "equals"
-  | "contains"
-  | "present"
-  | "absent";
+// Re-exported from the shared, dependency-free predicate module (also
+// used by the intake-form builder/renderer) so both features stay on
+// one operator set instead of two copies drifting apart.
+import type { ConditionOperator } from "@/lib/conditions/predicate";
+export type { ConditionOperator };
 
 export type ConditionSubject = "var" | "tag" | "contact_field";
 

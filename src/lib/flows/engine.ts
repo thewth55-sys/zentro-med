@@ -33,6 +33,7 @@
  */
 
 import { supabaseAdmin } from "./admin-client";
+import { evaluateConditionPredicate } from "@/lib/conditions/predicate";
 import {
   engineSendInteractiveButtons,
   engineSendInteractiveList,
@@ -134,35 +135,10 @@ export function isTerminal(node_type: string): boolean {
   return node_type === "handoff" || node_type === "end";
 }
 
-/**
- * Evaluate a `condition` node's predicate against the current run
- * state. Exported pure for unit testing — the engine wraps it with a
- * DB lookup for `tag` / `contact_field` subjects.
- */
-export function evaluateConditionPredicate(args: {
-  operator: ConditionNodeConfig["operator"];
-  /**
-   * Resolved value of the subject. `undefined` means the subject is
-   * absent (no var with that key / no such tag / contact field is
-   * null). Pure function: caller does the DB lookup.
-   */
-  subjectValue: string | undefined;
-  /** The configured comparison value, when applicable. */
-  configValue: string | undefined;
-}): boolean {
-  switch (args.operator) {
-    case "present":
-      return args.subjectValue !== undefined && args.subjectValue !== "";
-    case "absent":
-      return args.subjectValue === undefined || args.subjectValue === "";
-    case "equals":
-      if (args.subjectValue === undefined) return false;
-      return args.subjectValue === (args.configValue ?? "");
-    case "contains":
-      if (args.subjectValue === undefined) return false;
-      return args.subjectValue.includes(args.configValue ?? "");
-  }
-}
+// `evaluateConditionPredicate` now lives in `@/lib/conditions/predicate`
+// (shared with the intake-form builder/renderer) — re-exported here so
+// every existing import of it from this module keeps working.
+export { evaluateConditionPredicate };
 
 // ============================================================
 // DB I/O — wrapped in tiny helpers so the dispatch flow stays

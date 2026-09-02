@@ -27,7 +27,8 @@ export type GatedFeature =
   | "clinic_hours"
   | "booking_page"
   | "ai_copilot"
-  | "payment_gateway";
+  | "payment_gateway"
+  | "intake_forms";
 
 export const GATED_FEATURES: GatedFeature[] = [
   "automations",
@@ -40,6 +41,7 @@ export const GATED_FEATURES: GatedFeature[] = [
   "booking_page",
   "ai_copilot",
   "payment_gateway",
+  "intake_forms",
 ];
 
 export const FEATURE_LABEL: Record<GatedFeature, string> = {
@@ -53,6 +55,7 @@ export const FEATURE_LABEL: Record<GatedFeature, string> = {
   booking_page: "Página de reserva personalizada",
   ai_copilot: "Copiloto de IA",
   payment_gateway: "Pasarela de pago (anticipo)",
+  intake_forms: "Formulario de admisión de pacientes",
 };
 
 /** `accounts.feature_overrides` — absent key falls back to the plan default. */
@@ -101,6 +104,11 @@ const FEATURE_MIN_PLAN: Record<GatedFeature, Plan[]> = {
   // sigue gratis para todos; cobrar por adelantado es premium →
   // Profesional+.
   payment_gateway: ["profesional", "clinica"],
+  // Formulario de admisión / historia clínica por médico, embebido en el
+  // asistente de reserva pública. Igual que booking_page/clinic_hours: la
+  // reserva básica sigue funcionando para todos, personalizar el cuestionario
+  // de admisión es premium → Profesional+.
+  intake_forms: ["profesional", "clinica"],
 };
 
 export function planHasFeature(plan: Plan, feature: GatedFeature): boolean {
