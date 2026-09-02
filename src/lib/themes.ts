@@ -72,7 +72,7 @@ export const THEMES: ReadonlyArray<ThemeMeta> = [
     id: "zentro",
     name: "Zentro",
     tagline: "The brand default — straight from the Zentro Labs identity.",
-    swatch: "oklch(0.795 0.214 144.9)",
+    swatch: "oklch(0.517 0.1206 156.3)",
   },
   {
     id: "violet",

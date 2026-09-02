@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import type { Metadata, Viewport } from "next";
 import { NextIntlClientProvider } from 'next-intl';
 import { getLocale, getMessages } from 'next-intl/server';
-import { Inter, Plus_Jakarta_Sans } from "next/font/google";
+import { Schibsted_Grotesk } from "next/font/google";
 import Script from "next/script";
 import "./globals.css";
 import { ThemeProvider } from "@/hooks/use-theme";
@@ -19,17 +19,14 @@ import {
   THEME_IDS,
 } from "@/lib/themes";
 
-const inter = Inter({
+// Rediseño visual (verde bosque + Schibsted Grotesk) — un grotesco
+// editorial con más carácter que Inter, usado tanto en cuerpo/datos
+// como en títulos (--font-heading se alía a --font-sans en
+// globals.css) en vez de dos familias distintas.
+const schibstedGrotesk = Schibsted_Grotesk({
   variable: "--font-sans",
   subsets: ["latin"],
-});
-
-// Fuente de títulos — un grotesco moderno con más carácter que Inter,
-// manteniendo Inter para el cuerpo/datos por su legibilidad.
-const jakarta = Plus_Jakarta_Sans({
-  variable: "--font-display",
-  subsets: ["latin"],
-  weight: ["500", "600", "700"],
+  weight: ["400", "500", "600", "700"],
 });
 
 export const metadata: Metadata = {
@@ -115,7 +112,7 @@ export default async function RootLayout({
       lang={locale}
       data-theme={DEFAULT_THEME}
       data-mode={DEFAULT_MODE}
-      className={`${inter.variable} ${jakarta.variable} h-full antialiased`}
+      className={`${schibstedGrotesk.variable} h-full antialiased`}
       // The `theme-boot` script below rewrites `data-theme` and
       // `data-mode` on <html> from localStorage before React hydrates,
       // so for any non-default choice the client DOM intentionally
