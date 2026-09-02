@@ -1,62 +1,27 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Send, Sparkles } from "lucide-react";
 
 import { useAuth } from "@/hooks/use-auth";
-import { createClient } from "@/lib/supabase/client";
-import { COPILOT_NAME } from "@/lib/ai/copilot/branding";
 import type { TodayAppointmentItem } from "@/lib/dashboard/types";
 
 interface Props {
   nextAppointment: TodayAppointmentItem | null;
   nextAppointmentLoading: boolean;
+  /** Appointment whose [startAt, endAt] window contains "now", if any —
+   *  derived by the caller from the already-loaded today's-appointments
+   *  list, no query of its own. */
+  currentAppointment: TodayAppointmentItem | null;
 }
 
 /**
- * Hero del Panel: saludo al médico, próxima cita y las recomendaciones de
- * Zen INCORPORADAS (con CTA al chat). Reemplaza el header plano + la tarjeta
- * de próxima cita + la banda de recomendaciones sueltas.
+ * Hero del Panel: saludo al médico, "en consulta ahora" (si aplica) y la
+ * próxima cita. Las recomendaciones de Zen que antes vivían aquí como una
+ * banda embebida ahora son su propio módulo (`PrioritiesPanel`, montado
+ * justo debajo en page.tsx) con datos reales en vez de un tip genérico.
  */
-export function DashboardHero({ nextAppointment, nextAppointmentLoading }: Props) {
+export function DashboardHero({ nextAppointment, nextAppointmentLoading, currentAppointment }: Props) {
   const { profile } = useAuth();
-  const [tip, setTip] = useState<string | null>(null);
-
-  useEffect(() => {
-    (async () => {
-      try {
-        const db = createClient();
-        const now = new Date();
-        const in24 = new Date(now.getTime() + 24 * 60 * 60 * 1000);
-        const [unread, pending] = await Promise.all([
-          db
-            .from("conversations")
-            .select("id", { count: "exact", head: true })
-            .neq("status", "closed")
-            .gt("unread_count", 0),
-          db
-            .from("appointments")
-            .select("id", { count: "exact", head: true })
-            .eq("status", "pending")
-            .gte("start_at", now.toISOString())
-            .lte("start_at", in24.toISOString()),
-        ]);
-        const u = unread.count ?? 0;
-        const p = pending.count ?? 0;
-        const parts: string[] = [];
-        if (u > 0) parts.push(`${u} conversación${u === 1 ? "" : "es"} sin responder`);
-        if (p > 0) parts.push(`${p} cita${p === 1 ? "" : "s"} por confirmar`);
-        setTip(
-          parts.length
-            ? `Tienes ${parts.join(" y ")}. ¿Te ayudo a resolverlas?`
-            : "Todo al día. Pídeme un resumen del día cuando quieras.",
-        );
-      } catch {
-        setTip("Pregúntame lo que necesites de tu clínica.");
-      }
-    })();
-  }, []);
 
   const name = profile?.full_name?.trim();
   const title = profile?.title?.trim();
@@ -93,26 +58,31 @@ export function DashboardHero({ nextAppointment, nextAppointmentLoading }: Props
         ) : null}
       </div>
 
-      {/* Recomendaciones de Zen incorporadas */}
-      <div className="relative mt-5 flex flex-col gap-3 rounded-xl border border-white/15 bg-white/10 p-3 sm:flex-row sm:items-center">
-        <div className="flex min-w-0 flex-1 items-start gap-3">
-          <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-white/15 text-emerald-200">
-            <Sparkles className="size-5" />
-          </span>
-          <div className="min-w-0">
-            <div className="text-xs font-semibold text-emerald-100/90">
-              Recomendaciones de {COPILOT_NAME}
+      {currentAppointment ? (
+        <div className="relative mt-5 flex flex-col gap-3 rounded-xl border border-white/15 bg-white/10 p-3 sm:flex-row sm:items-center">
+          <div className="flex min-w-0 flex-1 items-center gap-3">
+            <span className="relative flex size-2.5 shrink-0">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-300 opacity-75" />
+              <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-300" />
+            </span>
+            <div className="min-w-0">
+              <div className="text-xs font-semibold text-emerald-100/90">En consulta ahora</div>
+              <div className="truncate text-sm font-medium text-white">
+                {currentAppointment.patientName ?? "—"}
+                {currentAppointment.serviceTypeName ? ` · ${currentAppointment.serviceTypeName}` : ""}
+              </div>
             </div>
-            <div className="text-sm text-emerald-50">{tip ?? "Cargando…"}</div>
           </div>
+          {currentAppointment.contactId ? (
+            <Link
+              href={`/contacts/${currentAppointment.contactId}`}
+              className="inline-flex w-full shrink-0 items-center justify-center gap-2 rounded-lg bg-[#22C55E] px-4 py-2 text-sm font-semibold text-[#06210F] transition hover:brightness-105 sm:w-auto"
+            >
+              Abrir ficha
+            </Link>
+          ) : null}
         </div>
-        <Link
-          href="/copilot"
-          className="inline-flex w-full shrink-0 items-center justify-center gap-2 rounded-lg bg-[#22C55E] px-4 py-2 text-sm font-semibold text-[#06210F] transition hover:brightness-105 sm:w-auto"
-        >
-          <Send className="size-4" /> Hablar con {COPILOT_NAME}
-        </Link>
-      </div>
+      ) : null}
     </section>
   );
 }

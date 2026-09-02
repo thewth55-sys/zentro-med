@@ -16,13 +16,14 @@ import {
   Settings,
   Shield,
   ShieldCheck,
+  Sparkles,
   User,
   UserCog,
   UsersRound,
   X,
 } from "lucide-react";
 import type { AccountRole } from "@/lib/auth/roles";
-import { navItems, applyNavOrder } from "@/lib/nav-items";
+import { navItems, applyNavOrder, NAV_GROUP_ORDER, type NavItem } from "@/lib/nav-items";
 import { useHasFeature } from "@/hooks/use-has-feature";
 import type { GatedFeature } from "@/lib/billing-platform/features";
 
@@ -97,6 +98,16 @@ export function Sidebar({ open = false, onClose }: SidebarProps) {
   const unreadNotifications = useUnreadNotifications();
   const { isPlatformAdmin } = usePlatformAdmin();
   const orderedNavItems = applyNavOrder(navItems, profile?.nav_order);
+  // Panel + Zen are pinned above every group (see NavItem.group in
+  // nav-items.ts) — Zen additionally gets its own elevated-card render
+  // below instead of the plain-row treatment every other item gets.
+  const pinnedItems = orderedNavItems.filter((item) => !item.group);
+  const dashboardItem = pinnedItems.find((item) => item.href === "/dashboard");
+  const copilotItem = pinnedItems.find((item) => item.href === "/copilot");
+  const navGroups = NAV_GROUP_ORDER.map((group) => ({
+    group,
+    items: orderedNavItems.filter((item) => item.group === group),
+  }));
   // Called at the top level rather than per-item inside the map below,
   // since hooks can't be called conditionally/in a loop — one call per
   // distinct gated feature in lib/billing-platform/features.ts.
@@ -162,6 +173,69 @@ export function Sidebar({ open = false, onClose }: SidebarProps) {
     };
   }, [open, onClose]);
 
+  // Plain nav row — shared by the pinned "Panel" item and every grouped
+  // item. Zen is the one exception, rendered separately as an elevated
+  // card (see below) instead of through this helper.
+  function renderNavRow(item: NavItem) {
+    const [itemPath, itemQuery] = item.href.split("?");
+    const isActive = itemQuery
+      ? pathname === itemPath && searchParams.toString() === itemQuery
+      : pathname === item.href || (item.href !== "/dashboard" && pathname.startsWith(item.href));
+
+    const showUnreadDot = item.href === "/inbox" && totalUnread > 0 && !isActive;
+
+    // Unlike the inbox dot, the notifications count stays visible even
+    // while the page is active — it reflects unread state (cleared by
+    // marking notifications read), not "currently viewing this section".
+    const showNotificationBadge = item.href === "/notifications" && unreadNotifications > 0;
+
+    const isLocked = item.feature ? !featureAccess[item.feature] : false;
+
+    return (
+      <li key={item.href}>
+        <Link
+          href={item.href}
+          className={cn(
+            // Taller on mobile so fingers can hit the row reliably (≥44px).
+            "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors lg:py-2",
+            isActive
+              ? "bg-primary/10 text-primary"
+              : "text-muted-foreground hover:bg-muted hover:text-foreground",
+          )}
+        >
+          <item.icon className="h-4 w-4" />
+          <span className="flex-1">{t(item.labelKey as string)}</span>
+          {isLocked && <Lock className="size-3.5 shrink-0 text-muted-foreground/60" />}
+          {item.beta && (
+            <span
+              aria-label={t("beta")}
+              className="rounded-full border border-amber-500/40 bg-amber-500/10 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wider text-amber-300"
+            >
+              {t("beta")}
+            </span>
+          )}
+          {showUnreadDot && (
+            <span
+              aria-label={t("unreadConversations", { count: totalUnread })}
+              className="relative flex h-2 w-2"
+            >
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75" />
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-primary" />
+            </span>
+          )}
+          {showNotificationBadge && (
+            <span
+              aria-label={t("unreadNotifications", { count: unreadNotifications })}
+              className="flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-semibold text-primary-foreground"
+            >
+              {unreadNotifications > 9 ? "9+" : unreadNotifications}
+            </span>
+          )}
+        </Link>
+      </li>
+    );
+  }
+
   return (
     <>
       {/* Backdrop — only exists on mobile and only when open. Clicking
@@ -218,71 +292,53 @@ export function Sidebar({ open = false, onClose }: SidebarProps) {
 
         {/* Main navigation */}
         <nav className="flex-1 overflow-y-auto px-3 py-4">
-          <ul className="flex flex-col gap-1">
-            {orderedNavItems.map((item) => {
-              const [itemPath, itemQuery] = item.href.split("?");
-              const isActive = itemQuery
-                ? pathname === itemPath && searchParams.toString() === itemQuery
-                : pathname === item.href ||
-                  (item.href !== "/dashboard" && pathname.startsWith(item.href));
+          {dashboardItem && (
+            <ul className="flex flex-col gap-1">{renderNavRow(dashboardItem)}</ul>
+          )}
 
-              const showUnreadDot =
-                item.href === "/inbox" && totalUnread > 0 && !isActive;
+          {/* Zen — pinned next to Panel, rendered as an elevated card
+              (not a plain row) since it's the product's AI
+              differentiator, not just one more menu entry. Same
+              soft-primary treatment as the "Prioridades de hoy" panel
+              on the dashboard, for a consistent visual language. */}
+          {copilotItem && (
+            <Link
+              href={copilotItem.href}
+              className={cn(
+                "mt-1 flex items-center gap-3 rounded-xl border border-primary/25 bg-primary/5 p-2.5 transition-colors hover:bg-primary/10",
+                pathname.startsWith(copilotItem.href) && "border-primary/40 bg-primary/10",
+              )}
+            >
+              <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/15 text-primary">
+                <Sparkles className="size-5" />
+              </span>
+              <span className="flex-1 text-sm font-semibold text-foreground">
+                {t(copilotItem.labelKey as string)}
+              </span>
+              {copilotItem.feature && !featureAccess[copilotItem.feature] && (
+                <Lock className="size-3.5 shrink-0 text-muted-foreground/60" />
+              )}
+              {copilotItem.beta && (
+                <span
+                  aria-label={t("beta")}
+                  className="rounded-full border border-amber-500/40 bg-amber-500/10 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wider text-amber-300"
+                >
+                  {t("beta")}
+                </span>
+              )}
+            </Link>
+          )}
 
-              // Unlike the inbox dot, the notifications count stays visible
-              // even while the page is active — it reflects unread state
-              // (cleared by marking notifications read), not "currently
-              // viewing this section".
-              const showNotificationBadge =
-                item.href === "/notifications" && unreadNotifications > 0;
-
-              const isLocked = item.feature ? !featureAccess[item.feature] : false;
-
-              return (
-                <li key={item.href}>
-                  <Link
-                    href={item.href}
-                    className={cn(
-                      // Taller on mobile so fingers can hit the row reliably (≥44px).
-                      "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors lg:py-2",
-                      isActive
-                        ? "bg-primary/10 text-primary"
-                        : "text-muted-foreground hover:bg-muted hover:text-foreground",
-                    )}
-                  >
-                    <item.icon className="h-4 w-4" />
-                    <span className="flex-1">{t(item.labelKey as string)}</span>
-                    {isLocked && <Lock className="size-3.5 shrink-0 text-muted-foreground/60" />}
-                    {item.beta && (
-                      <span
-                        aria-label={t("beta")}
-                        className="rounded-full border border-amber-500/40 bg-amber-500/10 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wider text-amber-300"
-                      >
-                        {t("beta")}
-                      </span>
-                    )}
-                    {showUnreadDot && (
-                      <span
-                        aria-label={t("unreadConversations", { count: totalUnread })}
-                        className="relative flex h-2 w-2"
-                      >
-                        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75" />
-                        <span className="relative inline-flex h-2 w-2 rounded-full bg-primary" />
-                      </span>
-                    )}
-                    {showNotificationBadge && (
-                      <span
-                        aria-label={t("unreadNotifications", { count: unreadNotifications })}
-                        className="flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-semibold text-primary-foreground"
-                      >
-                        {unreadNotifications > 9 ? "9+" : unreadNotifications}
-                      </span>
-                    )}
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
+          {navGroups.map(({ group, items }) =>
+            items.length === 0 ? null : (
+              <div key={group} className="mt-4">
+                <p className="mb-1 px-3 text-[11px] font-medium tracking-wider text-muted-foreground uppercase">
+                  {t(`group_${group}`)}
+                </p>
+                <ul className="flex flex-col gap-1">{items.map((item) => renderNavRow(item))}</ul>
+              </div>
+            ),
+          )}
 
           <div className="my-4 border-t border-border" />
 

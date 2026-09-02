@@ -6,6 +6,15 @@
 // truth for the item list, also consumed by sidebar.tsx). A
 // per-person preference, not an account setting — see
 // 048_profile_nav_order.sql.
+//
+// Panel and Zen are pinned (not reorderable, matching sidebar.tsx's
+// own elevated treatment for Zen) — everything else is grouped into
+// Atención / Operación / Configuración, each its own independent drag
+// list (a separate DndContext per group) so an item can never be
+// dragged across a group boundary, matching how the real sidebar
+// renders fixed sections. `applyNavOrder` (nav-items.ts) already knows
+// how to re-bucket a saved flat order by group, so persisting is still
+// just one flat array of hrefs — no storage-shape change.
 // ============================================================
 
 import { useEffect, useState } from "react";
@@ -31,7 +40,7 @@ import { useTranslations } from "next-intl";
 
 import { createClient } from "@/lib/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
-import { navItems, applyNavOrder, type NavItem } from "@/lib/nav-items";
+import { navItems, applyNavOrder, NAV_GROUP_ORDER, type NavItem, type NavGroup } from "@/lib/nav-items";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -41,17 +50,28 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 
+function splitByGroup(ordered: NavItem[]): Record<NavGroup, NavItem[]> {
+  return {
+    atencion: ordered.filter((i) => i.group === "atencion"),
+    operacion: ordered.filter((i) => i.group === "operacion"),
+    configuracion: ordered.filter((i) => i.group === "configuracion"),
+  };
+}
+
+const defaultGroups = splitByGroup(navItems);
+const pinnedItems = navItems.filter((i) => !i.group);
+
 export function NavOrderEditor() {
   const t = useTranslations("Settings.profile");
   const tNav = useTranslations("Sidebar");
   const { user, profile, refreshProfile } = useAuth();
   const supabase = createClient();
 
-  const [items, setItems] = useState<NavItem[]>(navItems);
+  const [groups, setGroups] = useState<Record<NavGroup, NavItem[]>>(defaultGroups);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    setItems(applyNavOrder(navItems, profile?.nav_order));
+    setGroups(splitByGroup(applyNavOrder(navItems, profile?.nav_order)));
   }, [profile?.nav_order]);
 
   // Both sensors so the drag handle is reliable on mouse (PointerSensor,
@@ -64,21 +84,34 @@ export function NavOrderEditor() {
     useSensor(TouchSensor, { activationConstraint: { delay: 150, tolerance: 5 } }),
   );
 
-  const isDefaultOrder = items.every((item, i) => item.href === navItems[i]?.href);
+  const isDefaultOrder = NAV_GROUP_ORDER.every((g) =>
+    groups[g].every((item, i) => item.href === defaultGroups[g][i]?.href),
+  );
 
-  function handleReorder(event: DragEndEvent) {
-    const { active, over } = event;
-    if (!over || active.id === over.id) return;
-    const oldIndex = items.findIndex((i) => i.href === active.id);
-    const newIndex = items.findIndex((i) => i.href === over.id);
-    if (oldIndex < 0 || newIndex < 0) return;
-    setItems(arrayMove(items, oldIndex, newIndex));
+  function handleReorder(group: NavGroup) {
+    return (event: DragEndEvent) => {
+      const { active, over } = event;
+      if (!over || active.id === over.id) return;
+      setGroups((prev) => {
+        const list = prev[group];
+        const oldIndex = list.findIndex((i) => i.href === active.id);
+        const newIndex = list.findIndex((i) => i.href === over.id);
+        if (oldIndex < 0 || newIndex < 0) return prev;
+        return { ...prev, [group]: arrayMove(list, oldIndex, newIndex) };
+      });
+    };
   }
 
-  async function persist(order: string[] | null) {
+  async function persist(nextGroups: Record<NavGroup, NavItem[]> | null) {
     if (!user) return;
     setSaving(true);
     try {
+      const order = nextGroups
+        ? [
+            ...pinnedItems.map((i) => i.href),
+            ...NAV_GROUP_ORDER.flatMap((g) => nextGroups[g].map((i) => i.href)),
+          ]
+        : null;
       const { error } = await supabase
         .from("profiles")
         .update({ nav_order: order })
@@ -103,22 +136,46 @@ export function NavOrderEditor() {
         </CardTitle>
         <CardDescription className="text-muted-foreground">{t("navOrderDesc")}</CardDescription>
       </CardHeader>
-      <CardContent className="space-y-3">
-        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleReorder}>
-          <SortableContext items={items.map((i) => i.href)} strategy={verticalListSortingStrategy}>
-            <div className="space-y-1.5">
-              {items.map((item) => (
-                <SortableNavRow key={item.href} item={item} label={tNav(item.labelKey)} dragLabel={t("navOrderDrag")} />
-              ))}
+      <CardContent className="space-y-4">
+        <div className="space-y-1.5">
+          {pinnedItems.map((item) => (
+            <div
+              key={item.href}
+              className="flex items-center gap-2 rounded-lg border border-dashed border-border bg-muted/20 px-2.5 py-2 text-muted-foreground"
+            >
+              <item.icon className="size-4" />
+              <span className="text-sm">{tNav(item.labelKey)}</span>
             </div>
-          </SortableContext>
-        </DndContext>
+          ))}
+        </div>
+
+        {NAV_GROUP_ORDER.map((group) => (
+          <div key={group} className="space-y-1.5">
+            <p className="px-1 text-[11px] font-medium tracking-wider text-muted-foreground uppercase">
+              {tNav(`group_${group}`)}
+            </p>
+            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleReorder(group)}>
+              <SortableContext items={groups[group].map((i) => i.href)} strategy={verticalListSortingStrategy}>
+                <div className="space-y-1.5">
+                  {groups[group].map((item) => (
+                    <SortableNavRow
+                      key={item.href}
+                      item={item}
+                      label={tNav(item.labelKey)}
+                      dragLabel={t("navOrderDrag")}
+                    />
+                  ))}
+                </div>
+              </SortableContext>
+            </DndContext>
+          </div>
+        ))}
 
         <div className="flex items-center gap-2 pt-1">
           <Button
             type="button"
             size="sm"
-            onClick={() => persist(items.map((i) => i.href))}
+            onClick={() => persist(groups)}
             disabled={saving}
             className="bg-primary text-xs text-primary-foreground hover:bg-primary/90"
           >
@@ -130,7 +187,7 @@ export function NavOrderEditor() {
             variant="outline"
             size="sm"
             onClick={() => {
-              setItems(navItems);
+              setGroups(defaultGroups);
               void persist(null);
             }}
             disabled={saving || isDefaultOrder}

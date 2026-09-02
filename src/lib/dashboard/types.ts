@@ -52,6 +52,8 @@ export interface TodayAppointmentItem {
   startAt: string
   endAt: string
   status: 'pending' | 'confirmed' | 'completed' | 'cancelled' | 'no_show'
+  /** Null only for the rare orphaned appointment with no linked contact. */
+  contactId: string | null
   patientName: string | null
   doctorName: string | null
   serviceTypeName: string | null

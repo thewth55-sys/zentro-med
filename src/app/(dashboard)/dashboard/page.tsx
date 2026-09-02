@@ -37,6 +37,7 @@ import { QuickActions } from '@/components/dashboard/quick-actions'
 import { ConversationsChart } from '@/components/dashboard/conversations-chart'
 import { TodayAppointments } from '@/components/dashboard/today-appointments'
 import { DashboardHero } from '@/components/dashboard/dashboard-hero'
+import { PrioritiesPanel } from '@/components/dashboard/priorities-panel'
 import { ResponseTimeChart } from '@/components/dashboard/response-time-chart'
 import { ActivityFeed } from '@/components/dashboard/activity-feed'
 import { AnnouncementsCarousel } from '@/components/dashboard/announcements-carousel'
@@ -125,6 +126,15 @@ export default function DashboardPage() {
     loadAll()
   }, [loadAll])
 
+  // "En consulta ahora" — derivado del día ya cargado (start_at <= now <=
+  // end_at, sin contar citas canceladas/no-show), cero queries nuevas.
+  // Deliberadamente NO memoizado: "ahora" avanza en cada render, así que
+  // cachear el resultado dejaría la tarjeta pegada a una cita que ya
+  // terminó hasta el próximo cambio de `todayAppointments`. `Date.now()`
+  // es una función impura y useMemo exige pureza, así que esto se
+  // recalcula (barato — un solo array.find) en cada render en su lugar.
+  const currentAppointment = findCurrentAppointment(todayAppointments)
+
   // Range switch handler — kept in an event callback (not an effect)
   // so the setState calls stay out of the react-hooks/set-state-in-effect
   // rule's way. The cached bucket check means switching back to a
@@ -145,13 +155,26 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-5">
-      {/* Hero: saludo + próxima cita + recomendaciones de Zen incorporadas */}
-      <DashboardHero nextAppointment={nextAppointment} nextAppointmentLoading={nextAppointmentLoading} />
+      {/* Hero: saludo + próxima cita + en consulta ahora */}
+      <DashboardHero
+        nextAppointment={nextAppointment}
+        nextAppointmentLoading={nextAppointmentLoading}
+        currentAppointment={currentAppointment}
+      />
 
-      {/* Admin-controlled promos/announcements */}
+      {/* Prioridades de hoy: citas sin confirmar + presupuestos sin respuesta */}
+      <PrioritiesPanel todayAppointments={todayAppointments} loading={todayAppointmentsLoading} />
+
+      {/* Tu día — antes compartía fila con el chart de conversaciones; se
+          promueve a fila propia de ancho completo. */}
+      <TodayAppointments items={todayAppointments} loading={todayAppointmentsLoading} />
+
+      {/* Admin-controlled promos/announcements — demovido debajo del
+          contenido accionable, no antes. */}
       <AnnouncementsCarousel />
 
-      {/* Metric cards */}
+      {/* Metric cards — demovidas: ya no son lo primero que se ve.
+          "Ingresos cobrados" pasa a tarjeta secundaria en vez de titular. */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {metricsLoading || !metrics ? (
           Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} />)
@@ -237,26 +260,14 @@ export default function DashboardPage() {
       {/* Quick actions */}
       <QuickActions />
 
-      {/* Charts row */}
-      {/* items-stretch (the grid default) stretches the two columns to
-          match the tallest sibling; adding h-full on each wrapper and
-          on the inner panels makes both cards actually fill that
-          stretched height so their rounded borders line up. Without
-          this, the appointments card rendered at its natural (shorter)
-          height while the line chart drove the row height. */}
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-5">
-        <div className="h-full lg:col-span-3">
-          <ConversationsChart
-            series={series}
-            loading={seriesLoading}
-            range={range}
-            onRangeChange={handleRangeChange}
-          />
-        </div>
-        <div className="h-full lg:col-span-2">
-          <TodayAppointments items={todayAppointments} loading={todayAppointmentsLoading} />
-        </div>
-      </div>
+      {/* Conversaciones — analítica de WhatsApp, ya no comparte fila con
+          Tu día (promovida arriba a su propia fila de ancho completo). */}
+      <ConversationsChart
+        series={series}
+        loading={seriesLoading}
+        range={range}
+        onRangeChange={handleRangeChange}
+      />
 
       {/* Response time */}
       <ResponseTimeChart data={responseTime} loading={responseTimeLoading} />
@@ -273,4 +284,17 @@ function deltaLabel(delta: number, suffix: string, noChangeLabel: string): strin
   if (delta === 0) return noChangeLabel
   const sign = delta > 0 ? '+' : ''
   return `${sign}${delta.toLocaleString()} ${suffix}`
+}
+
+function findCurrentAppointment(items: TodayAppointmentItem[] | null): TodayAppointmentItem | null {
+  if (!items) return null
+  const now = Date.now()
+  return (
+    items.find((appt) => {
+      if (appt.status === 'cancelled' || appt.status === 'no_show') return false
+      const start = new Date(appt.startAt).getTime()
+      const end = new Date(appt.endAt).getTime()
+      return start <= now && now <= end
+    }) ?? null
+  )
 }

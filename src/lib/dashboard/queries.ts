@@ -286,7 +286,7 @@ export async function loadTodayAppointments(db: DB): Promise<TodayAppointmentIte
   const { data, error } = await db
     .from('appointments')
     .select(
-      'id, start_at, end_at, status, contact:contacts(name, phone), doctor:doctors(name), service_type:service_types(name)',
+      'id, start_at, end_at, status, contact_id, contact:contacts(name, phone), doctor:doctors(name), service_type:service_types(name)',
     )
     .gte('start_at', todayStart)
     .lt('start_at', tomorrowStart)
@@ -298,6 +298,7 @@ export async function loadTodayAppointments(db: DB): Promise<TodayAppointmentIte
     start_at: string
     end_at: string
     status: TodayAppointmentItem['status']
+    contact_id: string | null
     contact: { name: string | null; phone: string }[] | { name: string | null; phone: string } | null
     doctor: { name: string }[] | { name: string } | null
     service_type: { name: string }[] | { name: string } | null
@@ -310,6 +311,7 @@ export async function loadTodayAppointments(db: DB): Promise<TodayAppointmentIte
       startAt: row.start_at,
       endAt: row.end_at,
       status: row.status,
+      contactId: row.contact_id,
       patientName: contact?.name || contact?.phone || null,
       doctorName: doctor?.name ?? null,
       serviceTypeName: serviceType?.name ?? null,
@@ -326,7 +328,7 @@ export async function loadNextAppointment(db: DB): Promise<TodayAppointmentItem 
   const { data, error } = await db
     .from('appointments')
     .select(
-      'id, start_at, end_at, status, contact:contacts(name, phone), doctor:doctors(name), service_type:service_types(name)',
+      'id, start_at, end_at, status, contact_id, contact:contacts(name, phone), doctor:doctors(name), service_type:service_types(name)',
     )
     .gte('start_at', now)
     .neq('status', 'cancelled')
@@ -339,6 +341,7 @@ export async function loadNextAppointment(db: DB): Promise<TodayAppointmentItem 
     start_at: string
     end_at: string
     status: TodayAppointmentItem['status']
+    contact_id: string | null
     contact: { name: string | null; phone: string }[] | { name: string | null; phone: string } | null
     doctor: { name: string }[] | { name: string } | null
     service_type: { name: string }[] | { name: string } | null
@@ -353,6 +356,7 @@ export async function loadNextAppointment(db: DB): Promise<TodayAppointmentItem 
     startAt: row.start_at,
     endAt: row.end_at,
     status: row.status,
+    contactId: row.contact_id,
     patientName: contact?.name || contact?.phone || null,
     doctorName: doctor?.name ?? null,
     serviceTypeName: serviceType?.name ?? null,
