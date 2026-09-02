@@ -1,8 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Loader2 } from "lucide-react";
+import { Loader2, Receipt } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 import { createClient } from "@/lib/supabase/client";
@@ -14,7 +15,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
-import type { OdontogramTooth, PatientProfile, ToothCondition } from "@/types";
+import type { OdontogramTooth, PatientProfile, Product, ToothCondition } from "@/types";
 
 interface OdontogramTabProps {
   contactId: string;
@@ -67,6 +68,16 @@ interface ToothButtonProps {
   onSave: () => void;
   saving: boolean;
   t: (key: string, values?: Record<string, string | number>) => string;
+  // "Odontograma accionable": una vez guardado el hallazgo, el médico
+  // puede elegir un producto/servicio del catálogo y mandarlo a una
+  // cotización nueva sin salir del diente.
+  products: Product[];
+  draftProductId: string;
+  onDraftProductIdChange: (productId: string) => void;
+  draftUnitPrice: string;
+  onDraftUnitPriceChange: (price: string) => void;
+  onAddToQuote: () => void;
+  addingToQuote: boolean;
 }
 
 // Module-level, NOT declared inside OdontogramTab — a component
@@ -92,6 +103,13 @@ function ToothButton({
   onSave,
   saving,
   t,
+  products,
+  draftProductId,
+  onDraftProductIdChange,
+  draftUnitPrice,
+  onDraftUnitPriceChange,
+  onAddToQuote,
+  addingToQuote,
 }: ToothButtonProps) {
   const condition = tooth?.condition ?? "healthy";
   return (
@@ -152,6 +170,56 @@ function ToothButton({
           {saving ? <Loader2 className="size-3.5 animate-spin" /> : null}
           {t("save")}
         </Button>
+
+        {/* Solo aparece una vez que el hallazgo ya está guardado — la
+            línea de cotización necesita el id real del diente para
+            poder ligarse a él. */}
+        {tooth?.id && (
+          <div className="space-y-1.5 border-t border-border pt-3">
+            <Label className="text-xs text-muted-foreground">{t("suggestedTreatment")}</Label>
+            <Select
+              value={draftProductId}
+              onValueChange={(v) => {
+                if (!v) return;
+                onDraftProductIdChange(v);
+                const product = products.find((p) => p.id === v);
+                if (product) onDraftUnitPriceChange(String(product.unit_price));
+              }}
+            >
+              <SelectTrigger className="h-8 text-sm">
+                <SelectValue placeholder={t("selectTreatment")}>
+                  {(value: string) => products.find((p) => p.id === value)?.name ?? t("selectTreatment")}
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                {products.map((p) => (
+                  <SelectItem key={p.id} value={p.id}>
+                    {p.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Input
+              type="number"
+              min={0}
+              step="0.01"
+              value={draftUnitPrice}
+              onChange={(e) => onDraftUnitPriceChange(e.target.value)}
+              placeholder={t("costPlaceholder")}
+              className="h-8 text-sm"
+            />
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={onAddToQuote}
+              disabled={addingToQuote || !draftProductId}
+              className="w-full"
+            >
+              {addingToQuote ? <Loader2 className="size-3.5 animate-spin" /> : <Receipt className="size-3.5" />}
+              {t("addToQuote")}
+            </Button>
+          </div>
+        )}
       </PopoverContent>
     </Popover>
   );
@@ -167,6 +235,7 @@ export function OdontogramTab({ contactId }: OdontogramTabProps) {
   const t = useTranslations("Contacts.detailView.odontogramTab");
   const supabase = createClient();
   const { accountId } = useAuth();
+  const router = useRouter();
 
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<PatientProfile | null>(null);
@@ -176,6 +245,12 @@ export function OdontogramTab({ contactId }: OdontogramTabProps) {
   const [draftIcdCode, setDraftIcdCode] = useState("");
   const [draftNotes, setDraftNotes] = useState("");
   const [saving, setSaving] = useState(false);
+
+  // Odontograma accionable
+  const [products, setProducts] = useState<Product[]>([]);
+  const [draftProductId, setDraftProductId] = useState("");
+  const [draftUnitPrice, setDraftUnitPrice] = useState("");
+  const [addingToQuote, setAddingToQuote] = useState(false);
 
   const fetchTeeth = useCallback(
     async (patientProfileId: string) => {
@@ -196,12 +271,12 @@ export function OdontogramTab({ contactId }: OdontogramTabProps) {
     let cancelled = false;
     (async () => {
       setLoading(true);
-      const { data } = await supabase
-        .from("patient_profiles")
-        .select("*")
-        .eq("contact_id", contactId)
-        .maybeSingle();
+      const [{ data }, { data: productsData }] = await Promise.all([
+        supabase.from("patient_profiles").select("*").eq("contact_id", contactId).maybeSingle(),
+        supabase.from("products").select("*").eq("is_active", true).order("name"),
+      ]);
       if (cancelled) return;
+      setProducts((productsData ?? []) as Product[]);
       const p = (data ?? null) as PatientProfile | null;
       setProfile(p);
       if (p) await fetchTeeth(p.id);
@@ -217,6 +292,8 @@ export function OdontogramTab({ contactId }: OdontogramTabProps) {
     setDraftCondition(existing?.condition ?? "healthy");
     setDraftIcdCode(existing?.icd_code ?? "");
     setDraftNotes(existing?.notes ?? "");
+    setDraftProductId("");
+    setDraftUnitPrice("");
     setOpenTooth(toothNumber);
   }
 
@@ -246,12 +323,60 @@ export function OdontogramTab({ contactId }: OdontogramTabProps) {
       if (error) throw error;
       setTeeth((prev) => ({ ...prev, [openTooth]: data as OdontogramTooth }));
       toast.success(t("toothSaved"));
-      setOpenTooth(null);
+      // Ya NO cierra el popover — "odontograma accionable" necesita el
+      // id recién guardado del diente para poder ligarlo a una línea de
+      // cotización sin que el médico tenga que reabrir el mismo diente.
     } catch (err) {
       console.error("Save tooth error:", err);
       toast.error(t("toothSaveFailed"));
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function addToothToQuote() {
+    const tooth = openTooth !== null ? teeth[openTooth] : undefined;
+    const product = products.find((p) => p.id === draftProductId);
+    if (!tooth?.id || !product) return;
+
+    const unitPrice = Number(draftUnitPrice);
+    if (!Number.isFinite(unitPrice) || unitPrice < 0) {
+      toast.error(t("invalidCost"));
+      return;
+    }
+
+    setAddingToQuote(true);
+    try {
+      const res = await fetch("/api/billing/quotes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contact_id: contactId,
+          items: [
+            {
+              product_id: product.id,
+              description: t("quoteLineDescription", {
+                tooth: tooth.tooth_number,
+                condition: t(`conditions.${tooth.condition}`),
+                product: product.name,
+              }),
+              quantity: 1,
+              unit_price: unitPrice,
+              odontogram_tooth_id: tooth.id,
+            },
+          ],
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error || "failed");
+      toast.success(t("addedToQuote"));
+      setOpenTooth(null);
+      router.push("/billing");
+    } catch (err) {
+      console.error("Add tooth to quote error:", err);
+      toast.error(t("addToQuoteFailed"));
+    } finally {
+      setAddingToQuote(false);
     }
   }
 
@@ -273,6 +398,13 @@ export function OdontogramTab({ contactId }: OdontogramTabProps) {
       onSave: saveTooth,
       saving,
       t,
+      products,
+      draftProductId,
+      onDraftProductIdChange: setDraftProductId,
+      draftUnitPrice,
+      onDraftUnitPriceChange: setDraftUnitPrice,
+      onAddToQuote: addToothToQuote,
+      addingToQuote,
     };
   }
 

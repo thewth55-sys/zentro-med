@@ -99,9 +99,21 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Failed to create quote' }, { status: 500 });
     }
 
+    // odontogram_tooth_id no pasa por resolveBillingLines (esa función es
+    // compartida con facturas/cotizaciones y valida solo lo que ambas
+    // necesitan) — se toma directo del body por índice, ya que
+    // resolveBillingLines preserva 1:1 el orden de rawItems.
+    const rawItems = Array.isArray(body.items) ? body.items : [];
     const { data: items, error: itemsError } = await supabase
       .from('quote_items')
-      .insert(resolved.items.map((item) => ({ ...item, account_id: accountId, quote_id: quote.id })))
+      .insert(
+        resolved.items.map((item, i) => ({
+          ...item,
+          account_id: accountId,
+          quote_id: quote.id,
+          odontogram_tooth_id: rawItems[i]?.odontogram_tooth_id || null,
+        })),
+      )
       .select('*, product:products(*), tax:taxes(*)');
 
     if (itemsError) {
