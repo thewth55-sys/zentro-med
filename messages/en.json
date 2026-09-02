@@ -484,6 +484,7 @@
         "activity": "Activity",
         "notes": "Notes",
         "medical": "Medical",
+        "intake": "Intake",
         "guardians": "Guardians",
         "consent": "Consent forms",
         "odontogram": "Odontogram",

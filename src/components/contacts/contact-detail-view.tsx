@@ -12,6 +12,7 @@ import {
   type TemplateSendValues,
 } from '@/components/inbox/template-picker';
 import { MedicalTab } from '@/components/contacts/medical-tab';
+import { IntakeTab } from '@/components/contacts/intake-tab';
 import { GuardiansTab } from '@/components/contacts/guardians-tab';
 import { ConsentFormsTab } from '@/components/contacts/consent-forms-tab';
 import { OdontogramTab } from '@/components/contacts/odontogram-tab';
@@ -46,6 +47,7 @@ import {
   Stethoscope,
   FileSignature,
   Smile,
+  ClipboardList,
   Image as ImageIcon,
   CalendarClock,
   Receipt,
@@ -60,7 +62,7 @@ interface ContactDetailViewProps {
 }
 
 const DETAIL_TABS = [
-  'details', 'tags', 'notes', 'medical', 'guardians', 'consent', 'odontogram',
+  'details', 'tags', 'notes', 'medical', 'intake', 'guardians', 'consent', 'odontogram',
   'photos', 'appointments', 'billing', 'custom', 'deals',
 ];
 
@@ -511,6 +513,10 @@ export function ContactDetailView({ contactId }: ContactDetailViewProps) {
                   <Stethoscope className="size-4" />
                   {t('tabs.medical')}
                 </TabsTrigger>
+                <TabsTrigger value="intake" className="h-auto shrink-0 gap-1.5 px-3 py-2.5 text-muted-foreground data-active:text-primary">
+                  <ClipboardList className="size-4" />
+                  {t('tabs.intake')}
+                </TabsTrigger>
                 <TabsTrigger value="guardians" className="h-auto shrink-0 gap-1.5 px-3 py-2.5 text-muted-foreground data-active:text-primary">
                   <Users className="size-4" />
                   {t('tabs.guardians')}
@@ -755,6 +761,10 @@ export function ContactDetailView({ contactId }: ContactDetailViewProps) {
 
               <TabsContent value="medical" className="px-4 py-3">
                 {contactId && <MedicalTab contactId={contactId} />}
+              </TabsContent>
+
+              <TabsContent value="intake" className="px-4 py-3">
+                {contactId && <IntakeTab contactId={contactId} />}
               </TabsContent>
 
               {/* Odontogram Tab */}
