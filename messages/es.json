@@ -128,6 +128,7 @@
     "flows": "Flujos",
     "aiAgents": "Agentes IA",
     "copilot": "Zen",
+    "copilotSubtitle": "Copiloto clínico",
     "landing": "Página web",
     "bookingPage": "Página de reserva",
     "settings": "Ajustes",
@@ -167,7 +168,8 @@
     "defaultAvatar": "Avatar",
     "menuProfile": "Perfil",
     "menuSettings": "Ajustes",
-    "menuSignOut": "Cerrar sesión"
+    "menuSignOut": "Cerrar sesión",
+    "newAppointment": "Nueva cita"
   },
   "ModeToggle": {
     "switchMode": "Cambiar a modo {mode}"
@@ -195,9 +197,9 @@
     },
     "quickActions": {
       "newContact": "Nuevo paciente",
-      "newDeal": "Nuevo negocio",
-      "newBroadcast": "Nueva difusión",
-      "newAutomation": "Nueva automatización"
+      "collectPayment": "Cobrar consulta",
+      "remindAppointments": "Recordar citas",
+      "askZen": "Preguntar a Zen"
     },
     "activityFeed": {
       "title": "Actividad reciente",

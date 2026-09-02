@@ -363,6 +363,27 @@ export async function loadNextAppointment(db: DB): Promise<TodayAppointmentItem 
   }
 }
 
+/** Suma de saldo pendiente (total - amount_paid) de facturas con
+ *  vencimiento hoy, sin contar borrador/anulada/pagada — "qué hay que
+ *  cobrar hoy", no "qué se cobró hoy". Dato real y ya existente
+ *  (invoices.due_date), no una cifra inventada — deliberadamente NO se
+ *  usa el precio de service_types→products porque ese vínculo es
+ *  opcional y en la práctica casi nunca está poblado (se confirmó
+ *  antes de construir esto), así que hubiera dado un número engañoso. */
+export async function loadTodayBilling(db: DB): Promise<number> {
+  const today = startOfLocalDay().toISOString().slice(0, 10)
+  const { data, error } = await db
+    .from('invoices')
+    .select('total, amount_paid, status')
+    .eq('due_date', today)
+    .not('status', 'in', '(draft,void,paid)')
+  if (error) throw error
+  return ((data ?? []) as Array<{ total: number; amount_paid: number }>).reduce(
+    (sum, inv) => sum + (Number(inv.total) - Number(inv.amount_paid)),
+    0,
+  )
+}
+
 // --- 4. Response time by day of week ----------------------------------
 
 export async function loadResponseTime(db: DB): Promise<ResponseTimeSummary> {

@@ -3,6 +3,7 @@
 import Link from "next/link";
 
 import { useAuth } from "@/hooks/use-auth";
+import { formatCurrency } from "@/lib/currency";
 import type { TodayAppointmentItem } from "@/lib/dashboard/types";
 
 interface Props {
@@ -12,16 +13,33 @@ interface Props {
    *  derived by the caller from the already-loaded today's-appointments
    *  list, no query of its own. */
   currentAppointment: TodayAppointmentItem | null;
+  /** Los 3 números que responden "qué necesito ver antes de la primera
+   *  consulta" — `null` mientras cargan. `todayBilling` es saldo de
+   *  facturas con vencimiento HOY (dato real, ver loadTodayBilling), no
+   *  una proyección a partir de precios de servicio sin poblar. */
+  citasHoyCount: number | null;
+  sinConfirmarCount: number | null;
+  todayBilling: number | null;
+  statsLoading: boolean;
 }
 
 /**
- * Hero del Panel: saludo al médico, "en consulta ahora" (si aplica) y la
- * próxima cita. Las recomendaciones de Zen que antes vivían aquí como una
- * banda embebida ahora son su propio módulo (`PrioritiesPanel`, montado
- * justo debajo en page.tsx) con datos reales en vez de un tip genérico.
+ * Hero del Panel: saludo al médico, los 3 números del día, "en consulta
+ * ahora" (si aplica) y la próxima cita. Las recomendaciones de Zen que
+ * antes vivían aquí como una banda embebida ahora son su propio módulo
+ * (`PrioritiesPanel`, montado justo debajo en page.tsx) con datos reales
+ * en vez de un tip genérico.
  */
-export function DashboardHero({ nextAppointment, nextAppointmentLoading, currentAppointment }: Props) {
-  const { profile } = useAuth();
+export function DashboardHero({
+  nextAppointment,
+  nextAppointmentLoading,
+  currentAppointment,
+  citasHoyCount,
+  sinConfirmarCount,
+  todayBilling,
+  statsLoading,
+}: Props) {
+  const { profile, defaultCurrency } = useAuth();
 
   const name = profile?.full_name?.trim();
   const title = profile?.title?.trim();
@@ -56,6 +74,23 @@ export function DashboardHero({ nextAppointment, nextAppointmentLoading, current
             </div>
           </div>
         ) : null}
+      </div>
+
+      <div className="relative mt-5 grid grid-cols-3 gap-3">
+        <div className="rounded-xl border border-white/15 bg-white/10 px-4 py-3">
+          <div className="text-[11px] text-emerald-100/70">Citas hoy</div>
+          <div className="text-2xl font-bold text-white">{statsLoading ? "—" : (citasHoyCount ?? 0)}</div>
+        </div>
+        <div className="rounded-xl border border-white/15 bg-white/10 px-4 py-3">
+          <div className="text-[11px] text-emerald-100/70">Por cobrar hoy</div>
+          <div className="text-2xl font-bold text-white">
+            {statsLoading ? "—" : formatCurrency(todayBilling ?? 0, defaultCurrency)}
+          </div>
+        </div>
+        <div className="rounded-xl border border-white/15 bg-white/10 px-4 py-3">
+          <div className="text-[11px] text-emerald-100/70">Sin confirmar</div>
+          <div className="text-2xl font-bold text-white">{statsLoading ? "—" : (sinConfirmarCount ?? 0)}</div>
+        </div>
       </div>
 
       {currentAppointment ? (

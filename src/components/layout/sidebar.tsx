@@ -287,8 +287,11 @@ export function Sidebar({ open = false, onClose }: SidebarProps) {
               <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/15 text-primary">
                 <Sparkles className="size-5" />
               </span>
-              <span className="flex-1 text-sm font-semibold text-foreground">
-                {t(copilotItem.labelKey as string)}
+              <span className="flex-1 min-w-0">
+                <span className="block text-sm font-semibold text-foreground">
+                  {t(copilotItem.labelKey as string)}
+                </span>
+                <span className="block truncate text-[11px] text-muted-foreground">{t("copilotSubtitle")}</span>
               </span>
               {copilotItem.feature && !featureAccess[copilotItem.feature] && (
                 <Lock className="size-3.5 shrink-0 text-muted-foreground/60" />

@@ -21,6 +21,7 @@ import {
   loadTodayAppointments,
   loadNextAppointment,
   loadResponseTime,
+  loadTodayBilling,
 } from '@/lib/dashboard/queries'
 import type {
   ActivityItem,
@@ -70,6 +71,9 @@ export default function DashboardPage() {
   const [nextAppointment, setNextAppointment] = useState<TodayAppointmentItem | null>(null)
   const [nextAppointmentLoading, setNextAppointmentLoading] = useState(true)
 
+  const [todayBilling, setTodayBilling] = useState<number | null>(null)
+  const [todayBillingLoading, setTodayBillingLoading] = useState(true)
+
   const [responseTime, setResponseTime] = useState<ResponseTimeSummary | null>(null)
   const [responseTimeLoading, setResponseTimeLoading] = useState(true)
 
@@ -107,6 +111,11 @@ export default function DashboardPage() {
       .then((a) => setNextAppointment(a))
       .catch((err) => console.error('[dashboard] next appointment failed:', err))
       .finally(() => setNextAppointmentLoading(false))
+
+    void loadTodayBilling(db)
+      .then((b) => setTodayBilling(b))
+      .catch((err) => console.error('[dashboard] today billing failed:', err))
+      .finally(() => setTodayBillingLoading(false))
 
     void loadResponseTime(db)
       .then((r) => setResponseTime(r))
@@ -153,31 +162,61 @@ export default function DashboardPage() {
     [series],
   )
 
+  const citasHoyCount = todayAppointments?.length ?? null
+  const sinConfirmarCount = todayAppointments?.filter((a) => a.status === 'pending').length ?? null
+
   return (
     <div className="space-y-5">
-      {/* Hero: saludo + próxima cita + en consulta ahora */}
+      {/* Hero: saludo + los 3 números que importan antes de la primera
+          consulta (citas hoy, sin confirmar, por cobrar hoy) + próxima
+          cita + en consulta ahora. */}
       <DashboardHero
         nextAppointment={nextAppointment}
         nextAppointmentLoading={nextAppointmentLoading}
         currentAppointment={currentAppointment}
+        citasHoyCount={citasHoyCount}
+        sinConfirmarCount={sinConfirmarCount}
+        todayBilling={todayBilling}
+        statsLoading={todayAppointmentsLoading || todayBillingLoading}
       />
 
-      {/* Prioridades de hoy: citas sin confirmar + presupuestos sin respuesta */}
-      <PrioritiesPanel todayAppointments={todayAppointments} loading={todayAppointmentsLoading} />
-
-      {/* Tu día — antes compartía fila con el chart de conversaciones; se
-          promueve a fila propia de ancho completo. */}
-      <TodayAppointments items={todayAppointments} loading={todayAppointmentsLoading} />
+      {/* Tu día (columna principal) + rail derecho con lo que el
+          assessment pidió agrupado ahí: prioridades, ingresos, accesos
+          rápidos — mismo layout de dos columnas que el mockup aprobado. */}
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+        <div className="lg:col-span-2">
+          <TodayAppointments items={todayAppointments} loading={todayAppointmentsLoading} />
+        </div>
+        <div className="space-y-4 lg:col-span-1">
+          <PrioritiesPanel todayAppointments={todayAppointments} loading={todayAppointmentsLoading} />
+          {metricsLoading || !metrics ? (
+            <SkeletonCard />
+          ) : (
+            <MetricCard
+              title={t('revenueCollected')}
+              accent="green"
+              spark={sparks?.revenue}
+              value={`${metrics.revenueCollectedRatio.current}%`}
+              icon={Receipt}
+              subtitle={t('revenueCollectedSubtitle', {
+                ratio: metrics.revenueCollectedRatio.current,
+                quoted: formatCurrency(metrics.revenueQuotedAmount, defaultCurrency),
+              })}
+            />
+          )}
+          <QuickActions />
+        </div>
+      </div>
 
       {/* Admin-controlled promos/announcements — demovido debajo del
           contenido accionable, no antes. */}
       <AnnouncementsCarousel />
 
-      {/* Metric cards — demovidas: ya no son lo primero que se ve.
-          "Ingresos cobrados" pasa a tarjeta secundaria en vez de titular. */}
+      {/* Métricas restantes — más CRM/marketing que clínicas del día a
+          día, se quedan demovidas hasta aquí. */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {metricsLoading || !metrics ? (
-          Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} />)
+          Array.from({ length: 5 }).map((_, i) => <SkeletonCard key={i} />)
         ) : (
           <>
             <MetricCard
@@ -189,8 +228,8 @@ export default function DashboardPage() {
               delta={{
                 sign: metrics.activeConversations.previous,
                 label: deltaLabel(
-                  metrics.activeConversations.previous, 
-                  t('newTodayVsYesterday'), 
+                  metrics.activeConversations.previous,
+                  t('newTodayVsYesterday'),
                   t('noChange', { suffix: t('newTodayVsYesterday') })
                 ),
               }}
@@ -226,17 +265,6 @@ export default function DashboardPage() {
               }}
             />
             <MetricCard
-              title={t('revenueCollected')}
-              accent="green"
-              spark={sparks?.revenue}
-              value={`${metrics.revenueCollectedRatio.current}%`}
-              icon={Receipt}
-              subtitle={t('revenueCollectedSubtitle', {
-                ratio: metrics.revenueCollectedRatio.current,
-                quoted: formatCurrency(metrics.revenueQuotedAmount, defaultCurrency),
-              })}
-            />
-            <MetricCard
               title={t('noShowRate')}
               accent="amber"
               value={`${metrics.noShowRate.current}%`}
@@ -256,9 +284,6 @@ export default function DashboardPage() {
           </>
         )}
       </div>
-
-      {/* Quick actions */}
-      <QuickActions />
 
       {/* Conversaciones — analítica de WhatsApp, ya no comparte fila con
           Tu día (promovida arriba a su propia fila de ancho completo). */}

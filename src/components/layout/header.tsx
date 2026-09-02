@@ -1,14 +1,18 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/hooks/use-auth";
-import { LogOut, Menu, Settings as SettingsIcon, User } from "lucide-react";
+import { useCan } from "@/hooks/use-can";
+import { createClient } from "@/lib/supabase/client";
+import { LogOut, Menu, Plus, Settings as SettingsIcon, User } from "lucide-react";
 import {
   Avatar,
   AvatarFallback,
   AvatarImage,
 } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -19,7 +23,9 @@ import {
 import { ModeToggle } from "@/components/layout/mode-toggle";
 import { LocaleToggle } from "@/components/layout/locale-toggle";
 import { HelpButton } from "@/components/layout/help-button";
+import { AppointmentEditorDialog, type AppointmentDraft } from "@/components/agenda/appointment-editor-dialog";
 import { navItems } from "@/lib/nav-items";
+import type { Doctor, Room, ServiceType } from "@/types";
 
 interface HeaderProps {
   /** Wired to the shell's drawer state. Used only on mobile — the
@@ -34,6 +40,37 @@ export function Header({ onOpenSidebar }: HeaderProps) {
   const tNav = useTranslations("Sidebar");
   const pathname = usePathname();
   const { profile, signOut } = useAuth();
+  const canCreateAppointment = useCan("send-messages");
+
+  // Scheduling resources for the "Nueva cita" quick-create — fetched
+  // lazily on first click rather than on every page load, since the
+  // header mounts on every screen but most visits never open this.
+  const [resourcesLoaded, setResourcesLoaded] = useState(false);
+  const [doctors, setDoctors] = useState<Doctor[]>([]);
+  const [rooms, setRooms] = useState<Room[]>([]);
+  const [serviceTypes, setServiceTypes] = useState<ServiceType[]>([]);
+  const [draft, setDraft] = useState<AppointmentDraft | null>(null);
+  const [editorOpen, setEditorOpen] = useState(false);
+
+  async function openNewAppointment() {
+    if (!resourcesLoaded) {
+      const supabase = createClient();
+      const [d, r, s] = await Promise.all([
+        supabase.from("doctors").select("*").eq("is_active", true).order("name"),
+        supabase.from("rooms").select("*").eq("is_active", true).order("name"),
+        supabase.from("service_types").select("*").eq("is_active", true).order("name"),
+      ]);
+      setDoctors((d.data ?? []) as Doctor[]);
+      setRooms((r.data ?? []) as Room[]);
+      setServiceTypes((s.data ?? []) as ServiceType[]);
+      setResourcesLoaded(true);
+    }
+    const start = new Date();
+    start.setMinutes(start.getMinutes() - (start.getMinutes() % 30) + 30, 0, 0);
+    const end = new Date(start.getTime() + 30 * 60000);
+    setDraft({ mode: "create", startAt: start.toISOString(), endAt: end.toISOString() });
+    setEditorOpen(true);
+  }
 
   // Título de la pantalla actual, tomado del nav real (así cada pantalla
   // muestra su propio nombre — incluido Zen — y no cae siempre a "Panel").
@@ -69,6 +106,12 @@ export function Header({ onOpenSidebar }: HeaderProps) {
       </div>
 
       <div className="flex items-center gap-1 sm:gap-2">
+        {canCreateAppointment && (
+          <Button type="button" size="sm" onClick={() => void openNewAppointment()} className="hidden sm:inline-flex">
+            <Plus className="size-3.5" />
+            {t("newAppointment")}
+          </Button>
+        )}
         <HelpButton />
         <ModeToggle />
         <LocaleToggle />
@@ -140,6 +183,19 @@ export function Header({ onOpenSidebar }: HeaderProps) {
         </DropdownMenuContent>
         </DropdownMenu>
       </div>
+
+      {canCreateAppointment && (
+        <AppointmentEditorDialog
+          open={editorOpen}
+          onOpenChange={setEditorOpen}
+          draft={draft}
+          doctors={doctors}
+          rooms={rooms}
+          serviceTypes={serviceTypes}
+          canEdit={canCreateAppointment}
+          onSaved={() => setEditorOpen(false)}
+        />
+      )}
     </header>
   );
 }
