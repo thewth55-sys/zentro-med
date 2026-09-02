@@ -2608,7 +2608,8 @@
         "deleteTitle": "Eliminar doctor",
         "deleteConfirm": "¿Eliminar a \"{name}\"? Las citas existentes conservan su historial; las nuevas ya no podrán asignársele.",
         "cancel": "Cancelar",
-        "deleting": "Eliminando..."
+        "deleting": "Eliminando...",
+        "intakeFormAria": "Configurar formulario de admisión de {name}"
       },
       "rooms": {
         "title": "Consultorios",

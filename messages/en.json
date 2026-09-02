@@ -2608,7 +2608,8 @@
         "deleteTitle": "Remove doctor",
         "deleteConfirm": "Remove \"{name}\"? Existing appointments keep their history; new ones can no longer be assigned to them.",
         "cancel": "Cancel",
-        "deleting": "Removing..."
+        "deleting": "Removing...",
+        "intakeFormAria": "Configure {name}'s intake form"
       },
       "rooms": {
         "title": "Exam rooms",

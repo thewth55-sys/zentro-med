@@ -1,8 +1,9 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { toast } from 'sonner';
-import { Loader2, Plus, UserRound, X } from 'lucide-react';
+import { ClipboardList, Loader2, Plus, UserRound, X } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/hooks/use-auth';
 import { useCan } from '@/hooks/use-can';
@@ -214,6 +215,14 @@ export function DoctorManager() {
                         onCheckedChange={() => toggleActive(doctor)}
                         disabled={!canEdit}
                       />
+                      <Link
+                        href={`/settings/doctors/${doctor.id}/intake-form`}
+                        aria-label={t('intakeFormAria', { name: doctor.name })}
+                        title={t('intakeFormAria', { name: doctor.name })}
+                        className="rounded-full p-1 text-muted-foreground opacity-60 transition-opacity hover:bg-black/10 hover:opacity-100 dark:hover:bg-white/10"
+                      >
+                        <ClipboardList className="size-3.5" />
+                      </Link>
                       <button
                         type="button"
                         onClick={() => confirmDelete(doctor)}

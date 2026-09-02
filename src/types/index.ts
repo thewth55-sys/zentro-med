@@ -1,5 +1,6 @@
 import type { AccountRole } from "@/lib/auth/roles";
 import type { InteractiveMessagePayload } from "@/lib/whatsapp/interactive";
+import type { IntakeFormConfig } from "@/lib/intake-forms/types";
 
 export type {
   InteractiveMessagePayload,
@@ -445,6 +446,8 @@ export interface Doctor {
   google_calendar_connected: boolean;
   google_calendar_id?: string | null;
   google_calendar_connected_at?: string | null;
+  /** Formulario de admisión de pacientes (premium) — null = sin configurar. */
+  intake_form_config?: IntakeFormConfig | null;
   created_at: string;
   updated_at?: string;
 }
