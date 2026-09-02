@@ -95,6 +95,14 @@ export function BookingWidget({
         setError(data.error || "No se pudo agendar la cita. Intenta de nuevo.");
         return;
       }
+      // La cita ya quedó creada en el servidor sin importar lo que
+      // pase de aquí en adelante — checkoutUrl solo aparece cuando la
+      // cuenta tiene un anticipo activo. Si viene, mandamos al
+      // visitante a pagar en vez de mostrar "confirmada" de una vez.
+      if (data.checkoutUrl) {
+        window.location.href = data.checkoutUrl;
+        return;
+      }
       setConfirmed(selectedSlot);
     } catch {
       setError("No se pudo agendar la cita. Intenta de nuevo.");

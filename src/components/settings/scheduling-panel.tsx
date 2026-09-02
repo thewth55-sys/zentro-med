@@ -9,6 +9,7 @@ import { ServiceTypeManager } from './service-type-manager';
 import { PublicBookingSettings } from './public-booking-settings';
 import { BusinessHoursManager } from './business-hours-manager';
 import { BookingPageEditor } from './booking-page-editor';
+import { PaymentGatewayEditor } from './payment-gateway-editor';
 import { SettingsPanelHead } from './settings-panel-head';
 
 /**
@@ -33,6 +34,9 @@ export function SchedulingPanel() {
       <PublicBookingSettings />
       <PlanGate feature="booking_page" featureLabel="Página de reserva personalizada">
         <BookingPageEditor />
+      </PlanGate>
+      <PlanGate feature="payment_gateway" featureLabel="Pasarela de pago (anticipo)">
+        <PaymentGatewayEditor />
       </PlanGate>
     </section>
   );

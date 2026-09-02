@@ -112,6 +112,9 @@ export function Sidebar({ open = false, onClose }: SidebarProps) {
     clinic_hours: useHasFeature("clinic_hours"),
     booking_page: useHasFeature("booking_page"),
     ai_copilot: useHasFeature("ai_copilot"),
+    // Sin ítem de nav propio (vive dentro de Ajustes → Agenda), mismo
+    // motivo que conversation_reminders arriba.
+    payment_gateway: useHasFeature("payment_gateway"),
   };
   // Only surface the account-name strip when it actually carries
   // information. A solo user's personal account is named after them

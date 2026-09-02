@@ -26,7 +26,8 @@ export type GatedFeature =
   | "conversation_reminders"
   | "clinic_hours"
   | "booking_page"
-  | "ai_copilot";
+  | "ai_copilot"
+  | "payment_gateway";
 
 export const GATED_FEATURES: GatedFeature[] = [
   "automations",
@@ -38,6 +39,7 @@ export const GATED_FEATURES: GatedFeature[] = [
   "clinic_hours",
   "booking_page",
   "ai_copilot",
+  "payment_gateway",
 ];
 
 export const FEATURE_LABEL: Record<GatedFeature, string> = {
@@ -50,6 +52,7 @@ export const FEATURE_LABEL: Record<GatedFeature, string> = {
   clinic_hours: "Horarios por consultorio",
   booking_page: "Página de reserva personalizada",
   ai_copilot: "Copiloto de IA",
+  payment_gateway: "Pasarela de pago (anticipo)",
 };
 
 /** `accounts.feature_overrides` — absent key falls back to the plan default. */
@@ -93,6 +96,11 @@ const FEATURE_MIN_PLAN: Record<GatedFeature, Plan[]> = {
   // datos de la cuenta + acciones con confirmación). Función premium que
   // consume tokens del proveedor de la cuenta → Profesional+.
   ai_copilot: ["profesional", "clinica"],
+  // Cobro de anticipo al reservar en línea (Stripe / Mercado Pago /
+  // Clip, según lo que traiga la cuenta). La reserva pública básica
+  // sigue gratis para todos; cobrar por adelantado es premium →
+  // Profesional+.
+  payment_gateway: ["profesional", "clinica"],
 };
 
 export function planHasFeature(plan: Plan, feature: GatedFeature): boolean {

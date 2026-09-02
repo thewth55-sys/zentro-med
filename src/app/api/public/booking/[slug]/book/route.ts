@@ -8,6 +8,8 @@ import type { Plan } from "@/lib/billing-platform/plans";
 import { notifyAccountTeam } from "@/lib/email/notify-team";
 import { escapeHtml } from "@/lib/email/branded-template";
 import { checkRateLimit, getClientIp, rateLimitResponse, RATE_LIMITS } from "@/lib/rate-limit";
+import { loadActivePaymentGatewayConfig } from "@/lib/payments/config";
+import { getPaymentAdapter } from "@/lib/payments/gateway";
 
 interface BookBody {
   doctor_id?: string;
@@ -30,6 +32,14 @@ interface BookBody {
  * took the slot, or staff booked it manually in between). Fails
  * closed on any mismatch rather than trusting the client-submitted
  * start/end.
+ *
+ * When the account has an active payment-gateway config (premium,
+ * see payment_gateway_configs), the appointment is still created here
+ * (as 'pending', same as always) but the response also carries a
+ * `checkoutUrl` — the widget redirects the visitor there to pay the
+ * deposit instead of showing "confirmed" immediately. The appointment
+ * itself doesn't have its own "deposit paid" status; that lives on
+ * the appointment_deposits row the three provider webhooks update.
  */
 export async function POST(
   request: Request,
@@ -202,5 +212,57 @@ export async function POST(
     bodyHtml: `<p><strong>${escapeHtml(body.name)}</strong> agendó una cita para <strong>${escapeHtml(startLabel)}</strong> con ${escapeHtml(doctor.name)} (${escapeHtml(serviceType.name)}).</p><p>Teléfono: ${escapeHtml(body.phone)}</p>`,
   });
 
-  return NextResponse.json({ appointment });
+  // Anticipo (premium, opcional): la cita ya quedó creada arriba
+  // igual que siempre; esto solo agrega un checkout externo encima.
+  // Si algo falla aquí, la cita sigue existiendo — mejor una cita sin
+  // cobro que perder la reserva por un error de la pasarela.
+  const gatewayConfig = await loadActivePaymentGatewayConfig(admin, account.id);
+  let checkoutUrl: string | null = null;
+  if (gatewayConfig && gatewayConfig.depositAmount > 0) {
+    try {
+      const siteUrl = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/+$/, "") || "https://med.zentrolabs.com";
+      const { data: depositRow, error: depositErr } = await admin
+        .from("appointment_deposits")
+        .insert({
+          account_id: account.id,
+          appointment_id: appointment.id,
+          provider: gatewayConfig.provider,
+          amount: gatewayConfig.depositAmount,
+          currency: gatewayConfig.currency,
+        })
+        .select("id, external_reference")
+        .single();
+      if (depositErr) throw depositErr;
+
+      const successUrl = `${siteUrl}/agendar/${encodeURIComponent(slug)}/confirmacion?deposit=${depositRow.external_reference}`;
+      const cancelUrl = `${siteUrl}/agendar/${encodeURIComponent(slug)}?deposit_canceled=1`;
+      const webhookUrl = `${siteUrl}/api/webhooks/payments/${gatewayConfig.provider}/${account.id}`;
+
+      const result = await getPaymentAdapter(gatewayConfig.provider).createCheckout(gatewayConfig.credentials, {
+        amount: gatewayConfig.depositAmount,
+        currency: gatewayConfig.currency,
+        description: `Anticipo — cita ${startLabel}`,
+        externalReference: depositRow.external_reference,
+        successUrl,
+        cancelUrl,
+        webhookUrl,
+        customerName: body.name,
+        customerPhone: body.phone,
+        customerEmail: body.email || undefined,
+      });
+
+      await admin
+        .from("appointment_deposits")
+        .update({ external_checkout_id: result.externalCheckoutId, checkout_url: result.checkoutUrl })
+        .eq("id", depositRow.id);
+
+      checkoutUrl = result.checkoutUrl;
+    } catch (err) {
+      console.error("[public booking] deposit checkout creation failed:", err);
+      // Swallow: the appointment stays booked, just without a deposit
+      // link. Staff can still see/confirm it manually.
+    }
+  }
+
+  return NextResponse.json({ appointment, checkoutUrl });
 }
