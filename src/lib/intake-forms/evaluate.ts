@@ -1,5 +1,5 @@
 import { evaluateConditionPredicate } from "@/lib/conditions/predicate";
-import type { IntakeField, IntakeFormPage } from "./types";
+import type { IntakeAnswerRecord, IntakeField, IntakeFormConfig, IntakeFormPage } from "./types";
 
 /**
  * Pure page-walking logic shared between the public wizard's
@@ -52,4 +52,35 @@ export function resolveNextPageId(
   }
   const index = pages.findIndex((p) => p.id === page.id);
   return index >= 0 && index < pages.length - 1 ? pages[index + 1].id : null;
+}
+
+/**
+ * Snapshots raw `{field_id: value}` answers into the denormalized
+ * shape stored in `intake_form_submissions.answers` — resolves
+ * single_choice answers (stored as option ids, for stable condition
+ * matching) to their human-readable option label, so the read-only
+ * Contacts viewer never has to re-look-up ids against a form config
+ * that may have since changed. Skips empty/unanswered fields.
+ */
+export function denormalizeAnswers(
+  config: IntakeFormConfig,
+  answers: Answers,
+): IntakeAnswerRecord[] {
+  const records: IntakeAnswerRecord[] = [];
+  for (const page of config.pages) {
+    for (const field of page.fields) {
+      const raw = answers[field.id];
+      if (!raw) continue;
+      const value =
+        field.type === "single_choice" ? ((field.options ?? []).find((o) => o.id === raw)?.label ?? raw) : raw;
+      records.push({
+        page_title: page.title,
+        field_id: field.id,
+        field_label: field.label,
+        field_type: field.type,
+        value,
+      });
+    }
+  }
+  return records;
 }

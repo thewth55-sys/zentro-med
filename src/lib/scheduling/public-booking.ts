@@ -6,6 +6,7 @@ import { computeClinicRanges } from "./business-hours";
 import { resolveFeatureAccess, type FeatureOverrides } from "@/lib/billing-platform/features";
 import type { Plan } from "@/lib/billing-platform/plans";
 import { loadPublicDepositInfo, type PublicDepositInfo } from "@/lib/payments/config";
+import { hasIntakeFormContent, type IntakeFormConfig } from "@/lib/intake-forms/types";
 
 /**
  * Server-only slot computation for the public booking widget
@@ -151,7 +152,14 @@ export interface PublicBookingConfig {
   accountLogoUrl: string | null;
   address: string | null;
   page: BookingPageConfig;
-  doctors: { id: string; name: string; specialty: string | null }[];
+  /** `hasIntakeForm` is always false when the account lacks the
+   *  intake_forms feature — the widget never even learns a form
+   *  exists for a downgraded account, matching the fail-open pattern
+   *  used for clinicHoursEnabled/bookingPageEnabled below. The actual
+   *  form questions are fetched lazily (lookup-patient route), not
+   *  shipped here — no reason to send every visitor every doctor's
+   *  full questionnaire before they've even picked one. */
+  doctors: { id: string; name: string; specialty: string | null; hasIntakeForm: boolean }[];
   serviceTypes: { id: string; name: string; duration_minutes: number }[];
   /** Consultorios activos (ubicaciones). El widget muestra un selector de
    *  ubicación solo cuando `clinicHoursEnabled` y hay al menos uno. */
@@ -187,7 +195,7 @@ export async function getPublicBookingConfig(
   const [{ data: doctors }, { data: serviceTypes }, { data: rooms }] = await Promise.all([
     admin
       .from("doctors")
-      .select("id, name, specialty")
+      .select("id, name, specialty, intake_form_config")
       .eq("account_id", account.id)
       .eq("is_active", true)
       .order("name"),
@@ -210,6 +218,7 @@ export async function getPublicBookingConfig(
   const bookingPageEnabled = resolveFeatureAccess(account.plan as Plan, "booking_page", overrides);
   const paymentGatewayEnabled = resolveFeatureAccess(account.plan as Plan, "payment_gateway", overrides);
   const deposit = paymentGatewayEnabled ? await loadPublicDepositInfo(admin, account.id) : null;
+  const intakeFormsEnabled = resolveFeatureAccess(account.plan as Plan, "intake_forms", overrides);
 
   return {
     accountId: account.id,
@@ -219,7 +228,12 @@ export async function getPublicBookingConfig(
     // La personalización solo se aplica si la cuenta tiene la feature premium;
     // si no, la página usa los valores por defecto (nombre + acento de marca).
     page: bookingPageEnabled ? ((account.booking_page as BookingPageConfig | null) ?? {}) : {},
-    doctors: doctors ?? [],
+    doctors: (doctors ?? []).map((d) => ({
+      id: d.id,
+      name: d.name,
+      specialty: d.specialty,
+      hasIntakeForm: intakeFormsEnabled && hasIntakeFormContent(d.intake_form_config as IntakeFormConfig | null),
+    })),
     serviceTypes: serviceTypes ?? [],
     rooms: rooms ?? [],
     clinicHoursEnabled,

@@ -10,6 +10,8 @@ import { escapeHtml } from "@/lib/email/branded-template";
 import { checkRateLimit, getClientIp, rateLimitResponse, RATE_LIMITS } from "@/lib/rate-limit";
 import { loadActivePaymentGatewayConfig } from "@/lib/payments/config";
 import { getPaymentAdapter } from "@/lib/payments/gateway";
+import { denormalizeAnswers, getMissingRequiredFieldIds, resolveNextPageId } from "@/lib/intake-forms/evaluate";
+import { hasIntakeFormContent, type IntakeFormConfig } from "@/lib/intake-forms/types";
 
 interface BookBody {
   doctor_id?: string;
@@ -19,6 +21,10 @@ interface BookBody {
   phone?: string;
   email?: string;
   room_id?: string;
+  /** Only meaningful for a NEW patient (no existing contact match) —
+   *  the doctor's intake form answers, keyed by field id. Ignored for
+   *  a returning patient even if present. */
+  intake_answers?: Array<{ field_id: string; value: string }>;
 }
 
 /**
@@ -101,7 +107,7 @@ export async function POST(
   const [{ data: doctor }, { data: serviceType }] = await Promise.all([
     admin
       .from("doctors")
-      .select("id, name")
+      .select("id, name, intake_form_config")
       .eq("id", body.doctor_id)
       .eq("account_id", account.id)
       .eq("is_active", true)
@@ -149,6 +155,40 @@ export async function POST(
   }
 
   const existingContact = await findExistingContact(admin, account.id, body.phone);
+  const isNewPatient = !existingContact;
+
+  // Server-side intake-form validation — the real trust boundary for
+  // an unauthenticated route. Walks the doctor's config the same way
+  // the client wizard does (shared src/lib/intake-forms/evaluate.ts),
+  // rejecting a new patient's submission when a currently-visible
+  // required field has no answer, regardless of what the client
+  // claimed. `visited` guards against an infinite loop if a malformed
+  // config has a page-jump cycle.
+  const intakeFormConfig = doctor.intake_form_config as IntakeFormConfig | null;
+  if (isNewPatient && intakeFormConfig && hasIntakeFormContent(intakeFormConfig)) {
+    const answers: Record<string, string> = {};
+    for (const a of body.intake_answers ?? []) {
+      if (a?.field_id) answers[a.field_id] = a.value ?? "";
+    }
+    const pages = intakeFormConfig.pages;
+    const visited = new Set<string>();
+    const missing: string[] = [];
+    let page: (typeof pages)[number] | null = pages[0] ?? null;
+    while (page && !visited.has(page.id)) {
+      visited.add(page.id);
+      missing.push(...getMissingRequiredFieldIds(page, answers));
+      if (missing.length > 0) break;
+      const nextId = resolveNextPageId(page, answers, pages);
+      page = nextId ? (pages.find((p) => p.id === nextId) ?? null) : null;
+    }
+    if (missing.length > 0) {
+      return NextResponse.json(
+        { error: "Faltan respuestas obligatorias en el formulario de admisión.", missing_field_ids: missing },
+        { status: 400 },
+      );
+    }
+  }
+
   let contactId: string;
   if (existingContact) {
     contactId = existingContact.id;
@@ -199,6 +239,35 @@ export async function POST(
   if (apptError) {
     console.error("[public booking] appointment create failed:", apptError);
     return NextResponse.json({ error: "Could not create appointment" }, { status: 500 });
+  }
+
+  // Formulario de admisión (nuevo paciente, opcional): la cita ya
+  // quedó creada arriba sin importar lo que pase de aquí en adelante
+  // — mejor una cita sin respuestas guardadas que perder la reserva.
+  // A diferencia del checkout de anticipo (más abajo), este fallo NO
+  // se traga en silencio: intakeSaveFailed llega en la respuesta para
+  // que el widget avise al paciente en vez de fingir éxito total —
+  // perder sin aviso datos de pre-evaluación clínica es peor que
+  // perder un link de pago.
+  let intakeSaveFailed = false;
+  if (isNewPatient && intakeFormConfig && body.intake_answers?.length) {
+    try {
+      const answers: Record<string, string> = {};
+      for (const a of body.intake_answers) {
+        if (a?.field_id) answers[a.field_id] = a.value ?? "";
+      }
+      const { error: submissionError } = await admin.from("intake_form_submissions").insert({
+        account_id: account.id,
+        contact_id: contactId,
+        doctor_id: doctor.id,
+        appointment_id: appointment.id,
+        answers: denormalizeAnswers(intakeFormConfig, answers),
+      });
+      if (submissionError) throw submissionError;
+    } catch (err) {
+      console.error("[public booking] intake form submission save failed:", err);
+      intakeSaveFailed = true;
+    }
   }
 
   const startLabel = new Intl.DateTimeFormat("es-MX", {
@@ -264,5 +333,5 @@ export async function POST(
     }
   }
 
-  return NextResponse.json({ appointment, checkoutUrl });
+  return NextResponse.json({ appointment, checkoutUrl, intakeSaveFailed });
 }

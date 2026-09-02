@@ -56,6 +56,33 @@ export async function findExistingContact(
 }
 
 /**
+ * Find an existing contact in `accountId` by exact (case-insensitive)
+ * email match — the fallback lookup for the public booking wizard's
+ * "have we seen this patient before" step when a visitor gives an
+ * email instead of/in addition to a phone. No fuzzy matching for
+ * email (unlike phone's trunk-prefix tolerance) — an email is either
+ * the same string or it isn't.
+ */
+export async function findExistingContactByEmail(
+  db: SupabaseClient,
+  accountId: string,
+  email: string,
+): Promise<ExistingContact | null> {
+  const normalized = email.trim().toLowerCase();
+  if (!normalized) return null;
+
+  const { data } = await db
+    .from("contacts")
+    .select("*")
+    .eq("account_id", accountId)
+    .ilike("email", normalized)
+    .limit(1)
+    .maybeSingle();
+
+  return (data as ExistingContact | null) ?? null;
+}
+
+/**
  * True when an existing contact is an *exact* normalized match for
  * `phone` (vs only a fuzzy trunk-variant match). The form hard-blocks
  * exact matches but only warns on fuzzy ones.

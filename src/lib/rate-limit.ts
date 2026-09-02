@@ -205,6 +205,13 @@ export const RATE_LIMITS = {
    *  error); tight because a successful call creates a real Contact +
    *  Appointment row with no other abuse gate in front of it. */
   publicBookingCreate: { limit: 5, windowMs: 60_000 },
+  /** Public booking widget's "have we seen this patient before" lookup,
+   *  per IP. Never returns identity (just found/hasName — see
+   *  lookup-patient/route.ts), but it's still a phone/email existence
+   *  oracle, so it's tighter than the read-only slots/config endpoints
+   *  and looser than the actual booking submit (a visitor may retype a
+   *  mistyped phone once or twice). */
+  publicBookingLookup: { limit: 20, windowMs: 60_000 },
   /** Public consent-signing link peek (per IP). Same 256-bit-token
    *  reasoning as invitationPeek — the retry allowance is for flaky
    *  connectivity, not because token guessing is a real risk. */
