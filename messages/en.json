@@ -129,6 +129,7 @@
     "aiAgents": "AI Agents",
     "copilot": "Zen",
     "landing": "Web page",
+    "bookingPage": "Booking page",
     "settings": "Settings",
     "beta": "Beta",
     "unreadConversations": "{count} unread {count, plural, =1 {conversation} other {conversations}}",

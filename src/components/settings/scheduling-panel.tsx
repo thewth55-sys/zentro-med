@@ -6,10 +6,7 @@ import { PlanGate } from '@/components/billing-platform/plan-gate';
 import { DoctorManager } from './doctor-manager';
 import { RoomManager } from './room-manager';
 import { ServiceTypeManager } from './service-type-manager';
-import { PublicBookingSettings } from './public-booking-settings';
 import { BusinessHoursManager } from './business-hours-manager';
-import { BookingPageEditor } from './booking-page-editor';
-import { PaymentGatewayEditor } from './payment-gateway-editor';
 import { SettingsPanelHead } from './settings-panel-head';
 
 /**
@@ -18,6 +15,11 @@ import { SettingsPanelHead } from './settings-panel-head';
  * the pipeline (see DealAppointmentPanel). Cal.com connection card
  * lands here once that integration is wired up on the settings side
  * (webhook receiver exists — see api/integrations/cal-com/webhook).
+ *
+ * The public booking page itself (activar/slug, personalización,
+ * anticipo) lives at its own top-level route, /booking-page — moved out
+ * of this tab so it gets its own sidebar entry instead of being buried
+ * under Ajustes → Agenda.
  */
 export function SchedulingPanel() {
   const t = useTranslations('Settings.scheduling');
@@ -30,13 +32,6 @@ export function SchedulingPanel() {
       <ServiceTypeManager />
       <PlanGate feature="clinic_hours" featureLabel="Horarios por consultorio">
         <BusinessHoursManager />
-      </PlanGate>
-      <PublicBookingSettings />
-      <PlanGate feature="booking_page" featureLabel="Página de reserva personalizada">
-        <BookingPageEditor />
-      </PlanGate>
-      <PlanGate feature="payment_gateway" featureLabel="Pasarela de pago (anticipo)">
-        <PaymentGatewayEditor />
       </PlanGate>
     </section>
   );

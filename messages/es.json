@@ -129,6 +129,7 @@
     "aiAgents": "Agentes IA",
     "copilot": "Zen",
     "landing": "Página web",
+    "bookingPage": "Página de reserva",
     "settings": "Ajustes",
     "beta": "Beta",
     "unreadConversations": "{count} {count, plural, =1 {conversación sin leer} other {conversaciones sin leer}}",

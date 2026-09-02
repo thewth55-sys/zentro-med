@@ -105,11 +105,17 @@ export function Sidebar({ open = false, onClose }: SidebarProps) {
     ai_autoreply: useHasFeature("ai_autoreply"),
     whatsapp_inbox: useHasFeature("whatsapp_inbox"),
     broadcasts: useHasFeature("broadcasts"),
+    // Sin ítem de nav propio desde que /landing dejó de tener entrada en
+    // el sidebar (reemplazada por /booking-page) — el Record debe seguir
+    // siendo exhaustivo sobre GatedFeature.
     landing_builder: useHasFeature("landing_builder"),
     // Sin ítem de nav propio (es un gate de fondo del cron), pero el Record
     // debe ser exhaustivo sobre GatedFeature.
     conversation_reminders: useHasFeature("conversation_reminders"),
     clinic_hours: useHasFeature("clinic_hours"),
+    // El ítem de nav /booking-page en sí no está gateado (ver nav-items.ts) —
+    // esta entrada sigue existiendo para que las PlanGate DENTRO de esa
+    // página (personalización, anticipo) puedan resolver el acceso.
     booking_page: useHasFeature("booking_page"),
     ai_copilot: useHasFeature("ai_copilot"),
     // Sin ítem de nav propio (vive dentro de Ajustes → Agenda), mismo

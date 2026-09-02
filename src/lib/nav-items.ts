@@ -14,8 +14,8 @@ import {
   Bot,
   CalendarClock,
   GitBranch,
-  Globe,
   LayoutDashboard,
+  Link2,
   Radio,
   Sparkles,
   Users,
@@ -61,7 +61,11 @@ export const navItems: NavItem[] = [
   { href: "/automations", labelKey: "automations", icon: Zap, feature: "automations" },
   { href: "/flows", labelKey: "flows", icon: Workflow, beta: true, feature: "automations" },
   { href: "/agents", labelKey: "aiAgents", icon: Bot, feature: "ai_autoreply" },
-  { href: "/landing", labelKey: "landing", icon: Globe, feature: "landing_builder" },
+  // Sin `feature` propio: la activación/slug (PublicBookingSettings) es
+  // gratis en todo plan, solo la personalización y el anticipo (dentro de
+  // /booking-page) están gateadas — bloquear el ítem entero ocultaría lo
+  // gratuito. Reemplaza al antiguo ítem "Sitio web" (/landing).
+  { href: "/booking-page", labelKey: "bookingPage", icon: Link2 },
 ];
 
 /**
