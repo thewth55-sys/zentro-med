@@ -135,6 +135,8 @@
     "group_atencion": "Atención",
     "group_operacion": "Operación",
     "group_configuracion": "Configuración",
+    "more": "Más",
+    "moreDesc": "El resto de las secciones, en el mismo orden que en escritorio.",
     "unreadConversations": "{count} {count, plural, =1 {conversación sin leer} other {conversaciones sin leer}}",
     "unreadNotifications": "{count} {count, plural, =1 {notificación sin leer} other {notificaciones sin leer}}",
     "roleOwner": "Propietario",

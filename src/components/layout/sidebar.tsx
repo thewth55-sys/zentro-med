@@ -24,8 +24,7 @@ import {
 } from "lucide-react";
 import type { AccountRole } from "@/lib/auth/roles";
 import { navItems, applyNavOrder, NAV_GROUP_ORDER, type NavItem } from "@/lib/nav-items";
-import { useHasFeature } from "@/hooks/use-has-feature";
-import type { GatedFeature } from "@/lib/billing-platform/features";
+import { useNavFeatureAccess } from "@/hooks/use-nav-feature-access";
 
 // Per-role chip metadata used in the sidebar's account strip + the
 // Members tab roster. Keeping this near both consumers in a single
@@ -108,34 +107,10 @@ export function Sidebar({ open = false, onClose }: SidebarProps) {
     group,
     items: orderedNavItems.filter((item) => item.group === group),
   }));
-  // Called at the top level rather than per-item inside the map below,
-  // since hooks can't be called conditionally/in a loop — one call per
-  // distinct gated feature in lib/billing-platform/features.ts.
-  const featureAccess: Record<GatedFeature, boolean> = {
-    automations: useHasFeature("automations"),
-    ai_autoreply: useHasFeature("ai_autoreply"),
-    whatsapp_inbox: useHasFeature("whatsapp_inbox"),
-    broadcasts: useHasFeature("broadcasts"),
-    // Sin ítem de nav propio desde que /landing dejó de tener entrada en
-    // el sidebar (reemplazada por /booking-page) — el Record debe seguir
-    // siendo exhaustivo sobre GatedFeature.
-    landing_builder: useHasFeature("landing_builder"),
-    // Sin ítem de nav propio (es un gate de fondo del cron), pero el Record
-    // debe ser exhaustivo sobre GatedFeature.
-    conversation_reminders: useHasFeature("conversation_reminders"),
-    clinic_hours: useHasFeature("clinic_hours"),
-    // El ítem de nav /booking-page en sí no está gateado (ver nav-items.ts) —
-    // esta entrada sigue existiendo para que las PlanGate DENTRO de esa
-    // página (personalización, anticipo) puedan resolver el acceso.
-    booking_page: useHasFeature("booking_page"),
-    ai_copilot: useHasFeature("ai_copilot"),
-    // Sin ítem de nav propio (vive dentro de Ajustes → Agenda), mismo
-    // motivo que conversation_reminders arriba.
-    payment_gateway: useHasFeature("payment_gateway"),
-    // Sin ítem de nav propio (vive dentro de la ficha de cada médico en
-    // Ajustes → Agenda), mismo motivo que payment_gateway arriba.
-    intake_forms: useHasFeature("intake_forms"),
-  };
+  // Compartido con mobile-tab-bar.tsx (su hoja "Más" necesita el mismo
+  // candado por feature) — un solo lugar, sin riesgo de que se
+  // desincronicen los dos.
+  const featureAccess = useNavFeatureAccess();
   // Only surface the account-name strip when it actually carries
   // information. A solo user's personal account is named after them
   // (the 017 signup trigger seeds it from `full_name`), so showing it

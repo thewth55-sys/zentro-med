@@ -249,6 +249,22 @@ export function CopilotChat() {
     setRecording(false);
   }
 
+  // Mantener presionado para grabar (no dos toques) — Pointer Events
+  // cubren mouse/touch/lápiz con un solo set de handlers. Se captura el
+  // puntero al presionar para que soltar el dedo FUERA de los límites
+  // del botón (un desliz natural con guantes) siga contando como
+  // "soltar" en vez de perder el evento — sin esto haría falta también
+  // un onPointerLeave que corta la grabación de golpe si el dedo se
+  // resbala un poco.
+  function handleMicPointerDown(e: React.PointerEvent<HTMLButtonElement>) {
+    if (loading || transcribing || recording) return;
+    e.currentTarget.setPointerCapture(e.pointerId);
+    void startRecording();
+  }
+  function handleMicPointerUp() {
+    if (recording) stopRecording();
+  }
+
   function stopAudio() {
     if (audioRef.current) {
       audioRef.current.pause();
@@ -556,7 +572,7 @@ export function CopilotChat() {
             <span className="absolute inline-flex size-full animate-ping rounded-full bg-destructive/70" />
             <span className="relative inline-flex size-2.5 rounded-full bg-destructive" />
           </span>
-          Grabando nota de voz… toca el micrófono para enviarla.
+          Grabando nota de voz… suelta el micrófono para enviarla.
         </div>
       ) : transcribing ? (
         <div className="mt-2 flex items-center gap-2 rounded-lg bg-muted px-3 py-2 text-sm text-muted-foreground">
@@ -582,24 +598,29 @@ export function CopilotChat() {
           }}
           rows={1}
           disabled={loading || recording}
-          placeholder={recording ? "Grabando… toca detener para transcribir" : "Escribe o dicta tu mensaje…"}
+          placeholder={recording ? "Grabando… suelta el micrófono para transcribir" : "Escribe o dicta tu mensaje…"}
           className="max-h-32 flex-1 resize-none rounded-xl border border-border bg-muted px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus-visible:border-primary focus-visible:outline-none disabled:opacity-60"
         />
         <Button
           type="button"
           variant={recording ? "destructive" : "outline"}
-          onClick={recording ? stopRecording : startRecording}
+          onPointerDown={handleMicPointerDown}
+          onPointerUp={handleMicPointerUp}
+          onPointerCancel={handleMicPointerUp}
           disabled={loading || transcribing}
-          className="h-11 shrink-0"
-          title={recording ? "Detener y transcribir" : "Dictar por voz"}
-          aria-label={recording ? "Detener grabación" : "Dictar por voz"}
+          // size-14 (~56px), alcanzable con el pulgar y con guantes —
+          // "cada pantalla cierra con un botón de ~54px" del assessment
+          // UX/UI aplicado aquí, sin tocar el resto de los controles.
+          className="size-14 shrink-0 touch-none rounded-full"
+          title={recording ? "Suelta para transcribir y enviar" : "Mantén presionado para dictar"}
+          aria-label={recording ? "Grabando — suelta para enviar" : "Mantén presionado para dictar por voz"}
         >
           {transcribing ? (
-            <Loader2 className="size-4 animate-spin" />
+            <Loader2 className="size-5 animate-spin" />
           ) : recording ? (
-            <Square className="size-4" />
+            <Square className="size-5" />
           ) : (
-            <Mic className="size-4" />
+            <Mic className="size-5" />
           )}
         </Button>
         <Button type="submit" disabled={loading || recording || !input.trim()} className="h-11 shrink-0">

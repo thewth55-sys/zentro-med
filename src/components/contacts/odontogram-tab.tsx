@@ -121,7 +121,7 @@ function ToothButton({
             onClick={() => onOpenEditor(number)}
             title={tooth?.notes ?? undefined}
             className={cn(
-              "flex size-9 shrink-0 items-center justify-center rounded-md border text-[11px] font-medium transition-colors hover:opacity-80",
+              "flex size-11 shrink-0 items-center justify-center rounded-md border text-[11px] font-medium transition-colors hover:opacity-80",
               CONDITION_STYLE[condition],
             )}
           />
