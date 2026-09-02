@@ -3,6 +3,7 @@
 import { PlanGate } from '@/components/billing-platform/plan-gate';
 import { PublicBookingSettings } from '@/components/settings/public-booking-settings';
 import { BookingPageEditor } from '@/components/settings/booking-page-editor';
+import { IntakeFormsSection } from '@/components/settings/intake-forms-section';
 import { PaymentGatewayEditor } from '@/components/settings/payment-gateway-editor';
 
 /**
@@ -26,6 +27,9 @@ export default function BookingPagePage() {
       <PublicBookingSettings />
       <PlanGate feature="booking_page" featureLabel="Página de reserva personalizada">
         <BookingPageEditor />
+      </PlanGate>
+      <PlanGate feature="intake_forms" featureLabel="Formulario de admisión de pacientes">
+        <IntakeFormsSection />
       </PlanGate>
       <PlanGate feature="payment_gateway" featureLabel="Pasarela de pago (anticipo)">
         <PaymentGatewayEditor />
