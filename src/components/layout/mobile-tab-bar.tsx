@@ -9,8 +9,6 @@ import { Lock, MoreHorizontal, Settings, ShieldCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { usePlatformAdmin } from "@/hooks/use-platform-admin";
 import { useNavFeatureAccess } from "@/hooks/use-nav-feature-access";
-import { useTotalUnread } from "@/hooks/use-total-unread";
-import { useUnreadNotifications } from "@/hooks/use-unread-notifications";
 import { navItems, NAV_GROUP_ORDER } from "@/lib/nav-items";
 import {
   Sheet,
@@ -26,11 +24,17 @@ import {
  *  — nada se esconde, solo se prioriza. */
 const PINNED_HREFS = ["/dashboard", "/agenda", "/contacts", "/inbox", "/copilot"];
 
-export function MobileTabBar() {
+interface MobileTabBarProps {
+  /** Lifted to DashboardShell — see the comment there for why this
+   *  can't be a local `useTotalUnread()`/`useUnreadNotifications()`
+   *  call (Sidebar and MobileTabBar mount at the same time). */
+  totalUnread: number;
+  unreadNotifications: number;
+}
+
+export function MobileTabBar({ totalUnread, unreadNotifications }: MobileTabBarProps) {
   const t = useTranslations("Sidebar");
   const pathname = usePathname();
-  const totalUnread = useTotalUnread();
-  const unreadNotifications = useUnreadNotifications();
   const { isPlatformAdmin } = usePlatformAdmin();
   const featureAccess = useNavFeatureAccess();
   const [moreOpen, setMoreOpen] = useState(false);

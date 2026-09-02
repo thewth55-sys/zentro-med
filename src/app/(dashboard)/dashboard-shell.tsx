@@ -3,6 +3,8 @@
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AuthProvider, useAuth } from "@/hooks/use-auth";
+import { useTotalUnread } from "@/hooks/use-total-unread";
+import { useUnreadNotifications } from "@/hooks/use-unread-notifications";
 import { Sidebar } from "@/components/layout/sidebar";
 import { Header } from "@/components/layout/header";
 import { MobileTabBar } from "@/components/layout/mobile-tab-bar";
@@ -29,6 +31,15 @@ function DashboardShellInner({ children }: { children: React.ReactNode }) {
   // always visible and this stays at `false` (ignored by the component).
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const closeSidebar = useCallback(() => setSidebarOpen(false), []);
+
+  // Hoisted here (not inside Sidebar/MobileTabBar) because both mount
+  // simultaneously — one hidden by CSS depending on viewport, not
+  // unmounted — so two independent hook instances would each open a
+  // realtime channel under the SAME name and the second `.on()` call
+  // would throw ("cannot add postgres_changes callbacks... after
+  // subscribe()"). One subscription, passed down as props, fixes it.
+  const totalUnread = useTotalUnread();
+  const unreadNotifications = useUnreadNotifications();
 
   useEffect(() => {
     if (!loading && !user) {
@@ -68,7 +79,12 @@ function DashboardShellInner({ children }: { children: React.ReactNode }) {
         <StartCheckoutRedirect />
         <PurchaseConversionTracker />
         <AccessLockOverlay />
-        <Sidebar open={sidebarOpen} onClose={closeSidebar} />
+        <Sidebar
+          open={sidebarOpen}
+          onClose={closeSidebar}
+          totalUnread={totalUnread}
+          unreadNotifications={unreadNotifications}
+        />
         <div className="flex flex-1 flex-col overflow-hidden">
           <Header onOpenSidebar={() => setSidebarOpen(true)} />
           <AccessBanner />
@@ -78,7 +94,7 @@ function DashboardShellInner({ children }: { children: React.ReactNode }) {
           <main className="flex-1 overflow-y-auto p-4 pb-20 sm:p-6 lg:pb-6">{children}</main>
         </div>
         <ZenBubble />
-        <MobileTabBar />
+        <MobileTabBar totalUnread={totalUnread} unreadNotifications={unreadNotifications} />
       </div>
     </BiometricLock>
   );

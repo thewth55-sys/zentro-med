@@ -5,8 +5,6 @@ import { usePathname, useSearchParams } from "next/navigation";
 import { useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/use-auth";
-import { useTotalUnread } from "@/hooks/use-total-unread";
-import { useUnreadNotifications } from "@/hooks/use-unread-notifications";
 import { usePlatformAdmin } from "@/hooks/use-platform-admin";
 import {
   CalendarClock,
@@ -84,17 +82,20 @@ interface SidebarProps {
   /** Controlled on mobile by the Header's hamburger button. Ignored on lg+. */
   open?: boolean;
   onClose?: () => void;
+  /** Lifted to DashboardShell — see the comment there for why this
+   *  can't be a local `useTotalUnread()`/`useUnreadNotifications()`
+   *  call (Sidebar and MobileTabBar mount at the same time). */
+  totalUnread: number;
+  unreadNotifications: number;
 }
 
 import { useTranslations } from "next-intl";
 
-export function Sidebar({ open = false, onClose }: SidebarProps) {
+export function Sidebar({ open = false, onClose, totalUnread, unreadNotifications }: SidebarProps) {
   const t = useTranslations("Sidebar");
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const { profile, profileLoading, account, accountRole, signOut } = useAuth();
-  const totalUnread = useTotalUnread();
-  const unreadNotifications = useUnreadNotifications();
   const { isPlatformAdmin } = usePlatformAdmin();
   const orderedNavItems = applyNavOrder(navItems, profile?.nav_order);
   // Panel + Zen are pinned above every group (see NavItem.group in
