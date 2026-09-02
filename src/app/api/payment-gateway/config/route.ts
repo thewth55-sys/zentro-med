@@ -20,6 +20,7 @@ interface ConfigRow {
   is_active: boolean;
   deposit_amount: number;
   currency: string;
+  booking_terms: string | null;
 }
 
 export async function GET() {
@@ -28,7 +29,7 @@ export async function GET() {
 
     const { data, error } = await supabase
       .from("payment_gateway_configs")
-      .select("provider, is_active, deposit_amount, currency")
+      .select("provider, is_active, deposit_amount, currency, booking_terms")
       .eq("account_id", accountId)
       .maybeSingle<ConfigRow>();
 
@@ -94,6 +95,13 @@ export async function POST(request: Request) {
     const currency = typeof body.currency === "string" && /^[A-Z]{3}$/.test(body.currency) ? body.currency : "MXN";
     const isActive = Boolean(body.is_active);
 
+    // Free text the clinic writes itself — no validation beyond a
+    // sane length cap, same posture as accounts.quote_terms.
+    const bookingTerms =
+      typeof body.booking_terms === "string" && body.booking_terms.trim().length > 0
+        ? body.booking_terms.trim().slice(0, 5000)
+        : null;
+
     // Merge, don't replace: any field the caller left blank means
     // "keep what's already stored," so changing just the webhook
     // secret (say) doesn't require re-typing the secret key too.
@@ -136,6 +144,7 @@ export async function POST(request: Request) {
         credentials: encryptedCredentials,
         deposit_amount: depositAmount,
         currency,
+        booking_terms: bookingTerms,
       },
       { onConflict: "account_id" },
     );

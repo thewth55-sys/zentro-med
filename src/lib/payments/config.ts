@@ -9,6 +9,16 @@ export interface PaymentGatewayConfig {
   credentials: ProviderCredentials;
   depositAmount: number;
   currency: string;
+  bookingTerms: string | null;
+}
+
+/** The subset of the config that's safe to show a PUBLIC visitor
+ *  (the booking page) — no credentials, ever. */
+export interface PublicDepositInfo {
+  enabled: boolean;
+  amount: number;
+  currency: string;
+  bookingTerms: string | null;
 }
 
 /** Loads and decrypts an account's active payment-gateway config, or
@@ -21,7 +31,7 @@ export async function loadActivePaymentGatewayConfig(
 ): Promise<PaymentGatewayConfig | null> {
   const { data } = await db
     .from("payment_gateway_configs")
-    .select("provider, is_active, credentials, deposit_amount, currency")
+    .select("provider, is_active, credentials, deposit_amount, currency, booking_terms")
     .eq("account_id", accountId)
     .eq("is_active", true)
     .maybeSingle();
@@ -46,6 +56,7 @@ export async function loadActivePaymentGatewayConfig(
     credentials: credentials as ProviderCredentials,
     depositAmount: Number(data.deposit_amount),
     currency: data.currency as string,
+    bookingTerms: (data.booking_terms as string | null) ?? null,
   };
 }
 
@@ -53,4 +64,23 @@ export async function loadActivePaymentGatewayConfig(
  *  decrypt+JSON.parse above. */
 export function encryptCredentials(credentials: ProviderCredentials): string {
   return encrypt(JSON.stringify(credentials));
+}
+
+/** Public-safe deposit info for the booking page — never touches
+ *  `credentials` (no decryption needed at all), unlike
+ *  `loadActivePaymentGatewayConfig` above. */
+export async function loadPublicDepositInfo(db: SupabaseClient, accountId: string): Promise<PublicDepositInfo | null> {
+  const { data } = await db
+    .from("payment_gateway_configs")
+    .select("is_active, deposit_amount, currency, booking_terms")
+    .eq("account_id", accountId)
+    .maybeSingle();
+  if (!data || !data.is_active || Number(data.deposit_amount) <= 0) return null;
+
+  return {
+    enabled: true,
+    amount: Number(data.deposit_amount),
+    currency: data.currency as string,
+    bookingTerms: (data.booking_terms as string | null) ?? null,
+  };
 }

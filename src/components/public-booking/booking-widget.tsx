@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { CalendarCheck, Loader2 } from "lucide-react";
+import { CalendarCheck, Loader2, ShieldCheck } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -53,6 +53,19 @@ export function BookingWidget({
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [confirmed, setConfirmed] = useState<Slot | null>(null);
+  const [showTerms, setShowTerms] = useState(false);
+
+  const deposit = config.deposit;
+  const depositAmountLabel = useMemo(() => {
+    if (!deposit) return "";
+    try {
+      return new Intl.NumberFormat("es-MX", { style: "currency", currency: deposit.currency }).format(
+        deposit.amount,
+      );
+    } catch {
+      return `${deposit.amount} ${deposit.currency}`;
+    }
+  }, [deposit]);
 
   useEffect(() => {
     if (!serviceTypeId || !doctorId || !date) return;
@@ -140,7 +153,12 @@ export function BookingWidget({
               <Label>Servicio</Label>
               <Select value={serviceTypeId} onValueChange={(v) => setServiceTypeId(v ?? "")}>
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Elige un servicio" />
+                  <SelectValue placeholder="Elige un servicio">
+                    {(value: string) => {
+                      const s = config.serviceTypes.find((s) => s.id === value);
+                      return s ? `${s.name} (${s.duration_minutes} min)` : "Elige un servicio";
+                    }}
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
                   {config.serviceTypes.map((s) => (
@@ -155,7 +173,12 @@ export function BookingWidget({
               <Label>Doctor</Label>
               <Select value={doctorId} onValueChange={(v) => setDoctorId(v ?? "")}>
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Elige un doctor" />
+                  <SelectValue placeholder="Elige un doctor">
+                    {(value: string) => {
+                      const d = config.doctors.find((d) => d.id === value);
+                      return d ? `${d.name}${d.specialty ? ` — ${d.specialty}` : ""}` : "Elige un doctor";
+                    }}
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
                   {config.doctors.map((d) => (
@@ -174,7 +197,9 @@ export function BookingWidget({
               <Label>Ubicación</Label>
               <Select value={roomId} onValueChange={(v) => setRoomId(v ?? "")}>
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Elige una ubicación" />
+                  <SelectValue placeholder="Elige una ubicación">
+                    {(value: string) => config.rooms.find((r) => r.id === value)?.name ?? "Elige una ubicación"}
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
                   {config.rooms.map((r) => (
@@ -250,6 +275,32 @@ export function BookingWidget({
                   onChange={(e) => setEmail(e.target.value)}
                 />
               </div>
+
+              {deposit?.enabled && (
+                <div className="space-y-2 rounded-lg border border-primary/30 bg-primary/5 p-3 text-sm">
+                  <p className="flex items-start gap-2 text-foreground">
+                    <ShieldCheck className="mt-0.5 size-4 shrink-0 text-primary" />
+                    Para reservar deberás realizar un pago de {depositAmountLabel} como anticipo de tu
+                    consulta. Al hacer clic en &quot;Confirmar cita&quot; serás dirigido a completar el pago.
+                  </p>
+                  {deposit.bookingTerms && (
+                    <>
+                      <button
+                        type="button"
+                        onClick={() => setShowTerms((v) => !v)}
+                        className="text-sm font-medium text-primary underline underline-offset-2"
+                      >
+                        {showTerms ? "Ocultar términos y condiciones" : "Ver términos y condiciones"}
+                      </button>
+                      {showTerms && (
+                        <p className="whitespace-pre-wrap rounded-md bg-background/60 p-3 text-xs text-muted-foreground">
+                          {deposit.bookingTerms}
+                        </p>
+                      )}
+                    </>
+                  )}
+                </div>
+              )}
 
               {error && <p className="text-sm text-red-400">{error}</p>}
 

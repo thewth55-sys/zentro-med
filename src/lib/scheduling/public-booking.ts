@@ -5,6 +5,7 @@ import { chunkIntoSlots, subtractRanges, type TimeRange } from "./availability";
 import { computeClinicRanges } from "./business-hours";
 import { resolveFeatureAccess, type FeatureOverrides } from "@/lib/billing-platform/features";
 import type { Plan } from "@/lib/billing-platform/plans";
+import { loadPublicDepositInfo, type PublicDepositInfo } from "@/lib/payments/config";
 
 /**
  * Server-only slot computation for the public booking widget
@@ -159,6 +160,10 @@ export interface PublicBookingConfig {
   clinicHoursEnabled: boolean;
   /** ¿La cuenta tiene la feature premium de personalización link-in-bio? */
   bookingPageEnabled: boolean;
+  /** Anticipo requerido para reservar (premium) — null cuando no está
+   *  activo/configurado o la cuenta no tiene la feature. Nunca incluye
+   *  credenciales del proveedor, solo lo que el visitante necesita ver. */
+  deposit: PublicDepositInfo | null;
 }
 
 /**
@@ -203,6 +208,8 @@ export async function getPublicBookingConfig(
   const overrides = account.feature_overrides as FeatureOverrides | null;
   const clinicHoursEnabled = resolveFeatureAccess(account.plan as Plan, "clinic_hours", overrides);
   const bookingPageEnabled = resolveFeatureAccess(account.plan as Plan, "booking_page", overrides);
+  const paymentGatewayEnabled = resolveFeatureAccess(account.plan as Plan, "payment_gateway", overrides);
+  const deposit = paymentGatewayEnabled ? await loadPublicDepositInfo(admin, account.id) : null;
 
   return {
     accountId: account.id,
@@ -217,5 +224,6 @@ export async function getPublicBookingConfig(
     rooms: rooms ?? [],
     clinicHoursEnabled,
     bookingPageEnabled,
+    deposit,
   };
 }

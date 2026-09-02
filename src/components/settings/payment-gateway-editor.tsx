@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import {
   Card,
   CardContent,
@@ -23,6 +24,7 @@ interface ConfigResponse {
   is_active: boolean;
   deposit_amount: number;
   currency: string;
+  booking_terms: string | null;
   has_credentials: boolean;
 }
 
@@ -52,6 +54,7 @@ export function PaymentGatewayEditor() {
   const [isActive, setIsActive] = useState(false);
   const [depositAmount, setDepositAmount] = useState('');
   const [currency, setCurrency] = useState('MXN');
+  const [bookingTerms, setBookingTerms] = useState('');
 
   const [stripeSecretKey, setStripeSecretKey] = useState('');
   const [stripeWebhookSecret, setStripeWebhookSecret] = useState('');
@@ -79,6 +82,7 @@ export function PaymentGatewayEditor() {
         setIsActive(config.is_active);
         setDepositAmount(String(config.deposit_amount ?? ''));
         setCurrency(config.currency ?? 'MXN');
+        setBookingTerms(config.booking_terms ?? '');
         setHasStoredCredentials(config.has_credentials);
       }
       resetCredentialFields();
@@ -125,7 +129,14 @@ export function PaymentGatewayEditor() {
       const res = await fetch('/api/payment-gateway/config', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ provider, is_active: isActive, deposit_amount: amount, currency, credentials }),
+        body: JSON.stringify({
+          provider,
+          is_active: isActive,
+          deposit_amount: amount,
+          currency,
+          booking_terms: bookingTerms,
+          credentials,
+        }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -286,6 +297,21 @@ export function PaymentGatewayEditor() {
                 </p>
               </div>
               <Switch checked={isActive} onCheckedChange={setIsActive} disabled={disabled} />
+            </div>
+
+            <div className="space-y-1.5">
+              <Label>Términos de la reserva (opcional)</Label>
+              <Textarea
+                value={bookingTerms}
+                onChange={(e) => setBookingTerms(e.target.value)}
+                disabled={disabled}
+                rows={5}
+                placeholder="Ej. El anticipo no es reembolsable si cancelas con menos de 24 horas de anticipación…"
+              />
+              <p className="text-xs text-muted-foreground">
+                Se muestra al paciente en la página de reserva, antes de que pague el anticipo. Redacta tus
+                propias políticas de cancelación y reembolso — Zentro Med solo las guarda y las muestra.
+              </p>
             </div>
           </>
         )}
