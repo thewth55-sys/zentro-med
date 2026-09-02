@@ -57,12 +57,14 @@ export function PaymentGatewayEditor() {
   const [stripeWebhookSecret, setStripeWebhookSecret] = useState('');
   const [mpAccessToken, setMpAccessToken] = useState('');
   const [clipApiKey, setClipApiKey] = useState('');
+  const [clipSecretKey, setClipSecretKey] = useState('');
 
   function resetCredentialFields() {
     setStripeSecretKey('');
     setStripeWebhookSecret('');
     setMpAccessToken('');
     setClipApiKey('');
+    setClipSecretKey('');
   }
 
   async function fetchConfig() {
@@ -118,7 +120,7 @@ export function PaymentGatewayEditor() {
           ? { secretKey: stripeSecretKey.trim(), webhookSecret: stripeWebhookSecret.trim() }
           : provider === 'mercadopago'
             ? { accessToken: mpAccessToken.trim() }
-            : { apiKey: clipApiKey.trim() };
+            : { apiKey: clipApiKey.trim(), secretKey: clipSecretKey.trim() };
 
       const res = await fetch('/api/payment-gateway/config', {
         method: 'POST',
@@ -216,15 +218,31 @@ export function PaymentGatewayEditor() {
             )}
 
             {provider === 'clip' && (
-              <div className="space-y-1.5">
-                <Label>API Key</Label>
-                <Input
-                  type="password"
-                  value={clipApiKey}
-                  onChange={(e) => setClipApiKey(e.target.value)}
-                  placeholder={keepsStoredCredentials ? '(sin cambios)' : 'Tu API key de Clip'}
-                  disabled={disabled}
-                />
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div className="space-y-1.5">
+                  <Label>Clave API</Label>
+                  <Input
+                    type="password"
+                    value={clipApiKey}
+                    onChange={(e) => setClipApiKey(e.target.value)}
+                    placeholder={keepsStoredCredentials ? '(sin cambios)' : 'API key de Clip'}
+                    disabled={disabled}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Clave secreta</Label>
+                  <Input
+                    type="password"
+                    value={clipSecretKey}
+                    onChange={(e) => setClipSecretKey(e.target.value)}
+                    placeholder={keepsStoredCredentials ? '(sin cambios)' : 'Secret key de Clip'}
+                    disabled={disabled}
+                  />
+                </div>
+                <p className="text-xs text-muted-foreground sm:col-span-2">
+                  Ambas están en tu Developer Dashboard de Clip — la clave secreta solo se puede ver una
+                  vez al crearla, guárdala en cuanto la generes.
+                </p>
               </div>
             )}
 

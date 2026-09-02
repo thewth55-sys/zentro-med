@@ -21,7 +21,7 @@ export const PAYMENT_PROVIDER_LABEL: Record<PaymentProviderId, string> = {
 export type ProviderCredentials =
   | { provider: "stripe"; secretKey: string; webhookSecret: string }
   | { provider: "mercadopago"; accessToken: string }
-  | { provider: "clip"; apiKey: string };
+  | { provider: "clip"; apiKey: string; secretKey: string };
 
 export interface CreateCheckoutArgs {
   amount: number;

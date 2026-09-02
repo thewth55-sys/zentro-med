@@ -16,8 +16,9 @@
 --     `encrypt()`/`decrypt()` as `ai_configs.api_key` /
 --     `whatsapp_config.access_token`), not per-field columns — each
 --     provider's own credential shape differs (Stripe: secret key +
---     webhook signing secret; Mercado Pago: access token + webhook
---     secret; Clip: API key), and a JSON blob avoids a wide table of
+--     webhook signing secret; Mercado Pago: access token; Clip: API
+--     key + secret key, combined into HTTP Basic Auth per their own
+--     docs), and a JSON blob avoids a wide table of
 --     mostly-null provider-specific columns. Never round-tripped to
 --     the client in plaintext — same posture as every other BYO-key
 --     config in this schema.

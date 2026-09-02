@@ -36,6 +36,6 @@ export function isProviderCredentials(provider: PaymentProviderId, value: unknow
     case "mercadopago":
       return nonEmpty(v.accessToken);
     case "clip":
-      return nonEmpty(v.apiKey);
+      return nonEmpty(v.apiKey) && nonEmpty(v.secretKey);
   }
 }

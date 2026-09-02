@@ -8,16 +8,25 @@ import type {
 
 const API_BASE = "https://api.payclip.com";
 
-function creds(c: ProviderCredentials): { apiKey: string } {
+function creds(c: ProviderCredentials): { apiKey: string; secretKey: string } {
   if (c.provider !== "clip") throw new Error("Clip adapter called with non-Clip credentials");
   return c;
 }
 
+/** Clip's Checkout API uses HTTP Basic Auth over API key + secret key
+ *  (base64 of "api_key:secret_key") — NOT a Bearer token, despite
+ *  some community examples showing a single Bearer value (that's a
+ *  different Clip API). Confirmed against developer.clip.mx's own
+ *  authentication reference before wiring this up. */
+function basicAuthHeader(apiKey: string, secretKey: string): string {
+  return `Basic ${Buffer.from(`${apiKey}:${secretKey}`).toString("base64")}`;
+}
+
 async function createCheckout(credentials: ProviderCredentials, args: CreateCheckoutArgs): Promise<CheckoutResult> {
-  const { apiKey } = creds(credentials);
+  const { apiKey, secretKey } = creds(credentials);
   const res = await fetch(`${API_BASE}/v2/checkout`, {
     method: "POST",
-    headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+    headers: { Authorization: basicAuthHeader(apiKey, secretKey), "Content-Type": "application/json" },
     body: JSON.stringify({
       amount: args.amount,
       currency: args.currency.toUpperCase(),
@@ -51,7 +60,7 @@ async function createCheckout(credentials: ProviderCredentials, args: CreateChec
  * forge that authenticated response.
  */
 async function confirmWebhook(credentials: ProviderCredentials, request: Request): Promise<WebhookConfirmation> {
-  const { apiKey } = creds(credentials);
+  const { apiKey, secretKey } = creds(credentials);
   const body = (await request.json().catch(() => ({}))) as { payment_request_id?: string };
   const paymentRequestId = body.payment_request_id;
   if (!paymentRequestId) {
@@ -59,7 +68,7 @@ async function confirmWebhook(credentials: ProviderCredentials, request: Request
   }
 
   const res = await fetch(`${API_BASE}/v2/checkout/${encodeURIComponent(paymentRequestId)}`, {
-    headers: { Authorization: `Bearer ${apiKey}` },
+    headers: { Authorization: basicAuthHeader(apiKey, secretKey) },
   });
   if (!res.ok) {
     return { paid: false, externalReference: null, externalCheckoutId: paymentRequestId, raw: body };
