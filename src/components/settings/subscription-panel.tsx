@@ -36,11 +36,11 @@ interface Invoice {
 
 const INVOICE_STATUS_META: Record<
   string,
-  { label: string; variant: "default" | "secondary" | "destructive" | "outline" }
+  { label: string; variant: "success" | "warning" | "destructive" | "outline" }
 > = {
-  paid: { label: "Pagada", variant: "default" },
+  paid: { label: "Pagada", variant: "success" },
   failed: { label: "Rechazada", variant: "destructive" },
-  pending: { label: "Pendiente", variant: "secondary" },
+  pending: { label: "Pendiente", variant: "warning" },
   uncollectible: { label: "Incobrable", variant: "destructive" },
   void: { label: "Anulada", variant: "outline" },
 };

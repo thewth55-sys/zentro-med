@@ -13,7 +13,7 @@ import { Skeleton } from './skeleton'
 const STATUS_STYLES: Record<TodayAppointmentItem['status'], string> = {
   pending: 'bg-amber-500/10 text-amber-400 border-amber-500/30',
   confirmed: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30',
-  completed: 'bg-primary/10 text-primary border-primary/30',
+  completed: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30',
   cancelled: 'bg-muted text-muted-foreground border-border',
   no_show: 'bg-red-500/10 text-red-400 border-red-500/30',
 }
