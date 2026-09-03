@@ -4,21 +4,9 @@ import { checkRateLimit, rateLimitResponse, RATE_LIMITS } from '@/lib/rate-limit
 import { resolveFeatureAccess, type FeatureOverrides } from '@/lib/billing-platform/features'
 import type { Plan } from '@/lib/billing-platform/plans'
 import { managedOpenAiKey } from '@/lib/ai/copilot/managed-config'
+import { stripForSpeech } from '@/lib/ai/copilot/tts-format'
 
 const MAX_CHARS = 4000
-
-/** Limpia el texto para la lectura por voz: quita emojis y markdown para
- *  que la voz no lea "asterisco asterisco" ni describa los emojis. */
-function stripForSpeech(text: string): string {
-  return text
-    .replace(/\*\*(.*?)\*\*/g, '$1')
-    .replace(/[*_`]/g, '')
-    .replace(/^\s*[-•]\s*/gm, '')
-    .replace(/[\p{Extended_Pictographic}️‍]/gu, '')
-    .replace(/[ \t]{2,}/g, ' ')
-    .replace(/\n{3,}/g, '\n\n')
-    .trim()
-}
 
 /** Lee un ajuste de voz (0–1) de env, con default y clamp. */
 function envNum(v: string | undefined, def: number): number {
