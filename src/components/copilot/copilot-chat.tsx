@@ -7,7 +7,7 @@ import { Check, Loader2, Mic, Play, Send, Sparkles, Square, Volume2, X } from "l
 import { Button } from "@/components/ui/button";
 import { CopilotOnboarding, type CopilotProfileData } from "@/components/copilot/copilot-onboarding";
 import { CopilotIntroCard } from "@/components/copilot/copilot-intro-card";
-import { CopilotVoiceBand } from "@/components/copilot/copilot-voice-band";
+import { CopilotVoiceMode } from "@/components/copilot/copilot-voice-mode";
 import { COPILOT_NAME } from "@/lib/ai/copilot/branding";
 
 interface ChatTurn {
@@ -71,6 +71,13 @@ export function CopilotChat() {
   const [loading, setLoading] = useState(false);
   const [recording, setRecording] = useState(false);
   const [transcribing, setTranscribing] = useState(false);
+  // "Chat" = composer de texto de siempre. "Voz" = pantalla dedicada
+  // con el orbe grande (CopilotVoiceMode) — mismo recording/transcribing
+  // de abajo, solo un lugar distinto para mostrarlo. Vuelve a "chat"
+  // sola tras enviar una nota de voz, para que la respuesta (y las
+  // tarjetas de acción propuesta) se vean en el hilo.
+  const [mode, setMode] = useState<"chat" | "voz">("chat");
+  const [recordingElapsedSec, setRecordingElapsedSec] = useState(0);
   const [ttsBusyId, setTtsBusyId] = useState<number | null>(null);
   const [playingId, setPlayingId] = useState<number | null>(null);
   const [profileLoading, setProfileLoading] = useState(true);
@@ -251,6 +258,30 @@ export function CopilotChat() {
     setRecording(false);
   }
 
+  // Timer de "Conversación activa" del tab Voz — cuenta los segundos
+  // desde que arrancó la grabación en curso. Se reinicia a 0 en cuanto
+  // deja de grabar (no persiste entre notas de voz distintas).
+  useEffect(() => {
+    if (!recording) {
+      setRecordingElapsedSec(0);
+      return;
+    }
+    const startedAt = Date.now();
+    const id = setInterval(() => {
+      setRecordingElapsedSec(Math.floor((Date.now() - startedAt) / 1000));
+    }, 1000);
+    return () => clearInterval(id);
+  }, [recording]);
+
+  // Toggle de tap (no hold) para el botón grande del tab Voz — pantalla
+  // dedicada, así que un tap para empezar y otro para detener se siente
+  // mejor que mantener presionado un círculo de 96px.
+  function handleVoiceModeToggle() {
+    if (transcribing) return;
+    if (recording) stopRecording();
+    else void startRecording();
+  }
+
   // Mantener presionado para grabar (no dos toques) — Pointer Events
   // cubren mouse/touch/lápiz con un solo set de handlers. Se captura el
   // puntero al presionar para que soltar el dedo FUERA de los límites
@@ -331,6 +362,10 @@ export function CopilotChat() {
       // su transcripción como pie), no solo texto en el input.
       const audioUrl = URL.createObjectURL(blob);
       void send(text, audioUrl);
+      // Vuelve a "chat" para que la respuesta (y cualquier tarjeta de
+      // acción propuesta) se vea en el hilo — el tab Voz es solo para
+      // capturar la nota, no tiene su propio hilo de mensajes.
+      setMode("chat");
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Error al transcribir");
     } finally {
@@ -395,6 +430,46 @@ export function CopilotChat() {
         onEditPreferences={() => setEditingProfile(true)}
       />
 
+      {/* "Zen · Copiloto clínico" + switch Voz/Chat — controla si el
+          composer de abajo es la pantalla dedicada de voz
+          (CopilotVoiceMode) o el chat de texto de siempre. */}
+      <div className="flex items-center justify-between gap-2">
+        <span className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+          <span className="size-2 rounded-full bg-primary" />
+          {COPILOT_NAME} · Copiloto clínico
+        </span>
+        <div className="flex items-center gap-1 rounded-full border border-border bg-muted/60 p-0.5">
+          <button
+            type="button"
+            onClick={() => setMode("voz")}
+            className={`flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+              mode === "voz" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <Mic className="size-3.5" /> Voz
+          </button>
+          <button
+            type="button"
+            onClick={() => setMode("chat")}
+            className={`flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+              mode === "chat" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <Send className="size-3.5" /> Chat
+          </button>
+        </div>
+      </div>
+
+      {mode === "voz" ? (
+        <CopilotVoiceMode
+          recording={recording}
+          transcribing={transcribing}
+          elapsedSec={recordingElapsedSec}
+          onToggleRecording={handleVoiceModeToggle}
+          onClose={() => setMode("chat")}
+        />
+      ) : (
+        <>
       <div
         ref={scrollRef}
         className="h-[55vh] min-h-[320px] space-y-4 overflow-y-auto rounded-xl border border-border bg-card p-4"
@@ -547,10 +622,6 @@ export function CopilotChat() {
         ) : null}
       </div>
 
-      <div className="mt-2">
-        <CopilotVoiceBand recording={recording} transcribing={transcribing} onStopRecording={stopRecording} />
-      </div>
-
       <form
         onSubmit={(e) => {
           e.preventDefault();
@@ -598,6 +669,8 @@ export function CopilotChat() {
           <Send className="size-4" />
         </Button>
       </form>
+        </>
+      )}
     </div>
   );
 }
