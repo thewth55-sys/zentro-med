@@ -2,12 +2,13 @@
 
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { Check, Loader2, Mic, Play, Send, Sparkles, Square, Volume2, X } from "lucide-react";
+import { Loader2, Mic, Play, Send, Sparkles, Square, Volume2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { CopilotOnboarding, type CopilotProfileData } from "@/components/copilot/copilot-onboarding";
 import { CopilotIntroCard } from "@/components/copilot/copilot-intro-card";
 import { CopilotVoiceMode } from "@/components/copilot/copilot-voice-mode";
+import { CopilotActionCard } from "@/components/copilot/copilot-action-card";
 import { COPILOT_NAME } from "@/lib/ai/copilot/branding";
 
 interface ChatTurn {
@@ -413,6 +414,7 @@ export function CopilotChat() {
   }
 
   const empty = turns.length === 0;
+  const pendingActions = actions.filter((a) => a.status === "pending" || a.status === "running");
 
   if (profileLoading) {
     return (
@@ -549,48 +551,12 @@ export function CopilotChat() {
         {actions
           .filter((a) => a.status !== "cancelled")
           .map((action) => (
-            <div
+            <CopilotActionCard
               key={action.id}
-              className="rounded-xl border border-primary/30 bg-primary/5 p-3 text-sm"
-            >
-              <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0">
-                  <p className="text-[11px] font-medium uppercase tracking-wide text-primary">
-                    Acción propuesta
-                  </p>
-                  <p className="mt-0.5 text-foreground">{action.summary}</p>
-                </div>
-                {action.status === "done" ? (
-                  <span className="flex shrink-0 items-center gap-1 text-xs font-medium text-emerald-600 dark:text-emerald-400">
-                    <Check className="size-4" /> Hecho
-                  </span>
-                ) : null}
-              </div>
-              {action.status !== "done" ? (
-                <div className="mt-3 flex gap-2">
-                  <Button
-                    size="sm"
-                    onClick={() => confirmAction(action)}
-                    disabled={action.status === "running"}
-                  >
-                    {action.status === "running" ? (
-                      <Loader2 className="size-4 animate-spin" />
-                    ) : (
-                      <Check className="size-4" />
-                    )}
-                    Confirmar
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => cancelAction(action.id)}
-                    disabled={action.status === "running"}
-                  >
-                    <X className="size-4" /> Cancelar
-                  </Button>
-                </div>
-              ) : null}
-            </div>
+              action={action}
+              onConfirm={() => confirmAction(action)}
+              onCancel={() => cancelAction(action.id)}
+            />
           ))}
 
         {loading ? (
@@ -609,17 +575,43 @@ export function CopilotChat() {
           cambiar a "Chat" se reemplaza por el historial de arriba,
           nunca los dos a la vez. */}
       {mode === "voz" && (
-        <CopilotVoiceMode
-          recording={recording}
-          transcribing={transcribing}
-          thinking={loading}
-          speaking={ttsBusyId !== null || playingId !== null}
-          replyText={lastVoiceReply}
-          elapsedSec={recordingElapsedSec}
-          onToggleRecording={handleVoiceModeToggle}
-          onStopSpeaking={stopAudio}
-          onClose={() => setMode("chat")}
-        />
+        <>
+          <CopilotVoiceMode
+            recording={recording}
+            transcribing={transcribing}
+            thinking={loading}
+            speaking={ttsBusyId !== null || playingId !== null}
+            replyText={lastVoiceReply}
+            elapsedSec={recordingElapsedSec}
+            onToggleRecording={handleVoiceModeToggle}
+            onStopSpeaking={stopAudio}
+            onClose={() => setMode("chat")}
+          />
+          {/* Una acción propuesta SIEMPRE requiere un tap humano
+              deliberado (nunca un "sí" hablado — la ejecución de
+              escrituras está aislada del modelo a propósito). Antes
+              esa tarjeta solo vivía en el historial de Chat, así que
+              en Voz no había forma de verla ni resolverla sin cambiar
+              de tab — el médico decía "sí, regístrala" por voz y Zen
+              no tenía manera de tomarlo como confirmación, así que
+              volvía a proponer la acción desde cero. Mostrarla aquí
+              resuelve el hueco sin relajar esa barrera de seguridad. */}
+          {pendingActions.length > 0 && (
+            <div className="mt-3 space-y-2">
+              <p className="text-xs font-semibold text-primary">
+                Esperando tu confirmación — tócala para continuar:
+              </p>
+              {pendingActions.map((action) => (
+                <CopilotActionCard
+                  key={action.id}
+                  action={action}
+                  onConfirm={() => confirmAction(action)}
+                  onCancel={() => cancelAction(action.id)}
+                />
+              ))}
+            </div>
+          )}
+        </>
       )}
 
       {/* "Zen · Copiloto clínico" + switch Voz/Chat — debajo de la

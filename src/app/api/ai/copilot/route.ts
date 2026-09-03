@@ -61,9 +61,14 @@ export async function POST(request: Request) {
     // Gate premium (server-side; el PlanGate del cliente no es barrera real).
     const { data: account } = await supabase
       .from('accounts')
-      .select('name, plan, feature_overrides')
+      .select('name, plan, feature_overrides, timezone')
       .eq('id', accountId)
-      .maybeSingle<{ name: string | null; plan: Plan; feature_overrides: FeatureOverrides | null }>()
+      .maybeSingle<{
+        name: string | null
+        plan: Plan
+        feature_overrides: FeatureOverrides | null
+        timezone: string | null
+      }>()
     const copilotEnabled = account
       ? resolveFeatureAccess(account.plan, 'ai_copilot', account.feature_overrides)
       : false
@@ -147,9 +152,13 @@ export async function POST(request: Request) {
       : null
     const memories = (memoryRows ?? []).map((m) => m.content as string)
 
+    // Mismo default que la columna `accounts.timezone` en la base — si por
+    // lo que sea la cuenta no la tiene poblada, no dejamos al copiloto sin
+    // ancla de zona horaria.
+    const timezone = account?.timezone ?? 'America/Mexico_City'
     const proposals: ProposedAction[] = []
-    const executeTool = createCopilotExecutor({ supabase, accountId, userId }, proposals)
-    const systemPrompt = buildCopilotSystemPrompt(account?.name ?? null, profile, memories)
+    const executeTool = createCopilotExecutor({ supabase, accountId, userId, timezone }, proposals)
+    const systemPrompt = buildCopilotSystemPrompt(account?.name ?? null, timezone, profile, memories)
 
     const { text, usage } = await generateReply({
       config,

@@ -22,9 +22,9 @@ export async function POST(request: Request) {
 
     const { data: account } = await supabase
       .from('accounts')
-      .select('plan, feature_overrides')
+      .select('plan, feature_overrides, timezone')
       .eq('id', accountId)
-      .maybeSingle<{ plan: Plan; feature_overrides: FeatureOverrides | null }>()
+      .maybeSingle<{ plan: Plan; feature_overrides: FeatureOverrides | null; timezone: string | null }>()
     if (!account || !resolveFeatureAccess(account.plan, 'ai_copilot', account.feature_overrides)) {
       return NextResponse.json(
         { error: 'El copiloto de IA está disponible en planes de pago.', code: 'feature_not_available' },
@@ -42,7 +42,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'type is required' }, { status: 400 })
     }
 
-    const result = await executeCopilotAction({ supabase, accountId, userId }, type, params)
+    const timezone = account.timezone ?? 'America/Mexico_City'
+    const result = await executeCopilotAction({ supabase, accountId, userId, timezone }, type, params)
 
     // Rastro de auditoría (best-effort — nunca debe tumbar la respuesta).
     try {
