@@ -71,12 +71,11 @@ export function CopilotChat() {
   const [loading, setLoading] = useState(false);
   const [recording, setRecording] = useState(false);
   const [transcribing, setTranscribing] = useState(false);
-  // "Chat" = composer de texto de siempre. "Voz" = pantalla dedicada
-  // con el orbe grande (CopilotVoiceMode) — mismo recording/transcribing
-  // de abajo, solo un lugar distinto para mostrarlo. Vuelve a "chat"
-  // sola tras enviar una nota de voz, para que la respuesta (y las
-  // tarjetas de acción propuesta) se vean en el hilo.
-  const [mode, setMode] = useState<"chat" | "voz">("chat");
+  // "Voz" (default, como el mockup) muestra la banda del orbe arriba
+  // del composer; "Chat" la colapsa. El historial y el composer de
+  // texto quedan visibles en AMBOS modos — el modo solo decide si la
+  // banda de voz está expandida o no.
+  const [mode, setMode] = useState<"chat" | "voz">("voz");
   const [recordingElapsedSec, setRecordingElapsedSec] = useState(0);
   const [ttsBusyId, setTtsBusyId] = useState<number | null>(null);
   const [playingId, setPlayingId] = useState<number | null>(null);
@@ -362,10 +361,9 @@ export function CopilotChat() {
       // su transcripción como pie), no solo texto en el input.
       const audioUrl = URL.createObjectURL(blob);
       void send(text, audioUrl);
-      // Vuelve a "chat" para que la respuesta (y cualquier tarjeta de
-      // acción propuesta) se vea en el hilo — el tab Voz es solo para
-      // capturar la nota, no tiene su propio hilo de mensajes.
-      setMode("chat");
+      // El historial queda visible en ambos modos (ver return más
+      // abajo), así que no hace falta forzar la vuelta a "chat" — la
+      // respuesta aparece en el hilo sin salir de la banda de voz.
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Error al transcribir");
     } finally {
@@ -430,49 +428,13 @@ export function CopilotChat() {
         onEditPreferences={() => setEditingProfile(true)}
       />
 
-      {/* "Zen · Copiloto clínico" + switch Voz/Chat — controla si el
-          composer de abajo es la pantalla dedicada de voz
-          (CopilotVoiceMode) o el chat de texto de siempre. */}
-      <div className="flex items-center justify-between gap-2">
-        <span className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
-          <span className="size-2 rounded-full bg-primary" />
-          {COPILOT_NAME} · Copiloto clínico
-        </span>
-        <div className="flex items-center gap-1 rounded-full border border-border bg-muted/60 p-0.5">
-          <button
-            type="button"
-            onClick={() => setMode("voz")}
-            className={`flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium transition-colors ${
-              mode === "voz" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            <Mic className="size-3.5" /> Voz
-          </button>
-          <button
-            type="button"
-            onClick={() => setMode("chat")}
-            className={`flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium transition-colors ${
-              mode === "chat" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            <Send className="size-3.5" /> Chat
-          </button>
-        </div>
-      </div>
-
-      {mode === "voz" ? (
-        <CopilotVoiceMode
-          recording={recording}
-          transcribing={transcribing}
-          elapsedSec={recordingElapsedSec}
-          onToggleRecording={handleVoiceModeToggle}
-          onClose={() => setMode("chat")}
-        />
-      ) : (
-        <>
+      {/* Historial siempre visible (en ambos modos, Voz y Chat) — no
+          hay razón para ocultarlo mientras se graba, y perderlo de
+          vista sería un paso atrás vs. el chat simple que ya
+          funcionaba. */}
       <div
         ref={scrollRef}
-        className="h-[55vh] min-h-[320px] space-y-4 overflow-y-auto rounded-xl border border-border bg-card p-4"
+        className="h-[45vh] min-h-[260px] space-y-4 overflow-y-auto rounded-xl border border-border bg-card p-4"
       >
         {empty ? (
           <div className="flex h-full flex-col items-center justify-center gap-4 text-center">
@@ -622,12 +584,55 @@ export function CopilotChat() {
         ) : null}
       </div>
 
+      {/* Banda de voz — visible mientras el tab "Voz" está activo
+          (default), justo arriba del composer, como en el mockup. En
+          "Chat" queda colapsada y solo se ve el composer de texto. */}
+      {mode === "voz" && (
+        <CopilotVoiceMode
+          recording={recording}
+          transcribing={transcribing}
+          elapsedSec={recordingElapsedSec}
+          onToggleRecording={handleVoiceModeToggle}
+          onClose={() => setMode("chat")}
+        />
+      )}
+
+      {/* "Zen · Copiloto clínico" + switch Voz/Chat — debajo de la
+          banda/historial, justo arriba del composer, como en el
+          mockup (no arriba de todo). */}
+      <div className="flex items-center justify-between gap-2">
+        <span className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+          <span className="size-2 rounded-full bg-primary" />
+          {COPILOT_NAME} · Copiloto clínico
+        </span>
+        <div className="flex items-center gap-1 rounded-full border border-border bg-muted/60 p-0.5">
+          <button
+            type="button"
+            onClick={() => setMode("voz")}
+            className={`flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+              mode === "voz" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <Mic className="size-3.5" /> Voz
+          </button>
+          <button
+            type="button"
+            onClick={() => setMode("chat")}
+            className={`flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+              mode === "chat" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <Send className="size-3.5" /> Chat
+          </button>
+        </div>
+      </div>
+
       <form
         onSubmit={(e) => {
           e.preventDefault();
           void send(input);
         }}
-        className="mt-3 flex items-end gap-2"
+        className="flex items-end gap-2"
       >
         <textarea
           value={input}
@@ -669,8 +674,6 @@ export function CopilotChat() {
           <Send className="size-4" />
         </Button>
       </form>
-        </>
-      )}
     </div>
   );
 }
