@@ -56,7 +56,7 @@ export function DashboardHero({
 
   return (
     <section
-      className="relative overflow-hidden rounded-2xl p-6 text-white shadow-md"
+      className="relative h-full overflow-hidden rounded-2xl p-6 text-white shadow-md"
       style={{ background: "linear-gradient(120deg, #0F241A, #164A31)" }}
     >
       <div

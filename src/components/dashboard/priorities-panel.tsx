@@ -113,7 +113,7 @@ export function PrioritiesPanel({
     (patientsWithoutNext?.length ?? 0) > 0;
 
   return (
-    <section className="rounded-xl border border-primary/25 bg-primary/5 p-4">
+    <section className="h-full rounded-xl border border-primary/25 bg-primary/5 p-4">
       <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
         <span className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-primary/15 text-primary">
           <Sparkles className="size-4" />

@@ -232,7 +232,7 @@
       "ariaLabel": "Conversations per day"
     },
     "todayAppointments": {
-      "title": "Today's Appointments",
+      "title": "Your Day",
       "description": "Consultations scheduled for today",
       "viewAgenda": "View agenda",
       "empty": "No appointments scheduled for today",

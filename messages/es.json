@@ -232,7 +232,7 @@
       "ariaLabel": "Conversaciones por día"
     },
     "todayAppointments": {
-      "title": "Citas de hoy",
+      "title": "Tu día",
       "description": "Consultas agendadas para el día en curso",
       "viewAgenda": "Ver agenda",
       "empty": "No hay citas agendadas para hoy",
