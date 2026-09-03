@@ -4,6 +4,7 @@ import { checkRateLimit, rateLimitResponse, RATE_LIMITS } from '@/lib/rate-limit
 import { resolveFeatureAccess, type FeatureOverrides } from '@/lib/billing-platform/features'
 import type { Plan } from '@/lib/billing-platform/plans'
 import { managedOpenAiKey } from '@/lib/ai/copilot/managed-config'
+import { isWhisperHallucination } from '@/lib/ai/copilot/transcribe-filter'
 
 const MAX_AUDIO_BYTES = 20 * 1024 * 1024 // 20 MB
 
@@ -68,7 +69,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'No se pudo transcribir el audio.' }, { status: 502 })
     }
     const data = (await res.json().catch(() => null)) as { text?: unknown } | null
-    const text = typeof data?.text === 'string' ? data.text : ''
+    const rawText = typeof data?.text === 'string' ? data.text : ''
+    const text = isWhisperHallucination(rawText) ? '' : rawText
     return NextResponse.json({ text })
   } catch (err) {
     return toErrorResponse(err)

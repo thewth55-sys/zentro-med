@@ -77,6 +77,12 @@ export function CopilotChat() {
   // banda de voz está expandida o no.
   const [mode, setMode] = useState<"chat" | "voz">("voz");
   const [recordingElapsedSec, setRecordingElapsedSec] = useState(0);
+  // Última respuesta de Zen recibida mientras el médico estaba en el
+  // tab Voz — se muestra como leyenda en el orbe mientras se reproduce
+  // en voz. No es un estado nuevo de verdad: `turns` sigue siendo la
+  // única fuente real, esto solo cachea el texto para no tener que
+  // buscarlo por índice en cada render del orbe.
+  const [lastVoiceReply, setLastVoiceReply] = useState<string | null>(null);
   const [ttsBusyId, setTtsBusyId] = useState<number | null>(null);
   const [playingId, setPlayingId] = useState<number | null>(null);
   const [profileLoading, setProfileLoading] = useState(true);
@@ -170,6 +176,10 @@ export function CopilotChat() {
     setTurns(nextTurns);
     setInput("");
     setLoading(true);
+    // Capturado al llamar, no al resolver — si el médico mandó esto
+    // desde el tab Voz, la respuesta se lee ahí aunque el fetch tarde.
+    const wasVoiceMode = mode === "voz";
+    const replyIndex = nextTurns.length; // índice donde caerá el turno del asistente
     try {
       const res = await fetch("/api/ai/copilot", {
         method: "POST",
@@ -180,7 +190,16 @@ export function CopilotChat() {
       if (!res.ok) {
         throw new Error(body?.error ?? "No se pudo obtener respuesta.");
       }
-      setTurns((prev) => [...prev, { role: "assistant", content: body?.reply ?? "" }]);
+      const replyText: string = body?.reply ?? "";
+      setTurns((prev) => [...prev, { role: "assistant", content: replyText }]);
+      if (wasVoiceMode && replyText.trim()) {
+        // En el tab Voz la respuesta se lee en voz alta ahí mismo (el
+        // orbe cambia a "Respondiendo" con el texto como leyenda) — se
+        // sigue guardando en `turns` igual que siempre, así que también
+        // queda en el historial de Chat.
+        setLastVoiceReply(replyText);
+        void speak(replyText, replyIndex, true);
+      }
       const proposed: ProposedAction[] = Array.isArray(body?.proposedActions) ? body.proposedActions : [];
       if (proposed.length > 0) {
         setActions((prev) => [
@@ -593,8 +612,12 @@ export function CopilotChat() {
         <CopilotVoiceMode
           recording={recording}
           transcribing={transcribing}
+          thinking={loading}
+          speaking={ttsBusyId !== null || playingId !== null}
+          replyText={lastVoiceReply}
           elapsedSec={recordingElapsedSec}
           onToggleRecording={handleVoiceModeToggle}
+          onStopSpeaking={stopAudio}
           onClose={() => setMode("chat")}
         />
       )}
