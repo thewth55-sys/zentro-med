@@ -47,6 +47,15 @@ export interface SparklineBundle {
   revenue: number[]
 }
 
+/** One month of billing activity — same "invoiced vs. collected" pair
+ *  `financial-summary.tsx` already uses, aggregated by `issue_date`'s
+ *  calendar month instead of a fixed date range. */
+export interface MonthlyRevenuePoint {
+  month: string // YYYY-MM local
+  invoiced: number
+  collected: number
+}
+
 export interface TodayAppointmentItem {
   id: string
   startAt: string

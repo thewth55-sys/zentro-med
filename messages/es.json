@@ -181,6 +181,7 @@
     "page": {
       "title": "Panel",
       "description": "Analítica en vivo de conversaciones, pacientes, negocios, difusiones y automatizaciones.",
+      "quickActionsTitle": "Accesos rápidos",
       "activeConversations": "Conversaciones activas",
       "newContactsToday": "Pacientes nuevos hoy",
       "newTodayVsYesterday": "nuevos hoy vs. ayer",
@@ -200,6 +201,11 @@
       "collectPayment": "Cobrar consulta",
       "remindAppointments": "Recordar citas",
       "askZen": "Preguntar a Zen"
+    },
+    "monthlyRevenue": {
+      "title": "Ingresos del mes",
+      "vsLastMonth": "vs. mes pasado",
+      "subtitle": "Cobrado de {invoiced} facturado · {pending} pendiente"
     },
     "activityFeed": {
       "title": "Actividad reciente",

@@ -2,13 +2,10 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { useAuth } from '@/hooks/use-auth'
-import { formatCurrency } from '@/lib/currency'
 import {
   MessageSquare,
   UserPlus,
   TrendingUp,
-  Receipt,
   CalendarX,
   Users,
 } from 'lucide-react'
@@ -17,6 +14,7 @@ import {
   loadActivity,
   loadConversationsSeries,
   loadMetrics,
+  loadMonthlyRevenue,
   loadSparklines,
   loadTodayAppointments,
   loadNextAppointment,
@@ -27,6 +25,7 @@ import type {
   ActivityItem,
   ConversationsSeriesPoint,
   MetricsBundle,
+  MonthlyRevenuePoint,
   SparklineBundle,
   TodayAppointmentItem,
   ResponseTimeSummary,
@@ -39,6 +38,7 @@ import { ConversationsChart } from '@/components/dashboard/conversations-chart'
 import { TodayAppointments } from '@/components/dashboard/today-appointments'
 import { DashboardHero } from '@/components/dashboard/dashboard-hero'
 import { PrioritiesPanel } from '@/components/dashboard/priorities-panel'
+import { MonthlyRevenueCard } from '@/components/dashboard/monthly-revenue-card'
 import { ResponseTimeChart } from '@/components/dashboard/response-time-chart'
 import { ActivityFeed } from '@/components/dashboard/activity-feed'
 import { AnnouncementsCarousel } from '@/components/dashboard/announcements-carousel'
@@ -49,7 +49,6 @@ type RangeDays = 7 | 30 | 90
 
 export default function DashboardPage() {
   const t = useTranslations('Dashboard.page')
-  const { defaultCurrency } = useAuth()
   const [metrics, setMetrics] = useState<MetricsBundle | null>(null)
   const [metricsLoading, setMetricsLoading] = useState(true)
   const [sparks, setSparks] = useState<SparklineBundle | null>(null)
@@ -73,6 +72,9 @@ export default function DashboardPage() {
 
   const [todayBilling, setTodayBilling] = useState<number | null>(null)
   const [todayBillingLoading, setTodayBillingLoading] = useState(true)
+
+  const [monthlyRevenue, setMonthlyRevenue] = useState<MonthlyRevenuePoint[] | null>(null)
+  const [monthlyRevenueLoading, setMonthlyRevenueLoading] = useState(true)
 
   const [responseTime, setResponseTime] = useState<ResponseTimeSummary | null>(null)
   const [responseTimeLoading, setResponseTimeLoading] = useState(true)
@@ -116,6 +118,11 @@ export default function DashboardPage() {
       .then((b) => setTodayBilling(b))
       .catch((err) => console.error('[dashboard] today billing failed:', err))
       .finally(() => setTodayBillingLoading(false))
+
+    void loadMonthlyRevenue(db)
+      .then((r) => setMonthlyRevenue(r))
+      .catch((err) => console.error('[dashboard] monthly revenue failed:', err))
+      .finally(() => setMonthlyRevenueLoading(false))
 
     void loadResponseTime(db)
       .then((r) => setResponseTime(r))
@@ -189,22 +196,11 @@ export default function DashboardPage() {
         </div>
         <div className="space-y-4 lg:col-span-1">
           <PrioritiesPanel todayAppointments={todayAppointments} loading={todayAppointmentsLoading} />
-          {metricsLoading || !metrics ? (
-            <SkeletonCard />
-          ) : (
-            <MetricCard
-              title={t('revenueCollected')}
-              accent="green"
-              spark={sparks?.revenue}
-              value={`${metrics.revenueCollectedRatio.current}%`}
-              icon={Receipt}
-              subtitle={t('revenueCollectedSubtitle', {
-                ratio: metrics.revenueCollectedRatio.current,
-                quoted: formatCurrency(metrics.revenueQuotedAmount, defaultCurrency),
-              })}
-            />
-          )}
-          <QuickActions />
+          <MonthlyRevenueCard data={monthlyRevenue} loading={monthlyRevenueLoading} />
+          <div>
+            <h2 className="mb-2 text-sm font-semibold text-foreground">{t('quickActionsTitle')}</h2>
+            <QuickActions />
+          </div>
         </div>
       </div>
 

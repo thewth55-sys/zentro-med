@@ -181,6 +181,7 @@
     "page": {
       "title": "Dashboard",
       "description": "Live analytics across conversations, patients, deals, broadcasts, and automations.",
+      "quickActionsTitle": "Quick actions",
       "activeConversations": "Active Conversations",
       "newContactsToday": "New Patients Today",
       "newTodayVsYesterday": "new today vs yesterday",
@@ -200,6 +201,11 @@
       "collectPayment": "Collect Payment",
       "remindAppointments": "Remind Appointments",
       "askZen": "Ask Zen"
+    },
+    "monthlyRevenue": {
+      "title": "Revenue this month",
+      "vsLastMonth": "vs. last month",
+      "subtitle": "Collected of {invoiced} invoiced · {pending} pending"
     },
     "activityFeed": {
       "title": "Recent Activity",

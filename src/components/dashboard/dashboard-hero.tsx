@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useLocale } from "next-intl";
 
 import { useAuth } from "@/hooks/use-auth";
 import { formatCurrency } from "@/lib/currency";
@@ -40,10 +41,18 @@ export function DashboardHero({
   statsLoading,
 }: Props) {
   const { profile, defaultCurrency } = useAuth();
+  const locale = useLocale();
 
   const name = profile?.full_name?.trim();
   const title = profile?.title?.trim();
   const greeting = name ? `Hola, ${title ? `${title} ` : ""}${name}` : "Hola";
+  const dateEyebrow = new Date()
+    .toLocaleDateString(locale === "en" ? "en-US" : "es-MX", {
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+    })
+    .toUpperCase();
 
   return (
     <section
@@ -58,6 +67,7 @@ export function DashboardHero({
 
       <div className="relative flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0">
+          <p className="text-[11px] font-semibold tracking-wider text-emerald-100/60">{dateEyebrow}</p>
           <h1 className="text-xl font-bold text-white sm:text-2xl">{greeting}</h1>
           <p className="mt-1 text-sm text-emerald-100/80">
             Tu clínica de un vistazo — esto es lo importante de hoy.

@@ -11,6 +11,7 @@ import type {
   ActivityItem,
   ConversationsSeriesPoint,
   MetricsBundle,
+  MonthlyRevenuePoint,
   ResponseTimeBucket,
   ResponseTimeSummary,
   SparklineBundle,
@@ -382,6 +383,36 @@ export async function loadTodayBilling(db: DB): Promise<number> {
     (sum, inv) => sum + (Number(inv.total) - Number(inv.amount_paid)),
     0,
   )
+}
+
+/** Facturado/cobrado por mes calendario, últimos `months` meses
+ *  (incluyendo el actual) — mismo par `invoices.total`/`amount_paid`
+ *  que ya usa `financial-summary.tsx`, agregado por el mes de
+ *  `issue_date` en vez de un rango fijo. Meses sin facturas caen en
+ *  0/0, no se omiten, así el eje del gráfico queda continuo. */
+export async function loadMonthlyRevenue(db: DB, months = 8): Promise<MonthlyRevenuePoint[]> {
+  const now = new Date()
+  const rangeStart = new Date(now.getFullYear(), now.getMonth() - (months - 1), 1)
+  const { data, error } = await db
+    .from('invoices')
+    .select('issue_date, total, amount_paid, status')
+    .gte('issue_date', rangeStart.toISOString().slice(0, 10))
+    .not('status', 'in', '(draft,void)')
+  if (error) throw error
+
+  const byMonth = new Map<string, { invoiced: number; collected: number }>()
+  for (let i = 0; i < months; i++) {
+    const d = new Date(now.getFullYear(), now.getMonth() - (months - 1 - i), 1)
+    byMonth.set(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`, { invoiced: 0, collected: 0 })
+  }
+  for (const inv of (data ?? []) as Array<{ issue_date: string; total: number; amount_paid: number }>) {
+    const key = inv.issue_date.slice(0, 7)
+    const bucket = byMonth.get(key)
+    if (!bucket) continue // outside the requested window (shouldn't happen given the gte filter, but keeps this defensive)
+    bucket.invoiced += Number(inv.total)
+    bucket.collected += Number(inv.amount_paid)
+  }
+  return Array.from(byMonth.entries()).map(([month, v]) => ({ month, ...v }))
 }
 
 // --- 4. Response time by day of week ----------------------------------

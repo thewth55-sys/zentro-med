@@ -33,11 +33,12 @@ interface HeaderProps {
   onOpenSidebar?: () => void;
 }
 
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 
 export function Header({ onOpenSidebar }: HeaderProps) {
   const t = useTranslations("Header");
   const tNav = useTranslations("Sidebar");
+  const locale = useLocale();
   const pathname = usePathname();
   const { profile, signOut } = useAuth();
   const canCreateAppointment = useCan("send-messages");
@@ -88,8 +89,21 @@ export function Header({ onOpenSidebar }: HeaderProps) {
     profile?.email?.charAt(0)?.toUpperCase() ??
     "U";
 
+  // Fecha larga bajo el título — el mockup la muestra junto al conteo
+  // de citas del día, pero ese número ya vive de forma prominente en
+  // las stat pills del hero (dashboard-hero.tsx); repetirlo aquí
+  // exigiría inyectar datos de página en un header global compartido
+  // por todas las rutas, así que solo se agrega la fecha.
+  const todayLabel = new Date()
+    .toLocaleDateString(locale === "en" ? "en-US" : "es-MX", {
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+    })
+    .replace(/^./, (c) => c.toUpperCase());
+
   return (
-    <header className="flex h-14 shrink-0 items-center justify-between gap-3 border-b border-border bg-background px-4 lg:px-6">
+    <header className="flex min-h-14 shrink-0 items-center justify-between gap-3 border-b border-border bg-background px-4 py-2 lg:px-6">
       <div className="flex min-w-0 items-center gap-2">
         {/* Hamburger — mobile only. 44×44 hit target per Apple HIG. */}
         <button
@@ -100,9 +114,12 @@ export function Header({ onOpenSidebar }: HeaderProps) {
         >
           <Menu className="h-5 w-5" />
         </button>
-        <h1 className="truncate text-base font-semibold text-foreground sm:text-lg">
-          {title}
-        </h1>
+        <div className="min-w-0">
+          <h1 className="truncate text-base font-semibold text-foreground sm:text-lg">
+            {title}
+          </h1>
+          <p className="hidden truncate text-xs text-muted-foreground sm:block">{todayLabel}</p>
+        </div>
       </div>
 
       <div className="flex items-center gap-1 sm:gap-2">
