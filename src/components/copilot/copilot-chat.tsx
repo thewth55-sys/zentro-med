@@ -428,10 +428,11 @@ export function CopilotChat() {
         onEditPreferences={() => setEditingProfile(true)}
       />
 
-      {/* Historial siempre visible (en ambos modos, Voz y Chat) — no
-          hay razón para ocultarlo mientras se graba, y perderlo de
-          vista sería un paso atrás vs. el chat simple que ya
-          funcionaba. */}
+      {/* Vista única y excluyente: "Voz" muestra el orbe (abajo),
+          "Chat" muestra este historial — nunca los dos apilados. El
+          historial no se pierde (sigue en `turns`, persistido en la
+          base), solo deja de ser visible mientras estás en "Voz". */}
+      {mode === "chat" && (
       <div
         ref={scrollRef}
         className="h-[45vh] min-h-[260px] space-y-4 overflow-y-auto rounded-xl border border-border bg-card p-4"
@@ -583,10 +584,11 @@ export function CopilotChat() {
           </div>
         ) : null}
       </div>
+      )}
 
-      {/* Banda de voz — visible mientras el tab "Voz" está activo
-          (default), justo arriba del composer, como en el mockup. En
-          "Chat" queda colapsada y solo se ve el composer de texto. */}
+      {/* Banda de voz — vista principal por defecto ("Voz"). Al
+          cambiar a "Chat" se reemplaza por el historial de arriba,
+          nunca los dos a la vez. */}
       {mode === "voz" && (
         <CopilotVoiceMode
           recording={recording}
