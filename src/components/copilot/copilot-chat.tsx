@@ -2,10 +2,12 @@
 
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { Check, Loader2, Mic, Play, Plus, Send, SlidersHorizontal, Sparkles, Square, Volume2, X } from "lucide-react";
+import { Check, Loader2, Mic, Play, Send, Sparkles, Square, Volume2, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { CopilotOnboarding, type CopilotProfileData } from "@/components/copilot/copilot-onboarding";
+import { CopilotIntroCard } from "@/components/copilot/copilot-intro-card";
+import { CopilotVoiceBand } from "@/components/copilot/copilot-voice-band";
 import { COPILOT_NAME } from "@/lib/ai/copilot/branding";
 
 interface ChatTurn {
@@ -362,7 +364,7 @@ export function CopilotChat() {
 
   if (profileLoading) {
     return (
-      <div className="flex h-[calc(100vh-8rem)] items-center justify-center text-muted-foreground">
+      <div className="flex h-[55vh] items-center justify-center text-muted-foreground">
         <Loader2 className="size-5 animate-spin" />
       </div>
     );
@@ -386,37 +388,16 @@ export function CopilotChat() {
   }
 
   return (
-    <div className="mx-auto flex h-[calc(100vh-8rem)] max-w-3xl flex-col">
-      <header className="mb-3 flex items-center gap-3">
-        <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
-          <Sparkles className="size-5" />
-        </span>
-        <div className="min-w-0 flex-1">
-          <h1 className="text-lg font-semibold text-foreground">{COPILOT_NAME}</h1>
-          <p className="truncate text-xs text-muted-foreground">
-            Pregunta sobre tus datos o pide acciones — las acciones se confirman antes de ejecutarse.
-          </p>
-        </div>
-        {!empty ? (
-          <Button variant="outline" size="sm" onClick={resetChat} disabled={loading} className="shrink-0">
-            <Plus className="size-4" /> Nueva
-          </Button>
-        ) : null}
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => setEditingProfile(true)}
-          className="shrink-0"
-          title="Preferencias del copiloto"
-          aria-label="Preferencias del copiloto"
-        >
-          <SlidersHorizontal className="size-4" />
-        </Button>
-      </header>
+    <div className="flex flex-col gap-3">
+      <CopilotIntroCard
+        showReset={!empty}
+        onReset={resetChat}
+        onEditPreferences={() => setEditingProfile(true)}
+      />
 
       <div
         ref={scrollRef}
-        className="flex-1 space-y-4 overflow-y-auto rounded-xl border border-border bg-card p-4"
+        className="h-[55vh] min-h-[320px] space-y-4 overflow-y-auto rounded-xl border border-border bg-card p-4"
       >
         {empty ? (
           <div className="flex h-full flex-col items-center justify-center gap-4 text-center">
@@ -566,19 +547,9 @@ export function CopilotChat() {
         ) : null}
       </div>
 
-      {recording ? (
-        <div className="mt-2 flex items-center gap-2 rounded-lg bg-destructive/10 px-3 py-2 text-sm font-medium text-destructive">
-          <span className="relative flex size-2.5">
-            <span className="absolute inline-flex size-full animate-ping rounded-full bg-destructive/70" />
-            <span className="relative inline-flex size-2.5 rounded-full bg-destructive" />
-          </span>
-          Grabando nota de voz… suelta el micrófono para enviarla.
-        </div>
-      ) : transcribing ? (
-        <div className="mt-2 flex items-center gap-2 rounded-lg bg-muted px-3 py-2 text-sm text-muted-foreground">
-          <Loader2 className="size-4 animate-spin" /> Transcribiendo tu nota de voz…
-        </div>
-      ) : null}
+      <div className="mt-2">
+        <CopilotVoiceBand recording={recording} transcribing={transcribing} onStopRecording={stopRecording} />
+      </div>
 
       <form
         onSubmit={(e) => {

@@ -5,17 +5,11 @@ import Link from "next/link";
 import { CalendarClock, CalendarPlus, FileText, Sparkles } from "lucide-react";
 
 import type { TodayAppointmentItem } from "@/lib/dashboard/types";
+import { usePatientsWithoutNextAppointment } from "@/hooks/use-patients-without-next-appointment";
 
 interface SentQuote {
   id: string;
   total: number;
-  contact: { name: string | null; phone: string } | null;
-}
-
-interface AcceptedQuote {
-  id: string;
-  contact_id: string;
-  updated_at: string;
   contact: { name: string | null; phone: string } | null;
 }
 
@@ -39,15 +33,7 @@ export function PrioritiesPanel({
   const [sentQuotes, setSentQuotes] = useState<SentQuote[] | null>(null);
   const [quotesLoading, setQuotesLoading] = useState(true);
 
-  // Pacientes con un presupuesto aceptado pero sin ninguna cita futura
-  // agendada — cruce honesto de `quotes.status=accepted` (deduplicado
-  // por paciente, quedándose con el más reciente) contra
-  // `/api/appointments?from=<ahora>`. No hay tabla de "plan de
-  // tratamiento" ni de "fase" en el esquema (confirmado antes de
-  // construir esto), así que el ítem se limita a lo que sí es real:
-  // el presupuesto aceptado y la ausencia de próxima cita.
-  const [patientsWithoutNext, setPatientsWithoutNext] = useState<AcceptedQuote[] | null>(null);
-  const [acceptedLoading, setAcceptedLoading] = useState(true);
+  const { patients: patientsWithoutNext, loading: acceptedLoading } = usePatientsWithoutNextAppointment();
 
   useEffect(() => {
     let cancelled = false;
@@ -61,44 +47,6 @@ export function PrioritiesPanel({
       })
       .finally(() => {
         if (!cancelled) setQuotesLoading(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  useEffect(() => {
-    let cancelled = false;
-    const nowIso = new Date().toISOString();
-    Promise.all([
-      fetch("/api/billing/quotes?status=accepted").then((res) => res.json()),
-      fetch(`/api/appointments?from=${encodeURIComponent(nowIso)}`).then((res) => res.json()),
-    ])
-      .then(([quotesData, apptData]) => {
-        if (cancelled) return;
-        const accepted = (quotesData.quotes ?? []) as AcceptedQuote[];
-        const futureContactIds = new Set(
-          ((apptData.appointments ?? []) as Array<{ contact_id: string | null; status: string }>)
-            .filter((a) => a.status !== "cancelled" && a.contact_id)
-            .map((a) => a.contact_id as string),
-        );
-        const byContact = new Map<string, AcceptedQuote>();
-        for (const q of accepted) {
-          if (!q.contact_id) continue;
-          const existing = byContact.get(q.contact_id);
-          if (!existing || new Date(q.updated_at) > new Date(existing.updated_at)) {
-            byContact.set(q.contact_id, q);
-          }
-        }
-        setPatientsWithoutNext(
-          Array.from(byContact.values()).filter((q) => !futureContactIds.has(q.contact_id)),
-        );
-      })
-      .catch(() => {
-        if (!cancelled) setPatientsWithoutNext([]);
-      })
-      .finally(() => {
-        if (!cancelled) setAcceptedLoading(false);
       });
     return () => {
       cancelled = true;

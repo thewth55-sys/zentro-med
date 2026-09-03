@@ -415,6 +415,42 @@ export async function loadMonthlyRevenue(db: DB, months = 8): Promise<MonthlyRev
   return Array.from(byMonth.entries()).map(([month, v]) => ({ month, ...v }))
 }
 
+export interface NoShowByWeekday {
+  mondayIndex: number // 0=Lunes … 6=Domingo, vía mondayIndex()
+  currentMonthCount: number
+  previousMonthCount: number
+}
+
+/** Inasistencias (`status='no_show'` puro — NO el `cancelled+no_show`
+ *  combinado que usa `loadMetrics` para `noShowRate`) agrupadas por
+ *  día de la semana, mes actual vs. anterior. Usado por el panel de
+ *  insights de Zen ("Lo que Zen detectó") para señalar qué día
+ *  concentra más inasistencias — dato real de `appointments`, sin
+ *  tabla nueva. */
+export async function loadNoShowRiskByWeekday(db: DB): Promise<NoShowByWeekday[]> {
+  const now = new Date()
+  const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1)
+  const previousMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1)
+
+  const { data, error } = await db
+    .from('appointments')
+    .select('start_at, status')
+    .eq('status', 'no_show')
+    .gte('start_at', previousMonthStart.toISOString())
+  if (error) throw error
+
+  const byWeekday = new Map<number, { currentMonthCount: number; previousMonthCount: number }>()
+  for (let i = 0; i < 7; i++) byWeekday.set(i, { currentMonthCount: 0, previousMonthCount: 0 })
+
+  for (const appt of (data ?? []) as Array<{ start_at: string }>) {
+    const d = new Date(appt.start_at)
+    const bucket = byWeekday.get(mondayIndex(d))!
+    if (d >= currentMonthStart) bucket.currentMonthCount += 1
+    else bucket.previousMonthCount += 1
+  }
+  return Array.from(byWeekday.entries()).map(([idx, v]) => ({ mondayIndex: idx, ...v }))
+}
+
 // --- 4. Response time by day of week ----------------------------------
 
 export async function loadResponseTime(db: DB): Promise<ResponseTimeSummary> {
