@@ -69,9 +69,18 @@ export async function middleware(request: NextRequest) {
     return withRefreshedCookies(NextResponse.redirect(url))
   }
 
-  // Protected pages - redirect to login if not authenticated
+  // Protected pages - redirect to login if not authenticated.
+  // Matched by path SEGMENT, not raw string prefix — '/agenda'.startsWith
+  // would otherwise also swallow the unrelated public booking route
+  // '/agendar/[slug]' (bug: an external patient sharing their booking
+  // link got bounced to /login). Same trap could recur with any future
+  // protected path that's a prefix of a public one, so this checks for
+  // an exact match or a '/' right after.
   const protectedPaths = ['/dashboard', '/inbox', '/contacts', '/pipelines', '/broadcasts', '/automations', '/settings', '/agenda', '/billing', '/admin']
-  if (!user && protectedPaths.some(path => request.nextUrl.pathname.startsWith(path))) {
+  const isProtectedPath = protectedPaths.some(
+    (path) => request.nextUrl.pathname === path || request.nextUrl.pathname.startsWith(`${path}/`)
+  )
+  if (!user && isProtectedPath) {
     const url = request.nextUrl.clone()
     url.pathname = '/login'
     return withRefreshedCookies(NextResponse.redirect(url))

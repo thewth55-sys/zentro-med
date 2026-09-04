@@ -111,3 +111,40 @@ describe("middleware — refreshed auth cookies survive redirects", () => {
     expect(res.cookies.get(ROTATED.name)?.value).toBe(ROTATED.value);
   });
 });
+
+describe("middleware — protected-path matching is segment-aware", () => {
+  it("does not treat the public /agendar/[slug] booking page as protected", async () => {
+    // Regression: '/agenda' (protected, internal staff calendar) is a
+    // string PREFIX of '/agendar/<slug>' (public patient booking link).
+    // A naive `.startsWith('/agenda')` check swallowed the public route
+    // too, bouncing anonymous patients to /login when they opened a
+    // shared booking link.
+    mockUser = null;
+
+    const res = await middleware(
+      new NextRequest("https://app.test/agendar/oswaldo-garcia"),
+    );
+
+    expect(res.headers.get("location")).toBeNull();
+  });
+
+  it("still redirects an unauthenticated user off the real /agenda page", async () => {
+    mockUser = null;
+
+    const res = await middleware(new NextRequest("https://app.test/agenda"));
+
+    expect(res.status).toBe(307);
+    expect(res.headers.get("location")).toContain("/login");
+  });
+
+  it("still redirects an unauthenticated user off an /agenda subpath", async () => {
+    mockUser = null;
+
+    const res = await middleware(
+      new NextRequest("https://app.test/agenda/2026-09-03"),
+    );
+
+    expect(res.status).toBe(307);
+    expect(res.headers.get("location")).toContain("/login");
+  });
+});
