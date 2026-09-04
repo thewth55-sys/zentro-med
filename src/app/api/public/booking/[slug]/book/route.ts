@@ -304,6 +304,13 @@ export async function POST(
   if (gatewayConfig && gatewayConfig.depositAmount > 0) {
     try {
       const siteUrl = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/+$/, "") || "https://med.zentrolabs.com";
+      // The patient-facing return links use the short booking domain
+      // (zmed.bio) when it's configured — falls back to the old
+      // /agendar/<slug> path on the main domain otherwise, so this
+      // keeps working before that env var is set up. The webhook URL
+      // is server-to-server only (the gateway calls it, never the
+      // patient's browser), so it always stays on the main domain.
+      const bookingBaseUrl = process.env.NEXT_PUBLIC_BOOKING_URL?.replace(/\/+$/, "");
       const { data: depositRow, error: depositErr } = await admin
         .from("appointment_deposits")
         .insert({
@@ -317,8 +324,12 @@ export async function POST(
         .single();
       if (depositErr) throw depositErr;
 
-      const successUrl = `${siteUrl}/agendar/${encodeURIComponent(slug)}/confirmacion?deposit=${depositRow.external_reference}`;
-      const cancelUrl = `${siteUrl}/agendar/${encodeURIComponent(slug)}?deposit_canceled=1`;
+      const successUrl = bookingBaseUrl
+        ? `${bookingBaseUrl}/${encodeURIComponent(slug)}/confirmacion?deposit=${depositRow.external_reference}`
+        : `${siteUrl}/agendar/${encodeURIComponent(slug)}/confirmacion?deposit=${depositRow.external_reference}`;
+      const cancelUrl = bookingBaseUrl
+        ? `${bookingBaseUrl}/${encodeURIComponent(slug)}?deposit_canceled=1`
+        : `${siteUrl}/agendar/${encodeURIComponent(slug)}?deposit_canceled=1`;
       const webhookUrl = `${siteUrl}/api/webhooks/payments/${gatewayConfig.provider}/${account.id}`;
 
       const result = await getPaymentAdapter(gatewayConfig.provider).createCheckout(gatewayConfig.credentials, {

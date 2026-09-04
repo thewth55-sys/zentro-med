@@ -1,7 +1,37 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
+// Short-link domain for public booking pages (e.g. zmed.bio) — patients
+// see `zmed.bio/<slug>` instead of `med.zentrolabs.com/agendar/<slug>`.
+// The domain itself still points at this same app/container (configured
+// in Easypanel + DNS); this just rewrites the pretty path internally to
+// the real route so `/agendar/[slug]` doesn't need a second copy.
+// Hardcoded (not env-driven) because it's a routing rule, not a secret —
+// same reasoning as any other host-based rewrite.
+const BOOKING_SHORT_HOSTS = new Set(["zmed.bio", "www.zmed.bio"]);
+
 export async function middleware(request: NextRequest) {
+  const hostname = request.headers.get("host")?.split(":")[0] ?? "";
+  if (BOOKING_SHORT_HOSTS.has(hostname) && !request.nextUrl.pathname.startsWith("/api/")) {
+    const segments = request.nextUrl.pathname.split("/").filter(Boolean);
+    if (segments.length === 0) {
+      // Bare domain, no slug — nothing to show here, send visitors to the main site.
+      return NextResponse.redirect("https://med.zentrolabs.com");
+    }
+    if (segments.length === 1) {
+      const rewriteUrl = request.nextUrl.clone();
+      rewriteUrl.pathname = `/agendar/${segments[0]}`;
+      return NextResponse.rewrite(rewriteUrl);
+    }
+    if (segments.length === 2 && segments[1] === "confirmacion") {
+      const rewriteUrl = request.nextUrl.clone();
+      rewriteUrl.pathname = `/agendar/${segments[0]}/confirmacion`;
+      return NextResponse.rewrite(rewriteUrl);
+    }
+    // Anything else on this domain (unknown shape) falls through to a
+    // natural 404 below rather than being rewritten.
+  }
+
   let supabaseResponse = NextResponse.next({ request })
 
   const supabase = createServerClient(

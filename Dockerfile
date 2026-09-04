@@ -55,6 +55,11 @@ ARG NEXT_PUBLIC_SITE_URL
 ARG NEXT_PUBLIC_APP_LOCALE
 ARG NEXT_PUBLIC_SENTRY_DSN
 ARG NEXT_PUBLIC_FIREBASE_PUSH_ENABLED
+# Short-link domain for public booking pages (e.g. https://zmed.bio) —
+# patients see `zmed.bio/<slug>` instead of the main app's
+# `/agendar/<slug>`. Optional: unset falls back to the old same-domain
+# link everywhere it's used (see src/middleware.ts and each call site).
+ARG NEXT_PUBLIC_BOOKING_URL
 
 ENV NEXT_PUBLIC_SUPABASE_URL=$NEXT_PUBLIC_SUPABASE_URL
 ENV NEXT_PUBLIC_SUPABASE_ANON_KEY=$NEXT_PUBLIC_SUPABASE_ANON_KEY
@@ -64,6 +69,7 @@ ENV NEXT_PUBLIC_SITE_URL=$NEXT_PUBLIC_SITE_URL
 ENV NEXT_PUBLIC_APP_LOCALE=$NEXT_PUBLIC_APP_LOCALE
 ENV NEXT_PUBLIC_SENTRY_DSN=$NEXT_PUBLIC_SENTRY_DSN
 ENV NEXT_PUBLIC_FIREBASE_PUSH_ENABLED=$NEXT_PUBLIC_FIREBASE_PUSH_ENABLED
+ENV NEXT_PUBLIC_BOOKING_URL=$NEXT_PUBLIC_BOOKING_URL
 
 # Caps V8's heap during `next build`. Without this, V8 tries to grow
 # memory unbounded on a constrained host; the kernel OOM-kills the

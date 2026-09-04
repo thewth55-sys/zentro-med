@@ -99,12 +99,21 @@ export function PublicBookingSettings() {
     }
   }
 
-  const publicUrl =
-    typeof window !== 'undefined' && savedSlug
-      ? `${window.location.origin}/agendar/${savedSlug}`
-      : savedSlug
-        ? `/agendar/${savedSlug}`
-        : null;
+  // NEXT_PUBLIC_BOOKING_URL (e.g. https://zmed.bio) is the short link
+  // domain patients see — deliberately NOT window.location.origin,
+  // since staff always reach this settings page from the main app
+  // domain (med.zentrolabs.com), not from the booking domain. Falls
+  // back to the old same-origin /agendar/<slug> link when the short
+  // domain isn't configured yet, so this keeps working before the
+  // env var is set up.
+  const bookingBaseUrl = process.env.NEXT_PUBLIC_BOOKING_URL?.replace(/\/+$/, '');
+  const publicUrl = !savedSlug
+    ? null
+    : bookingBaseUrl
+      ? `${bookingBaseUrl}/${savedSlug}`
+      : typeof window !== 'undefined'
+        ? `${window.location.origin}/agendar/${savedSlug}`
+        : `/agendar/${savedSlug}`;
 
   if (loading) {
     return (
