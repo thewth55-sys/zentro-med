@@ -274,33 +274,40 @@ export function Sidebar({ open = false, onClose, totalUnread, unreadNotification
 
           {/* Zen — pinned next to Panel, rendered as an elevated card
               (not a plain row) since it's the product's AI
-              differentiator, not just one more menu entry. Same
-              soft-primary treatment as the "Prioridades de hoy" panel
-              on the dashboard, for a consistent visual language. */}
+              differentiator, not just one more menu entry. Same dark
+              green gradient as dashboard-hero.tsx / copilot-intro-card.tsx
+              / the login brand panel — the one consistent "this is Zen"
+              visual language used everywhere else in the app. */}
           {copilotItem && (
             <Link
               href={copilotItem.href}
               className={cn(
-                "mt-1 flex items-center gap-3 rounded-xl border border-primary/25 bg-primary/5 p-2.5 transition-colors hover:bg-primary/10",
-                pathname.startsWith(copilotItem.href) && "border-primary/40 bg-primary/10",
+                "relative mt-1 flex items-center gap-3 overflow-hidden rounded-xl p-2.5 text-white shadow-sm transition-opacity hover:opacity-95",
+                pathname.startsWith(copilotItem.href) && "ring-2 ring-primary/50",
               )}
+              style={{ background: "linear-gradient(120deg, #0F241A, #164A31)" }}
             >
-              <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/15 text-primary">
+              <span
+                aria-hidden="true"
+                className="pointer-events-none absolute -right-6 -top-8 size-24 rounded-full"
+                style={{ background: "radial-gradient(circle, rgba(74,222,90,.35), transparent 70%)" }}
+              />
+              <span className="relative flex size-9 shrink-0 items-center justify-center rounded-lg bg-white/10">
                 <Sparkles className="size-5" />
               </span>
-              <span className="flex-1 min-w-0">
-                <span className="block text-sm font-semibold text-foreground">
+              <span className="relative flex-1 min-w-0">
+                <span className="block text-sm font-semibold text-white">
                   {t(copilotItem.labelKey as string)}
                 </span>
-                <span className="block truncate text-[11px] text-muted-foreground">{t("copilotSubtitle")}</span>
+                <span className="block truncate text-[11px] text-emerald-100/70">{t("copilotSubtitle")}</span>
               </span>
               {copilotItem.feature && !featureAccess[copilotItem.feature] && (
-                <Lock className="size-3.5 shrink-0 text-muted-foreground/60" />
+                <Lock className="relative size-3.5 shrink-0 text-white/60" />
               )}
               {copilotItem.beta && (
                 <span
                   aria-label={t("beta")}
-                  className="rounded-full border border-amber-500/40 bg-amber-500/10 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wider text-amber-300"
+                  className="relative rounded-full border border-white/20 bg-white/10 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wider text-white/80"
                 >
                   {t("beta")}
                 </span>
