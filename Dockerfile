@@ -19,60 +19,50 @@ COPY . .
 # Disable telemetry during build
 ENV NEXT_TELEMETRY_DISABLED=1
 
-# Expose build arguments for env variables (required by Next.js at build time)
+# Only NEXT_PUBLIC_* vars are declared here on purpose — those are the
+# only ones Next.js actually needs during `next build` (it inlines
+# them into the client JS bundle at compile time; nothing else reads
+# `process.env` during the build). Every real secret this app uses
+# (SUPABASE_SERVICE_ROLE_KEY, ENCRYPTION_KEY, STRIPE_SECRET_KEY,
+# META_APP_SECRET, RESEND_API_KEY, BILLING_CRON_SECRET, the
+# STRIPE_PRICE_* ids, SENTRY_DSN/ORG/PROJECT/AUTH_TOKEN, ...) used to
+# be passed as build ARGs too, which is a real exposure: every `ARG`/
+# `ENV` in a Dockerfile gets written in plaintext into that build
+# stage's image layer, readable by anyone with access to the build
+# host's Docker daemon (`docker history`, inspecting the layer cache) —
+# completely independent of Supabase RLS or the AES-256-GCM encryption
+# this app uses for clients' own stored credentials.
+#
+# The `runner` stage below never re-declares any of those — Easypanel
+# already has to inject them as RUNTIME container env vars for the
+# app to work at all (nothing in this Dockerfile sets ENCRYPTION_KEY
+# etc. on the production image), so removing them here drops zero
+# functionality: they simply stop existing anywhere in the image
+# itself, only living in the running container's memory.
+#
+# Sentry's org/project/auth-token were the one plausible reason a
+# secret might legitimately be needed at build time (source-map
+# upload authenticates against Sentry's API during `next build`) —
+# moot here, since `sourcemaps: { disable: true }` in next.config.ts
+# already turns that off for memory reasons (see that file's comment).
+# If sourcemap upload is ever re-enabled, SENTRY_ORG/SENTRY_PROJECT/
+# SENTRY_AUTH_TOKEN would need to come back here specifically for that.
 ARG NEXT_PUBLIC_SUPABASE_URL
 ARG NEXT_PUBLIC_SUPABASE_ANON_KEY
-ARG SUPABASE_SERVICE_ROLE_KEY
-ARG ENCRYPTION_KEY
-ARG META_APP_SECRET
-ARG META_APP_ID
 ARG NEXT_PUBLIC_META_APP_ID
 ARG NEXT_PUBLIC_META_WA_SIGNUP_CONFIG_ID
 ARG NEXT_PUBLIC_SITE_URL
 ARG NEXT_PUBLIC_APP_LOCALE
-ARG STRIPE_SECRET_KEY
-ARG STRIPE_WEBHOOK_SECRET
-ARG STRIPE_PRICE_STANDALONE_BASE
-ARG STRIPE_PRICE_STANDALONE_SEAT
-ARG STRIPE_PRICE_ZENTRO_SALUD_STARTER
-ARG STRIPE_PRICE_ZENTRO_SALUD_PRO
-ARG STRIPE_PRICE_SEAT_ADDON
-ARG BILLING_CRON_SECRET
-ARG RESEND_API_KEY
-ARG RESEND_FROM_EMAIL
 ARG NEXT_PUBLIC_SENTRY_DSN
-ARG SENTRY_DSN
-ARG SENTRY_ORG
-ARG SENTRY_PROJECT
-ARG SENTRY_AUTH_TOKEN
 ARG NEXT_PUBLIC_FIREBASE_PUSH_ENABLED
 
-# Inject build arguments as environment variables for next build
 ENV NEXT_PUBLIC_SUPABASE_URL=$NEXT_PUBLIC_SUPABASE_URL
 ENV NEXT_PUBLIC_SUPABASE_ANON_KEY=$NEXT_PUBLIC_SUPABASE_ANON_KEY
-ENV SUPABASE_SERVICE_ROLE_KEY=$SUPABASE_SERVICE_ROLE_KEY
-ENV ENCRYPTION_KEY=$ENCRYPTION_KEY
-ENV META_APP_SECRET=$META_APP_SECRET
-ENV META_APP_ID=$META_APP_ID
 ENV NEXT_PUBLIC_META_APP_ID=$NEXT_PUBLIC_META_APP_ID
 ENV NEXT_PUBLIC_META_WA_SIGNUP_CONFIG_ID=$NEXT_PUBLIC_META_WA_SIGNUP_CONFIG_ID
 ENV NEXT_PUBLIC_SITE_URL=$NEXT_PUBLIC_SITE_URL
 ENV NEXT_PUBLIC_APP_LOCALE=$NEXT_PUBLIC_APP_LOCALE
-ENV STRIPE_SECRET_KEY=$STRIPE_SECRET_KEY
-ENV STRIPE_WEBHOOK_SECRET=$STRIPE_WEBHOOK_SECRET
-ENV STRIPE_PRICE_STANDALONE_BASE=$STRIPE_PRICE_STANDALONE_BASE
-ENV STRIPE_PRICE_STANDALONE_SEAT=$STRIPE_PRICE_STANDALONE_SEAT
-ENV STRIPE_PRICE_ZENTRO_SALUD_STARTER=$STRIPE_PRICE_ZENTRO_SALUD_STARTER
-ENV STRIPE_PRICE_ZENTRO_SALUD_PRO=$STRIPE_PRICE_ZENTRO_SALUD_PRO
-ENV STRIPE_PRICE_SEAT_ADDON=$STRIPE_PRICE_SEAT_ADDON
-ENV BILLING_CRON_SECRET=$BILLING_CRON_SECRET
-ENV RESEND_API_KEY=$RESEND_API_KEY
-ENV RESEND_FROM_EMAIL=$RESEND_FROM_EMAIL
 ENV NEXT_PUBLIC_SENTRY_DSN=$NEXT_PUBLIC_SENTRY_DSN
-ENV SENTRY_DSN=$SENTRY_DSN
-ENV SENTRY_ORG=$SENTRY_ORG
-ENV SENTRY_PROJECT=$SENTRY_PROJECT
-ENV SENTRY_AUTH_TOKEN=$SENTRY_AUTH_TOKEN
 ENV NEXT_PUBLIC_FIREBASE_PUSH_ENABLED=$NEXT_PUBLIC_FIREBASE_PUSH_ENABLED
 
 # Caps V8's heap during `next build`. Without this, V8 tries to grow
