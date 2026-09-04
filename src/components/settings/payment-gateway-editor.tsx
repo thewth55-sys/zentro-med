@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
-import { CreditCard, Loader2 } from 'lucide-react';
+import { CheckCircle2, Copy, CreditCard, Loader2 } from 'lucide-react';
 
+import { useAuth } from '@/hooks/use-auth';
 import { useCan } from '@/hooks/use-can';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -26,6 +27,20 @@ interface ConfigResponse {
   currency: string;
   booking_terms: string | null;
   has_credentials: boolean;
+  /** Últimos 4 caracteres de cada campo, ej. `{ secretKey: "•••• a1b2" }` — nunca el valor completo. */
+  credentials_preview: Record<string, string>;
+}
+
+/** Badge de confirmación junto a un campo ya guardado — reemplaza la
+ *  ambigüedad de un placeholder genérico por algo positivo y, cuando
+ *  hay preview, el dato real que confirma cuál credencial está activa. */
+function StoredBadge({ preview }: { preview: string | undefined }) {
+  return (
+    <span className="inline-flex items-center gap-1 text-xs font-medium text-emerald-600 dark:text-emerald-400">
+      <CheckCircle2 className="size-3.5" />
+      {preview ? `Configurada (${preview})` : 'Configurada'}
+    </span>
+  );
 }
 
 /**
@@ -44,11 +59,13 @@ interface ConfigResponse {
  */
 export function PaymentGatewayEditor() {
   const canEdit = useCan('edit-settings');
+  const { accountId } = useAuth();
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [hasStoredCredentials, setHasStoredCredentials] = useState(false);
   const [storedProvider, setStoredProvider] = useState<PaymentProviderId | null>(null);
+  const [credentialsPreview, setCredentialsPreview] = useState<Record<string, string>>({});
 
   const [provider, setProvider] = useState<PaymentProviderId>('stripe');
   const [isActive, setIsActive] = useState(false);
@@ -61,6 +78,21 @@ export function PaymentGatewayEditor() {
   const [mpAccessToken, setMpAccessToken] = useState('');
   const [clipApiKey, setClipApiKey] = useState('');
   const [clipSecretKey, setClipSecretKey] = useState('');
+
+  // Guarded the same way whatsapp-config.tsx already does — `window`
+  // doesn't exist during the server render pass, only after hydration.
+  const origin = typeof window !== 'undefined' ? window.location.origin : '';
+
+  function webhookUrlFor(p: PaymentProviderId, accId: string): string {
+    return origin ? `${origin}/api/webhooks/payments/${p}/${accId}` : '';
+  }
+
+  function copyWebhookUrl(p: PaymentProviderId, accId: string) {
+    const url = webhookUrlFor(p, accId);
+    if (!url) return;
+    navigator.clipboard.writeText(url);
+    toast.success('URL de webhook copiada');
+  }
 
   function resetCredentialFields() {
     setStripeSecretKey('');
@@ -84,6 +116,9 @@ export function PaymentGatewayEditor() {
         setCurrency(config.currency ?? 'MXN');
         setBookingTerms(config.booking_terms ?? '');
         setHasStoredCredentials(config.has_credentials);
+        setCredentialsPreview(config.credentials_preview ?? {});
+      } else {
+        setCredentialsPreview({});
       }
       resetCredentialFields();
     } catch (err) {
@@ -193,22 +228,28 @@ export function PaymentGatewayEditor() {
             {provider === 'stripe' && (
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div className="space-y-1.5">
-                  <Label>Clave secreta (Secret key)</Label>
+                  <div className="flex items-center justify-between gap-2">
+                    <Label>Clave secreta (Secret key)</Label>
+                    {keepsStoredCredentials && <StoredBadge preview={credentialsPreview.secretKey} />}
+                  </div>
                   <Input
                     type="password"
                     value={stripeSecretKey}
                     onChange={(e) => setStripeSecretKey(e.target.value)}
-                    placeholder={keepsStoredCredentials ? '(sin cambios)' : 'sk_live_…'}
+                    placeholder={keepsStoredCredentials ? 'Dejar en blanco para conservarla' : 'sk_live_…'}
                     disabled={disabled}
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <Label>Firma del webhook (Signing secret)</Label>
+                  <div className="flex items-center justify-between gap-2">
+                    <Label>Firma del webhook (Signing secret)</Label>
+                    {keepsStoredCredentials && <StoredBadge preview={credentialsPreview.webhookSecret} />}
+                  </div>
                   <Input
                     type="password"
                     value={stripeWebhookSecret}
                     onChange={(e) => setStripeWebhookSecret(e.target.value)}
-                    placeholder={keepsStoredCredentials ? '(sin cambios)' : 'whsec_…'}
+                    placeholder={keepsStoredCredentials ? 'Dejar en blanco para conservarla' : 'whsec_…'}
                     disabled={disabled}
                   />
                 </div>
@@ -217,12 +258,15 @@ export function PaymentGatewayEditor() {
 
             {provider === 'mercadopago' && (
               <div className="space-y-1.5">
-                <Label>Access token</Label>
+                <div className="flex items-center justify-between gap-2">
+                  <Label>Access token</Label>
+                  {keepsStoredCredentials && <StoredBadge preview={credentialsPreview.accessToken} />}
+                </div>
                 <Input
                   type="password"
                   value={mpAccessToken}
                   onChange={(e) => setMpAccessToken(e.target.value)}
-                  placeholder={keepsStoredCredentials ? '(sin cambios)' : 'APP_USR-…'}
+                  placeholder={keepsStoredCredentials ? 'Dejar en blanco para conservarlo' : 'APP_USR-…'}
                   disabled={disabled}
                 />
               </div>
@@ -231,22 +275,28 @@ export function PaymentGatewayEditor() {
             {provider === 'clip' && (
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div className="space-y-1.5">
-                  <Label>Clave API</Label>
+                  <div className="flex items-center justify-between gap-2">
+                    <Label>Clave API</Label>
+                    {keepsStoredCredentials && <StoredBadge preview={credentialsPreview.apiKey} />}
+                  </div>
                   <Input
                     type="password"
                     value={clipApiKey}
                     onChange={(e) => setClipApiKey(e.target.value)}
-                    placeholder={keepsStoredCredentials ? '(sin cambios)' : 'API key de Clip'}
+                    placeholder={keepsStoredCredentials ? 'Dejar en blanco para conservarla' : 'API key de Clip'}
                     disabled={disabled}
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <Label>Clave secreta</Label>
+                  <div className="flex items-center justify-between gap-2">
+                    <Label>Clave secreta</Label>
+                    {keepsStoredCredentials && <StoredBadge preview={credentialsPreview.secretKey} />}
+                  </div>
                   <Input
                     type="password"
                     value={clipSecretKey}
                     onChange={(e) => setClipSecretKey(e.target.value)}
-                    placeholder={keepsStoredCredentials ? '(sin cambios)' : 'Secret key de Clip'}
+                    placeholder={keepsStoredCredentials ? 'Dejar en blanco para conservarla' : 'Secret key de Clip'}
                     disabled={disabled}
                   />
                 </div>
@@ -259,9 +309,37 @@ export function PaymentGatewayEditor() {
 
             {keepsStoredCredentials && (
               <p className="text-xs text-muted-foreground">
-                Ya hay credenciales guardadas para {PAYMENT_PROVIDER_LABEL[provider]}. Deja los campos en
-                blanco para conservarlas, o llénalos para reemplazarlas.
+                Deja los campos en blanco para conservar las credenciales guardadas de{' '}
+                {PAYMENT_PROVIDER_LABEL[provider]}, o llénalos para reemplazarlas.
               </p>
+            )}
+
+            {accountId && (
+              <div className="space-y-1.5 rounded-lg border border-border bg-muted/30 p-3">
+                <Label>URL de webhook</Label>
+                <p className="text-xs text-muted-foreground">
+                  Pégala en el dashboard de desarrollador de {PAYMENT_PROVIDER_LABEL[provider]}, en la
+                  configuración de webhooks — sin esto, un pago puede cobrarse correctamente y Zentro Med
+                  nunca enterarse.
+                </p>
+                <div className="flex gap-2">
+                  <Input
+                    readOnly
+                    value={webhookUrlFor(provider, accountId)}
+                    className="font-mono text-xs"
+                    onFocus={(e) => e.target.select()}
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    onClick={() => copyWebhookUrl(provider, accountId)}
+                    title="Copiar"
+                  >
+                    <Copy className="size-4" />
+                  </Button>
+                </div>
+              </div>
             )}
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">

@@ -23,27 +23,65 @@ interface ConfigRow {
   booking_terms: string | null;
 }
 
+/** Never the value itself — just enough for a human to recognize
+ *  "yes, that's my key" (Stripe/Clip's own dashboards do the same
+ *  last-4 preview). A value too short to mask meaningfully still
+ *  reveals nothing usable. */
+function maskLast4(value: string): string {
+  const trimmed = value.trim();
+  if (trimmed.length <= 4) return "••••";
+  return `••••${trimmed.slice(-4)}`;
+}
+
 export async function GET() {
   try {
     const { supabase, accountId } = await requireRole("admin");
 
     const { data, error } = await supabase
       .from("payment_gateway_configs")
-      .select("provider, is_active, deposit_amount, currency, booking_terms")
+      .select("provider, is_active, deposit_amount, currency, booking_terms, credentials")
       .eq("account_id", accountId)
-      .maybeSingle<ConfigRow>();
+      .maybeSingle<ConfigRow & { credentials: string }>();
 
     if (error) {
       console.error("[payment-gateway/config GET] load error:", error);
       return NextResponse.json({ error: "Failed to load configuration" }, { status: 500 });
     }
 
-    // Credentials are never round-tripped, even encrypted — same
-    // posture as ai_configs.api_key / conversion_tracking_config's
-    // meta_access_token. `has_credentials` is all the client needs to
-    // decide whether to show "re-enter to change" vs. empty fields.
+    // Credentials are never round-tripped in full, even encrypted —
+    // same posture as ai_configs.api_key / conversion_tracking_config's
+    // meta_access_token. `has_credentials` is what the client uses to
+    // decide "re-enter to change" vs. empty fields; `credentials_preview`
+    // additionally gives a last-4-chars-only mask per field (decrypted
+    // server-side, only the tail ever leaves this function) so the
+    // settings screen can show "•••• a1b2" instead of leaving it
+    // ambiguous whether anything is actually configured.
+    if (!data) {
+      return NextResponse.json({ config: null });
+    }
+
+    let credentialsPreview: Record<string, string> = {};
+    try {
+      const parsed = JSON.parse(decrypt(data.credentials)) as Record<string, unknown>;
+      for (const [key, value] of Object.entries(parsed)) {
+        if (key === "provider" || typeof value !== "string") continue;
+        credentialsPreview[key] = maskLast4(value);
+      }
+    } catch (err) {
+      console.error("[payment-gateway/config GET] failed to decrypt credentials for preview:", err);
+      credentialsPreview = {};
+    }
+
     return NextResponse.json({
-      config: data ? { ...data, has_credentials: true } : null,
+      config: {
+        provider: data.provider,
+        is_active: data.is_active,
+        deposit_amount: data.deposit_amount,
+        currency: data.currency,
+        booking_terms: data.booking_terms,
+        has_credentials: true,
+        credentials_preview: credentialsPreview,
+      },
     });
   } catch (err) {
     return toErrorResponse(err);
