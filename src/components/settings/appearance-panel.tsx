@@ -1,11 +1,12 @@
 "use client";
 
-import { Check, Moon, Palette, SunMoon, Sun } from "lucide-react";
+import { useState } from "react";
+import { Check, Languages, Loader2, Moon, Palette, SunMoon, Sun } from "lucide-react";
 
 import { useTheme } from "@/hooks/use-theme";
 import { MODES, THEMES, type Mode, type ThemeId } from "@/lib/themes";
 import { cn } from "@/lib/utils";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { SettingsPanelHead } from "./settings-panel-head";
 
 /**
@@ -73,7 +74,75 @@ export function AppearancePanel() {
           ))}
         </div>
       </div>
+
+      <div className="mt-8 space-y-4">
+        <h3 className="flex items-center gap-2 text-sm font-semibold text-foreground">
+          <Languages className="size-4 text-muted-foreground" />
+          {t("language")}
+        </h3>
+
+        <div
+          role="radiogroup"
+          aria-label="Language"
+          className="grid max-w-md grid-cols-2 gap-3"
+        >
+          <LanguageCard code="es" label="Español" />
+          <LanguageCard code="en" label="English" />
+        </div>
+      </div>
     </section>
+  );
+}
+
+function LanguageCard({ code, label }: { code: "es" | "en"; label: string }) {
+  const locale = useLocale();
+  const t = useTranslations("Settings.appearance");
+  const isActive = locale === code;
+  const [switching, setSwitching] = useState(false);
+
+  async function pick() {
+    if (isActive || switching) return;
+    setSwitching(true);
+    try {
+      await fetch("/api/locale", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ locale: code }),
+      });
+    } finally {
+      window.location.reload();
+    }
+  }
+
+  return (
+    <button
+      type="button"
+      role="radio"
+      onClick={pick}
+      disabled={switching}
+      aria-checked={isActive}
+      aria-label={label}
+      className={cn(
+        "flex items-center gap-3 rounded-lg border bg-card p-4 text-left transition-colors disabled:opacity-60",
+        isActive
+          ? "border-primary/60 ring-2 ring-primary/40"
+          : "border-border hover:border-border hover:bg-muted/40",
+      )}
+    >
+      <span
+        aria-hidden
+        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-muted text-foreground"
+      >
+        {switching ? <Loader2 className="h-4 w-4 animate-spin" /> : <Languages className="h-4 w-4" />}
+      </span>
+      <span className="flex-1 text-sm font-semibold text-foreground">{label}</span>
+      {isActive && (
+        <span className="inline-flex items-center gap-1 rounded-full bg-primary/15 px-2 py-0.5 text-[11px] font-medium text-primary">
+          <Check className="h-3 w-3" />
+          {t("active")}
+        </span>
+      )}
+    </button>
   );
 }
 

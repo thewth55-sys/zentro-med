@@ -29,10 +29,9 @@ interface MobileTabBarProps {
    *  can't be a local `useTotalUnread()`/`useUnreadNotifications()`
    *  call (Sidebar and MobileTabBar mount at the same time). */
   totalUnread: number;
-  unreadNotifications: number;
 }
 
-export function MobileTabBar({ totalUnread, unreadNotifications }: MobileTabBarProps) {
+export function MobileTabBar({ totalUnread }: MobileTabBarProps) {
   const t = useTranslations("Sidebar");
   const pathname = usePathname();
   const { isPlatformAdmin } = usePlatformAdmin();
@@ -63,7 +62,6 @@ export function MobileTabBar({ totalUnread, unreadNotifications }: MobileTabBarP
             const active = isActive(item.href);
             const isLocked = item.feature ? !featureAccess[item.feature] : false;
             const showUnreadDot = item.href === "/inbox" && totalUnread > 0 && !active;
-            const showNotificationBadge = item.href === "/notifications" && unreadNotifications > 0;
             return (
               <li key={item.href}>
                 <Link
@@ -78,11 +76,6 @@ export function MobileTabBar({ totalUnread, unreadNotifications }: MobileTabBarP
                   {isLocked && <Lock className="absolute top-1 right-[22%] size-2.5 text-muted-foreground/60" />}
                   {showUnreadDot && (
                     <span className="absolute top-1 right-[26%] size-1.5 rounded-full bg-primary" />
-                  )}
-                  {showNotificationBadge && (
-                    <span className="absolute top-0.5 right-[22%] flex h-3.5 min-w-3.5 items-center justify-center rounded-full bg-primary px-0.5 text-[8px] font-semibold text-primary-foreground">
-                      {unreadNotifications > 9 ? "9+" : unreadNotifications}
-                    </span>
                   )}
                 </Link>
               </li>

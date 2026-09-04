@@ -83,10 +83,9 @@ function DashboardShellInner({ children }: { children: React.ReactNode }) {
           open={sidebarOpen}
           onClose={closeSidebar}
           totalUnread={totalUnread}
-          unreadNotifications={unreadNotifications}
         />
         <div className="flex flex-1 flex-col overflow-hidden">
-          <Header onOpenSidebar={() => setSidebarOpen(true)} />
+          <Header onOpenSidebar={() => setSidebarOpen(true)} unreadNotifications={unreadNotifications} />
           <AccessBanner />
           {/* Thinner horizontal padding on mobile so cards have room to
               breathe; extra bottom padding on mobile so content doesn't
@@ -94,7 +93,7 @@ function DashboardShellInner({ children }: { children: React.ReactNode }) {
           <main className="flex-1 overflow-y-auto p-4 pb-20 sm:p-6 lg:pb-6">{children}</main>
         </div>
         <ZenBubble />
-        <MobileTabBar totalUnread={totalUnread} unreadNotifications={unreadNotifications} />
+        <MobileTabBar totalUnread={totalUnread} />
       </div>
     </BiometricLock>
   );

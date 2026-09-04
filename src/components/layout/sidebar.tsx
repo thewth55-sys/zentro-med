@@ -86,12 +86,11 @@ interface SidebarProps {
    *  can't be a local `useTotalUnread()`/`useUnreadNotifications()`
    *  call (Sidebar and MobileTabBar mount at the same time). */
   totalUnread: number;
-  unreadNotifications: number;
 }
 
 import { useTranslations } from "next-intl";
 
-export function Sidebar({ open = false, onClose, totalUnread, unreadNotifications }: SidebarProps) {
+export function Sidebar({ open = false, onClose, totalUnread }: SidebarProps) {
   const t = useTranslations("Sidebar");
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -160,11 +159,6 @@ export function Sidebar({ open = false, onClose, totalUnread, unreadNotification
 
     const showUnreadDot = item.href === "/inbox" && totalUnread > 0 && !isActive;
 
-    // Unlike the inbox dot, the notifications count stays visible even
-    // while the page is active — it reflects unread state (cleared by
-    // marking notifications read), not "currently viewing this section".
-    const showNotificationBadge = item.href === "/notifications" && unreadNotifications > 0;
-
     const isLocked = item.feature ? !featureAccess[item.feature] : false;
 
     return (
@@ -197,14 +191,6 @@ export function Sidebar({ open = false, onClose, totalUnread, unreadNotification
             >
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75" />
               <span className="relative inline-flex h-2 w-2 rounded-full bg-primary" />
-            </span>
-          )}
-          {showNotificationBadge && (
-            <span
-              aria-label={t("unreadNotifications", { count: unreadNotifications })}
-              className="flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-semibold text-primary-foreground"
-            >
-              {unreadNotifications > 9 ? "9+" : unreadNotifications}
             </span>
           )}
         </Link>

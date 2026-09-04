@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import { useAuth } from "@/hooks/use-auth";
 import { useCan } from "@/hooks/use-can";
 import { createClient } from "@/lib/supabase/client";
-import { LogOut, Menu, Plus, Settings as SettingsIcon, User } from "lucide-react";
+import { Bell, LogOut, Menu, Plus, Settings as SettingsIcon, User } from "lucide-react";
 import {
   Avatar,
   AvatarFallback,
@@ -20,9 +20,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { ModeToggle } from "@/components/layout/mode-toggle";
-import { LocaleToggle } from "@/components/layout/locale-toggle";
 import { HelpButton } from "@/components/layout/help-button";
+import { GlobalSearch } from "@/components/layout/global-search";
 import { AppointmentEditorDialog, type AppointmentDraft } from "@/components/agenda/appointment-editor-dialog";
 import { navItems } from "@/lib/nav-items";
 import type { Doctor, Room, ServiceType } from "@/types";
@@ -31,11 +30,15 @@ interface HeaderProps {
   /** Wired to the shell's drawer state. Used only on mobile — the
    *  hamburger button is hidden on lg+. */
   onOpenSidebar?: () => void;
+  /** Lifted to DashboardShell, same reason Sidebar/MobileTabBar take it
+   *  as a prop instead of calling useUnreadNotifications() themselves —
+   *  see the comment there. */
+  unreadNotifications?: number;
 }
 
 import { useLocale, useTranslations } from "next-intl";
 
-export function Header({ onOpenSidebar }: HeaderProps) {
+export function Header({ onOpenSidebar, unreadNotifications = 0 }: HeaderProps) {
   const t = useTranslations("Header");
   const tNav = useTranslations("Sidebar");
   const locale = useLocale();
@@ -123,6 +126,19 @@ export function Header({ onOpenSidebar }: HeaderProps) {
       </div>
 
       <div className="flex items-center gap-1 sm:gap-2">
+        <GlobalSearch />
+
+        <Link
+          href="/notifications"
+          aria-label={t("notifications")}
+          className="relative flex h-10 w-10 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+        >
+          <Bell className="h-5 w-5" />
+          {unreadNotifications > 0 && (
+            <span className="absolute right-2 top-2 flex size-2 rounded-full bg-red-500" aria-hidden="true" />
+          )}
+        </Link>
+
         {canCreateAppointment && (
           <Button type="button" size="sm" onClick={() => void openNewAppointment()} className="hidden sm:inline-flex">
             <Plus className="size-3.5" />
@@ -130,8 +146,6 @@ export function Header({ onOpenSidebar }: HeaderProps) {
           </Button>
         )}
         <HelpButton />
-        <ModeToggle />
-        <LocaleToggle />
 
         <DropdownMenu>
         <DropdownMenuTrigger

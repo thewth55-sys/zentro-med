@@ -10,7 +10,6 @@
 // ============================================================
 
 import {
-  Bell,
   Bot,
   CalendarClock,
   GitBranch,
@@ -68,11 +67,13 @@ export const navItems: NavItem[] = [
   { href: "/copilot", labelKey: "copilot", icon: Sparkles, beta: true, feature: "ai_copilot" },
 
   // ATENCIÓN — lo que se usa entre pacientes, todos los días.
+  // "Notificaciones" ya no vive aquí — la campana del header (visible
+  // en cualquier pantalla) la reemplaza; tenerla dos veces era
+  // redundante.
   { href: "/contacts", labelKey: "contacts", icon: Users, group: "atencion" },
   { href: "/agenda", labelKey: "agenda", icon: CalendarClock, group: "atencion" },
   { href: "/inbox", labelKey: "inbox", icon: WhatsAppIcon, feature: "whatsapp_inbox", group: "atencion" },
   { href: "/pipelines", labelKey: "pipelines", icon: GitBranch, group: "atencion" },
-  { href: "/notifications", labelKey: "notifications", icon: Bell, group: "atencion" },
 
   // OPERACIÓN — administración del negocio, no del sillón.
   { href: "/billing", labelKey: "billing", icon: Wallet, group: "operacion" },

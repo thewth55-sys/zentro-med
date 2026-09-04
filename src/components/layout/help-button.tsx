@@ -10,8 +10,8 @@ const ZOHO_DESK_HELP_CENTER_URL = "https://zentrolatam.zohodesk.com/portal/es/ho
 /**
  * Opens the Zoho Desk help center (public knowledge base) in a new
  * tab — distinct from the Zoho chat widget already floating on every
- * page (components/zoho-desk-widget.tsx). Mirrors ModeToggle/
- * LocaleToggle's single-button pattern (same 40×40 hit target).
+ * page (components/zoho-desk-widget.tsx). Same 40×40 icon-button hit
+ * target as the other header icons (search, notifications).
  */
 export function HelpButton({ className }: { className?: string }) {
   const t = useTranslations("Sidebar");

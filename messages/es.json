@@ -180,6 +180,15 @@
   "ModeToggle": {
     "switchMode": "Cambiar a modo {mode}"
   },
+  "GlobalSearch": {
+    "placeholder": "Buscar paciente, cita o factura...",
+    "typeToSearch": "Escribe al menos 2 caracteres para buscar",
+    "noResults": "Sin resultados para \"{term}\"",
+    "groupPatients": "Pacientes",
+    "groupAppointments": "Citas",
+    "groupInvoices": "Facturas",
+    "unnamedPatient": "Sin nombre"
+  },
   "LocaleToggle": {
     "switchTo": "Cambiar a {locale}"
   },
@@ -2512,7 +2521,8 @@
       "useMode": "Usar modo {mode}",
       "active": "Activo",
       "accentColor": "Color de acento",
-      "useTheme": "Usar tema {name}"
+      "useTheme": "Usar tema {name}",
+      "language": "Idioma"
     },
     "security": {
       "title": "Inicio de sesión y seguridad",

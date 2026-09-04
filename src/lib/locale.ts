@@ -2,9 +2,10 @@
  * Single source of truth for the supported UI locales.
  *
  * Companion to `src/i18n/request.ts` (resolves which `messages/*.json`
- * to load) and `src/components/layout/locale-toggle.tsx` (the header
- * switcher). Adding a locale needs: an entry here, a `messages/<id>.json`
- * translation file, and nothing else — no routing changes.
+ * to load) and the language picker in Settings → Apariencia
+ * (`src/components/settings/appearance-panel.tsx`). Adding a locale
+ * needs: an entry here, a `messages/<id>.json` translation file, and
+ * nothing else — no routing changes.
  */
 
 export const LOCALES = ["en", "es"] as const;
