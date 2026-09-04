@@ -120,11 +120,30 @@ WORKDIR /app
 ENV NODE_ENV=production
 # Disable telemetry during runtime
 ENV NEXT_TELEMETRY_DISABLED=1
+# The `nextjs` system user (added below) has no real home directory by
+# default — harmless for Next.js itself, but the Infisical CLI writes
+# a small config/cache under $HOME on login. /app is already owned by
+# nextjs:nodejs (see the --chown COPY below), so point HOME there
+# instead of leaving it unset/unwritable.
+ENV HOME=/app
+
+# Infisical CLI — only used by docker-entrypoint.sh, and only when the
+# three INFISICAL_* vars are actually set (see that script). Installed
+# unconditionally so the image is ready the moment those vars get
+# added in Easypanel, without needing a rebuild at cutover time.
+# Alpine-specific install (musl, not glibc) — the deb/rpm installers
+# Infisical documents elsewhere don't apply here. Root at this point
+# in the build (before `USER nextjs` below), so no `sudo` needed.
+RUN apk add --no-cache bash wget && \
+    wget -qO- 'https://artifacts-cli.infisical.com/setup.apk.sh' | sh && \
+    apk update && apk add --no-cache infisical
 
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
 COPY --from=builder /app/public ./public
+COPY docker-entrypoint.sh /app/docker-entrypoint.sh
+RUN chmod +x /app/docker-entrypoint.sh
 
 # Set the correct permission for prerender cache
 RUN mkdir .next
@@ -142,5 +161,7 @@ EXPOSE 3000
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 
-# server.js is created by next build from the standalone output
-CMD ["node", "server.js"]
+# server.js is created by next build from the standalone output.
+# docker-entrypoint.sh decides whether to run it through Infisical or
+# plain — see that script.
+CMD ["/app/docker-entrypoint.sh"]
