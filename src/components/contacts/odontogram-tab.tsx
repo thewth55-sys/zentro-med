@@ -13,7 +13,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import type { OdontogramTooth, PatientProfile, Product, ToothCondition } from "@/types";
 
@@ -53,175 +52,48 @@ const CONDITION_STYLE: Record<ToothCondition, string> = {
   bridge: "border-indigo-500 bg-indigo-500/20 text-indigo-600",
 };
 
-interface ToothButtonProps {
-  number: number;
-  tooth?: OdontogramTooth;
-  isOpen: boolean;
-  onOpenChange: (open: boolean) => void;
-  onOpenEditor: (toothNumber: number) => void;
-  draftCondition: ToothCondition;
-  onDraftConditionChange: (condition: ToothCondition) => void;
-  draftIcdCode: string;
-  onDraftIcdCodeChange: (code: string) => void;
-  draftNotes: string;
-  onDraftNotesChange: (notes: string) => void;
-  onSave: () => void;
-  saving: boolean;
-  t: (key: string, values?: Record<string, string | number>) => string;
-  // "Odontograma accionable": una vez guardado el hallazgo, el médico
-  // puede elegir un producto/servicio del catálogo y mandarlo a una
-  // cotización nueva sin salir del diente.
-  products: Product[];
-  draftProductId: string;
-  onDraftProductIdChange: (productId: string) => void;
-  draftUnitPrice: string;
-  onDraftUnitPriceChange: (price: string) => void;
-  onAddToQuote: () => void;
-  addingToQuote: boolean;
+// Nomenclatura FDI estándar (posición dentro del cuadrante + cuadrante) —
+// dato de referencia universal, no clínico del paciente, así que es
+// seguro derivarlo de forma estática en vez de guardarlo por diente.
+const TOOTH_QUADRANT_KEY: Record<number, string> = { 1: "q1", 2: "q2", 3: "q3", 4: "q4" };
+const TOOTH_POSITION_KEY: Record<number, string> = {
+  1: "p1", 2: "p2", 3: "p3", 4: "p4", 5: "p5", 6: "p6", 7: "p7", 8: "p8",
+};
+
+function toothAnatomicalName(fdi: number, t: (key: string) => string): string {
+  const quadrant = Math.floor(fdi / 10);
+  const position = fdi % 10;
+  const positionKey = TOOTH_POSITION_KEY[position];
+  const quadrantKey = TOOTH_QUADRANT_KEY[quadrant];
+  if (!positionKey || !quadrantKey) return "";
+  return `${t(`toothPosition.${positionKey}`)} ${t(`toothQuadrant.${quadrantKey}`)}`;
 }
 
-// Module-level, NOT declared inside OdontogramTab — a component
-// function created fresh on every parent render gets a new identity,
-// so React remounts it (and everything inside, including the
-// Textarea) instead of just re-rendering it. That was silently
-// dropping focus from the notes field after every keystroke, since
-// each setDraftNotes() call re-rendered OdontogramTab and therefore
-// redefined this component. Closure state (teeth, draftNotes, etc.)
-// is passed in as props instead.
 function ToothButton({
   number,
   tooth,
-  isOpen,
-  onOpenChange,
-  onOpenEditor,
-  draftCondition,
-  onDraftConditionChange,
-  draftIcdCode,
-  onDraftIcdCodeChange,
-  draftNotes,
-  onDraftNotesChange,
-  onSave,
-  saving,
-  t,
-  products,
-  draftProductId,
-  onDraftProductIdChange,
-  draftUnitPrice,
-  onDraftUnitPriceChange,
-  onAddToQuote,
-  addingToQuote,
-}: ToothButtonProps) {
+  selected,
+  onClick,
+}: {
+  number: number;
+  tooth?: OdontogramTooth;
+  selected: boolean;
+  onClick: () => void;
+}) {
   const condition = tooth?.condition ?? "healthy";
   return (
-    <Popover open={isOpen} onOpenChange={onOpenChange}>
-      <PopoverTrigger
-        render={
-          <button
-            type="button"
-            onClick={() => onOpenEditor(number)}
-            title={tooth?.notes ?? undefined}
-            className={cn(
-              "flex size-11 shrink-0 items-center justify-center rounded-md border text-[11px] font-medium transition-colors hover:opacity-80",
-              CONDITION_STYLE[condition],
-            )}
-          />
-        }
-      >
-        {number}
-      </PopoverTrigger>
-      <PopoverContent className="w-64 space-y-3">
-        <p className="text-sm font-medium text-popover-foreground">
-          {t("toothLabel", { number })}
-        </p>
-        <div className="space-y-1.5">
-          <Label className="text-xs text-muted-foreground">{t("condition")}</Label>
-          <Select value={draftCondition} onValueChange={(v) => v && onDraftConditionChange(v as ToothCondition)}>
-            <SelectTrigger className="h-8 text-sm">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {CONDITIONS.map((c) => (
-                <SelectItem key={c} value={c}>
-                  {t(`conditions.${c}`)}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="space-y-1.5">
-          <Label className="text-xs text-muted-foreground">{t("icdCode")}</Label>
-          <Input
-            value={draftIcdCode}
-            onChange={(e) => onDraftIcdCodeChange(e.target.value)}
-            placeholder={t("icdCodePlaceholder")}
-            className="h-8 text-sm"
-          />
-        </div>
-        <div className="space-y-1.5">
-          <Label className="text-xs text-muted-foreground">{t("notes")}</Label>
-          <Textarea
-            value={draftNotes}
-            onChange={(e) => onDraftNotesChange(e.target.value)}
-            rows={2}
-            className="text-sm"
-          />
-        </div>
-        <Button size="sm" onClick={onSave} disabled={saving} className="w-full">
-          {saving ? <Loader2 className="size-3.5 animate-spin" /> : null}
-          {t("save")}
-        </Button>
-
-        {/* Solo aparece una vez que el hallazgo ya está guardado — la
-            línea de cotización necesita el id real del diente para
-            poder ligarse a él. */}
-        {tooth?.id && (
-          <div className="space-y-1.5 border-t border-border pt-3">
-            <Label className="text-xs text-muted-foreground">{t("suggestedTreatment")}</Label>
-            <Select
-              value={draftProductId}
-              onValueChange={(v) => {
-                if (!v) return;
-                onDraftProductIdChange(v);
-                const product = products.find((p) => p.id === v);
-                if (product) onDraftUnitPriceChange(String(product.unit_price));
-              }}
-            >
-              <SelectTrigger className="h-8 text-sm">
-                <SelectValue placeholder={t("selectTreatment")}>
-                  {(value: string) => products.find((p) => p.id === value)?.name ?? t("selectTreatment")}
-                </SelectValue>
-              </SelectTrigger>
-              <SelectContent>
-                {products.map((p) => (
-                  <SelectItem key={p.id} value={p.id}>
-                    {p.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Input
-              type="number"
-              min={0}
-              step="0.01"
-              value={draftUnitPrice}
-              onChange={(e) => onDraftUnitPriceChange(e.target.value)}
-              placeholder={t("costPlaceholder")}
-              className="h-8 text-sm"
-            />
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={onAddToQuote}
-              disabled={addingToQuote || !draftProductId}
-              className="w-full"
-            >
-              {addingToQuote ? <Loader2 className="size-3.5 animate-spin" /> : <Receipt className="size-3.5" />}
-              {t("addToQuote")}
-            </Button>
-          </div>
-        )}
-      </PopoverContent>
-    </Popover>
+    <button
+      type="button"
+      onClick={onClick}
+      title={tooth?.notes ?? undefined}
+      className={cn(
+        "flex size-11 shrink-0 items-center justify-center rounded-md border text-[11px] font-medium transition-colors hover:opacity-80",
+        CONDITION_STYLE[condition],
+        selected && "ring-2 ring-primary ring-offset-1 ring-offset-background",
+      )}
+    >
+      {number}
+    </button>
   );
 }
 
@@ -230,6 +102,11 @@ function ToothButton({
  * once the contact has a patient_profiles row (migration 038's "a
  * contact becomes a patient when this row is created"); a lead that
  * hasn't been converted yet sees a pointer to the Médico tab instead.
+ *
+ * El detalle de un diente ya NO vive en un Popover flotante — es un
+ * panel fijo debajo de la cuadrícula (mismo lugar siempre, coincide
+ * con el mockup), para que quede visible sin tapar el resto del
+ * odontograma mientras se registra un hallazgo.
  */
 export function OdontogramTab({ contactId }: OdontogramTabProps) {
   const t = useTranslations("Contacts.detailView.odontogramTab");
@@ -294,7 +171,7 @@ export function OdontogramTab({ contactId }: OdontogramTabProps) {
     setDraftNotes(existing?.notes ?? "");
     setDraftProductId("");
     setDraftUnitPrice("");
-    setOpenTooth(toothNumber);
+    setOpenTooth((current) => (current === toothNumber ? null : toothNumber));
   }
 
   async function saveTooth() {
@@ -323,9 +200,9 @@ export function OdontogramTab({ contactId }: OdontogramTabProps) {
       if (error) throw error;
       setTeeth((prev) => ({ ...prev, [openTooth]: data as OdontogramTooth }));
       toast.success(t("toothSaved"));
-      // Ya NO cierra el popover — "odontograma accionable" necesita el
+      // El panel se queda abierto — "odontograma accionable" necesita el
       // id recién guardado del diente para poder ligarlo a una línea de
-      // cotización sin que el médico tenga que reabrir el mismo diente.
+      // cotización sin que el médico tenga que reabrirlo.
     } catch (err) {
       console.error("Save tooth error:", err);
       toast.error(t("toothSaveFailed"));
@@ -380,34 +257,6 @@ export function OdontogramTab({ contactId }: OdontogramTabProps) {
     }
   }
 
-  // Plain object builder, not a component — safe to recreate every
-  // render (unlike ToothButton itself, this never gets mounted as a
-  // JSX element type, so it has no remount-identity concern).
-  function toothButtonProps(number: number): Omit<ToothButtonProps, "number"> {
-    return {
-      tooth: teeth[number],
-      isOpen: openTooth === number,
-      onOpenChange: (open) => !open && setOpenTooth(null),
-      onOpenEditor: openToothEditor,
-      draftCondition,
-      onDraftConditionChange: setDraftCondition,
-      draftIcdCode,
-      onDraftIcdCodeChange: setDraftIcdCode,
-      draftNotes,
-      onDraftNotesChange: setDraftNotes,
-      onSave: saveTooth,
-      saving,
-      t,
-      products,
-      draftProductId,
-      onDraftProductIdChange: setDraftProductId,
-      draftUnitPrice,
-      onDraftUnitPriceChange: setDraftUnitPrice,
-      onAddToQuote: addToothToQuote,
-      addingToQuote,
-    };
-  }
-
   if (loading) {
     return (
       <div className="flex justify-center py-10">
@@ -424,37 +273,156 @@ export function OdontogramTab({ contactId }: OdontogramTabProps) {
     );
   }
 
+  const selectedTooth = openTooth !== null ? teeth[openTooth] : undefined;
+  const selectedProduct = products.find((p) => p.id === draftProductId);
+
   return (
-    <div className="space-y-5">
-      <div className="space-y-2 overflow-x-auto rounded-lg border border-border bg-muted/30 p-4">
-        <div className="flex w-max items-center justify-center gap-1.5">
-          {UPPER_RIGHT.map((n) => (
-            <ToothButton key={n} number={n} {...toothButtonProps(n)} />
-          ))}
-          <div className="mx-1 h-9 w-px bg-border" />
-          {UPPER_LEFT.map((n) => (
-            <ToothButton key={n} number={n} {...toothButtonProps(n)} />
-          ))}
+    <div className="space-y-3">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h3 className="text-sm font-semibold text-foreground">{t("title")}</h3>
+          <p className="text-xs text-muted-foreground">{t("hint")}</p>
         </div>
-        <div className="flex w-max items-center justify-center gap-1.5">
-          {LOWER_RIGHT.map((n) => (
-            <ToothButton key={n} number={n} {...toothButtonProps(n)} />
-          ))}
-          <div className="mx-1 h-9 w-px bg-border" />
-          {LOWER_LEFT.map((n) => (
-            <ToothButton key={n} number={n} {...toothButtonProps(n)} />
+        <div className="flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-muted-foreground">
+          {CONDITIONS.filter((c) => c !== "healthy").map((c) => (
+            <span key={c} className="flex items-center gap-1">
+              <span className={cn("size-2.5 rounded border", CONDITION_STYLE[c])} />
+              {t(`conditions.${c}`)}
+            </span>
           ))}
         </div>
       </div>
 
-      <div className="flex flex-wrap gap-x-4 gap-y-1.5 text-xs text-muted-foreground">
-        {CONDITIONS.map((c) => (
-          <span key={c} className="flex items-center gap-1.5">
-            <span className={cn("size-3 rounded border", CONDITION_STYLE[c])} />
-            {t(`conditions.${c}`)}
-          </span>
-        ))}
+      <div className="overflow-x-auto rounded-lg border border-border bg-muted/30 p-4">
+        <div className="flex w-max flex-col items-center gap-2">
+          <div className="flex items-center justify-center gap-1.5">
+            {UPPER_RIGHT.map((n) => (
+              <ToothButton key={n} number={n} tooth={teeth[n]} selected={openTooth === n} onClick={() => openToothEditor(n)} />
+            ))}
+            <div className="mx-1 h-9 w-px bg-border" />
+            {UPPER_LEFT.map((n) => (
+              <ToothButton key={n} number={n} tooth={teeth[n]} selected={openTooth === n} onClick={() => openToothEditor(n)} />
+            ))}
+          </div>
+          <div className="flex items-center justify-center gap-1.5">
+            {LOWER_RIGHT.map((n) => (
+              <ToothButton key={n} number={n} tooth={teeth[n]} selected={openTooth === n} onClick={() => openToothEditor(n)} />
+            ))}
+            <div className="mx-1 h-9 w-px bg-border" />
+            {LOWER_LEFT.map((n) => (
+              <ToothButton key={n} number={n} tooth={teeth[n]} selected={openTooth === n} onClick={() => openToothEditor(n)} />
+            ))}
+          </div>
+        </div>
       </div>
+
+      {openTooth !== null && (
+        <div className="rounded-lg border border-border bg-card p-3.5">
+          <div className="flex flex-col gap-4 sm:flex-row">
+            <div className="flex-1 space-y-2.5">
+              <div>
+                <p className="text-sm font-semibold text-foreground">{t("toothLabel", { number: openTooth })}</p>
+                <p className="text-xs text-muted-foreground">
+                  {toothAnatomicalName(openTooth, t)}
+                  {" · "}
+                  {selectedTooth ? t(`conditions.${selectedTooth.condition}`) : t("noFindings")}
+                </p>
+              </div>
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                <div className="space-y-1.5">
+                  <Label className="text-xs text-muted-foreground">{t("condition")}</Label>
+                  <Select value={draftCondition} onValueChange={(v) => v && setDraftCondition(v as ToothCondition)}>
+                    <SelectTrigger className="h-8 text-sm">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {CONDITIONS.map((c) => (
+                        <SelectItem key={c} value={c}>
+                          {t(`conditions.${c}`)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs text-muted-foreground">{t("icdCode")}</Label>
+                  <Input
+                    value={draftIcdCode}
+                    onChange={(e) => setDraftIcdCode(e.target.value)}
+                    placeholder={t("icdCodePlaceholder")}
+                    className="h-8 text-sm"
+                  />
+                </div>
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs text-muted-foreground">{t("notes")}</Label>
+                <Textarea value={draftNotes} onChange={(e) => setDraftNotes(e.target.value)} rows={2} className="text-sm" />
+              </div>
+              <Button size="sm" onClick={saveTooth} disabled={saving}>
+                {saving ? <Loader2 className="size-3.5 animate-spin" /> : null}
+                {t("save")}
+              </Button>
+            </div>
+
+            {/* Solo aparece una vez que el hallazgo ya está guardado — la
+                línea de cotización necesita el id real del diente para
+                poder ligarse a él. */}
+            {selectedTooth?.id && (
+              <div className="w-full space-y-1.5 border-t border-border pt-3 sm:w-64 sm:border-l sm:border-t-0 sm:pl-4 sm:pt-0">
+                <Label className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+                  {t("suggestedTreatment")}
+                </Label>
+                <p className="text-sm text-foreground">
+                  {selectedProduct?.name ?? t("noTreatmentSelected")}
+                  {" · "}
+                  {draftUnitPrice || "—"}
+                </p>
+                <Select
+                  value={draftProductId}
+                  onValueChange={(v) => {
+                    if (!v) return;
+                    setDraftProductId(v);
+                    const product = products.find((p) => p.id === v);
+                    if (product) setDraftUnitPrice(String(product.unit_price));
+                  }}
+                >
+                  <SelectTrigger className="h-8 text-sm">
+                    <SelectValue placeholder={t("selectTreatment")}>
+                      {(value: string) => products.find((p) => p.id === value)?.name ?? t("selectTreatment")}
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    {products.map((p) => (
+                      <SelectItem key={p.id} value={p.id}>
+                        {p.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Input
+                  type="number"
+                  min={0}
+                  step="0.01"
+                  value={draftUnitPrice}
+                  onChange={(e) => setDraftUnitPrice(e.target.value)}
+                  placeholder={t("costPlaceholder")}
+                  className="h-8 text-sm"
+                />
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={addToothToQuote}
+                  disabled={addingToQuote || !draftProductId}
+                  className="w-full"
+                >
+                  {addingToQuote ? <Loader2 className="size-3.5 animate-spin" /> : <Receipt className="size-3.5" />}
+                  {t("addToQuote")}
+                </Button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

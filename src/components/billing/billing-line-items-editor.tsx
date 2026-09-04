@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { Plus, Trash2 } from "lucide-react";
 import { useTranslations } from "next-intl";
 
@@ -16,6 +17,18 @@ export interface EditableLine {
   tax_id: string | null;
   discount_type: DiscountType;
   discount_value: number;
+  /** Índice en el arreglo `phases` del editor — solo aplica a
+   *  cotizaciones (plan de tratamiento), null/undefined en facturas. */
+  phase_index?: number | null;
+  /** Marcado por el médico cuando esa línea del plan ya se realizó — solo cotizaciones. */
+  completed?: boolean;
+}
+
+/** Fase del plan de tratamiento tal como la edita el formulario —
+ *  `id` solo está presente si ya existía en el servidor. */
+export interface EditablePhase {
+  id?: string;
+  name: string;
 }
 
 interface BillingLineItemsEditorProps {
@@ -28,6 +41,11 @@ interface BillingLineItemsEditorProps {
   documentDiscountType: DiscountType;
   documentDiscountValue: number;
   onDocumentDiscountChange: (type: DiscountType, value: number) => void;
+  /** Pasar esto activa el selector de fase + checkbox "hecho" por
+   *  línea — usado solo por quote-form.tsx (plan de tratamiento).
+   *  invoice-form.tsx no lo pasa, así que no cambia en nada. */
+  phases?: EditablePhase[];
+  onPhasesChange?: (phases: EditablePhase[]) => void;
 }
 
 function emptyLine(taxes: Tax[]): EditableLine {
@@ -60,10 +78,21 @@ export function BillingLineItemsEditor({
   documentDiscountType,
   documentDiscountValue,
   onDocumentDiscountChange,
+  phases,
+  onPhasesChange,
 }: BillingLineItemsEditorProps) {
   const t = useTranslations("Billing.lineItems");
+  const [addingPhase, setAddingPhase] = useState(false);
+  const [newPhaseName, setNewPhaseName] = useState("");
 
   const currencyFormatter = new Intl.NumberFormat(undefined, { style: "currency", currency });
+
+  function commitNewPhase() {
+    const name = newPhaseName.trim();
+    if (name && phases) onPhasesChange?.([...phases, { name }]);
+    setNewPhaseName("");
+    setAddingPhase(false);
+  }
 
   function updateLine(index: number, patch: Partial<EditableLine>) {
     const next = items.map((line, i) => (i === index ? { ...line, ...patch } : line));
@@ -106,11 +135,91 @@ export function BillingLineItemsEditor({
 
   return (
     <div className="space-y-3">
+      {phases && (
+        <div className="space-y-1.5 rounded-md border border-border bg-muted/30 p-2.5">
+          <p className="text-xs font-medium text-muted-foreground">{t("phasesLabel")}</p>
+          <div className="flex flex-wrap items-center gap-1.5">
+            {phases.map((phase, i) => (
+              <span
+                key={phase.id ?? `new-${i}`}
+                className="inline-flex items-center gap-1 rounded-full border border-border bg-card px-2 py-1 text-xs text-foreground"
+              >
+                {phase.name}
+              </span>
+            ))}
+            {!disabled &&
+              (addingPhase ? (
+                <span className="inline-flex items-center gap-1">
+                  <Input
+                    autoFocus
+                    value={newPhaseName}
+                    onChange={(e) => setNewPhaseName(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        commitNewPhase();
+                      }
+                      if (e.key === "Escape") {
+                        setAddingPhase(false);
+                        setNewPhaseName("");
+                      }
+                    }}
+                    onBlur={commitNewPhase}
+                    placeholder={t("newPhasePlaceholder")}
+                    className="h-7 w-40 border-border bg-muted text-xs text-foreground"
+                  />
+                </span>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setAddingPhase(true)}
+                  className="inline-flex items-center gap-1 rounded-full border border-dashed border-border px-2 py-1 text-xs text-muted-foreground hover:border-primary hover:text-primary"
+                >
+                  <Plus className="size-3" />
+                  {t("newPhase")}
+                </button>
+              ))}
+          </div>
+        </div>
+      )}
+
       <div className="space-y-2">
         {items.map((line, index) => (
           <div
             key={index}
-            className="grid grid-cols-1 gap-2 rounded-md border border-border bg-muted/40 p-2.5 sm:grid-cols-[1.3fr_0.9fr_65px_85px_110px_95px_32px] sm:items-center"
+            className="space-y-2 rounded-md border border-border bg-muted/40 p-2.5"
+          >
+          {phases && (
+            <div className="flex items-center gap-3">
+              <select
+                value={line.phase_index ?? ""}
+                disabled={disabled}
+                onChange={(e) =>
+                  updateLine(index, { phase_index: e.target.value === "" ? null : Number(e.target.value) })
+                }
+                className="h-7 rounded-md border border-border bg-muted px-2 text-xs text-foreground outline-none focus:border-primary disabled:opacity-60"
+              >
+                <option value="">{t("noPhase")}</option>
+                {phases.map((phase, i) => (
+                  <option key={phase.id ?? `new-${i}`} value={i}>
+                    {phase.name}
+                  </option>
+                ))}
+              </select>
+              <label className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                <input
+                  type="checkbox"
+                  checked={!!line.completed}
+                  disabled={disabled}
+                  onChange={(e) => updateLine(index, { completed: e.target.checked })}
+                  className="size-3.5 accent-primary"
+                />
+                {t("markCompleted")}
+              </label>
+            </div>
+          )}
+          <div
+            className="grid grid-cols-1 gap-2 sm:grid-cols-[1.3fr_0.9fr_65px_85px_110px_95px_32px] sm:items-center"
           >
             <div className="space-y-1">
               <select
@@ -214,6 +323,7 @@ export function BillingLineItemsEditor({
                 <Trash2 className="size-4" />
               </button>
             )}
+          </div>
           </div>
         ))}
       </div>

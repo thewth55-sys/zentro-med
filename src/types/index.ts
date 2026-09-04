@@ -1070,6 +1070,18 @@ export interface Tax {
 export type QuoteStatus = 'draft' | 'sent' | 'accepted' | 'rejected' | 'expired' | 'converted';
 export type DiscountType = 'percent' | 'fixed' | null;
 
+/** Migración 106 — agrupa líneas de un plan de tratamiento ("Fase 1:
+ *  Urgencias", etc). Tabla hija de `quotes`, misma forma de RLS que
+ *  `quote_items` (su propia `account_id`, no heredada). */
+export interface QuotePhase {
+  id: string;
+  account_id: string;
+  quote_id: string;
+  name: string;
+  position: number;
+  created_at: string;
+}
+
 export interface QuoteItem {
   id: string;
   account_id: string;
@@ -1085,8 +1097,16 @@ export interface QuoteItem {
   line_total: number;
   position: number;
   created_at: string;
+  /** Migración 105 — de qué hallazgo del odontograma vino esta línea, si aplica. */
+  odontogram_tooth_id?: string | null;
+  odontogram_tooth?: { tooth_number: number } | null;
+  /** Migración 106. */
+  phase_id?: string | null;
+  /** Migración 106 — marcado por el médico cuando el tratamiento de esa línea ya se realizó. */
+  completed: boolean;
   product?: Product;
   tax?: Tax;
+  phase?: QuotePhase;
 }
 
 export interface Quote {
@@ -1111,8 +1131,12 @@ export interface Quote {
   created_by?: string | null;
   created_at: string;
   updated_at?: string;
+  /** Migración 106 — cuándo pasó a `status: 'accepted'` (distinto de
+   *  `issue_date`/`updated_at`, que cambian con cualquier edición). */
+  approved_at?: string | null;
   contact?: Contact;
   items?: QuoteItem[];
+  phases?: QuotePhase[];
 }
 
 export type InvoiceStatus = 'draft' | 'sent' | 'paid' | 'partial' | 'overdue' | 'void';

@@ -524,6 +524,10 @@
       "toastDeleteFailed": "Failed to delete the patient",
       "cancel": "Cancel",
       "allergyLabel": "Allergy",
+      "activePatientBadge": "Active patient",
+      "patientSince": "Patient since {date}",
+      "leadSourcePrefix": "Ref.",
+      "scheduleBtn": "Schedule",
       "balanceLabel": "Balance",
       "balanceNone": "No balance due",
       "nextAppointmentLabel": "Next appointment",
@@ -587,6 +591,40 @@
       "toastCustomFieldsFailed": "Failed to save custom fields",
       "toastTemplateSent": "Template \"{name}\" sent",
       "toastTemplateFailed": "Failed to send template: {reason}",
+      "clinicalSummary": {
+        "title": "Clinical summary",
+        "allergyLabel": "Allergy",
+        "medicationLabel": "Medication",
+        "chronicConditionsLabel": "Chronic conditions",
+        "none": "None recorded",
+        "empty": "No clinical information recorded yet."
+      },
+      "clinicalHistory": {
+        "title": "Clinical history",
+        "newNote": "Note",
+        "noProfile": "This patient doesn't have a medical profile yet.",
+        "noNotes": "No clinical notes yet.",
+        "doctor": "Doctor",
+        "selectDoctor": "Select a doctor",
+        "chiefComplaint": "Chief complaint",
+        "findingsAndPlan": "Findings and plan",
+        "cancel": "Cancel",
+        "signAndSave": "Sign and save",
+        "noteRequired": "Fill in the chief complaint and findings",
+        "noteSigned": "Clinical note signed",
+        "noteSaveFailed": "Failed to save the clinical note"
+      },
+      "treatmentPlan": {
+        "title": "Treatment plan",
+        "empty": "This patient has no approved treatment plan.",
+        "approvedOn": "Approved on {date}",
+        "totalSuffix": "total",
+        "progress": "{percent}% complete",
+        "phaseLabel": "Phase {number}",
+        "noPhaseGroup": "No phase",
+        "markCompleted": "Mark as done",
+        "toothLabel": "Tooth"
+      },
       "medicalTab": {
         "noProfile": "This patient doesn't have a medical profile yet.",
         "createProfile": "Create medical profile",
@@ -732,6 +770,26 @@
       },
       "odontogramTab": {
         "noProfile": "This contact isn't a converted patient yet — create their medical profile in the Medical tab to enable the odontogram.",
+        "title": "Odontogram",
+        "hint": "Tap a tooth to see and record findings",
+        "noFindings": "No findings recorded",
+        "noTreatmentSelected": "None",
+        "toothPosition": {
+          "p1": "Central incisor",
+          "p2": "Lateral incisor",
+          "p3": "Canine",
+          "p4": "First premolar",
+          "p5": "Second premolar",
+          "p6": "First molar",
+          "p7": "Second molar",
+          "p8": "Third molar"
+        },
+        "toothQuadrant": {
+          "q1": "upper right",
+          "q2": "upper left",
+          "q3": "lower left",
+          "q4": "lower right"
+        },
         "toothLabel": "Tooth {number}",
         "condition": "Condition",
         "icdCode": "ICD code",
@@ -1673,7 +1731,12 @@
       "discountType": "Discount type",
       "discountNone": "No discount",
       "discountValue": "Discount value",
-      "documentDiscount": "Discount"
+      "documentDiscount": "Discount",
+      "phasesLabel": "Plan phases",
+      "newPhase": "New phase",
+      "newPhasePlaceholder": "Phase name",
+      "noPhase": "No phase",
+      "markCompleted": "Done"
     },
     "quoteForm": {
       "editTitle": "Edit quote",

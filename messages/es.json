@@ -524,6 +524,10 @@
       "toastDeleteFailed": "Error al eliminar el paciente",
       "cancel": "Cancelar",
       "allergyLabel": "Alergia",
+      "activePatientBadge": "Paciente activo",
+      "patientSince": "Paciente desde {date}",
+      "leadSourcePrefix": "Ref.",
+      "scheduleBtn": "Agendar",
       "balanceLabel": "Saldo",
       "balanceNone": "Sin saldo pendiente",
       "nextAppointmentLabel": "Próxima cita",
@@ -587,6 +591,40 @@
       "toastCustomFieldsFailed": "Error al guardar los campos personalizados",
       "toastTemplateSent": "Plantilla \"{name}\" enviada",
       "toastTemplateFailed": "Error al enviar la plantilla: {reason}",
+      "clinicalSummary": {
+        "title": "Resumen clínico",
+        "allergyLabel": "Alergia",
+        "medicationLabel": "Medicación",
+        "chronicConditionsLabel": "Condiciones crónicas",
+        "none": "Ninguna registrada",
+        "empty": "Sin información clínica registrada todavía."
+      },
+      "clinicalHistory": {
+        "title": "Historial clínico",
+        "newNote": "Nota",
+        "noProfile": "Este paciente aún no tiene un perfil médico.",
+        "noNotes": "Aún no hay notas clínicas.",
+        "doctor": "Médico",
+        "selectDoctor": "Selecciona un médico",
+        "chiefComplaint": "Motivo de consulta",
+        "findingsAndPlan": "Hallazgos y plan",
+        "cancel": "Cancelar",
+        "signAndSave": "Firmar y guardar",
+        "noteRequired": "Completa el motivo de consulta y los hallazgos",
+        "noteSigned": "Nota clínica firmada",
+        "noteSaveFailed": "Error al guardar la nota clínica"
+      },
+      "treatmentPlan": {
+        "title": "Plan de tratamiento",
+        "empty": "Este paciente no tiene un plan de tratamiento aprobado.",
+        "approvedOn": "Aprobado el {date}",
+        "totalSuffix": "total",
+        "progress": "{percent}% completado",
+        "phaseLabel": "Fase {number}",
+        "noPhaseGroup": "Sin fase",
+        "markCompleted": "Marcar como hecho",
+        "toothLabel": "Diente"
+      },
       "medicalTab": {
         "noProfile": "Este paciente aún no tiene un perfil médico.",
         "createProfile": "Crear perfil médico",
@@ -732,6 +770,26 @@
       },
       "odontogramTab": {
         "noProfile": "Este contacto aún no es un paciente convertido — crea su perfil médico en la pestaña Médico para habilitar el odontograma.",
+        "title": "Odontograma",
+        "hint": "Toca un diente para ver y registrar hallazgos",
+        "noFindings": "Sin hallazgos registrados",
+        "noTreatmentSelected": "Ninguno",
+        "toothPosition": {
+          "p1": "Incisivo central",
+          "p2": "Incisivo lateral",
+          "p3": "Canino",
+          "p4": "Primer premolar",
+          "p5": "Segundo premolar",
+          "p6": "Primer molar",
+          "p7": "Segundo molar",
+          "p8": "Tercer molar"
+        },
+        "toothQuadrant": {
+          "q1": "sup. derecho",
+          "q2": "sup. izquierdo",
+          "q3": "inf. izquierdo",
+          "q4": "inf. derecho"
+        },
         "toothLabel": "Diente {number}",
         "condition": "Condición",
         "icdCode": "Código CIE",
@@ -1673,7 +1731,12 @@
       "discountType": "Tipo de descuento",
       "discountNone": "Sin descuento",
       "discountValue": "Valor del descuento",
-      "documentDiscount": "Descuento"
+      "documentDiscount": "Descuento",
+      "phasesLabel": "Fases del plan",
+      "newPhase": "Nueva fase",
+      "newPhasePlaceholder": "Nombre de la fase",
+      "noPhase": "Sin fase",
+      "markCompleted": "Hecho"
     },
     "quoteForm": {
       "editTitle": "Editar cotización",

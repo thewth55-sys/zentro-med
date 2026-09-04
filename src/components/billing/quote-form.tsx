@@ -16,7 +16,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { BillingLineItemsEditor, type EditableLine } from "./billing-line-items-editor";
+import { BillingLineItemsEditor, type EditableLine, type EditablePhase } from "./billing-line-items-editor";
 import type { Contact, DiscountType, Product, Quote, QuoteStatus, Tax } from "@/types";
 
 interface QuoteFormProps {
@@ -46,6 +46,7 @@ export function QuoteForm({ open, onOpenChange, quote, contactId, dealId, onSave
   const contactSearchSeq = useRef(0);
 
   const [items, setItems] = useState<EditableLine[]>([]);
+  const [phases, setPhases] = useState<EditablePhase[]>([]);
   const [discountType, setDiscountType] = useState<DiscountType>(null);
   const [discountValue, setDiscountValue] = useState(0);
   const [expiryDate, setExpiryDate] = useState("");
@@ -140,6 +141,9 @@ export function QuoteForm({ open, onOpenChange, quote, contactId, dealId, onSave
     if (!open) return;
     if (quote) {
       setContact(quote.contact ?? null);
+      const loadedPhases = [...(quote.phases ?? [])].sort((a, b) => a.position - b.position);
+      const phaseIndexById = new Map(loadedPhases.map((p, i) => [p.id, i]));
+      setPhases(loadedPhases.map((p) => ({ id: p.id, name: p.name })));
       setItems(
         (quote.items ?? []).map((i) => ({
           product_id: i.product_id,
@@ -149,6 +153,8 @@ export function QuoteForm({ open, onOpenChange, quote, contactId, dealId, onSave
           tax_id: i.tax_id,
           discount_type: i.discount_type,
           discount_value: i.discount_value,
+          phase_index: i.phase_id ? (phaseIndexById.get(i.phase_id) ?? null) : null,
+          completed: i.completed,
         }))
       );
       setDiscountType(quote.discount_type);
@@ -160,6 +166,7 @@ export function QuoteForm({ open, onOpenChange, quote, contactId, dealId, onSave
     } else {
       setContact(null);
       setItems([]);
+      setPhases([]);
       setDiscountType(null);
       setDiscountValue(0);
       setExpiryDate("");
@@ -221,6 +228,7 @@ export function QuoteForm({ open, onOpenChange, quote, contactId, dealId, onSave
             notes: notes || null,
             expiry_date: expiryDate || null,
             items,
+            phases,
             discount_type: discountType,
             discount_value: discountValue,
           }),
@@ -237,6 +245,7 @@ export function QuoteForm({ open, onOpenChange, quote, contactId, dealId, onSave
             expiry_date: expiryDate || null,
             notes: notes || null,
             items,
+            phases,
             discount_type: discountType,
             discount_value: discountValue,
           }),
@@ -387,6 +396,8 @@ export function QuoteForm({ open, onOpenChange, quote, contactId, dealId, onSave
                 setDiscountType(type);
                 setDiscountValue(value);
               }}
+              phases={phases}
+              onPhasesChange={setPhases}
             />
           </div>
 

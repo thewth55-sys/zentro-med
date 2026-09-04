@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 
 import { requireRole, toErrorResponse } from '@/lib/auth/account';
 import { resolveBillingLines } from '@/lib/billing/resolve-items';
+import { resolveQuotePhases } from '@/lib/billing/resolve-phases';
 
 const HEADER_PATCHABLE_FIELDS = ['status', 'notes', 'expiry_date', 'deal_id'] as const;
 
@@ -23,13 +24,16 @@ export async function GET(
       return NextResponse.json({ error: 'Quote not found' }, { status: 404 });
     }
 
-    const { data: items } = await supabase
-      .from('quote_items')
-      .select('*, product:products(*), tax:taxes(*)')
-      .eq('quote_id', id)
-      .order('position', { ascending: true });
+    const [{ data: items }, { data: phases }] = await Promise.all([
+      supabase
+        .from('quote_items')
+        .select('*, product:products(*), tax:taxes(*), odontogram_tooth:odontogram_teeth(tooth_number)')
+        .eq('quote_id', id)
+        .order('position', { ascending: true }),
+      supabase.from('quote_phases').select('*').eq('quote_id', id).order('position', { ascending: true }),
+    ]);
 
-    return NextResponse.json({ quote: { ...quote, items: items ?? [] } });
+    return NextResponse.json({ quote: { ...quote, items: items ?? [], phases: phases ?? [] } });
   } catch (err) {
     return toErrorResponse(err);
   }
@@ -38,7 +42,10 @@ export async function GET(
 /**
  * PATCH accepts either header-only fields, or a full replace of
  * `items` (which recomputes totals and replaces every line — simpler
- * and safer than diffing individual line edits for v1).
+ * and safer than diffing individual line edits for v1). Marking a
+ * single line "hecho" from the ficha's plan de tratamiento does NOT
+ * go through here — see items/[itemId]/route.ts for that surgical
+ * update instead.
  */
 export async function PATCH(
   request: Request,
@@ -51,7 +58,7 @@ export async function PATCH(
 
     const { data: existing } = await supabase
       .from('quotes')
-      .select('id, status')
+      .select('id, status, approved_at')
       .eq('id', id)
       .eq('account_id', accountId)
       .maybeSingle();
@@ -65,6 +72,12 @@ export async function PATCH(
     const updates: Record<string, unknown> = {};
     for (const field of HEADER_PATCHABLE_FIELDS) {
       if (field in body) updates[field] = body[field] ?? null;
+    }
+    // `approved_at` marca cuándo pasó a 'accepted' — distinto de
+    // `issue_date`/`updated_at`. Solo se fija la primera vez; un
+    // vaivén accepted→rejected→accepted no debe pisar la fecha original.
+    if (updates.status === 'accepted' && !existing.approved_at) {
+      updates.approved_at = new Date().toISOString();
     }
 
     if (Array.isArray(body.items)) {
@@ -81,14 +94,30 @@ export async function PATCH(
       updates.discount_amount = resolved.discountAmount;
       updates.total = resolved.total;
 
+      let phaseIds: string[] = [];
+      try {
+        phaseIds = await resolveQuotePhases(supabase, accountId, id, body.phases ?? []);
+      } catch (err) {
+        console.error('[quotes PATCH] phases error:', err);
+        return NextResponse.json({ error: 'Failed to update treatment plan phases' }, { status: 500 });
+      }
+
       const { error: deleteError } = await supabase.from('quote_items').delete().eq('quote_id', id);
       if (deleteError) {
         console.error('[quotes PATCH] items delete error:', deleteError);
         return NextResponse.json({ error: 'Failed to update line items' }, { status: 500 });
       }
-      const { error: itemsError } = await supabase
-        .from('quote_items')
-        .insert(resolved.items.map((item) => ({ ...item, account_id: accountId, quote_id: id })));
+      const { error: itemsError } = await supabase.from('quote_items').insert(
+        resolved.items.map((item, i) => ({
+          ...item,
+          account_id: accountId,
+          quote_id: id,
+          odontogram_tooth_id: body.items[i]?.odontogram_tooth_id || null,
+          phase_id:
+            typeof body.items[i]?.phase_index === 'number' ? (phaseIds[body.items[i].phase_index] ?? null) : null,
+          completed: !!body.items[i]?.completed,
+        })),
+      );
       if (itemsError) {
         console.error('[quotes PATCH] items insert error:', itemsError);
         return NextResponse.json({ error: 'Failed to update line items' }, { status: 500 });
@@ -112,13 +141,16 @@ export async function PATCH(
       return NextResponse.json({ error: 'Failed to update quote' }, { status: 500 });
     }
 
-    const { data: items } = await supabase
-      .from('quote_items')
-      .select('*, product:products(*), tax:taxes(*)')
-      .eq('quote_id', id)
-      .order('position', { ascending: true });
+    const [{ data: items }, { data: phases }] = await Promise.all([
+      supabase
+        .from('quote_items')
+        .select('*, product:products(*), tax:taxes(*), odontogram_tooth:odontogram_teeth(tooth_number)')
+        .eq('quote_id', id)
+        .order('position', { ascending: true }),
+      supabase.from('quote_phases').select('*').eq('quote_id', id).order('position', { ascending: true }),
+    ]);
 
-    return NextResponse.json({ quote: { ...quote, items: items ?? [] } });
+    return NextResponse.json({ quote: { ...quote, items: items ?? [], phases: phases ?? [] } });
   } catch (err) {
     return toErrorResponse(err);
   }

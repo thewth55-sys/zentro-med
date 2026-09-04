@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 
 import { requireRole, toErrorResponse } from '@/lib/auth/account';
 import { resolveBillingLines } from '@/lib/billing/resolve-items';
+import { resolveQuotePhases } from '@/lib/billing/resolve-phases';
 
 /**
  * GET  /api/billing/quotes  — list quotes (filtered by contact/deal/status).
@@ -104,6 +105,18 @@ export async function POST(request: Request) {
     // necesitan) — se toma directo del body por índice, ya que
     // resolveBillingLines preserva 1:1 el orden de rawItems.
     const rawItems = Array.isArray(body.items) ? body.items : [];
+
+    // Fases del plan de tratamiento (migración 106) — opcionales; una
+    // cotización sin `body.phases` sigue siendo válida (líneas sin fase).
+    let phaseIds: string[] = [];
+    try {
+      phaseIds = await resolveQuotePhases(supabase, accountId, quote.id, body.phases ?? []);
+    } catch (err) {
+      console.error('[quotes POST] phases error:', err);
+      await supabase.from('quotes').delete().eq('id', quote.id);
+      return NextResponse.json({ error: 'Failed to save treatment plan phases' }, { status: 500 });
+    }
+
     const { data: items, error: itemsError } = await supabase
       .from('quote_items')
       .insert(
@@ -112,9 +125,12 @@ export async function POST(request: Request) {
           account_id: accountId,
           quote_id: quote.id,
           odontogram_tooth_id: rawItems[i]?.odontogram_tooth_id || null,
+          phase_id:
+            typeof rawItems[i]?.phase_index === 'number' ? (phaseIds[rawItems[i].phase_index] ?? null) : null,
+          completed: !!rawItems[i]?.completed,
         })),
       )
-      .select('*, product:products(*), tax:taxes(*)');
+      .select('*, product:products(*), tax:taxes(*), odontogram_tooth:odontogram_teeth(tooth_number)');
 
     if (itemsError) {
       console.error('[quotes POST] items insert error:', itemsError);
@@ -122,7 +138,13 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Failed to save line items' }, { status: 500 });
     }
 
-    return NextResponse.json({ quote: { ...quote, items: items ?? [] } }, { status: 201 });
+    const { data: phases } = await supabase
+      .from('quote_phases')
+      .select('*')
+      .eq('quote_id', quote.id)
+      .order('position');
+
+    return NextResponse.json({ quote: { ...quote, items: items ?? [], phases: phases ?? [] } }, { status: 201 });
   } catch (err) {
     return toErrorResponse(err);
   }

@@ -6,12 +6,17 @@ import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/hooks/use-auth';
 import { useCan } from '@/hooks/use-can';
 import { formatCurrency } from '@/lib/currency';
+import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
-import type { Contact, Tag, ContactNote, CustomField, Deal, MessageTemplate } from '@/types';
+import type { Contact, Tag, ContactNote, CustomField, Deal, Doctor, MessageTemplate, Room, ServiceType } from '@/types';
 import {
   TemplatePicker,
   type TemplateSendValues,
 } from '@/components/inbox/template-picker';
+import { AppointmentEditorDialog, type AppointmentDraft } from '@/components/agenda/appointment-editor-dialog';
+import { TreatmentPlanPanel } from '@/components/contacts/treatment-plan-panel';
+import { ClinicalSummaryPanel } from '@/components/contacts/clinical-summary-panel';
+import { ClinicalHistoryPanel } from '@/components/contacts/clinical-history-panel';
 import { MedicalTab } from '@/components/contacts/medical-tab';
 import { IntakeTab } from '@/components/contacts/intake-tab';
 import { GuardiansTab } from '@/components/contacts/guardians-tab';
@@ -46,17 +51,16 @@ import {
   Save,
   Pencil,
   DollarSign,
-  LayoutTemplate,
   AlertTriangle,
   Wallet,
   Users,
   StickyNote,
   Stethoscope,
   FileSignature,
-  Smile,
   ClipboardList,
   Image as ImageIcon,
   CalendarClock,
+  MessageCircle,
   Receipt,
   Settings2,
   Handshake,
@@ -83,9 +87,16 @@ const TAB_GROUPS = [
     key: 'clinico',
     labelKey: 'groupClinico',
     icon: Stethoscope,
+    // El odontograma ya NO es un hijo seleccionable aquí — vive
+    // siempre visible arriba de estos tabs, junto con el plan de
+    // tratamiento/resumen/historial (ver el bloque `showOdontogram &&
+    // <OdontogramTab .../>` antes de este <Tabs>). `medical` sigue
+    // siendo el perfil médico editable (tipo de documento, alergias
+    // como campo de formulario, etc.) — el "Resumen clínico" de
+    // arriba es una vista de solo lectura de una parte de esos datos,
+    // no lo reemplaza.
     children: [
       { key: 'medical', labelKey: 'tabs.medical', icon: Stethoscope, requiresOdontogram: false },
-      { key: 'odontogram', labelKey: 'tabs.odontogram', icon: Smile, requiresOdontogram: true },
       { key: 'appointments', labelKey: 'tabs.appointments', icon: CalendarClock, requiresOdontogram: false },
       { key: 'notes', labelKey: 'tabs.notes', icon: StickyNote, requiresOdontogram: false },
       { key: 'guardians', labelKey: 'tabs.guardians', icon: Users, requiresOdontogram: false },
@@ -201,10 +212,47 @@ export function ContactDetailView({ contactId }: ContactDetailViewProps) {
   // patient_profiles y las mismas rutas que ya usan MedicalTab/BillingTab/
   // AppointmentsTab, solo se agregan y muestran arriba.
   const [patientAllergies, setPatientAllergies] = useState<string | null>(null);
+  const [patientProfileId, setPatientProfileId] = useState<string | null>(null);
+  const [patientChronicConditions, setPatientChronicConditions] = useState<string | null>(null);
+  const [patientMedications, setPatientMedications] = useState<string | null>(null);
   const [balanceOwed, setBalanceOwed] = useState<number | null>(null);
   const [balanceLoading, setBalanceLoading] = useState(true);
   const [nextAppointment, setNextAppointment] = useState<NextAppointmentSummary | null>(null);
   const [nextAppointmentLoading, setNextAppointmentLoading] = useState(true);
+  // "Paciente activo" — mismo criterio que el listado /contacts (hubo
+  // o hay una cita, no cancelada, en los últimos 6 meses). No hay campo
+  // real de "tratamiento activo" por paciente — ver decisión del
+  // usuario al construir esto.
+  const [patientActive, setPatientActive] = useState(false);
+
+  // Botón "Agendar" del encabezado — mismo flujo que el "Nueva cita" del
+  // header global (header.tsx), solo que aquí el contacto ya viene
+  // preseleccionado (AppointmentDraft.contactId).
+  const [resourcesLoaded, setResourcesLoaded] = useState(false);
+  const [doctors, setDoctors] = useState<Doctor[]>([]);
+  const [rooms, setRooms] = useState<Room[]>([]);
+  const [serviceTypes, setServiceTypes] = useState<ServiceType[]>([]);
+  const [appointmentDraft, setAppointmentDraft] = useState<AppointmentDraft | null>(null);
+  const [appointmentEditorOpen, setAppointmentEditorOpen] = useState(false);
+
+  async function openNewAppointment() {
+    if (!resourcesLoaded) {
+      const [d, r, s] = await Promise.all([
+        supabase.from('doctors').select('*').eq('is_active', true).order('name'),
+        supabase.from('rooms').select('*').eq('is_active', true).order('name'),
+        supabase.from('service_types').select('*').eq('is_active', true).order('name'),
+      ]);
+      setDoctors((d.data ?? []) as Doctor[]);
+      setRooms((r.data ?? []) as Room[]);
+      setServiceTypes((s.data ?? []) as ServiceType[]);
+      setResourcesLoaded(true);
+    }
+    const start = new Date();
+    start.setMinutes(start.getMinutes() - (start.getMinutes() % 30) + 30, 0, 0);
+    const end = new Date(start.getTime() + 30 * 60000);
+    setAppointmentDraft({ mode: 'create', startAt: start.toISOString(), endAt: end.toISOString(), contactId });
+    setAppointmentEditorOpen(true);
+  }
 
   // Notes tab
   const [notes, setNotes] = useState<ContactNote[]>([]);
@@ -271,16 +319,20 @@ export function ContactDetailView({ contactId }: ContactDetailViewProps) {
     }
   }, [contactId, supabase]);
 
-  // Alergia — misma tabla que MedicalTab, un select mínimo aparte para
-  // que el encabezado no tenga que esperar/montar todo MedicalTab.
-  const fetchAllergies = useCallback(async () => {
+  // Perfil clínico resumido — misma tabla que MedicalTab, un select
+  // mínimo aparte para que el encabezado y el nuevo panel "Resumen
+  // clínico" no tengan que esperar/montar todo MedicalTab.
+  const fetchClinicalProfile = useCallback(async () => {
     if (!contactId) return;
     const { data } = await supabase
       .from('patient_profiles')
-      .select('allergies')
+      .select('id, allergies, chronic_conditions, current_medications')
       .eq('contact_id', contactId)
       .maybeSingle();
+    setPatientProfileId(data?.id ?? null);
     setPatientAllergies(data?.allergies ?? null);
+    setPatientChronicConditions(data?.chronic_conditions ?? null);
+    setPatientMedications(data?.current_medications ?? null);
   }, [contactId, supabase]);
 
   // Saldo — reutiliza /api/billing/invoices (la misma ruta que ya usa
@@ -323,8 +375,17 @@ export function ContactDetailView({ contactId }: ContactDetailViewProps) {
       const next =
         appointments.find((a) => a.status !== 'cancelled' && new Date(a.start_at).getTime() >= now) ?? null;
       setNextAppointment(next);
+      // "Activo" — misma ventana de 6 meses que el listado /contacts,
+      // calculada del mismo fetch en vez de pedir otra vez el mismo endpoint.
+      const sixMonthsAgo = now - 180 * 24 * 60 * 60 * 1000;
+      setPatientActive(
+        appointments.some(
+          (a) => a.status !== 'cancelled' && new Date(a.start_at).getTime() >= sixMonthsAgo,
+        ),
+      );
     } catch {
       setNextAppointment(null);
+      setPatientActive(false);
     } finally {
       setNextAppointmentLoading(false);
     }
@@ -383,7 +444,7 @@ export function ContactDetailView({ contactId }: ContactDetailViewProps) {
     if (contactId) {
       fetchContact();
       fetchTags();
-      fetchAllergies();
+      fetchClinicalProfile();
       fetchBalance();
       fetchNextAppointment();
       fetchNotes();
@@ -394,7 +455,7 @@ export function ContactDetailView({ contactId }: ContactDetailViewProps) {
     contactId,
     fetchContact,
     fetchTags,
-    fetchAllergies,
+    fetchClinicalProfile,
     fetchBalance,
     fetchNextAppointment,
     fetchNotes,
@@ -603,6 +664,17 @@ export function ContactDetailView({ contactId }: ContactDetailViewProps) {
     return Array.isArray(rel) ? (rel[0]?.name ?? null) : rel.name;
   }
 
+  // `lead_source` es texto libre en la BD (sin CHECK) aunque el <select>
+  // de edición solo ofrezca estos 7 valores — si contiene otra cosa
+  // (importado a mano, o escrito directo en Supabase), se muestra tal
+  // cual en vez de forzarlo a una de las 7 etiquetas.
+  const KNOWN_LEAD_SOURCES = ['google', 'social_media', 'referral', 'whatsapp', 'website', 'advertising', 'other'];
+  function leadSourceLabel(value: string): string {
+    return KNOWN_LEAD_SOURCES.includes(value) ? t(`leadSources.${value}`) : value;
+  }
+
+  const patientSinceFormatter = new Intl.DateTimeFormat(undefined, { month: 'short', year: 'numeric' });
+
   return (
     <>
     <div className="rounded-lg border border-border bg-popover text-popover-foreground">
@@ -614,14 +686,15 @@ export function ContactDetailView({ contactId }: ContactDetailViewProps) {
           <div className="flex flex-col">
             {/* Header */}
             <div className="p-4 border-b border-border/50">
-              <div className="flex items-center gap-3">
+              <div className="flex items-start justify-between gap-3">
+              <div className="flex items-center gap-3 min-w-0">
                 <Avatar className="size-12 bg-muted border border-border">
                   <AvatarFallback className="bg-primary/10 text-primary text-sm font-medium">
                     {getInitials(contact.name)}
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
                     <h1 className="text-lg font-semibold text-popover-foreground truncate">
                       {contact.name || t('unnamed')}
                     </h1>
@@ -644,6 +717,16 @@ export function ContactDetailView({ contactId }: ContactDetailViewProps) {
                       >
                         <Trash2 className="size-3.5" />
                       </button>
+                    )}
+                    {patientAllergies && (
+                      <span className="rounded-full border border-red-500/30 bg-red-500/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-red-600 dark:text-red-400">
+                        {t('allergyLabel')} · {patientAllergies}
+                      </span>
+                    )}
+                    {patientActive && (
+                      <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-emerald-600 dark:text-emerald-400">
+                        {t('activePatientBadge')}
+                      </span>
                     )}
                   </div>
                   <div className="flex flex-wrap items-center gap-3 mt-1 text-xs text-muted-foreground">
@@ -671,8 +754,30 @@ export function ContactDetailView({ contactId }: ContactDetailViewProps) {
                         {contact.company}
                       </span>
                     )}
+                    <span>{t('patientSince', { date: patientSinceFormatter.format(new Date(contact.created_at)) })}</span>
+                    {contact.lead_source && <span>{t('leadSourcePrefix')} {leadSourceLabel(contact.lead_source)}</span>}
                   </div>
                 </div>
+              </div>
+
+              <div className="flex shrink-0 items-center gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => setTemplatePickerOpen(true)}
+                  disabled={sendingTemplate}
+                  aria-label={t('sendTemplateBtn')}
+                  title={t('sendTemplateBtn')}
+                  className="flex size-9 items-center justify-center rounded-full border border-border text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:opacity-60"
+                >
+                  {sendingTemplate ? <Loader2 className="size-4 animate-spin" /> : <MessageCircle className="size-4" />}
+                </button>
+                {canEdit && (
+                  <Button size="sm" onClick={() => void openNewAppointment()} className="bg-primary text-primary-foreground hover:bg-primary/90">
+                    <CalendarClock className="size-4" />
+                    {t('scheduleBtn')}
+                  </Button>
+                )}
+              </div>
               </div>
 
               {/* Datos que evitan daño clínico o sorpresas administrativas
@@ -697,7 +802,7 @@ export function ContactDetailView({ contactId }: ContactDetailViewProps) {
                     <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">
                       {t('balanceLabel')}
                     </p>
-                    <p className="text-xs font-medium text-foreground">
+                    <p className={cn('text-xs font-medium', balanceOwed && balanceOwed > 0 ? 'text-red-600 dark:text-red-400' : 'text-foreground')}>
                       {balanceLoading ? (
                         <Loader2 className="size-3 animate-spin" />
                       ) : balanceOwed && balanceOwed > 0 ? (
@@ -759,21 +864,6 @@ export function ContactDetailView({ contactId }: ContactDetailViewProps) {
                 </div>
               )}
 
-              <div className="mt-3">
-                <Button
-                  size="sm"
-                  onClick={() => setTemplatePickerOpen(true)}
-                  disabled={sendingTemplate}
-                  className="bg-primary text-primary-foreground hover:bg-primary/90"
-                >
-                  {sendingTemplate ? (
-                    <Loader2 className="size-4 animate-spin" />
-                  ) : (
-                    <LayoutTemplate className="size-4" />
-                  )}
-                  {t('sendTemplateBtn')}
-                </Button>
-              </div>
             </div>
 
             {/* Tres grupos — Clínico / Financiero / Documentos — cada uno
@@ -807,6 +897,22 @@ export function ContactDetailView({ contactId }: ContactDetailViewProps) {
                   : visibleChildren[0]?.key;
                 return (
                   <TabsContent key={group.key} value={group.key} className="px-4 py-3">
+                    {group.key === 'clinico' && contactId && (
+                      <div className="mb-5 grid grid-cols-1 gap-4 lg:grid-cols-3">
+                        <div className="space-y-4 lg:col-span-2">
+                          {showOdontogram && <OdontogramTab contactId={contactId} />}
+                          <TreatmentPlanPanel contactId={contactId} currency={defaultCurrency} />
+                        </div>
+                        <div className="space-y-4">
+                          <ClinicalSummaryPanel
+                            allergies={patientAllergies}
+                            chronicConditions={patientChronicConditions}
+                            currentMedications={patientMedications}
+                          />
+                          <ClinicalHistoryPanel patientProfileId={patientProfileId} />
+                        </div>
+                      </div>
+                    )}
                     <Tabs defaultValue={groupInitialChild}>
                       <TabsList
                         variant="line"
@@ -830,11 +936,6 @@ export function ContactDetailView({ contactId }: ContactDetailViewProps) {
                           <TabsContent value="medical">
                             {contactId && <MedicalTab contactId={contactId} />}
                           </TabsContent>
-                          {showOdontogram && (
-                            <TabsContent value="odontogram">
-                              {contactId && <OdontogramTab contactId={contactId} />}
-                            </TabsContent>
-                          )}
                           <TabsContent value="appointments">
                             {contactId && <AppointmentsTab contactId={contactId} />}
                           </TabsContent>
@@ -1170,6 +1271,22 @@ export function ContactDetailView({ contactId }: ContactDetailViewProps) {
       onOpenChange={setTemplatePickerOpen}
       onSelect={handleSendTemplate}
     />
+
+    {canEdit && (
+      <AppointmentEditorDialog
+        open={appointmentEditorOpen}
+        onOpenChange={setAppointmentEditorOpen}
+        draft={appointmentDraft}
+        doctors={doctors}
+        rooms={rooms}
+        serviceTypes={serviceTypes}
+        canEdit={canEdit}
+        onSaved={() => {
+          setAppointmentEditorOpen(false);
+          void fetchNextAppointment();
+        }}
+      />
+    )}
     </>
   );
 }
