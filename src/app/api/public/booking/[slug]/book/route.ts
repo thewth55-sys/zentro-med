@@ -58,9 +58,15 @@ export async function POST(
   const { slug } = await params;
   const body = (await request.json().catch(() => null)) as BookBody | null;
 
-  if (!body?.doctor_id || !body.service_type_id || !body.start_at || !body.name || !body.phone) {
+  // `name` is intentionally NOT required here — a returning patient
+  // whose contact already has a name (lookup-patient's `hasName`)
+  // never gets asked for it again by the widget (confirm-step.tsx),
+  // so requiring it unconditionally rejects every recurring booking
+  // with a 400. It's enforced further down, only for a genuinely new
+  // contact (no existing match), right where it's actually used.
+  if (!body?.doctor_id || !body.service_type_id || !body.start_at || !body.phone) {
     return NextResponse.json(
-      { error: "doctor_id, service_type_id, start_at, name and phone are required" },
+      { error: "doctor_id, service_type_id, start_at and phone are required" },
       { status: 400 },
     );
   }
@@ -156,6 +162,14 @@ export async function POST(
 
   const existingContact = await findExistingContact(admin, account.id, body.phone);
   const isNewPatient = !existingContact;
+
+  if (isNewPatient && !body.name?.trim()) {
+    return NextResponse.json({ error: "name is required for a new patient" }, { status: 400 });
+  }
+  // Solo pacientes recurrentes conocidos (existingContact con nombre)
+  // llegan aquí sin body.name — usa el nombre ya guardado para las
+  // notificaciones/checkout en vez de una cadena vacía.
+  const patientName = body.name?.trim() || existingContact?.name || "";
 
   // Server-side intake-form validation — the real trust boundary for
   // an unauthenticated route. Walks the doctor's config the same way
@@ -276,9 +290,9 @@ export async function POST(
   }).format(startAt);
   void notifyAccountTeam(admin, {
     accountId: account.id,
-    subject: `Nueva cita agendada — ${body.name}`,
+    subject: `Nueva cita agendada — ${patientName}`,
     heading: "Nueva cita agendada en línea",
-    bodyHtml: `<p><strong>${escapeHtml(body.name)}</strong> agendó una cita para <strong>${escapeHtml(startLabel)}</strong> con ${escapeHtml(doctor.name)} (${escapeHtml(serviceType.name)}).</p><p>Teléfono: ${escapeHtml(body.phone)}</p>`,
+    bodyHtml: `<p><strong>${escapeHtml(patientName)}</strong> agendó una cita para <strong>${escapeHtml(startLabel)}</strong> con ${escapeHtml(doctor.name)} (${escapeHtml(serviceType.name)}).</p><p>Teléfono: ${escapeHtml(body.phone)}</p>`,
   });
 
   // Anticipo (premium, opcional): la cita ya quedó creada arriba
@@ -315,7 +329,7 @@ export async function POST(
         successUrl,
         cancelUrl,
         webhookUrl,
-        customerName: body.name,
+        customerName: patientName,
         customerPhone: body.phone,
         customerEmail: body.email || undefined,
       });
