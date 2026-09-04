@@ -17,9 +17,17 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { UsersRound, Loader2 } from "lucide-react";
+import { UsersRound, Loader2, CalendarClock, MessageSquareText, Stethoscope, Sparkles } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { loadNativeSession, clearNativeSession } from "@/lib/native-session";
+
+// Mismo lenguaje visual que dashboard-hero.tsx / copilot-intro-card.tsx
+// (gradient verde oscuro + glow + pills translúcidas) — el mockup no
+// incluye una pantalla de login, así que este panel de marca extiende
+// ese mismo estilo en vez de introducir uno nuevo.
+const BRAND_GRADIENT = "linear-gradient(120deg, #0F241A, #164A31)";
+
+const BRAND_PILL_ICONS = [CalendarClock, MessageSquareText, Stethoscope, Sparkles] as const;
 
 // `useSearchParams` opts the component out of static prerendering
 // unless it sits under a Suspense boundary. We split the form into
@@ -216,15 +224,69 @@ function LoginPageInner() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4">
+    <div className="flex min-h-screen bg-background">
+      {/* Panel de marca — oculto debajo de lg, mismo breakpoint único
+          móvil/escritorio que usa el resto de la app. */}
+      <div
+        className="relative hidden w-[42%] shrink-0 flex-col justify-between overflow-hidden p-10 text-white lg:flex xl:w-[38%]"
+        style={{ background: BRAND_GRADIENT }}
+      >
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute -right-20 -top-24 size-80 rounded-full"
+          style={{ background: "radial-gradient(circle, rgba(74,222,90,.35), transparent 70%)" }}
+        />
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute -bottom-24 -left-16 size-72 rounded-full"
+          style={{ background: "radial-gradient(circle, rgba(74,222,90,.18), transparent 70%)" }}
+        />
+
+        <div className="relative flex items-center gap-2.5">
+          <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-white p-1.5">
+            {/* eslint-disable-next-line @next/next/no-img-element -- static brand asset */}
+            <img src="/zentro-isotipo.png" alt="" className="h-full w-full object-contain" />
+          </span>
+          <span className="text-lg font-bold text-white">Zentro Med</span>
+        </div>
+
+        <div className="relative">
+          <h2 className="text-3xl font-bold text-white">{t("brandHeadline")}</h2>
+          <p className="mt-3 max-w-sm text-sm text-emerald-100/80">{t("brandSubtitle")}</p>
+
+          <div className="mt-6 flex flex-wrap gap-2">
+            {(["brandPillAgenda", "brandPillWhatsapp", "brandPillRecords", "brandPillZen"] as const).map(
+              (key, i) => {
+                const Icon = BRAND_PILL_ICONS[i];
+                return (
+                  <span
+                    key={key}
+                    className="inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-xs font-medium text-white/90"
+                  >
+                    <Icon className="size-3.5" />
+                    {t(key)}
+                  </span>
+                );
+              },
+            )}
+          </div>
+        </div>
+
+        <p className="relative text-xs text-emerald-100/50">© {new Date().getFullYear()} Zentro Med</p>
+      </div>
+
+      <div className="flex flex-1 items-center justify-center px-4 py-10">
       <Card className="w-full max-w-md border-border bg-card">
         <CardHeader className="items-center text-center">
-          <div className="mb-2 flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10">
+          <div
+            className="mb-2 flex h-12 w-12 items-center justify-center rounded-xl text-white shadow-sm"
+            style={{ background: BRAND_GRADIENT }}
+          >
             {inviteToken ? (
-              <UsersRound className="h-6 w-6 text-primary" />
+              <UsersRound className="h-6 w-6" />
             ) : (
               // eslint-disable-next-line @next/next/no-img-element -- static brand asset
-              <img src="/zentro-isotipo.png" alt="" className="h-7 w-7" />
+              <img src="/zentro-isotipo.png" alt="" className="h-6 w-6" />
             )}
           </div>
           <CardTitle className="text-xl text-foreground">
@@ -401,6 +463,7 @@ function LoginPageInner() {
           )}
         </CardContent>
       </Card>
+      </div>
     </div>
   );
 }
