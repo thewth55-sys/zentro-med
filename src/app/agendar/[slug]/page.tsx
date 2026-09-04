@@ -6,16 +6,14 @@ import {
   Phone,
   MapPin,
   Mail,
-  Camera,
-  Users,
   Globe,
-  Music2,
   Plus,
 } from "lucide-react";
 
 import { supabaseAdmin } from "@/lib/billing-platform/admin-client";
 import { getPublicBookingConfig } from "@/lib/scheduling/public-booking";
 import { BookingWidget } from "@/components/public-booking/booking-widget";
+import { FacebookIcon, InstagramIcon, TikTokIcon } from "@/components/icons/social-icons";
 
 // Deliberately static (no Supabase call) — Next's build-time route
 // analysis ("Collecting page data") can invoke generateMetadata
@@ -69,9 +67,9 @@ export default async function PublicBookingPage({
     contact.mapUrl || (address ? `https://maps.google.com/?q=${encodeURIComponent(address)}` : null);
 
   const socialLinks = [
-    { url: social.instagram, Icon: Camera, label: "Instagram" },
-    { url: social.facebook, Icon: Users, label: "Facebook" },
-    { url: social.tiktok, Icon: Music2, label: "TikTok" },
+    { url: social.instagram, Icon: InstagramIcon, label: "Instagram" },
+    { url: social.facebook, Icon: FacebookIcon, label: "Facebook" },
+    { url: social.tiktok, Icon: TikTokIcon, label: "TikTok" },
     { url: social.web, Icon: Globe, label: "Sitio web" },
   ].filter((s) => !!s.url);
 
