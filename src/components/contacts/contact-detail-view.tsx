@@ -1,9 +1,10 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/hooks/use-auth';
+import { useCan } from '@/hooks/use-can';
 import { formatCurrency } from '@/lib/currency';
 import { toast } from 'sonner';
 import type { Contact, Tag, ContactNote, CustomField, Deal, MessageTemplate } from '@/types';
@@ -31,6 +32,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
+  DialogFooter,
 } from '@/components/ui/dialog';
 import {
   Phone,
@@ -138,7 +140,9 @@ const nextAppointmentTimeFormatter = new Intl.DateTimeFormat('es-MX', {
 export function ContactDetailView({ contactId }: ContactDetailViewProps) {
   const t = useTranslations('Contacts.detailView');
   const supabase = createClient();
+  const router = useRouter();
   const { accountId, defaultCurrency, account } = useAuth();
+  const canEdit = useCan('send-messages');
   const showOdontogram = showsOdontogram(account?.specialty);
   const searchParams = useSearchParams();
   const { groupKey: initialGroup, childKey: initialChild } = findGroupForChild(searchParams.get('tab'));
@@ -146,6 +150,26 @@ export function ContactDetailView({ contactId }: ContactDetailViewProps) {
   const [contact, setContact] = useState<Contact | null>(null);
   const [loading, setLoading] = useState(false);
   const [copiedPhone, setCopiedPhone] = useState(false);
+
+  // Eliminar paciente — antes vivía en el menú "···" de la fila en
+  // /contacts; ese menú se quitó al rediseñar el listado (ver mockup:
+  // solo queda el chevron), así que la acción se mueve aquí, junto al
+  // lápiz de editar.
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+
+  async function handleDeleteContact() {
+    if (!contact) return;
+    setDeleting(true);
+    const { error } = await supabase.from('contacts').delete().eq('id', contact.id);
+    setDeleting(false);
+    if (error) {
+      toast.error(t('toastDeleteFailed'));
+      return;
+    }
+    toast.success(t('toastDeleted'));
+    router.push('/contacts');
+  }
 
   // Send template — lets the business initiate (or re-open) a conversation
   // with this contact by sending an approved template. The send route
@@ -610,6 +634,17 @@ export function ContactDetailView({ contactId }: ContactDetailViewProps) {
                     >
                       <Pencil className="size-3.5" />
                     </button>
+                    {canEdit && (
+                      <button
+                        type="button"
+                        onClick={() => setDeleteConfirmOpen(true)}
+                        aria-label={t('deleteContactBtn')}
+                        title={t('deleteContactBtn')}
+                        className="shrink-0 rounded-full p-1 text-muted-foreground opacity-60 transition-opacity hover:bg-red-500/10 hover:text-red-500 hover:opacity-100"
+                      >
+                        <Trash2 className="size-3.5" />
+                      </button>
+                    )}
                   </div>
                   <div className="flex flex-wrap items-center gap-3 mt-1 text-xs text-muted-foreground">
                     <button
@@ -1002,6 +1037,30 @@ export function ContactDetailView({ contactId }: ContactDetailViewProps) {
           </div>
         )}
     </div>
+
+    <Dialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
+      <DialogContent className="bg-popover border-border text-popover-foreground sm:max-w-sm">
+        <DialogHeader>
+          <DialogTitle className="text-popover-foreground">{t('deleteContactTitle')}</DialogTitle>
+          <DialogDescription className="text-muted-foreground">
+            {t('deleteContactDesc', { name: contact?.name || contact?.phone || '' })}
+          </DialogDescription>
+        </DialogHeader>
+        <DialogFooter className="bg-popover border-border">
+          <Button
+            variant="outline"
+            onClick={() => setDeleteConfirmOpen(false)}
+            className="border-border text-muted-foreground hover:bg-muted"
+          >
+            {t('cancel')}
+          </Button>
+          <Button variant="destructive" onClick={handleDeleteContact} disabled={deleting}>
+            {deleting && <Loader2 className="size-4 animate-spin" />}
+            {t('deleteContactBtn')}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
 
     {/* Editar contacto — antes la pestaña "details", ahora un diálogo
         lanzado desde el lápiz junto al nombre en el encabezado. */}

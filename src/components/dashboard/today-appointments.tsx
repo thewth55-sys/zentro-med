@@ -6,6 +6,7 @@ import { useTranslations } from 'next-intl'
 
 import type { TodayAppointmentItem } from '@/lib/dashboard/types'
 import { cn } from '@/lib/utils'
+import { patientAvatarTint, patientInitials } from '@/lib/patient-avatar'
 import { EmptyState } from './empty-state'
 import { Skeleton } from './skeleton'
 
@@ -18,30 +19,6 @@ const STATUS_STYLES: Record<TodayAppointmentItem['status'], string> = {
 }
 
 const timeFormatter = new Intl.DateTimeFormat('es-MX', { hour: 'numeric', minute: '2-digit' })
-
-// Deterministic avatar tint per patient so the same person keeps the
-// same color across renders (like the mockup's colored initials).
-const AVATAR_TINTS = [
-  'bg-teal-500/15 text-teal-600 dark:text-teal-300',
-  'bg-indigo-500/15 text-indigo-600 dark:text-indigo-300',
-  'bg-amber-500/15 text-amber-600 dark:text-amber-300',
-  'bg-rose-500/15 text-rose-600 dark:text-rose-300',
-  'bg-sky-500/15 text-sky-600 dark:text-sky-300',
-  'bg-primary/12 text-primary',
-]
-
-function initials(name: string): string {
-  const parts = name.trim().split(/\s+/).filter(Boolean)
-  if (parts.length === 0) return '—'
-  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase()
-  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
-}
-
-function tintFor(name: string): string {
-  let h = 0
-  for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) >>> 0
-  return AVATAR_TINTS[h % AVATAR_TINTS.length]
-}
 
 /**
  * Replaces the old sales-pipeline donut on the dashboard — a clinic's
@@ -89,11 +66,11 @@ export function TodayAppointments({
                 <span
                   className={cn(
                     'flex size-9 shrink-0 items-center justify-center rounded-full text-xs font-semibold',
-                    tintFor(name),
+                    patientAvatarTint(name),
                   )}
                   aria-hidden="true"
                 >
-                  {initials(name)}
+                  {patientInitials(name)}
                 </span>
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-medium text-foreground">{name}</p>
