@@ -86,4 +86,44 @@ async function confirmWebhook(credentials: ProviderCredentials, request: Request
   };
 }
 
-export const mercadoPagoAdapter: PaymentProviderAdapter = { createCheckout, confirmWebhook };
+/**
+ * Active reconciliation for the confirmation page. Mercado Pago's
+ * webhook only ever gives us a *payment* id, which we never learn
+ * client-side (checkout creation only returns the *preference* id,
+ * stored as `external_checkout_id`) — so unlike Stripe/Clip this
+ * can't retrieve-by-checkout-id. Uses the Payments Search API
+ * (`/v1/payments/search?external_reference=`) with OUR OWN
+ * `external_reference` instead, which we always have from checkout
+ * creation. Less exercised in production than the webhook path
+ * (which is the primary path and already works) — fails closed
+ * (`paid: false`) on any unexpected shape rather than guessing.
+ */
+async function checkStatus(
+  credentials: ProviderCredentials,
+  deposit: { externalCheckoutId: string | null; externalReference: string },
+): Promise<WebhookConfirmation> {
+  const { accessToken } = creds(credentials);
+  const res = await fetch(
+    `${API_BASE}/v1/payments/search?external_reference=${encodeURIComponent(deposit.externalReference)}`,
+    { headers: { Authorization: `Bearer ${accessToken}` } },
+  );
+  if (!res.ok) {
+    return { paid: false, externalReference: null, externalCheckoutId: deposit.externalCheckoutId, raw: null };
+  }
+  const data = (await res.json().catch(() => null)) as {
+    results?: Array<{ id?: number | string; status?: string; external_reference?: string }>;
+  } | null;
+  const match = data?.results?.find((p) => p.external_reference === deposit.externalReference);
+  if (!match) {
+    return { paid: false, externalReference: null, externalCheckoutId: deposit.externalCheckoutId, raw: data };
+  }
+
+  return {
+    paid: match.status === "approved",
+    externalReference: match.external_reference ?? null,
+    externalCheckoutId: match.id ? String(match.id) : deposit.externalCheckoutId,
+    raw: match,
+  };
+}
+
+export const mercadoPagoAdapter: PaymentProviderAdapter = { createCheckout, confirmWebhook, checkStatus };

@@ -77,4 +77,28 @@ async function confirmWebhook(credentials: ProviderCredentials, request: Request
   };
 }
 
-export const stripeAdapter: PaymentProviderAdapter = { createCheckout, confirmWebhook };
+/** Active reconciliation for the confirmation page — Stripe's webhook
+ *  path is cryptographically signed and can't be replayed/simulated,
+ *  but a plain authenticated retrieve-by-session-id needs no
+ *  signature at all and is exactly what Stripe's own docs recommend
+ *  for "the webhook may not have arrived yet" polling. */
+async function checkStatus(
+  credentials: ProviderCredentials,
+  deposit: { externalCheckoutId: string | null; externalReference: string },
+): Promise<WebhookConfirmation> {
+  const { secretKey } = creds(credentials);
+  if (!deposit.externalCheckoutId) {
+    return { paid: false, externalReference: null, externalCheckoutId: null, raw: null };
+  }
+  const session = await client(secretKey).checkout.sessions.retrieve(deposit.externalCheckoutId);
+  const externalReference =
+    (session.metadata?.external_reference as string | undefined) ?? session.client_reference_id ?? null;
+  return {
+    paid: session.payment_status === "paid",
+    externalReference,
+    externalCheckoutId: session.id,
+    raw: session,
+  };
+}
+
+export const stripeAdapter: PaymentProviderAdapter = { createCheckout, confirmWebhook, checkStatus };

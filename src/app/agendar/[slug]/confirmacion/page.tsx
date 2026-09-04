@@ -1,19 +1,24 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import { CheckCircle2, Clock, XCircle } from "lucide-react";
 
 import { supabaseAdmin } from "@/lib/billing-platform/admin-client";
+import { reconcileDeposit } from "@/lib/payments/reconcile-deposit";
+import { DepositConfirmation } from "@/components/public-booking/deposit-confirmation";
 
 export const metadata: Metadata = { title: "Confirmación de pago" };
 
 /**
  * Landing page after a deposit checkout (Stripe/Mercado Pago/Clip) —
- * `?deposit=<appointment_deposits.external_reference>`. Reads the
- * CURRENT status once, server-side; doesn't poll. The webhook is
- * usually faster than the redirect back here, but if it hasn't landed
- * yet this shows a "we're confirming" state rather than a false
- * negative — the appointment itself was already created before the
- * visitor ever left for checkout, so nothing is lost either way.
+ * `?deposit=<appointment_deposits.external_reference>`.
+ *
+ * Does ONE active reconciliation (reconcileDeposit — actively asks the
+ * gateway, not just reads the DB) before first paint, then hands off
+ * to a client component that keeps polling for a short while if it's
+ * still pending. A passive read-once used to leave visitors staring
+ * at "confirmando tu pago…" forever whenever the gateway's webhook
+ * was slow or never arrived, even though the charge had already gone
+ * through — this self-heals instead of depending entirely on the
+ * webhook landing first.
  */
 export default async function DepositConfirmationPage({
   params,
@@ -36,44 +41,41 @@ export default async function DepositConfirmationPage({
 
   const { data: depositRow } = await admin
     .from("appointment_deposits")
-    .select("status, amount, currency, appointment:appointments(start_at)")
+    .select("id, status, amount, currency, appointment_id")
     .eq("external_reference", deposit)
     .eq("account_id", account.id)
     .maybeSingle();
   if (!depositRow) notFound();
 
-  const appointment = depositRow.appointment as unknown as { start_at: string } | null;
-  const dateLabel = appointment
-    ? new Intl.DateTimeFormat("es-MX", { dateStyle: "medium", timeStyle: "short" }).format(
-        new Date(appointment.start_at),
-      )
-    : null;
-  const amountLabel = new Intl.NumberFormat("es-MX", { style: "currency", currency: depositRow.currency }).format(
-    depositRow.amount,
-  );
+  const result =
+    depositRow.status === "pending" ? await reconcileDeposit(admin, account.id, depositRow.id) : null;
+  const status = result?.status ?? depositRow.status;
+  const appointmentId = result?.appointmentId ?? depositRow.appointment_id;
 
-  const state =
-    depositRow.status === "paid"
-      ? { Icon: CheckCircle2, color: "text-green-600", title: "¡Anticipo recibido!" }
-      : depositRow.status === "failed" || depositRow.status === "canceled" || depositRow.status === "expired"
-        ? { Icon: XCircle, color: "text-destructive", title: "El pago no se completó" }
-        : { Icon: Clock, color: "text-amber-600", title: "Estamos confirmando tu pago…" };
+  const { data: appointmentRow } = await admin
+    .from("appointments")
+    .select("start_at, room:rooms(name, address)")
+    .eq("id", appointmentId)
+    .maybeSingle();
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-muted/40 px-4 py-16 text-foreground">
-      <div className="w-full max-w-sm rounded-3xl border border-border bg-card p-6 text-center">
-        <state.Icon className={`mx-auto size-12 ${state.color}`} />
-        <h1 className="mt-4 text-lg font-semibold">{state.title}</h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Anticipo de {amountLabel} para tu cita{dateLabel ? ` del ${dateLabel}` : ""} con {account.name}.
-        </p>
-        {depositRow.status === "pending" && (
-          <p className="mt-2 text-xs text-muted-foreground">
-            Tu cita ya está reservada. Si el pago se confirma, no necesitas hacer nada más — si tienes dudas,
-            contáctanos directamente.
-          </p>
-        )}
-      </div>
+      <DepositConfirmation
+        slug={slug}
+        depositRef={deposit}
+        accountName={account.name}
+        initialStatus={status as "pending" | "paid" | "failed" | "expired" | "canceled"}
+        amount={depositRow.amount}
+        currency={depositRow.currency}
+        initialAppointment={
+          appointmentRow
+            ? {
+                start_at: appointmentRow.start_at,
+                room: (appointmentRow.room as unknown as { name: string; address: string | null } | null) ?? null,
+              }
+            : null
+        }
+      />
     </div>
   );
 }

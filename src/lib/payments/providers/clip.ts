@@ -59,19 +59,22 @@ async function createCheckout(credentials: ProviderCredentials, args: CreateChec
  * generated — a forged webhook POST can trigger a re-check, but can't
  * forge that authenticated response.
  */
-async function confirmWebhook(credentials: ProviderCredentials, request: Request): Promise<WebhookConfirmation> {
-  const { apiKey, secretKey } = creds(credentials);
-  const body = (await request.json().catch(() => ({}))) as { payment_request_id?: string };
-  const paymentRequestId = body.payment_request_id;
-  if (!paymentRequestId) {
-    return { paid: false, externalReference: null, externalCheckoutId: null, raw: body };
-  }
-
+/** Shared by the webhook path (which only has a `payment_request_id`
+ *  pulled from the POST body) and `checkStatus` (which has it from
+ *  our own stored `external_checkout_id`) — same authenticated
+ *  re-fetch either way, see the file-level comment on why this can't
+ *  trust the webhook payload alone. */
+async function fetchCheckoutStatus(
+  apiKey: string,
+  secretKey: string,
+  paymentRequestId: string,
+  fallbackRaw: unknown,
+): Promise<WebhookConfirmation> {
   const res = await fetch(`${API_BASE}/v2/checkout/${encodeURIComponent(paymentRequestId)}`, {
     headers: { Authorization: basicAuthHeader(apiKey, secretKey) },
   });
   if (!res.ok) {
-    return { paid: false, externalReference: null, externalCheckoutId: paymentRequestId, raw: body };
+    return { paid: false, externalReference: null, externalCheckoutId: paymentRequestId, raw: fallbackRaw };
   }
   const link = (await res.json()) as { status?: string; metadata?: { external_reference?: string } };
 
@@ -83,4 +86,25 @@ async function confirmWebhook(credentials: ProviderCredentials, request: Request
   };
 }
 
-export const clipAdapter: PaymentProviderAdapter = { createCheckout, confirmWebhook };
+async function confirmWebhook(credentials: ProviderCredentials, request: Request): Promise<WebhookConfirmation> {
+  const { apiKey, secretKey } = creds(credentials);
+  const body = (await request.json().catch(() => ({}))) as { payment_request_id?: string };
+  const paymentRequestId = body.payment_request_id;
+  if (!paymentRequestId) {
+    return { paid: false, externalReference: null, externalCheckoutId: null, raw: body };
+  }
+  return fetchCheckoutStatus(apiKey, secretKey, paymentRequestId, body);
+}
+
+async function checkStatus(
+  credentials: ProviderCredentials,
+  deposit: { externalCheckoutId: string | null; externalReference: string },
+): Promise<WebhookConfirmation> {
+  const { apiKey, secretKey } = creds(credentials);
+  if (!deposit.externalCheckoutId) {
+    return { paid: false, externalReference: null, externalCheckoutId: null, raw: null };
+  }
+  return fetchCheckoutStatus(apiKey, secretKey, deposit.externalCheckoutId, null);
+}
+
+export const clipAdapter: PaymentProviderAdapter = { createCheckout, confirmWebhook, checkStatus };

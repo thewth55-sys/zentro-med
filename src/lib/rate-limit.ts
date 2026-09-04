@@ -212,6 +212,13 @@ export const RATE_LIMITS = {
    *  and looser than the actual booking submit (a visitor may retype a
    *  mistyped phone once or twice). */
   publicBookingLookup: { limit: 20, windowMs: 60_000 },
+  /** Deposit-status polling on the post-checkout confirmation page,
+   *  per IP. Each call can trigger a real authenticated call to the
+   *  payment gateway (see reconcile-deposit.ts) — 20/min covers the
+   *  page's own ~10-poll self-heal window plus a couple of manual
+   *  reloads, without letting it become a way to hammer the gateway's
+   *  own API through us. */
+  publicDepositStatus: { limit: 20, windowMs: 60_000 },
   /** Public consent-signing link peek (per IP). Same 256-bit-token
    *  reasoning as invitationPeek — the retry allowance is for flaky
    *  connectivity, not because token guessing is a real risk. */

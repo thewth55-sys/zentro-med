@@ -63,4 +63,19 @@ export interface WebhookConfirmation {
 export interface PaymentProviderAdapter {
   createCheckout(credentials: ProviderCredentials, args: CreateCheckoutArgs): Promise<CheckoutResult>;
   confirmWebhook(credentials: ProviderCredentials, request: Request): Promise<WebhookConfirmation>;
+  /**
+   * Active reconciliation — "go check this checkout's real status
+   * right now", independent of ever receiving a webhook POST. Exists
+   * because a webhook can simply never arrive (wrong/unreachable
+   * webhook_url, provider outage, a dropped event) while the payment
+   * itself genuinely succeeded — the public confirmation page calls
+   * this to self-heal instead of showing "confirming…" forever.
+   * Takes the SAME identifiers already stored on `appointment_deposits`
+   * from checkout creation (`externalCheckoutId`, `externalReference`)
+   * — no new provider-side lookup capability required.
+   */
+  checkStatus(
+    credentials: ProviderCredentials,
+    deposit: { externalCheckoutId: string | null; externalReference: string },
+  ): Promise<WebhookConfirmation>;
 }

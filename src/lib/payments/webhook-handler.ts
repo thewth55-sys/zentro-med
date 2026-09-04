@@ -2,6 +2,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { PaymentProviderId } from "./types";
 import { loadActivePaymentGatewayConfig } from "./config";
 import { getPaymentAdapter } from "./gateway";
+import { markDepositPaid } from "./mark-deposit-paid";
 
 /**
  * Shared body for the three provider webhook routes
@@ -40,7 +41,7 @@ export async function handlePaymentWebhook(
 
   const { data: depositRow } = await admin
     .from("appointment_deposits")
-    .select("id, status")
+    .select("id, status, account_id, appointment_id, provider, external_reference, amount, currency")
     .eq("external_reference", confirmation.externalReference)
     .eq("account_id", accountId)
     .maybeSingle();
@@ -57,16 +58,24 @@ export async function handlePaymentWebhook(
     return { status: 200, body: { received: true } };
   }
 
-  const update: Record<string, unknown> = { raw_webhook: confirmation.raw };
-  if (confirmation.externalCheckoutId) update.external_checkout_id = confirmation.externalCheckoutId;
-  if (confirmation.paid) {
-    update.status = "paid";
-    update.paid_at = new Date().toISOString();
+  if (!confirmation.paid) {
+    // Not a confirmed payment yet (e.g. a "checkout created" event, or
+    // the re-fetch came back not-completed) — nothing to record.
+    const { error } = await admin
+      .from("appointment_deposits")
+      .update({ raw_webhook: confirmation.raw, external_checkout_id: confirmation.externalCheckoutId ?? undefined })
+      .eq("id", depositRow.id);
+    if (error) {
+      console.error(`[payments webhook:${provider}] failed to update appointment_deposits ${depositRow.id}:`, error);
+      return { status: 500, body: { error: "Failed to record payment" } };
+    }
+    return { status: 200, body: { received: true } };
   }
 
-  const { error } = await admin.from("appointment_deposits").update(update).eq("id", depositRow.id);
-  if (error) {
-    console.error(`[payments webhook:${provider}] failed to update appointment_deposits ${depositRow.id}:`, error);
+  try {
+    await markDepositPaid(admin, depositRow, confirmation);
+  } catch (err) {
+    console.error(`[payments webhook:${provider}] markDepositPaid failed for ${depositRow.id}:`, err);
     return { status: 500, body: { error: "Failed to record payment" } };
   }
 
