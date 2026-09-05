@@ -4,7 +4,19 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { toast } from "sonner";
-import { AlertTriangle, ArrowLeft, CalendarClock, Layers, Loader2, MessageCircle, Search } from "lucide-react";
+import {
+  AlertTriangle,
+  ArrowLeft,
+  Banknote,
+  CalendarClock,
+  CreditCard,
+  Landmark,
+  Layers,
+  Link2,
+  Loader2,
+  MessageCircle,
+  Search,
+} from "lucide-react";
 import { useTranslations } from "next-intl";
 
 import { createClient } from "@/lib/supabase/client";
@@ -15,11 +27,13 @@ import { Label } from "@/components/ui/label";
 import { BillingLineItemsEditor, type EditableLine } from "@/components/billing/billing-line-items-editor";
 import { PullFromPlanDialog } from "@/components/billing/pull-from-plan-dialog";
 import { computeDocumentTotals } from "@/lib/billing/totals";
-import type { Appointment, Contact, DiscountType, Invoice, Product, Tax } from "@/types";
+import type { Appointment, BankAccount, Contact, DiscountType, Invoice, Product, Tax } from "@/types";
 
 function todayIso(): string {
   return new Date().toISOString().slice(0, 10);
 }
+
+type PaymentMethodIntent = "link" | "cash" | "transfer" | "terminal";
 
 /**
  * Full-page invoice creation — dos columnas (datos + resumen) para
@@ -59,6 +73,9 @@ export default function NewInvoicePage() {
 
   const [sendWhatsappOnIssue, setSendWhatsappOnIssue] = useState(true);
   const [markPlanItemsDone, setMarkPlanItemsDone] = useState(true);
+  const [paymentMethodIntent, setPaymentMethodIntent] = useState<PaymentMethodIntent | null>(null);
+  const [primaryBankAccount, setPrimaryBankAccount] = useState<BankAccount | null>(null);
+  const [gatewayActive, setGatewayActive] = useState(false);
 
   const [priorBalance, setPriorBalance] = useState<{ amount: number; invoiceId: string; invoiceNumber: string } | null>(
     null
@@ -68,14 +85,18 @@ export default function NewInvoicePage() {
 
   useEffect(() => {
     (async () => {
-      const [p, tx, acct] = await Promise.all([
+      const [p, tx, acct, bank, gateway] = await Promise.all([
         supabase.from("products").select("*").eq("is_active", true).order("name"),
         supabase.from("taxes").select("*").eq("is_active", true).order("name"),
         supabase.from("accounts").select("default_currency").maybeSingle(),
+        supabase.from("bank_accounts").select("*").eq("is_active", true).order("created_at").limit(1).maybeSingle(),
+        supabase.from("payment_gateway_configs").select("is_active").eq("is_active", true).maybeSingle(),
       ]);
       setProducts((p.data ?? []) as Product[]);
       setTaxes((tx.data ?? []) as Tax[]);
       if (acct.data?.default_currency) setCurrency(acct.data.default_currency);
+      setPrimaryBankAccount((bank.data as BankAccount | null) ?? null);
+      setGatewayActive(!!gateway.data);
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -198,6 +219,34 @@ export default function NewInvoicePage() {
     }
   }
 
+  async function sendCheckoutLink(invoiceId: string, contactId: string) {
+    try {
+      const linkRes = await fetch(`/api/billing/invoices/${invoiceId}/checkout-link`, { method: "POST" });
+      const linkBody = await linkRes.json().catch(() => null);
+      if (!linkRes.ok || !linkBody?.checkoutUrl) {
+        toast.error(linkBody?.error ?? tNew("checkoutLinkFailed"));
+        return;
+      }
+      const sendRes = await fetch("/api/whatsapp/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contact_id: contactId,
+          message_type: "text",
+          content_text: tNew("checkoutLinkMessage", { url: linkBody.checkoutUrl }),
+        }),
+      });
+      if (!sendRes.ok) {
+        toast.error(tNew("checkoutLinkFailed"));
+        return;
+      }
+      toast.success(tNew("checkoutLinkSent"));
+    } catch (err) {
+      console.error("Generate/send checkout link error:", err);
+      toast.error(tNew("checkoutLinkFailed"));
+    }
+  }
+
   async function handleSave() {
     if (!contact) {
       toast.error(t("contactRequired"));
@@ -219,6 +268,7 @@ export default function NewInvoicePage() {
           issue_date: issueDate || null,
           due_date: dueDate || null,
           notes: notes || null,
+          payment_method_intent: paymentMethodIntent,
           items: items.map((item) => ({
             ...item,
             source_quote_item_id: markPlanItemsDone ? item.source_quote_item_id : undefined,
@@ -233,6 +283,9 @@ export default function NewInvoicePage() {
 
       if (sendWhatsappOnIssue) {
         await sendCreatedInvoiceViaWhatsapp(body.invoice.id, contact.id);
+      }
+      if (paymentMethodIntent === "link") {
+        await sendCheckoutLink(body.invoice.id, contact.id);
       }
 
       router.push(backHref);
@@ -399,6 +452,73 @@ export default function NewInvoicePage() {
               {tNew("pullFromPlan")}
             </Button>
           )}
+
+          <div className="space-y-2">
+            <Label className="text-xs text-muted-foreground">{tNew("howToPay")}</Label>
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+              <button
+                type="button"
+                onClick={() => setPaymentMethodIntent("link")}
+                disabled={!gatewayActive}
+                className={`flex items-start gap-2 rounded-lg border p-3 text-left text-sm disabled:cursor-not-allowed disabled:opacity-50 ${
+                  paymentMethodIntent === "link" ? "border-primary bg-primary/5" : "border-border bg-muted/30"
+                }`}
+              >
+                <Link2 className="mt-0.5 size-4 shrink-0 text-primary" />
+                <span>
+                  <span className="block font-medium text-foreground">{tNew("payLink")}</span>
+                  <span className="block text-xs text-muted-foreground">
+                    {gatewayActive ? tNew("payLinkHint") : tNew("payLinkUnavailable")}
+                  </span>
+                </span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setPaymentMethodIntent("cash")}
+                className={`flex items-start gap-2 rounded-lg border p-3 text-left text-sm ${
+                  paymentMethodIntent === "cash" ? "border-primary bg-primary/5" : "border-border bg-muted/30"
+                }`}
+              >
+                <Banknote className="mt-0.5 size-4 shrink-0 text-primary" />
+                <span>
+                  <span className="block font-medium text-foreground">{tNew("payCash")}</span>
+                  <span className="block text-xs text-muted-foreground">{tNew("payCashHint")}</span>
+                </span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setPaymentMethodIntent("transfer")}
+                className={`flex items-start gap-2 rounded-lg border p-3 text-left text-sm ${
+                  paymentMethodIntent === "transfer" ? "border-primary bg-primary/5" : "border-border bg-muted/30"
+                }`}
+              >
+                <Landmark className="mt-0.5 size-4 shrink-0 text-primary" />
+                <span>
+                  <span className="block font-medium text-foreground">{tNew("payTransfer")}</span>
+                  <span className="block text-xs text-muted-foreground">
+                    {primaryBankAccount
+                      ? `${primaryBankAccount.bank_name ?? primaryBankAccount.name}${
+                          primaryBankAccount.account_number_last4 ? ` · •••• ${primaryBankAccount.account_number_last4}` : ""
+                        }`
+                      : tNew("payTransferHint")}
+                  </span>
+                </span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setPaymentMethodIntent("terminal")}
+                className={`flex items-start gap-2 rounded-lg border p-3 text-left text-sm ${
+                  paymentMethodIntent === "terminal" ? "border-primary bg-primary/5" : "border-border bg-muted/30"
+                }`}
+              >
+                <CreditCard className="mt-0.5 size-4 shrink-0 text-primary" />
+                <span>
+                  <span className="block font-medium text-foreground">{tNew("payTerminal")}</span>
+                  <span className="block text-xs text-muted-foreground">{tNew("payTerminalHint")}</span>
+                </span>
+              </button>
+            </div>
+          </div>
         </div>
 
         {/* Resumen + al emitir */}
@@ -455,6 +575,12 @@ export default function NewInvoicePage() {
               />
               {tNew("markPlanItemsDone")}
             </label>
+            {paymentMethodIntent === "link" && (
+              <label className="flex items-start gap-2 text-sm text-muted-foreground">
+                <input type="checkbox" checked disabled className="mt-0.5 size-3.5 accent-primary" />
+                {tNew("generateLink")}
+              </label>
+            )}
           </div>
         </div>
       </div>

@@ -2027,7 +2027,21 @@
       "issueAndSend": "Emitir y enviar por WhatsApp",
       "onIssue": "Al emitir",
       "sendWhatsapp": "Enviar la factura por WhatsApp al paciente",
-      "markPlanItemsDone": "Marcar los conceptos traídos del plan como hechos"
+      "markPlanItemsDone": "Marcar los conceptos traídos del plan como hechos",
+      "generateLink": "Generar y adjuntar el link de cobro",
+      "howToPay": "Cómo va a pagar",
+      "payLink": "Link de cobro",
+      "payLinkHint": "Se envía por WhatsApp al emitir",
+      "payLinkUnavailable": "Configura una pasarela de pago en Ajustes para usar esta opción",
+      "payCash": "Efectivo",
+      "payCashHint": "Se registra al cobrar",
+      "payTransfer": "Transferencia",
+      "payTransferHint": "Sin cuenta bancaria registrada",
+      "payTerminal": "Terminal",
+      "payTerminalHint": "Pago con tarjeta en el consultorio",
+      "checkoutLinkMessage": "Aquí tienes el link para pagar tu factura: {url}",
+      "checkoutLinkSent": "Link de cobro enviado por WhatsApp",
+      "checkoutLinkFailed": "No se pudo generar el link de cobro"
     }
   },
   "Flows": {

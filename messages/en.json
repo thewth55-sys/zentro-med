@@ -2027,7 +2027,21 @@
       "issueAndSend": "Issue and send via WhatsApp",
       "onIssue": "On issue",
       "sendWhatsapp": "Send the invoice via WhatsApp to the patient",
-      "markPlanItemsDone": "Mark items pulled from the plan as done"
+      "markPlanItemsDone": "Mark items pulled from the plan as done",
+      "generateLink": "Generate and attach the payment link",
+      "howToPay": "How will they pay",
+      "payLink": "Payment link",
+      "payLinkHint": "Sent via WhatsApp on issue",
+      "payLinkUnavailable": "Set up a payment gateway in Settings to use this option",
+      "payCash": "Cash",
+      "payCashHint": "Recorded when collected",
+      "payTransfer": "Bank transfer",
+      "payTransferHint": "No bank account on file",
+      "payTerminal": "Card terminal",
+      "payTerminalHint": "In-person card payment",
+      "checkoutLinkMessage": "Here's the link to pay your invoice: {url}",
+      "checkoutLinkSent": "Payment link sent via WhatsApp",
+      "checkoutLinkFailed": "Failed to generate the payment link"
     }
   },
   "Flows": {

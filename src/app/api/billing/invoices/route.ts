@@ -81,6 +81,7 @@ export async function POST(request: Request) {
         invoice_number: invoiceNumber,
         issue_date: body.issue_date || undefined,
         due_date: body.due_date || null,
+        payment_method_intent: body.payment_method_intent || null,
         subtotal: resolved.subtotal,
         tax_total: resolved.taxTotal,
         discount_type: resolved.discountType,
