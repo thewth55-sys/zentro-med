@@ -40,16 +40,19 @@ const CONDITIONS: ToothCondition[] = [
   "bridge",
 ];
 
+// No text color here on purpose — the tooth number now renders below
+// the swatch, not on top of it (see ToothButton), so the fill can be
+// bolder without hurting legibility.
 const CONDITION_STYLE: Record<ToothCondition, string> = {
-  healthy: "border-border bg-muted/40 text-muted-foreground",
-  caries: "border-red-500 bg-red-500/20 text-red-600",
-  filled: "border-blue-500 bg-blue-500/20 text-blue-600",
-  crown: "border-purple-500 bg-purple-500/20 text-purple-600",
-  root_canal: "border-orange-500 bg-orange-500/20 text-orange-600",
-  missing: "border-dashed border-muted-foreground/40 bg-transparent text-muted-foreground/40",
-  extraction_planned: "border-yellow-500 bg-yellow-500/20 text-yellow-700",
-  implant: "border-teal-500 bg-teal-500/20 text-teal-600",
-  bridge: "border-indigo-500 bg-indigo-500/20 text-indigo-600",
+  healthy: "border-border bg-muted/40",
+  caries: "border-red-500 bg-red-500/25",
+  filled: "border-blue-500 bg-blue-500/25",
+  crown: "border-purple-500 bg-purple-500/25",
+  root_canal: "border-orange-500 bg-orange-500/25",
+  missing: "border-dashed border-muted-foreground/40 bg-transparent",
+  extraction_planned: "border-yellow-500 bg-yellow-500/25",
+  implant: "border-teal-500 bg-teal-500/25",
+  bridge: "border-indigo-500 bg-indigo-500/25",
 };
 
 // Nomenclatura FDI estándar (posición dentro del cuadrante + cuadrante) —
@@ -86,13 +89,16 @@ function ToothButton({
       type="button"
       onClick={onClick}
       title={tooth?.notes ?? undefined}
-      className={cn(
-        "flex size-11 shrink-0 items-center justify-center rounded-md border text-[11px] font-medium transition-colors hover:opacity-80",
-        CONDITION_STYLE[condition],
-        selected && "ring-2 ring-primary ring-offset-1 ring-offset-background",
-      )}
+      className="flex shrink-0 flex-col items-center gap-1 transition-opacity hover:opacity-80"
     >
-      {number}
+      <span
+        className={cn(
+          "flex size-11 items-center justify-center rounded-lg border-2",
+          CONDITION_STYLE[condition],
+          selected && "ring-2 ring-primary ring-offset-2 ring-offset-background",
+        )}
+      />
+      <span className="text-[11px] font-medium text-muted-foreground">{number}</span>
     </button>
   );
 }
@@ -293,22 +299,29 @@ export function OdontogramTab({ contactId }: OdontogramTabProps) {
         </div>
       </div>
 
-      <div className="overflow-x-auto rounded-lg border border-border bg-muted/30 p-4">
-        <div className="flex w-max flex-col items-center gap-2">
-          <div className="flex items-center justify-center gap-1.5">
+      <div
+        className={cn(
+          "overflow-x-auto rounded-lg border border-border bg-muted/30 p-4",
+          "[scrollbar-width:thin] [scrollbar-color:var(--border)_transparent]",
+          "[&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar-track]:bg-transparent",
+          "[&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-border",
+        )}
+      >
+        <div className="flex w-max flex-col items-center gap-3">
+          <div className="flex items-start justify-center gap-1.5">
             {UPPER_RIGHT.map((n) => (
               <ToothButton key={n} number={n} tooth={teeth[n]} selected={openTooth === n} onClick={() => openToothEditor(n)} />
             ))}
-            <div className="mx-1 h-9 w-px bg-border" />
+            <div className="mx-1 h-11 w-px bg-border" />
             {UPPER_LEFT.map((n) => (
               <ToothButton key={n} number={n} tooth={teeth[n]} selected={openTooth === n} onClick={() => openToothEditor(n)} />
             ))}
           </div>
-          <div className="flex items-center justify-center gap-1.5">
+          <div className="flex items-start justify-center gap-1.5">
             {LOWER_RIGHT.map((n) => (
               <ToothButton key={n} number={n} tooth={teeth[n]} selected={openTooth === n} onClick={() => openToothEditor(n)} />
             ))}
-            <div className="mx-1 h-9 w-px bg-border" />
+            <div className="mx-1 h-11 w-px bg-border" />
             {LOWER_LEFT.map((n) => (
               <ToothButton key={n} number={n} tooth={teeth[n]} selected={openTooth === n} onClick={() => openToothEditor(n)} />
             ))}
