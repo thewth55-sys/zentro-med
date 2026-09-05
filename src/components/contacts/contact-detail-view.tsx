@@ -7,6 +7,7 @@ import { useAuth } from '@/hooks/use-auth';
 import { useCan } from '@/hooks/use-can';
 import { formatCurrency } from '@/lib/currency';
 import { cn } from '@/lib/utils';
+import { leadSourceLabel } from '@/lib/contacts/lead-source';
 import { toast } from 'sonner';
 import type { Contact, Tag, ContactNote, CustomField, Deal, Doctor, MessageTemplate, Room, ServiceType } from '@/types';
 import {
@@ -663,15 +664,6 @@ export function ContactDetailView({ contactId }: ContactDetailViewProps) {
     return Array.isArray(rel) ? (rel[0]?.name ?? null) : rel.name;
   }
 
-  // `lead_source` es texto libre en la BD (sin CHECK) aunque el <select>
-  // de edición solo ofrezca estos 7 valores — si contiene otra cosa
-  // (importado a mano, o escrito directo en Supabase), se muestra tal
-  // cual en vez de forzarlo a una de las 7 etiquetas.
-  const KNOWN_LEAD_SOURCES = ['google', 'social_media', 'referral', 'whatsapp', 'website', 'advertising', 'other'];
-  function leadSourceLabel(value: string): string {
-    return KNOWN_LEAD_SOURCES.includes(value) ? t(`leadSources.${value}`) : value;
-  }
-
   const patientSinceFormatter = new Intl.DateTimeFormat(undefined, { month: 'short', year: 'numeric' });
 
   return (
@@ -754,7 +746,7 @@ export function ContactDetailView({ contactId }: ContactDetailViewProps) {
                       </span>
                     )}
                     <span>{t('patientSince', { date: patientSinceFormatter.format(new Date(contact.created_at)) })}</span>
-                    {contact.lead_source && <span>{t('leadSourcePrefix')} {leadSourceLabel(contact.lead_source)}</span>}
+                    {contact.lead_source && <span>{t('leadSourcePrefix')} {leadSourceLabel(contact.lead_source, t)}</span>}
                   </div>
                 </div>
               </div>

@@ -295,7 +295,9 @@
       "clearAll": "Clear all",
       "noConversations": "No conversations found",
       "noMessagesYet": "No messages yet",
-      "unknown": "Unknown"
+      "unknown": "Unknown",
+      "patientBadge": "Patient",
+      "prospectBadge": "Prospect"
     },
     "messageThread": {
       "backToConversations": "Back to conversations",
@@ -961,6 +963,8 @@
   },
   "Pipelines": {
     "page": {
+      "title": "Prospects",
+      "subtitle": "{pipeline} · {count} open deals",
       "selectPipeline": "Select Pipeline",
       "noPipelinesYet": "No pipelines yet",
       "managePipelines": "Manage Pipelines",
@@ -988,7 +992,10 @@
     "card": {
       "noContact": "No patient",
       "won": "Won",
-      "lost": "Lost"
+      "wonPatient": "Patient",
+      "lost": "Lost",
+      "today": "Today",
+      "daysAgo": "{count} days"
     },
     "form": {
       "editDeal": "Edit Deal",
@@ -1070,7 +1077,16 @@
       "wonThisMonthTooltip": "Deals marked as Won since the first day of the current month.",
       "lostThisMonth": "Lost This Month",
       "lostThisMonthTooltip": "Deals marked as Lost since the first day of the current month.",
-      "howCalculated": "How {label} is calculated"
+      "howCalculated": "How {label} is calculated",
+      "prospectsActive": "Active prospects",
+      "prospectsActiveTooltip": "Open deals in this pipeline — not yet won or lost.",
+      "potentialValue": "Potential value",
+      "potentialValueTooltip": "Sum of open deals' value — excludes already-won ones (that's realized value, not potential).",
+      "conversionToPatient": "Patient conversion",
+      "conversionToPatientTooltip": "Won ÷ (won + lost) across this pipeline's whole history.",
+      "noDataYet": "No data yet",
+      "noFollowUp": "No follow-up +3 days",
+      "noFollowUpTooltip": "Open deals with no change (stage, status, or fields) in over 3 days."
     },
     "appointments": {
       "title": "Appointment",

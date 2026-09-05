@@ -295,7 +295,9 @@
       "clearAll": "Borrar todo",
       "noConversations": "No se encontraron conversaciones",
       "noMessagesYet": "Aún no hay mensajes",
-      "unknown": "Desconocido"
+      "unknown": "Desconocido",
+      "patientBadge": "Paciente",
+      "prospectBadge": "Prospecto"
     },
     "messageThread": {
       "backToConversations": "Volver a conversaciones",
@@ -961,6 +963,8 @@
   },
   "Pipelines": {
     "page": {
+      "title": "Prospectos",
+      "subtitle": "{pipeline} · {count} negocios abiertos",
       "selectPipeline": "Seleccionar pipeline",
       "noPipelinesYet": "Aún no hay pipelines",
       "managePipelines": "Gestionar pipelines",
@@ -988,7 +992,10 @@
     "card": {
       "noContact": "Sin paciente",
       "won": "Ganado",
-      "lost": "Perdido"
+      "wonPatient": "Paciente",
+      "lost": "Perdido",
+      "today": "Hoy",
+      "daysAgo": "{count} días"
     },
     "form": {
       "editDeal": "Editar negocio",
@@ -1070,7 +1077,16 @@
       "wonThisMonthTooltip": "Negocios marcados como Ganados desde el primer día del mes actual.",
       "lostThisMonth": "Perdidos este mes",
       "lostThisMonthTooltip": "Negocios marcados como Perdidos desde el primer día del mes actual.",
-      "howCalculated": "Cómo se calcula {label}"
+      "howCalculated": "Cómo se calcula {label}",
+      "prospectsActive": "Prospectos activos",
+      "prospectsActiveTooltip": "Negocios abiertos en este pipeline — ni ganados ni perdidos todavía.",
+      "potentialValue": "Valor potencial",
+      "potentialValueTooltip": "Suma del valor de los negocios abiertos — no incluye los ya ganados (eso ya es valor realizado, no potencial).",
+      "conversionToPatient": "Conversión a paciente",
+      "conversionToPatientTooltip": "Ganados ÷ (ganados + perdidos) en todo el historial de este pipeline.",
+      "noDataYet": "Sin datos aún",
+      "noFollowUp": "Sin seguimiento +3 días",
+      "noFollowUpTooltip": "Negocios abiertos que no han tenido ningún cambio (de etapa, estado o datos) en más de 3 días."
     },
     "appointments": {
       "title": "Cita",

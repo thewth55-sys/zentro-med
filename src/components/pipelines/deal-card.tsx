@@ -3,7 +3,22 @@
 import type { Deal, PipelineStage } from "@/types";
 import { Calendar, Check, X } from "lucide-react";
 import { formatCurrency } from "@/lib/currency";
+import { cn } from "@/lib/utils";
+import { leadSourceLabel } from "@/lib/contacts/lead-source";
 import { useTranslations } from "next-intl";
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+/** Days since this deal's last real change (see deals' set_updated_at
+ *  trigger — only bumped on an actual update, never a read), for the
+ *  same "HOY"/"N DÍAS" chip the mockup shows on every card — reusing
+ *  the exact signal the pipeline's own "sin seguimiento +3 días" stat
+ *  is built from (pipeline-analytics.tsx), not a separate invented one. */
+function daysSince(dateStr?: string | null): number | null {
+  if (!dateStr) return null;
+  const ms = Date.now() - new Date(dateStr).getTime();
+  return Math.max(0, Math.floor(ms / DAY_MS));
+}
 
 interface DealCardProps {
   deal: Deal;
@@ -28,8 +43,23 @@ function initials(name?: string, fallback?: string) {
 
 export function DealCard({ deal, stage, onEdit, isOverlay }: DealCardProps) {
   const t = useTranslations("Pipelines.card");
+  const tContacts = useTranslations("Contacts.detailView");
   const contactLabel = deal.contact?.name || deal.contact?.phone || t("noContact");
   const assigneeLabel = deal.assignee?.full_name || null;
+
+  // "Description" line under the contact — the mockup pairs a
+  // treatment type with the lead source (e.g. "Blanqueamiento ·
+  // Instagram"), but deals have no treatment-type field and
+  // contacts.lead_source only tracks a generic bucket (no
+  // platform-level detail like "Instagram" — see leadSourceLabel).
+  // Rather than fabricate either, this uses the deal's own free-text
+  // notes (real, staff-written) as the closest honest stand-in for
+  // "what this is about", paired with the lead source when present.
+  const noteSummary = deal.notes?.split("\n")[0]?.trim() || null;
+  const source = leadSourceLabel(deal.contact?.lead_source, tContacts);
+  const description = [noteSummary, source].filter(Boolean).join(" · ") || null;
+
+  const daysSinceUpdate = deal.status === "open" ? daysSince(deal.updated_at ?? deal.created_at) : null;
 
   return (
     <button
@@ -61,13 +91,23 @@ export function DealCard({ deal, stage, onEdit, isOverlay }: DealCardProps) {
         {deal.status === "won" && (
           <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-primary/15 px-2 py-0.5 text-[10px] font-semibold text-primary">
             <Check className="h-3 w-3" />
-            {t("won")}
+            {t("wonPatient")}
           </span>
         )}
         {deal.status === "lost" && (
           <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-red-500/15 px-2 py-0.5 text-[10px] font-semibold text-red-400">
             <X className="h-3 w-3" />
             {t("lost")}
+          </span>
+        )}
+        {daysSinceUpdate !== null && (
+          <span
+            className={cn(
+              "shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold",
+              daysSinceUpdate > 3 ? "bg-amber-500/15 text-amber-600 dark:text-amber-400" : "bg-muted text-muted-foreground",
+            )}
+          >
+            {daysSinceUpdate === 0 ? t("today") : t("daysAgo", { count: daysSinceUpdate })}
           </span>
         )}
       </div>
@@ -79,6 +119,7 @@ export function DealCard({ deal, stage, onEdit, isOverlay }: DealCardProps) {
         </span>
         <span className="truncate text-xs text-muted-foreground">{contactLabel}</span>
       </div>
+      {description && <p className="mt-1 truncate pl-7 text-[11px] text-muted-foreground/80">{description}</p>}
 
       <div className="mt-2 flex items-center justify-between">
         <span className="text-sm font-bold text-primary">

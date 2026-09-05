@@ -72,6 +72,12 @@ export function ConversationList({
   const [tags, setTags] = useState<Tag[]>([]);
   const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
   const [selectedCompany, setSelectedCompany] = useState<string | null>(null);
+  // Paciente vs. prospecto badge (see ConversationItem) — one bulk
+  // query for every contact_id currently loaded instead of a
+  // per-conversation lookup, refetched alongside the conversation list
+  // itself so a fresh "Convertir en paciente" from the sidebar is
+  // reflected here without a full reload.
+  const [patientContactIds, setPatientContactIds] = useState<Set<string>>(new Set());
 
   // Keep the latest callback in a ref so the fetch effect below can
   // have a stable, empty-dep identity. Previously the fetch useCallback
@@ -114,8 +120,22 @@ export function ConversationList({
         return;
       }
 
-      onConversationsLoadedRef.current(normalizeConversations(data ?? []));
+      const normalized = normalizeConversations(data ?? []);
+      onConversationsLoadedRef.current(normalized);
       setLoading(false);
+
+      const contactIds = Array.from(
+        new Set(normalized.map((c) => c.contact?.id).filter((id): id is string => !!id)),
+      );
+      if (contactIds.length > 0) {
+        const { data: profiles } = await supabase
+          .from("patient_profiles")
+          .select("contact_id")
+          .in("contact_id", contactIds);
+        if (!cancelled) {
+          setPatientContactIds(new Set((profiles ?? []).map((p) => p.contact_id as string)));
+        }
+      }
     })();
 
     return () => {
@@ -414,6 +434,7 @@ export function ConversationList({
                 isActive={conv.id === activeConversationId}
                 onSelect={handleSelect}
                 t={t}
+                isPatient={!!conv.contact?.id && patientContactIds.has(conv.contact.id)}
               />
             ))}
           </div>
@@ -428,6 +449,9 @@ interface ConversationItemProps {
   isActive: boolean;
   onSelect: (conversation: Conversation) => void;
   t: ReturnType<typeof useTranslations>;
+  /** Whether this contact has a patient_profiles row — see the bulk
+   *  lookup in the fetch effect above. */
+  isPatient: boolean;
 }
 
 function ConversationItem({
@@ -435,6 +459,7 @@ function ConversationItem({
   isActive,
   onSelect,
   t,
+  isPatient,
 }: ConversationItemProps) {
   const contact = conversation.contact;
   const displayName = contact?.name || contact?.phone || t("unknown");
@@ -484,6 +509,14 @@ function ConversationItem({
             {conversation.last_message_text || t("noMessagesYet")}
           </p>
           <div className="flex shrink-0 items-center gap-1.5">
+            <span
+              className={cn(
+                "rounded-full px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide",
+                isPatient ? "bg-primary/15 text-primary" : "bg-amber-500/15 text-amber-600 dark:text-amber-400",
+              )}
+            >
+              {isPatient ? t("patientBadge") : t("prospectBadge")}
+            </span>
             {conversation.unread_count > 0 && (
               <span className="flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold text-primary-foreground">
                 {conversation.unread_count}

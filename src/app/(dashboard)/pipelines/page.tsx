@@ -37,12 +37,19 @@ import { useTranslations } from "next-intl";
 // not on different copy.
 
 // Spec-defined seed — name and color per the product spec.
+// Spanish, framed as a patient-acquisition funnel rather than a
+// generic sales pipeline — this app's whole UI is Spanish-first for
+// dental/medical clinics, so an English default ("New Lead"...) was
+// a leftover mismatch. Only affects pipelines created from now on:
+// existing accounts' stage names are their own data (renamed/reordered
+// freely, no "is this the real default" flag exists — see
+// pipeline_stages schema) and are deliberately left untouched here.
 const SPEC_DEFAULT_STAGES = [
-  { name: "New Lead", color: "#3b82f6", position: 0 }, // blue
-  { name: "Qualified", color: "#eab308", position: 1 }, // yellow
-  { name: "Proposal Sent", color: "#f97316", position: 2 }, // orange
-  { name: "Negotiation", color: "#8b5cf6", position: 3 }, // purple
-  { name: "Won", color: "#22c55e", position: 4 }, // green
+  { name: "Nuevo contacto", color: "#3b82f6", position: 0 }, // blue
+  { name: "Calificado", color: "#eab308", position: 1 }, // yellow
+  { name: "Presupuesto enviado", color: "#f97316", position: 2 }, // orange
+  { name: "En negociación", color: "#8b5cf6", position: 3 }, // purple
+  { name: "Convertido", color: "#22c55e", position: 4 }, // green
 ];
 
 export default function PipelinesPage() {
@@ -313,9 +320,19 @@ export default function PipelinesPage() {
     );
   }
 
+  const openDealsCount = deals.filter((d) => d.status === "open").length;
+
   return (
     <div className="space-y-6">
       {/* Header */}
+      <div>
+        <h1 className="text-lg font-bold text-foreground">{t("title")}</h1>
+        {selectedPipeline && (
+          <p className="text-xs text-muted-foreground">
+            {t("subtitle", { pipeline: selectedPipeline.name, count: openDealsCount })}
+          </p>
+        )}
+      </div>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           {/* Pipeline selector dropdown */}

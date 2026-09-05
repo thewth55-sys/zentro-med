@@ -90,7 +90,9 @@ function DashboardShellInner({ children }: { children: React.ReactNode }) {
           {/* Thinner horizontal padding on mobile so cards have room to
               breathe; extra bottom padding on mobile so content doesn't
               end up hidden behind the fixed MobileTabBar. */}
-          <main className="flex-1 overflow-y-auto p-4 pb-20 sm:p-6 lg:pb-6">{children}</main>
+          <main className="flex-1 overflow-y-auto p-4 pb-20 sm:p-6 lg:pb-6 [scrollbar-width:thin] [scrollbar-color:var(--border)_transparent] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-border">
+            {children}
+          </main>
         </div>
         <ZenBubble />
         <MobileTabBar totalUnread={totalUnread} />
