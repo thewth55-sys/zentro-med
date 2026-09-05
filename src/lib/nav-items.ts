@@ -11,20 +11,20 @@
 
 import {
   Bot,
-  CalendarClock,
-  GitBranch,
-  LayoutDashboard,
+  Calendar,
+  CreditCard,
+  LayoutGrid,
   Link2,
+  MessageCircle,
   Radio,
+  Share2,
   Sparkles,
   Users,
-  Wallet,
   Workflow,
   Zap,
   type LucideIcon,
 } from "lucide-react";
 import type { ComponentType, SVGProps } from "react";
-import { WhatsAppIcon } from "@/components/icons/whatsapp-icon";
 import type { GatedFeature } from "@/lib/billing-platform/features";
 
 /** Fixed section a nav item belongs to — drives both the sidebar's group
@@ -60,7 +60,7 @@ export interface NavItem {
 }
 
 export const navItems: NavItem[] = [
-  { href: "/dashboard", labelKey: "dashboard", icon: LayoutDashboard },
+  { href: "/dashboard", labelKey: "dashboard", icon: LayoutGrid },
   // Zen se pinnea junto a Panel (no vive dentro de un grupo) y el sidebar
   // lo renderiza aparte, como tarjeta elevada — es el diferenciador de IA
   // del producto, no "una entrada más del menú".
@@ -71,12 +71,12 @@ export const navItems: NavItem[] = [
   // en cualquier pantalla) la reemplaza; tenerla dos veces era
   // redundante.
   { href: "/contacts", labelKey: "contacts", icon: Users, group: "atencion" },
-  { href: "/agenda", labelKey: "agenda", icon: CalendarClock, group: "atencion" },
-  { href: "/inbox", labelKey: "inbox", icon: WhatsAppIcon, feature: "whatsapp_inbox", group: "atencion" },
-  { href: "/pipelines", labelKey: "pipelines", icon: GitBranch, group: "atencion" },
+  { href: "/agenda", labelKey: "agenda", icon: Calendar, group: "atencion" },
+  { href: "/inbox", labelKey: "inbox", icon: MessageCircle, feature: "whatsapp_inbox", group: "atencion" },
+  { href: "/pipelines", labelKey: "pipelines", icon: Share2, group: "atencion" },
 
   // OPERACIÓN — administración del negocio, no del sillón.
-  { href: "/billing", labelKey: "billing", icon: Wallet, group: "operacion" },
+  { href: "/billing", labelKey: "billing", icon: CreditCard, group: "operacion" },
   { href: "/broadcasts", labelKey: "broadcasts", icon: Radio, feature: "broadcasts", group: "operacion" },
   { href: "/automations", labelKey: "automations", icon: Zap, feature: "automations", group: "operacion" },
   { href: "/flows", labelKey: "flows", icon: Workflow, beta: true, feature: "automations", group: "operacion" },

@@ -514,6 +514,27 @@ export interface Appointment {
   contact?: Contact;
 }
 
+export type WaitlistStatus = 'waiting' | 'notified' | 'booked' | 'cancelled';
+
+/** Migración 108 — pacientes esperando un espacio, para poder ofrecer
+ *  un hueco que se libera en vez de dejarlo vacío. */
+export interface WaitlistEntry {
+  id: string;
+  account_id: string;
+  contact_id: string;
+  doctor_id: string | null;
+  service_type_id: string | null;
+  notes?: string | null;
+  status: WaitlistStatus;
+  notified_at?: string | null;
+  created_by?: string | null;
+  created_at: string;
+  updated_at?: string;
+  contact?: Contact;
+  doctor?: Doctor;
+  service_type?: ServiceType;
+}
+
 // ------------------------------------------------------------
 // Clinical records (EHR) — see
 // supabase/migrations/038_clinical_records.sql. `clinical_notes` and

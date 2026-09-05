@@ -1138,7 +1138,51 @@
       "saveFailed": "No se pudo guardar la disponibilidad",
       "endBeforeStart": "La hora de fin debe ser posterior a la de inicio"
     },
-    "googleBusy": "Ocupado en Google Calendar · {name}"
+    "googleBusy": "Ocupado en Google Calendar · {name}",
+    "sidebar": {
+      "occupancyTitle": "Ocupación de la semana",
+      "noSchedule": "Ningún doctor tiene horario declarado esta semana — configúralo en Agenda → Mi disponibilidad.",
+      "noScheduleShort": "Sin horario",
+      "slotsFraction": "{booked} de {total} espacios",
+      "actionsTitle": "Requieren acción",
+      "actionsSubtitle": "Antes de que se pierdan",
+      "viewWaitlist": "Lista de espera",
+      "noActions": "No hay pendientes por ahora.",
+      "unconfirmedToday": "Cita de hoy {time} sin confirmar",
+      "sendConfirmation": "Enviar confirmación",
+      "noShowWithPlan": "No asistió · plan activo",
+      "noShowPlain": "No asistió a su cita",
+      "rebook": "Reagendar",
+      "freeBlockDay": "{day}",
+      "freeBlockDoctor": "{doctor} · bloque libre de {hours}h",
+      "offerToWaitlist": "Ofrecer a lista de espera",
+      "messageSent": "Mensaje enviado",
+      "messageFailed": "No se pudo enviar: {reason}"
+    },
+    "waitlist": {
+      "title": "Lista de espera",
+      "loadFailed": "No se pudo cargar la lista de espera",
+      "empty": "Nadie en la lista de espera todavía.",
+      "contactRequired": "Elige un paciente",
+      "added": "Agregado a la lista de espera",
+      "addFailed": "No se pudo agregar",
+      "updateFailed": "No se pudo actualizar",
+      "notified": "Se notificó a {name}",
+      "notifyFailed": "No se pudo notificar: {reason}",
+      "noPreference": "Sin preferencia de doctor o servicio",
+      "remove": "Quitar",
+      "notify": "Notificar",
+      "markBooked": "Marcar agendado",
+      "contact": "Paciente",
+      "change": "Cambiar",
+      "searchContactPlaceholder": "Buscar por nombre o teléfono…",
+      "doctor": "Doctor",
+      "anyDoctor": "Cualquiera",
+      "service": "Servicio",
+      "anyService": "Cualquiera",
+      "notesPlaceholder": "Notas (opcional)",
+      "addToWaitlist": "Agregar a lista de espera"
+    }
   },
   "Broadcasts": {
     "page": {

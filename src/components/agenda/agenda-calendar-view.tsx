@@ -19,13 +19,19 @@ import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/layout/page-header";
 import type { Appointment, AppointmentStatus, Doctor, DoctorAvailabilityBlock, Room, ServiceType } from "@/types";
 import { AppointmentEditorDialog, type AppointmentDraft } from "./appointment-editor-dialog";
+import { AgendaSidebar } from "./agenda-sidebar";
 
-const STATUS_COLORS: Record<AppointmentStatus, { bg: string; border: string }> = {
-  pending: { bg: "#f59e0b", border: "#d97706" },
-  confirmed: { bg: "#10b981", border: "#059669" },
-  completed: { bg: "#6366f1", border: "#4f46e5" },
-  cancelled: { bg: "#6b7280", border: "#4b5563" },
-  no_show: { bg: "#ef4444", border: "#dc2626" },
+// Actual colors live in the scoped <style jsx> below (per `.status-*`
+// className) so they can use CSS instead of FullCalendar's flat
+// bg/border/text props — that's what lets each event get a pastel
+// fill + a colored left accent border instead of a solid block. Kept
+// here too only as the shared palette reference for the legend dots.
+const STATUS_ACCENT: Record<AppointmentStatus, string> = {
+  pending: "#B4740A",
+  confirmed: "#0E7C4A",
+  completed: "#2563A8",
+  cancelled: "#8A9A92",
+  no_show: "#C0392F",
 };
 
 const AVAILABILITY_PALETTE = [
@@ -61,6 +67,7 @@ interface CalendarEvent {
   backgroundColor?: string;
   borderColor?: string;
   textColor?: string;
+  classNames?: string[];
   extendedProps: Record<string, unknown>;
 }
 
@@ -184,21 +191,16 @@ export function AgendaCalendarView() {
     const apptEvents: CalendarEvent[] = appointments
       .filter((a) => a.status !== "cancelled")
       .filter((a) => !statusFilter || a.status === statusFilter)
-      .map((a) => {
-        const colors = STATUS_COLORS[a.status];
-        return {
-          id: a.id,
-          title:
-            (a.contact?.name || a.contact?.phone || t("noContactSelected")) +
-            (a.room ? ` · ${a.room.name}` : ""),
-          start: a.start_at,
-          end: a.end_at,
-          backgroundColor: colors.bg,
-          borderColor: colors.border,
-          textColor: "#fff",
-          extendedProps: { type: "appointment", appointment: a },
-        };
-      });
+      .map((a) => ({
+        id: a.id,
+        title:
+          (a.contact?.name || a.contact?.phone || t("noContactSelected")) +
+          (a.room ? ` · ${a.room.name}` : ""),
+        start: a.start_at,
+        end: a.end_at,
+        classNames: [`status-${a.status}`],
+        extendedProps: { type: "appointment", appointment: a },
+      }));
 
     const blockEvents: CalendarEvent[] = availabilityBlocks
       .filter((b) => !doctorFilter || b.doctor_id === doctorFilter)
@@ -330,6 +332,16 @@ export function AgendaCalendarView() {
       />
 
       <div className="flex flex-wrap items-center gap-2">
+        <div className="mr-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-muted-foreground">
+          {(Object.keys(STATUS_ACCENT) as AppointmentStatus[])
+            .filter((s) => s !== "cancelled")
+            .map((s) => (
+              <span key={s} className="flex items-center gap-1">
+                <span className="size-2 rounded-full" style={{ backgroundColor: STATUS_ACCENT[s] }} />
+                {tAppt(`status.${s}`)}
+              </span>
+            ))}
+        </div>
         <select
           value={doctorFilter}
           onChange={(e) => setDoctorFilter(e.target.value)}
@@ -378,43 +390,53 @@ export function AgendaCalendarView() {
         )}
       </div>
 
-      <div className="overflow-x-hidden rounded-lg border border-border bg-card p-2 sm:p-3">
-        <FullCalendar
-          ref={calendarRef}
-          plugins={[dayGridPlugin, timeGridPlugin, listPlugin, interactionPlugin]}
-          initialView={isMobile ? "timeGridDay" : "timeGridWeek"}
-          headerToolbar={
-            isMobile
-              ? { left: "prev,next", center: "title", right: "today" }
-              : {
-                  left: "prev,next today",
-                  center: "title",
-                  right: "timeGridDay,timeGridWeek,dayGridMonth,listWeek",
-                }
-          }
-          height={isMobile ? "auto" : 700}
-          firstDay={1}
-          // Full 24h range so appointments outside a "typical" clinic
-          // window are never silently hidden by the grid — FullCalendar
-          // drops out-of-range events with no warning. scrollTime just
-          // picks where the view opens; slotMin/MaxTime stays wide open.
-          slotMinTime="00:00:00"
-          slotMaxTime="24:00:00"
-          scrollTime="07:00:00"
-          nowIndicator
-          locale={locale === "es" ? esLocale : undefined}
-          events={events}
-          editable={canEdit}
-          selectable={canEdit}
-          selectMirror
-          unselectAuto
-          eventClick={handleEventClick}
-          eventDrop={handleEventDrop}
-          eventResize={handleEventResize}
-          select={handleSelect}
-          datesSet={(arg) => {
-            setRange({ from: arg.start.toISOString(), to: arg.end.toISOString() });
-          }}
+      <div className="grid grid-cols-1 gap-4 xl:grid-cols-[1fr_296px] xl:items-start">
+        <div className="agenda-calendar overflow-x-hidden rounded-2xl border border-border bg-card p-2 sm:p-3">
+          <FullCalendar
+            ref={calendarRef}
+            plugins={[dayGridPlugin, timeGridPlugin, listPlugin, interactionPlugin]}
+            initialView={isMobile ? "timeGridDay" : "timeGridWeek"}
+            headerToolbar={
+              isMobile
+                ? { left: "prev,next", center: "title", right: "today" }
+                : {
+                    left: "prev,next today",
+                    center: "title",
+                    right: "timeGridDay,timeGridWeek,dayGridMonth,listWeek",
+                  }
+            }
+            height={isMobile ? "auto" : 700}
+            firstDay={1}
+            // Full 24h range so appointments outside a "typical" clinic
+            // window are never silently hidden by the grid — FullCalendar
+            // drops out-of-range events with no warning. scrollTime just
+            // picks where the view opens; slotMin/MaxTime stays wide open.
+            slotMinTime="00:00:00"
+            slotMaxTime="24:00:00"
+            scrollTime="07:00:00"
+            nowIndicator
+            locale={locale === "es" ? esLocale : undefined}
+            events={events}
+            editable={canEdit}
+            selectable={canEdit}
+            selectMirror
+            unselectAuto
+            eventClick={handleEventClick}
+            eventDrop={handleEventDrop}
+            eventResize={handleEventResize}
+            select={handleSelect}
+            datesSet={(arg) => {
+              setRange({ from: arg.start.toISOString(), to: arg.end.toISOString() });
+            }}
+          />
+        </div>
+
+        <AgendaSidebar
+          doctors={doctors}
+          serviceTypes={serviceTypes}
+          availabilityBlocks={availabilityBlocks}
+          rangeAppointments={appointments}
+          range={range}
         />
       </div>
 
@@ -428,6 +450,85 @@ export function AgendaCalendarView() {
         canEdit={canEdit}
         onSaved={() => void fetchData()}
       />
+
+      {/* Scoped to .agenda-calendar so this never leaks into any other
+          FullCalendar instance the app might add later. Uses classNames
+          (see `events` memo above) instead of FullCalendar's flat
+          backgroundColor/borderColor props so each status gets a
+          pastel fill + colored left accent, matching the same palette
+          already used for odontogram/consent-status pills elsewhere in
+          the app (see odontogram-tab.tsx, consent-forms-tab.tsx). */}
+      <style jsx global>{`
+        .agenda-calendar .fc-event.status-pending {
+          background: #fdf3e2 !important;
+          border-color: #f5e3c4 !important;
+          border-left: 3px solid #b4740a !important;
+          color: #7a5206 !important;
+        }
+        .agenda-calendar .fc-event.status-confirmed {
+          background: #eaf6f0 !important;
+          border-color: #cfe7da !important;
+          border-left: 3px solid #0e7c4a !important;
+          color: #0a5c37 !important;
+        }
+        .agenda-calendar .fc-event.status-completed {
+          background: #eaf1fa !important;
+          border-color: #d3e2f3 !important;
+          border-left: 3px solid #2563a8 !important;
+          color: #1d4e89 !important;
+        }
+        .agenda-calendar .fc-event.status-no_show {
+          background: #fbddd8 !important;
+          border-color: #f3c9c2 !important;
+          border-left: 3px solid #c0392f !important;
+          color: #8b241a !important;
+        }
+        .agenda-calendar .fc-event.status-pending .fc-event-title,
+        .agenda-calendar .fc-event.status-confirmed .fc-event-title,
+        .agenda-calendar .fc-event.status-completed .fc-event-title,
+        .agenda-calendar .fc-event.status-no_show .fc-event-title {
+          font-weight: 700;
+        }
+
+        .agenda-calendar .fc-scroller {
+          scrollbar-width: thin;
+          scrollbar-color: var(--border) transparent;
+        }
+        .agenda-calendar .fc-scroller::-webkit-scrollbar {
+          width: 6px;
+          height: 6px;
+        }
+        .agenda-calendar .fc-scroller::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        .agenda-calendar .fc-scroller::-webkit-scrollbar-thumb {
+          background: var(--border);
+          border-radius: 9999px;
+        }
+
+        .agenda-calendar .fc-button-group,
+        .agenda-calendar .fc-button {
+          box-shadow: none !important;
+        }
+        .agenda-calendar .fc-button-primary {
+          background: var(--card) !important;
+          border-color: var(--border) !important;
+          color: var(--foreground) !important;
+          border-radius: 9px !important;
+          text-transform: capitalize;
+          font-weight: 600;
+        }
+        .agenda-calendar .fc-button-primary:not(:disabled).fc-button-active,
+        .agenda-calendar .fc-button-primary:not(:disabled):active {
+          background: var(--primary) !important;
+          border-color: var(--primary) !important;
+          color: var(--primary-foreground) !important;
+        }
+        .agenda-calendar .fc-toolbar-title {
+          font-size: 0.95rem;
+          font-weight: 700;
+        }
+      `}</style>
     </div>
   );
 }

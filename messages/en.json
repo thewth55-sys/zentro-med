@@ -1138,7 +1138,51 @@
       "saveFailed": "Failed to save availability",
       "endBeforeStart": "End time must be after start time"
     },
-    "googleBusy": "Busy on Google Calendar · {name}"
+    "googleBusy": "Busy on Google Calendar · {name}",
+    "sidebar": {
+      "occupancyTitle": "This week's occupancy",
+      "noSchedule": "No doctor has declared a schedule this week — set it up in Agenda → My availability.",
+      "noScheduleShort": "No schedule",
+      "slotsFraction": "{booked} of {total} slots",
+      "actionsTitle": "Needs action",
+      "actionsSubtitle": "Before they slip through",
+      "viewWaitlist": "Waitlist",
+      "noActions": "Nothing pending right now.",
+      "unconfirmedToday": "Today's {time} appointment isn't confirmed",
+      "sendConfirmation": "Send confirmation",
+      "noShowWithPlan": "No-show · active plan",
+      "noShowPlain": "Missed their appointment",
+      "rebook": "Rebook",
+      "freeBlockDay": "{day}",
+      "freeBlockDoctor": "{doctor} · {hours}h free",
+      "offerToWaitlist": "Offer to waitlist",
+      "messageSent": "Message sent",
+      "messageFailed": "Couldn't send: {reason}"
+    },
+    "waitlist": {
+      "title": "Waitlist",
+      "loadFailed": "Couldn't load the waitlist",
+      "empty": "No one on the waitlist yet.",
+      "contactRequired": "Pick a patient",
+      "added": "Added to the waitlist",
+      "addFailed": "Couldn't add to the waitlist",
+      "updateFailed": "Couldn't update the entry",
+      "notified": "Notified {name}",
+      "notifyFailed": "Couldn't notify: {reason}",
+      "noPreference": "No doctor or service preference",
+      "remove": "Remove",
+      "notify": "Notify",
+      "markBooked": "Mark booked",
+      "contact": "Patient",
+      "change": "Change",
+      "searchContactPlaceholder": "Search by name or phone…",
+      "doctor": "Doctor",
+      "anyDoctor": "Any",
+      "service": "Service",
+      "anyService": "Any",
+      "notesPlaceholder": "Notes (optional)",
+      "addToWaitlist": "Add to waitlist"
+    }
   },
   "Broadcasts": {
     "page": {
