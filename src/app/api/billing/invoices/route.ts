@@ -135,6 +135,22 @@ export async function POST(request: Request) {
       await supabase.from('quote_items').update({ completed: true }).in('id', sourceQuoteItemIds);
     }
 
+    // "Agrupar facturas" — la factura vieja no se toca en sus propios
+    // totales/pagos, solo se cierra y se enlaza a esta nueva (ver
+    // 112_invoice_supersede.sql). Falla silenciosa y logueada: la
+    // factura nueva ya existe y es correcta pase lo que pase aquí.
+    if (body.supersede_invoice_id) {
+      const { error: supersedeError } = await supabase
+        .from('invoices')
+        .update({ status: 'void', superseded_by_invoice_id: invoice.id })
+        .eq('id', body.supersede_invoice_id)
+        .eq('account_id', accountId)
+        .eq('contact_id', body.contact_id);
+      if (supersedeError) {
+        console.error('[invoices POST] failed to supersede invoice', body.supersede_invoice_id, supersedeError);
+      }
+    }
+
     return NextResponse.json({ invoice: { ...invoice, items: items ?? [] } }, { status: 201 });
   } catch (err) {
     return toErrorResponse(err);

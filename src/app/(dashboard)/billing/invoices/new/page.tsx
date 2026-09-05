@@ -9,6 +9,7 @@ import {
   ArrowLeft,
   Banknote,
   CalendarClock,
+  CheckCircle2,
   CreditCard,
   Landmark,
   Layers,
@@ -80,6 +81,7 @@ export default function NewInvoicePage() {
   const [priorBalance, setPriorBalance] = useState<{ amount: number; invoiceId: string; invoiceNumber: string } | null>(
     null
   );
+  const [mergedInvoiceNumber, setMergedInvoiceNumber] = useState<string | null>(null);
 
   const backHref = lockedContactId ? `/contacts/${lockedContactId}?tab=billing` : "/billing?tab=invoices";
 
@@ -219,6 +221,23 @@ export default function NewInvoicePage() {
     }
   }
 
+  function handleMergeInvoice() {
+    if (!priorBalance) return;
+    setItems((prev) => [
+      ...prev,
+      {
+        product_id: null,
+        description: tNew("priorBalanceLineDescription", { invoiceNumber: priorBalance.invoiceNumber }),
+        quantity: 1,
+        unit_price: priorBalance.amount,
+        tax_id: null,
+        discount_type: null,
+        discount_value: 0,
+      },
+    ]);
+    setMergedInvoiceNumber(priorBalance.invoiceNumber);
+  }
+
   async function sendCheckoutLink(invoiceId: string, contactId: string) {
     try {
       const linkRes = await fetch(`/api/billing/invoices/${invoiceId}/checkout-link`, { method: "POST" });
@@ -269,6 +288,7 @@ export default function NewInvoicePage() {
           due_date: dueDate || null,
           notes: notes || null,
           payment_method_intent: paymentMethodIntent,
+          supersede_invoice_id: mergedInvoiceNumber ? priorBalance?.invoiceId : null,
           items: items.map((item) => ({
             ...item,
             source_quote_item_id: markPlanItemsDone ? item.source_quote_item_id : undefined,
@@ -365,7 +385,7 @@ export default function NewInvoicePage() {
             </div>
           )}
 
-          {priorBalance && (
+          {priorBalance && !mergedInvoiceNumber && (
             <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2.5 text-sm">
               <span className="flex items-center gap-2 text-amber-600 dark:text-amber-300">
                 <AlertTriangle className="size-4 shrink-0" />
@@ -374,9 +394,20 @@ export default function NewInvoicePage() {
                   invoiceNumber: priorBalance.invoiceNumber,
                 })}
               </span>
-              <Link href={`/billing?tab=invoices&invoice=${priorBalance.invoiceId}`} className="text-xs font-medium text-primary hover:underline">
-                {tNew("viewInvoice")}
-              </Link>
+              <div className="flex items-center gap-3">
+                <button type="button" onClick={handleMergeInvoice} className="text-xs font-medium text-primary hover:underline">
+                  {tNew("mergeInvoices")}
+                </button>
+                <Link href={`/billing?tab=invoices&invoice=${priorBalance.invoiceId}`} className="text-xs text-muted-foreground hover:text-foreground">
+                  {tNew("viewInvoice")}
+                </Link>
+              </div>
+            </div>
+          )}
+          {mergedInvoiceNumber && (
+            <div className="flex items-center gap-2 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2.5 text-sm text-emerald-600 dark:text-emerald-300">
+              <CheckCircle2 className="size-4 shrink-0" />
+              {tNew("mergedConfirmation", { invoiceNumber: mergedInvoiceNumber })}
             </div>
           )}
 
