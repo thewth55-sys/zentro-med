@@ -22,6 +22,13 @@ export interface EditableLine {
   phase_index?: number | null;
   /** Marcado por el médico cuando esa línea del plan ya se realizó — solo cotizaciones. */
   completed?: boolean;
+  /** Diente + fase de origen — solo facturas, cuando la línea vino del
+   *  plan de tratamiento vía "Traer del plan" o la conversión completa
+   *  de una cotización. Puramente informativo (no editable aquí). */
+  odontogram_tooth_id?: string | null;
+  tooth_number?: number | null;
+  phase_label?: string | null;
+  source_quote_item_id?: string | null;
 }
 
 /** Fase del plan de tratamiento tal como la edita el formulario —
@@ -46,6 +53,11 @@ interface BillingLineItemsEditorProps {
    *  invoice-form.tsx no lo pasa, así que no cambia en nada. */
   phases?: EditablePhase[];
   onPhasesChange?: (phases: EditablePhase[]) => void;
+  /** Cuando el resumen (subtotal/impuesto/total) ya se muestra afuera
+   *  del editor — como en la página de "Nueva factura" — esto oculta
+   *  esas filas aquí y deja solo el control de descuento, para no
+   *  duplicar los mismos tres números dos veces en la misma pantalla. */
+  compactSummary?: boolean;
 }
 
 function emptyLine(taxes: Tax[]): EditableLine {
@@ -80,6 +92,7 @@ export function BillingLineItemsEditor({
   onDocumentDiscountChange,
   phases,
   onPhasesChange,
+  compactSummary,
 }: BillingLineItemsEditorProps) {
   const t = useTranslations("Billing.lineItems");
   const [addingPhase, setAddingPhase] = useState(false);
@@ -242,6 +255,13 @@ export function BillingLineItemsEditor({
                 placeholder={t("descriptionPlaceholder")}
                 className="h-8 border-border bg-muted text-xs text-foreground disabled:opacity-60"
               />
+              {(line.tooth_number || line.phase_label) && (
+                <p className="pl-0.5 text-[11px] text-muted-foreground">
+                  {line.tooth_number ? t("toothLabel", { tooth: line.tooth_number }) : null}
+                  {line.tooth_number && line.phase_label ? " · " : null}
+                  {line.phase_label ? t("fromPlanLabel", { phase: line.phase_label }) : null}
+                </p>
+              )}
             </div>
 
             <select
@@ -335,11 +355,13 @@ export function BillingLineItemsEditor({
         </Button>
       )}
 
-      <div className="ml-auto w-full max-w-xs space-y-1 rounded-md border border-border bg-muted/40 p-3 text-sm">
-        <div className="flex justify-between text-muted-foreground">
-          <span>{t("subtotal")}</span>
-          <span>{currencyFormatter.format(totals.subtotal)}</span>
-        </div>
+      <div className={compactSummary ? "space-y-1" : "ml-auto w-full max-w-xs space-y-1 rounded-md border border-border bg-muted/40 p-3 text-sm"}>
+        {!compactSummary && (
+          <div className="flex justify-between text-muted-foreground">
+            <span>{t("subtotal")}</span>
+            <span>{currencyFormatter.format(totals.subtotal)}</span>
+          </div>
+        )}
 
         <div className="flex items-center justify-between gap-2 text-muted-foreground">
           <span>{t("documentDiscount")}</span>
@@ -376,14 +398,18 @@ export function BillingLineItemsEditor({
           )}
         </div>
 
-        <div className="flex justify-between text-muted-foreground">
-          <span>{t("tax")}</span>
-          <span>{currencyFormatter.format(totals.taxTotal)}</span>
-        </div>
-        <div className="flex justify-between border-t border-border pt-1 font-medium text-foreground">
-          <span>{t("total")}</span>
-          <span>{currencyFormatter.format(totals.total)}</span>
-        </div>
+        {!compactSummary && (
+          <>
+            <div className="flex justify-between text-muted-foreground">
+              <span>{t("tax")}</span>
+              <span>{currencyFormatter.format(totals.taxTotal)}</span>
+            </div>
+            <div className="flex justify-between border-t border-border pt-1 font-medium text-foreground">
+              <span>{t("total")}</span>
+              <span>{currencyFormatter.format(totals.total)}</span>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );

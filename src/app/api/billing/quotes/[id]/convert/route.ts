@@ -35,7 +35,7 @@ export async function POST(
 
     const { data: quoteItems, error: itemsError } = await supabase
       .from('quote_items')
-      .select('*')
+      .select('*, phase:quote_phases(name)')
       .eq('quote_id', id)
       .order('position', { ascending: true });
     if (itemsError) {
@@ -93,6 +93,11 @@ export async function POST(
           discount_value: item.discount_value,
           line_total: item.line_total,
           position: item.position,
+          // Se conserva de qué diente/fase venía la línea — se perdía
+          // en la conversión antes de esta columna existir.
+          odontogram_tooth_id: item.odontogram_tooth_id,
+          phase_label: item.phase?.name ?? null,
+          source_quote_item_id: item.id,
         }))
       );
       if (invoiceItemsError) {

@@ -79,6 +79,7 @@ export async function POST(request: Request) {
         deal_id: body.deal_id || null,
         appointment_id: body.appointment_id || null,
         invoice_number: invoiceNumber,
+        issue_date: body.issue_date || undefined,
         due_date: body.due_date || null,
         subtotal: resolved.subtotal,
         tax_total: resolved.taxTotal,
@@ -98,15 +99,39 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Failed to create invoice' }, { status: 500 });
     }
 
+    // odontogram_tooth_id/phase_label/source_quote_item_id no pasan por
+    // resolveBillingLines (compartida con cotizaciones, valida solo lo
+    // que ambas necesitan) — se toman directo del body por índice,
+    // igual que ya hace quotes/route.ts con odontogram_tooth_id/phase_id.
+    const rawItems: Array<{ odontogram_tooth_id?: string; phase_label?: string; source_quote_item_id?: string }> =
+      Array.isArray(body.items) ? body.items : [];
+
     const { data: items, error: itemsError } = await supabase
       .from('invoice_items')
-      .insert(resolved.items.map((item) => ({ ...item, account_id: accountId, invoice_id: invoice.id })))
-      .select('*, product:products(*), tax:taxes(*)');
+      .insert(
+        resolved.items.map((item, i) => ({
+          ...item,
+          account_id: accountId,
+          invoice_id: invoice.id,
+          odontogram_tooth_id: rawItems[i]?.odontogram_tooth_id || null,
+          phase_label: rawItems[i]?.phase_label || null,
+          source_quote_item_id: rawItems[i]?.source_quote_item_id || null,
+        })),
+      )
+      .select('*, product:products(*), tax:taxes(*), odontogram_tooth:odontogram_teeth(tooth_number)');
 
     if (itemsError) {
       console.error('[invoices POST] items insert error:', itemsError);
       await supabase.from('invoices').delete().eq('id', invoice.id);
       return NextResponse.json({ error: 'Failed to save line items' }, { status: 500 });
+    }
+
+    // Una línea traída del plan de tratamiento marca su origen como
+    // "hecho" al emitir la factura — mismo estado que ya usa la vista
+    // del plan (quote_items.completed), no uno nuevo desincronizado.
+    const sourceQuoteItemIds = rawItems.map((r) => r.source_quote_item_id).filter((id): id is string => !!id);
+    if (sourceQuoteItemIds.length > 0) {
+      await supabase.from('quote_items').update({ completed: true }).in('id', sourceQuoteItemIds);
     }
 
     return NextResponse.json({ invoice: { ...invoice, items: items ?? [] } }, { status: 201 });

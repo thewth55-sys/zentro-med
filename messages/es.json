@@ -1862,7 +1862,18 @@
       "newPhase": "Nueva fase",
       "newPhasePlaceholder": "Nombre de la fase",
       "noPhase": "Sin fase",
-      "markCompleted": "Hecho"
+      "markCompleted": "Hecho",
+      "toothLabel": "Diente {tooth}",
+      "fromPlanLabel": "Del plan de tratamiento · {phase}"
+    },
+    "pullFromPlan": {
+      "title": "Traer del plan de tratamiento",
+      "description": "Elige las líneas del plan aceptado de este paciente que quieres facturar.",
+      "empty": "Este paciente no tiene líneas de un plan aceptado pendientes de facturar.",
+      "tooth": "Diente {tooth}",
+      "noPhase": "Sin fase",
+      "cancel": "Cancelar",
+      "addSelected": "Agregar {count, plural, =0 {seleccionadas} =1 {1 línea} other {# líneas}}"
     },
     "quoteForm": {
       "editTitle": "Editar cotización",
@@ -2000,10 +2011,23 @@
       }
     },
     "newInvoicePage": {
-      "back": "Volver",
+      "back": "Volver a finanzas",
       "appointment": "Cita asociada (opcional)",
       "noAppointment": "Sin cita asociada",
-      "cancel": "Cancelar"
+      "cancel": "Cancelar",
+      "draftBadge": "Borrador",
+      "numberAssignedOnSave": "El número se asigna al guardar",
+      "priorBalance": "Este paciente tiene {amount} de saldo anterior en {invoiceNumber}.",
+      "viewInvoice": "Ver factura",
+      "issueDate": "Fecha de emisión",
+      "pullFromPlan": "Traer del plan de tratamiento",
+      "summary": "Resumen",
+      "patientDiscount": "Descuento paciente",
+      "total": "Total",
+      "issueAndSend": "Emitir y enviar por WhatsApp",
+      "onIssue": "Al emitir",
+      "sendWhatsapp": "Enviar la factura por WhatsApp al paciente",
+      "markPlanItemsDone": "Marcar los conceptos traídos del plan como hechos"
     }
   },
   "Flows": {

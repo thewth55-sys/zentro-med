@@ -1862,7 +1862,18 @@
       "newPhase": "New phase",
       "newPhasePlaceholder": "Phase name",
       "noPhase": "No phase",
-      "markCompleted": "Done"
+      "markCompleted": "Done",
+      "toothLabel": "Tooth {tooth}",
+      "fromPlanLabel": "From the treatment plan · {phase}"
+    },
+    "pullFromPlan": {
+      "title": "Pull from the treatment plan",
+      "description": "Choose the lines from this patient's accepted plan you want to bill.",
+      "empty": "This patient has no unbilled lines on an accepted plan.",
+      "tooth": "Tooth {tooth}",
+      "noPhase": "No phase",
+      "cancel": "Cancel",
+      "addSelected": "Add {count, plural, =0 {selected} =1 {1 line} other {# lines}}"
     },
     "quoteForm": {
       "editTitle": "Edit quote",
@@ -2000,10 +2011,23 @@
       }
     },
     "newInvoicePage": {
-      "back": "Back",
+      "back": "Back to finance",
       "appointment": "Linked appointment (optional)",
       "noAppointment": "No linked appointment",
-      "cancel": "Cancel"
+      "cancel": "Cancel",
+      "draftBadge": "Draft",
+      "numberAssignedOnSave": "The number is assigned on save",
+      "priorBalance": "This patient has {amount} owed on {invoiceNumber}.",
+      "viewInvoice": "View invoice",
+      "issueDate": "Issue date",
+      "pullFromPlan": "Pull from the treatment plan",
+      "summary": "Summary",
+      "patientDiscount": "Patient discount",
+      "total": "Total",
+      "issueAndSend": "Issue and send via WhatsApp",
+      "onIssue": "On issue",
+      "sendWhatsapp": "Send the invoice via WhatsApp to the patient",
+      "markPlanItemsDone": "Mark items pulled from the plan as done"
     }
   },
   "Flows": {
