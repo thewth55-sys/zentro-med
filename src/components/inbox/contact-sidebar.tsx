@@ -1,10 +1,13 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { cn } from "@/lib/utils";
-import type { Contact, Deal, ContactNote, Tag } from "@/types";
+import { trackConversion } from "@/lib/conversions/track-client";
+import { formatCurrency } from "@/lib/currency";
+import type { Appointment, Contact, Deal, ContactNote, Tag } from "@/types";
 import {
   Phone,
   Mail,
@@ -15,6 +18,10 @@ import {
   DollarSign,
   StickyNote,
   Plus,
+  CalendarClock,
+  AlertTriangle,
+  UserPlus,
+  Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -29,7 +36,7 @@ export function ContactSidebar({ contact }: ContactSidebarProps) {
   const tSidebar = useTranslations("Inbox.sidebar");
   const tThread = useTranslations("Inbox.messageThread");
 
-  const { accountId } = useAuth();
+  const { accountId, defaultCurrency } = useAuth();
   const [copied, setCopied] = useState(false);
   const [deals, setDeals] = useState<Deal[]>([]);
   const [notes, setNotes] = useState<ContactNote[]>([]);
@@ -37,13 +44,26 @@ export function ContactSidebar({ contact }: ContactSidebarProps) {
   const [newNote, setNewNote] = useState("");
   const [addingNote, setAddingNote] = useState(false);
 
+  // `undefined` = still loading (don't flash the "convertir" button
+  // before we actually know); `null` = confirmed not a patient yet.
+  const [patientProfile, setPatientProfile] = useState<
+    { id: string; allergies: string | null } | null | undefined
+  >(undefined);
+  const [nextAppointment, setNextAppointment] = useState<Appointment | null>(null);
+  const [balanceOwed, setBalanceOwed] = useState<number | null>(null);
+  const [converting, setConverting] = useState(false);
+
   const fetchContactData = useCallback(async () => {
     if (!contact) return;
 
     const supabase = createClient();
 
-    // Fetch deals, notes, and tags in parallel
-    const [dealsRes, notesRes, tagsRes] = await Promise.all([
+    // Fetch deals, notes, tags, patient-profile/allergies, next
+    // appointment and billing balance in parallel — the last three
+    // reuse the exact same routes/filters as the contact detail
+    // page's own header chips (contact-detail-view.tsx), just scoped
+    // to whichever contact is active in this conversation.
+    const [dealsRes, notesRes, tagsRes, profileRes, apptRes, invRes] = await Promise.all([
       supabase
         .from("deals")
         .select("*, stage:pipeline_stages(*)")
@@ -58,6 +78,17 @@ export function ContactSidebar({ contact }: ContactSidebarProps) {
         .from("contact_tags")
         .select("id, tag_id, tags(*)")
         .eq("contact_id", contact.id),
+      supabase
+        .from("patient_profiles")
+        .select("id, allergies")
+        .eq("contact_id", contact.id)
+        .maybeSingle(),
+      fetch(`/api/appointments?contact_id=${contact.id}`)
+        .then((r) => r.json())
+        .catch(() => ({})),
+      fetch(`/api/billing/invoices?contact_id=${contact.id}`)
+        .then((r) => r.json())
+        .catch(() => ({})),
     ]);
 
     if (dealsRes.data) setDeals(dealsRes.data);
@@ -71,6 +102,20 @@ export function ContactSidebar({ contact }: ContactSidebarProps) {
         }));
       setTags(mapped);
     }
+    setPatientProfile(profileRes.data ?? null);
+
+    const now = Date.now();
+    const appointments = (apptRes.appointments ?? []) as Appointment[];
+    setNextAppointment(
+      appointments.find((a) => a.status !== "cancelled" && new Date(a.start_at).getTime() >= now) ?? null,
+    );
+
+    const invoices = (invRes.invoices ?? []) as Array<{ status: string; total: number; amount_paid: number }>;
+    setBalanceOwed(
+      invoices
+        .filter((i) => i.status !== "draft" && i.status !== "void")
+        .reduce((sum, i) => sum + (Number(i.total) - Number(i.amount_paid)), 0),
+    );
   }, [contact]);
 
   // Load on contact change. setContactData/setTags run inside async
@@ -79,6 +124,72 @@ export function ContactSidebar({ contact }: ContactSidebarProps) {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchContactData();
   }, [fetchContactData]);
+
+  // "Convertir en paciente" — same insert medical-tab.tsx's own
+  // createProfile() does (same ZENTRO_PATIENT_LIMIT plan-limit error
+  // to handle, migration 064). On top of that, this also advances the
+  // *pipeline*, since a WhatsApp lead converting is exactly the "won"
+  // moment for whatever deal brought them in.
+  //
+  // "Advance to Ganado" is deliberately `deals.status = 'won'` — the
+  // same column the pipeline's own Won/Lost buttons write
+  // (deal-form.tsx) — not a move to some stage literally named
+  // "Ganado". Stages are just a renameable label+position
+  // (pipeline_stages has no "is won" flag), so a stage-based rule
+  // would silently stop working the moment someone renames or
+  // reorders their pipeline; `status` is the actual structural
+  // signal the rest of the app already treats as authoritative.
+  //
+  // A contact can have zero or several deals with no existing "the
+  // deal for this contact" convention anywhere else in the app — this
+  // picks the most recently created *open* one. No open deal just
+  // means there's nothing to advance; it never fabricates one.
+  const handleConvertToPatient = useCallback(async () => {
+    if (!contact || !accountId) return;
+    setConverting(true);
+    const supabase = createClient();
+    try {
+      const { data: profile, error } = await supabase
+        .from("patient_profiles")
+        .insert({ account_id: accountId, contact_id: contact.id })
+        .select("id, allergies")
+        .single();
+      if (error) throw error;
+      setPatientProfile(profile);
+
+      const { data: openDeal } = await supabase
+        .from("deals")
+        .select("id, value, currency")
+        .eq("contact_id", contact.id)
+        .eq("status", "open")
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (openDeal) {
+        await supabase.from("deals").update({ status: "won" }).eq("id", openDeal.id);
+        trackConversion("deal_won", {
+          phone: contact.phone,
+          email: contact.email ?? undefined,
+          dealValue: openDeal.value,
+          dealCurrency: openDeal.currency,
+        });
+        toast.success(tSidebar("patientCreatedWithDeal"));
+        await fetchContactData();
+      } else {
+        toast.success(tSidebar("patientCreated"));
+      }
+    } catch (err) {
+      if (err instanceof Error && err.message.includes("ZENTRO_PATIENT_LIMIT")) {
+        toast.error(tSidebar("patientLimitReached"));
+      } else {
+        console.error("Convert to patient error:", err);
+        toast.error(tSidebar("patientCreateFailed"));
+      }
+    } finally {
+      setConverting(false);
+    }
+  }, [contact, accountId, tSidebar, fetchContactData]);
 
   const handleCopyPhone = useCallback(async () => {
     if (!contact?.phone) return;
@@ -180,6 +291,69 @@ export function ContactSidebar({ contact }: ContactSidebarProps) {
 
           {/* Divider */}
           <div className="my-4 border-t border-border" />
+
+          {/* Contexto del paciente — solo se muestra lo que hay dato
+              real: próxima cita y saldo aplican a cualquier contacto
+              (mismos endpoints que ya usa el encabezado de la ficha),
+              la alerta de alergia solo si ya existe un perfil médico
+              con algo escrito ahí. */}
+          {(nextAppointment || (balanceOwed ?? 0) > 0 || patientProfile?.allergies) && (
+            <>
+              <div className="space-y-2">
+                {nextAppointment && (
+                  <div className="rounded-lg border border-border px-3 py-2">
+                    <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                      <CalendarClock className="h-3 w-3" />
+                      {tSidebar("nextAppointment")}
+                    </div>
+                    <p className="mt-0.5 text-sm font-medium text-foreground">
+                      {format(new Date(nextAppointment.start_at), "EEE d MMM · HH:mm")}
+                    </p>
+                  </div>
+                )}
+                {(balanceOwed ?? 0) > 0 && (
+                  <div className="rounded-lg border border-border px-3 py-2">
+                    <div className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                      {tSidebar("balancePending")}
+                    </div>
+                    <p className="mt-0.5 text-sm font-medium text-red-500">
+                      {formatCurrency(balanceOwed ?? 0, defaultCurrency)}
+                    </p>
+                  </div>
+                )}
+                {patientProfile?.allergies && (
+                  <div className="rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2">
+                    <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wide text-red-500">
+                      <AlertTriangle className="h-3 w-3" />
+                      {tSidebar("allergyAlert")}
+                    </div>
+                    <p className="mt-0.5 text-sm font-medium text-red-500">{patientProfile.allergies}</p>
+                  </div>
+                )}
+              </div>
+              <div className="my-4 border-t border-border" />
+            </>
+          )}
+
+          {/* Convertir en paciente — solo visible antes de la
+              conversión (patientProfile confirmado null, no mientras
+              carga). Ver el comentario junto a handleConvertToPatient
+              para las reglas de qué avanza en el pipeline. */}
+          {patientProfile === null && (
+            <>
+              <Button
+                size="sm"
+                variant="outline"
+                className="w-full"
+                onClick={handleConvertToPatient}
+                disabled={converting}
+              >
+                {converting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <UserPlus className="h-3.5 w-3.5" />}
+                {tSidebar("convertToPatient")}
+              </Button>
+              <div className="my-4 border-t border-border" />
+            </>
+          )}
 
           {/* Tags */}
           <div>

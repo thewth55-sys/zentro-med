@@ -414,7 +414,15 @@
       "deals": "Deals",
       "noTags": "No tags",
       "noDeals": "No deals",
-      "addNotePlaceholder": "Add a note..."
+      "addNotePlaceholder": "Add a note...",
+      "nextAppointment": "Next appointment",
+      "balancePending": "Balance due",
+      "allergyAlert": "Alert · allergy",
+      "convertToPatient": "Convert to patient",
+      "patientCreated": "Contact converted to patient",
+      "patientCreatedWithDeal": "Converted to patient and deal marked as won",
+      "patientLimitReached": "You've reached your plan's patient limit. Upgrade in Settings → Subscription to convert more contacts into patients.",
+      "patientCreateFailed": "Couldn't convert to patient"
     },
     "aiBanner": {
       "pausedTitle": "AI assistant is paused here",

@@ -414,7 +414,15 @@
       "deals": "Negocios",
       "noTags": "Sin etiquetas",
       "noDeals": "Sin negocios",
-      "addNotePlaceholder": "Agregar una nota..."
+      "addNotePlaceholder": "Agregar una nota...",
+      "nextAppointment": "Próxima cita",
+      "balancePending": "Saldo pendiente",
+      "allergyAlert": "Alerta · alergia",
+      "convertToPatient": "Convertir en paciente",
+      "patientCreated": "Contacto convertido en paciente",
+      "patientCreatedWithDeal": "Convertido en paciente y negocio marcado como ganado",
+      "patientLimitReached": "Alcanzaste el límite de pacientes de tu plan. Sube de plan en Ajustes → Suscripción para convertir más contactos en pacientes.",
+      "patientCreateFailed": "No se pudo convertir en paciente"
     },
     "aiBanner": {
       "pausedTitle": "El asistente de IA está en pausa aquí",
