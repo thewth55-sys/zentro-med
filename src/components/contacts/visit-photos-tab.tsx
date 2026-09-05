@@ -40,6 +40,16 @@ function isImageType(contentType?: string | null): boolean {
   return !!contentType && contentType.startsWith("image/");
 }
 
+/** i18n key for the placeholder label shown for a non-previewable file
+ *  type — derived from the file's real content_type, not guessed
+ *  per-name. */
+function typeLabelKey(contentType?: string | null): "typePhoto" | "typePdf" | "typeDoc" | "typeFile" {
+  if (contentType?.startsWith("image/")) return "typePhoto";
+  if (contentType === "application/pdf") return "typePdf";
+  if (contentType?.includes("word")) return "typeDoc";
+  return "typeFile";
+}
+
 const EXTENSION_CONTENT_TYPES: Record<string, string> = {
   png: "image/png",
   jpg: "image/jpeg",
@@ -211,12 +221,10 @@ export function VisitPhotosTab({ contactId }: VisitPhotosTabProps) {
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-          {t("title")}
-        </p>
-        <Button size="sm" onClick={() => fileInputRef.current?.click()} disabled={uploading}>
+    <div className="rounded-2xl border border-border bg-card p-4">
+      <div className="mb-3.5 flex items-center justify-between">
+        <h3 className="text-sm font-bold text-foreground">{t("title")}</h3>
+        <Button size="sm" variant="outline" onClick={() => fileInputRef.current?.click()} disabled={uploading}>
           <Paperclip className="size-3.5" />
           {t("upload")}
         </Button>
@@ -232,7 +240,7 @@ export function VisitPhotosTab({ contactId }: VisitPhotosTabProps) {
       {files.length === 0 ? (
         <p className="py-8 text-center text-sm text-muted-foreground">{t("empty")}</p>
       ) : (
-        <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-5">
+        <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3">
           {files.map((file) => {
             const { fileName, contentType } = displayFile(file);
             return (
@@ -241,9 +249,9 @@ export function VisitPhotosTab({ contactId }: VisitPhotosTabProps) {
                 type="button"
                 onClick={() => openFile(file)}
                 title={fileName ?? undefined}
-                className="group flex flex-col gap-1 rounded-md text-left"
+                className="group overflow-hidden rounded-xl border border-border/60 text-left transition-colors hover:border-primary/50"
               >
-                <div className="relative flex aspect-square items-center justify-center overflow-hidden rounded-md border border-border bg-muted group-hover:border-primary/50">
+                <div className="flex h-[72px] items-center justify-center bg-muted">
                   {isImageType(contentType) ? (
                     file.url ? (
                       // eslint-disable-next-line @next/next/no-img-element -- signed URL to a private bucket, not a Next-optimizable static asset
@@ -252,12 +260,19 @@ export function VisitPhotosTab({ contactId }: VisitPhotosTabProps) {
                       <Loader2 className="size-5 animate-spin text-muted-foreground" />
                     )
                   ) : (
-                    <FileText className="size-8 text-muted-foreground" />
+                    <span className="text-[11px] font-bold text-muted-foreground">
+                      {t(typeLabelKey(contentType))}
+                    </span>
                   )}
                 </div>
-                <p className="truncate px-0.5 text-[11px] text-foreground">
-                  {fileName || t("untitledFile")}
-                </p>
+                <div className="px-2.5 py-2 leading-tight">
+                  <p className="truncate text-[11.5px] font-semibold text-foreground">
+                    {fileName || t("untitledFile")}
+                  </p>
+                  <p className="text-[10.5px] text-muted-foreground">
+                    {new Date(file.created_at).toLocaleDateString()}
+                  </p>
+                </div>
               </button>
             );
           })}

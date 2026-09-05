@@ -117,8 +117,7 @@ const TAB_GROUPS = [
     labelKey: 'groupDocumentos',
     icon: ImageIcon,
     children: [
-      { key: 'consent', labelKey: 'tabs.consent', icon: FileSignature, requiresOdontogram: false },
-      { key: 'photos', labelKey: 'tabs.photos', icon: ImageIcon, requiresOdontogram: false },
+      { key: 'files', labelKey: 'tabs.files', icon: FileSignature, requiresOdontogram: false },
       { key: 'custom', labelKey: 'tabs.custom', icon: Settings2, requiresOdontogram: false },
     ],
   },
@@ -1079,11 +1078,13 @@ export function ContactDetailView({ contactId }: ContactDetailViewProps) {
                       {/* Documentos */}
                       {group.key === 'documentos' && (
                         <>
-                          <TabsContent value="consent">
-                            {contactId && <ConsentFormsTab contactId={contactId} />}
-                          </TabsContent>
-                          <TabsContent value="photos">
-                            {contactId && <VisitPhotosTab contactId={contactId} />}
+                          <TabsContent value="files">
+                            {contactId && (
+                              <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:items-start">
+                                <ConsentFormsTab contactId={contactId} />
+                                <VisitPhotosTab contactId={contactId} />
+                              </div>
+                            )}
                           </TabsContent>
                           <TabsContent value="custom">
                             {loadingCustom ? (

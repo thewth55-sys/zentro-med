@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Download, Loader2, Plus, Send } from "lucide-react";
+import { Download, FileText, Loader2, Plus } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 import { Button } from "@/components/ui/button";
@@ -25,10 +25,10 @@ interface ConsentDocumentWithSignature extends ConsentDocument {
 }
 
 const STATUS_STYLE: Record<ConsentDocument["status"], string> = {
-  pending: "bg-amber-500/10 text-amber-500 border-amber-500/30",
-  signed: "bg-emerald-500/10 text-emerald-500 border-emerald-500/30",
-  declined: "bg-red-500/10 text-red-500 border-red-500/30",
-  expired: "bg-muted text-muted-foreground border-border",
+  pending: "bg-amber-500/15 text-amber-700 dark:text-amber-400",
+  signed: "bg-primary/15 text-primary",
+  declined: "bg-red-500/15 text-red-600 dark:text-red-400",
+  expired: "bg-muted text-muted-foreground",
 };
 
 /**
@@ -212,9 +212,9 @@ export function ConsentFormsTab({ contactId }: ConsentFormsTabProps) {
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">{t("title")}</p>
+    <div className="rounded-2xl border border-border bg-card p-4">
+      <div className="mb-3.5 flex items-center justify-between">
+        <h3 className="text-sm font-bold text-foreground">{t("title")}</h3>
         <Button size="sm" onClick={openCreateDialog}>
           <Plus className="size-3.5" />
           {t("newDocument")}
@@ -224,59 +224,59 @@ export function ConsentFormsTab({ contactId }: ConsentFormsTabProps) {
       {documents.length === 0 ? (
         <p className="py-8 text-center text-sm text-muted-foreground">{t("empty")}</p>
       ) : (
-        <div className="space-y-2">
+        <div className="flex flex-col gap-2">
           {documents.map((doc) => {
             const signature = Array.isArray(doc.signature) ? doc.signature[0] : doc.signature;
+            const isPending = doc.status === "pending";
             return (
-              <div key={doc.id} className="space-y-2 rounded-md border border-border bg-muted/30 p-3">
-                <div className="flex items-start justify-between gap-2">
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-medium text-foreground">{doc.title}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {new Date(doc.created_at).toLocaleDateString()}
-                    </p>
-                  </div>
-                  <span
-                    className={`shrink-0 rounded-full border px-2 py-0.5 text-[11px] font-medium ${STATUS_STYLE[doc.status]}`}
+              <div key={doc.id} className="rounded-xl border border-border/60 p-3">
+                <div className="flex w-full items-center gap-3">
+                  <FileText className="size-[18px] shrink-0 text-muted-foreground" />
+                  <button
+                    type="button"
+                    onClick={() => signature && setViewDoc(doc)}
+                    disabled={!signature}
+                    className="min-w-0 flex-1 text-left leading-tight enabled:cursor-pointer"
                   >
-                    {t(`status.${doc.status}`)}
-                  </span>
+                    <p className="truncate text-[13px] font-semibold text-foreground">{doc.title}</p>
+                    <p className="truncate text-[11.5px] text-muted-foreground">
+                      {signature
+                        ? t("signedOn", { date: new Date(signature.signed_at).toLocaleDateString() })
+                        : new Date(doc.created_at).toLocaleDateString()}
+                    </p>
+                  </button>
+                  {isPending ? (
+                    <button
+                      type="button"
+                      onClick={() => handleSend(doc.id)}
+                      disabled={sendingId === doc.id}
+                      className={`ml-auto shrink-0 rounded-full px-2.5 py-1 text-[11.5px] font-bold transition-opacity hover:opacity-80 disabled:opacity-60 ${STATUS_STYLE.pending}`}
+                    >
+                      {sendingId === doc.id ? <Loader2 className="size-3 animate-spin" /> : t("sendToSign")}
+                    </button>
+                  ) : (
+                    <span
+                      className={`ml-auto shrink-0 rounded-full px-2.5 py-1 text-[11.5px] font-bold ${STATUS_STYLE[doc.status]}`}
+                    >
+                      {t(`status.${doc.status}`)}
+                    </span>
+                  )}
                 </div>
 
-                {signature ? (
+                {signature && signatureUrls[doc.id] && (
                   <button
                     type="button"
                     onClick={() => setViewDoc(doc)}
-                    className="flex w-full items-center gap-3 rounded-md border border-border bg-card p-2 text-left hover:border-primary/50"
+                    className="mt-2 flex w-full items-center gap-3 rounded-md border border-border bg-muted/30 p-2 text-left hover:border-primary/50"
                   >
-                    {signatureUrls[doc.id] && (
-                      // eslint-disable-next-line @next/next/no-img-element -- signed URL to a private bucket
-                      <img
-                        src={signatureUrls[doc.id]!}
-                        alt=""
-                        className="h-12 w-24 rounded border border-border bg-white object-contain"
-                      />
-                    )}
-                    <div className="min-w-0 flex-1 text-xs text-muted-foreground">
-                      <p className="truncate text-foreground">{signature.signer_name}</p>
-                      <p>{new Date(signature.signed_at).toLocaleString()}</p>
-                      <p className="mt-0.5 text-primary">{t("viewFull")}</p>
-                    </div>
+                    {/* eslint-disable-next-line @next/next/no-img-element -- signed URL to a private bucket */}
+                    <img
+                      src={signatureUrls[doc.id]!}
+                      alt=""
+                      className="h-10 w-20 rounded border border-border bg-white object-contain"
+                    />
+                    <span className="min-w-0 flex-1 truncate text-xs text-primary">{t("viewFull")}</span>
                   </button>
-                ) : (
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => handleSend(doc.id)}
-                    disabled={sendingId === doc.id}
-                  >
-                    {sendingId === doc.id ? (
-                      <Loader2 className="size-3.5 animate-spin" />
-                    ) : (
-                      <Send className="size-3.5" />
-                    )}
-                    {t("sendToSign")}
-                  </Button>
                 )}
               </div>
             );

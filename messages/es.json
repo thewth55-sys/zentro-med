@@ -504,9 +504,8 @@
         "medical": "Médico",
         "intake": "Admisión",
         "guardians": "Responsables",
-        "consent": "Consentimientos",
+        "files": "Consentimientos y archivos",
         "odontogram": "Odontograma",
-        "photos": "Archivos",
         "appointments": "Citas",
         "billing": "Facturación",
         "tags": "Etiquetas",
@@ -727,6 +726,7 @@
         "created": "Documento creado",
         "createFailed": "No se pudo crear el documento",
         "sendToSign": "Enviar para firmar",
+        "signedOn": "Firmado el {date}",
         "sent": "Enviado a {email}",
         "sendFailed": "No se pudo enviar el documento",
         "downloadSignedPdf": "Descargar PDF firmado",
@@ -829,7 +829,7 @@
       },
       "photosTab": {
         "noProfile": "Este contacto aún no es un paciente convertido — crea su perfil médico en la pestaña Médico para habilitar las fotos.",
-        "title": "Archivos",
+        "title": "Radiografías y archivos",
         "upload": "Adjuntar archivo",
         "addFileTitle": "Agregar archivo",
         "note": "Nota",
@@ -845,7 +845,11 @@
         "deleteFailed": "Error al eliminar el archivo",
         "delete": "Eliminar",
         "close": "Cerrar",
-        "open": "Abrir"
+        "open": "Abrir",
+        "typePhoto": "FOTO",
+        "typePdf": "PDF",
+        "typeDoc": "DOC",
+        "typeFile": "ARCHIVO"
       },
       "appointmentsTab": {
         "empty": "Aún no hay citas.",

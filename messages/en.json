@@ -504,9 +504,8 @@
         "medical": "Medical",
         "intake": "Intake",
         "guardians": "Guardians",
-        "consent": "Consent forms",
+        "files": "Consent forms & files",
         "odontogram": "Odontogram",
-        "photos": "Files",
         "appointments": "Appointments",
         "billing": "Billing",
         "tags": "Tags",
@@ -727,6 +726,7 @@
         "created": "Document created",
         "createFailed": "Failed to create the document",
         "sendToSign": "Send to sign",
+        "signedOn": "Signed on {date}",
         "sent": "Sent to {email}",
         "sendFailed": "Failed to send the document",
         "downloadSignedPdf": "Download signed PDF",
@@ -829,7 +829,7 @@
       },
       "photosTab": {
         "noProfile": "This contact isn't a converted patient yet — create their medical profile in the Medical tab to enable photos.",
-        "title": "Files",
+        "title": "X-rays & files",
         "upload": "Attach file",
         "addFileTitle": "Add file",
         "note": "Note",
@@ -845,7 +845,11 @@
         "deleteFailed": "Failed to delete the file",
         "delete": "Delete",
         "close": "Close",
-        "open": "Open"
+        "open": "Open",
+        "typePhoto": "PHOTO",
+        "typePdf": "PDF",
+        "typeDoc": "DOC",
+        "typeFile": "FILE"
       },
       "appointmentsTab": {
         "empty": "No appointments yet.",
