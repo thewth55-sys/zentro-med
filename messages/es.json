@@ -1836,6 +1836,15 @@
         "other": "Otro"
       }
     },
+    "revenueChart": {
+      "title": "Cobrado vs facturado",
+      "invoiced": "Facturado",
+      "collected": "Cobrado"
+    },
+    "topTreatments": {
+      "title": "Tratamientos más facturados",
+      "empty": "Aún no hay tratamientos facturados en este periodo."
+    },
     "lineItems": {
       "freeText": "Texto libre…",
       "descriptionPlaceholder": "Descripción",

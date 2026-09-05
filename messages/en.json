@@ -1836,6 +1836,15 @@
         "other": "Other"
       }
     },
+    "revenueChart": {
+      "title": "Collected vs invoiced",
+      "invoiced": "Invoiced",
+      "collected": "Collected"
+    },
+    "topTreatments": {
+      "title": "Top billed treatments",
+      "empty": "No billed treatments in this period yet."
+    },
     "lineItems": {
       "freeText": "Free text…",
       "descriptionPlaceholder": "Description",

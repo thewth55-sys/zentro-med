@@ -8,6 +8,8 @@ import { useTranslations } from "next-intl";
 import { useAuth } from "@/hooks/use-auth";
 import { formatCurrency } from "@/lib/currency";
 import { MetricCard } from "@/components/dashboard/metric-card";
+import { RevenueChart } from "./revenue-chart";
+import { TopTreatmentsCard } from "./top-treatments-card";
 import type { Expense, ExpenseCategory, Invoice } from "@/types";
 
 type Period = "this_month" | "last_month" | "this_year" | "all_time";
@@ -151,6 +153,11 @@ export function FinancialSummary() {
           icon={netProfit >= 0 ? TrendingUp : TrendingDown}
           subtitle={t("netProfitSubtitle", { amount: formatCurrency(totalExpenses, defaultCurrency) })}
         />
+      </div>
+
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <RevenueChart />
+        <TopTreatmentsCard from={from} to={to} />
       </div>
 
       {categoryRows.length > 0 && (
