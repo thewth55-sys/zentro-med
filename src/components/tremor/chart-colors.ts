@@ -68,6 +68,25 @@ export const chartColors = {
     fill: "fill-fuchsia-500",
     text: "text-fuchsia-500",
   },
+  // Dos tonos de verde de marca (pedido explícito para la gráfica
+  // "Cobrado vs facturado" de Finanzas, en vez de blue/emerald
+  // genéricos). "brandLight" sigue el token `--primary` (se adapta al
+  // tema elegido en Ajustes → Apariencia); "brandDark" es el verde
+  // oscuro fijo que ya usan las tarjetas de Zen (zen-bubble.tsx,
+  // dashboard-hero.tsx) — no es un token de tema, es la identidad
+  // visual fija de esa familia de componentes.
+  brandLight: {
+    bg: "bg-primary",
+    stroke: "stroke-primary",
+    fill: "fill-primary",
+    text: "text-primary",
+  },
+  brandDark: {
+    bg: "bg-[#0B2A1E]",
+    stroke: "stroke-[#0B2A1E]",
+    fill: "fill-[#0B2A1E]",
+    text: "text-[#0B2A1E]",
+  },
 } as const satisfies {
   [color: string]: {
     [key in ColorUtility]: string

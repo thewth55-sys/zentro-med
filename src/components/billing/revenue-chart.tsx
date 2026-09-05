@@ -58,7 +58,7 @@ export function RevenueChart() {
           data={chartData}
           index="month"
           categories={[t("invoiced"), t("collected")]}
-          colors={["blue", "emerald"]}
+          colors={["brandDark", "brandLight"]}
           valueFormatter={(value) => formatCurrency(value, defaultCurrency)}
           yAxisWidth={64}
           className="h-[240px]"
