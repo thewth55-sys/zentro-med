@@ -151,6 +151,41 @@ export async function POST(request: Request) {
       }
     }
 
+    // "Anticipo aplicado" — el monto SIEMPRE se relee del propio
+    // anticipo (113_invoice_deposit_apply.sql), nunca del body, y solo
+    // si sigue disponible (is_deposit_invoice, paid, sin aplicar) —
+    // evita aplicar el mismo anticipo dos veces por una doble
+    // llamada. Se registra como un pago real sobre la factura nueva
+    // (no como una resta de su total) para que quede un rastro
+    // contable de por qué quedó parcial/pagada desde el momento en
+    // que se creó.
+    if (body.apply_deposit_invoice_id) {
+      const { data: depositInvoice } = await supabase
+        .from('invoices')
+        .select('id, invoice_number, total')
+        .eq('id', body.apply_deposit_invoice_id)
+        .eq('account_id', accountId)
+        .eq('is_deposit_invoice', true)
+        .eq('status', 'paid')
+        .is('applied_to_invoice_id', null)
+        .maybeSingle();
+      if (depositInvoice) {
+        const { error: paymentError } = await supabase.from('payments').insert({
+          account_id: accountId,
+          invoice_id: invoice.id,
+          amount: depositInvoice.total,
+          method: 'card',
+          paid_at: new Date().toISOString(),
+          notes: `Anticipo aplicado — ${depositInvoice.invoice_number}`,
+        });
+        if (paymentError) {
+          console.error('[invoices POST] failed to apply deposit payment', paymentError);
+        } else {
+          await supabase.from('invoices').update({ applied_to_invoice_id: invoice.id }).eq('id', depositInvoice.id);
+        }
+      }
+    }
+
     return NextResponse.json({ invoice: { ...invoice, items: items ?? [] } }, { status: 201 });
   } catch (err) {
     return toErrorResponse(err);

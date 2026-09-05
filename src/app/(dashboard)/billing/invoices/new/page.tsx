@@ -82,6 +82,10 @@ export default function NewInvoicePage() {
     null
   );
   const [mergedInvoiceNumber, setMergedInvoiceNumber] = useState<string | null>(null);
+  const [availableDeposit, setAvailableDeposit] = useState<{ amount: number; invoiceId: string; invoiceNumber: string } | null>(
+    null
+  );
+  const [depositApplied, setDepositApplied] = useState(false);
 
   const backHref = lockedContactId ? `/contacts/${lockedContactId}?tab=billing` : "/billing?tab=invoices";
 
@@ -155,6 +159,25 @@ export default function NewInvoicePage() {
       }
     })();
   }, [contact?.id]);
+
+  useEffect(() => {
+    setAvailableDeposit(null);
+    setDepositApplied(false);
+    if (!appointmentId) return;
+    (async () => {
+      const { data } = await supabase
+        .from("invoices")
+        .select("id, invoice_number, total")
+        .eq("appointment_id", appointmentId)
+        .eq("is_deposit_invoice", true)
+        .eq("status", "paid")
+        .is("applied_to_invoice_id", null)
+        .maybeSingle();
+      if (data) {
+        setAvailableDeposit({ amount: Number(data.total), invoiceId: data.id, invoiceNumber: data.invoice_number });
+      }
+    })();
+  }, [appointmentId, supabase]);
 
   const searchContacts = useCallback(
     async (query: string) => {
@@ -289,6 +312,7 @@ export default function NewInvoicePage() {
           notes: notes || null,
           payment_method_intent: paymentMethodIntent,
           supersede_invoice_id: mergedInvoiceNumber ? priorBalance?.invoiceId : null,
+          apply_deposit_invoice_id: depositApplied ? availableDeposit?.invoiceId : null,
           items: items.map((item) => ({
             ...item,
             source_quote_item_id: markPlanItemsDone ? item.source_quote_item_id : undefined,
@@ -433,6 +457,26 @@ export default function NewInvoicePage() {
             </div>
           )}
 
+          {availableDeposit && !depositApplied && (
+            <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-primary/30 bg-primary/5 px-3 py-2.5 text-sm">
+              <span className="text-foreground">
+                {tNew("availableDeposit", {
+                  amount: currencyFormatter.format(availableDeposit.amount),
+                  invoiceNumber: availableDeposit.invoiceNumber,
+                })}
+              </span>
+              <button type="button" onClick={() => setDepositApplied(true)} className="text-xs font-medium text-primary hover:underline">
+                {tNew("applyDeposit")}
+              </button>
+            </div>
+          )}
+          {depositApplied && availableDeposit && (
+            <div className="flex items-center gap-2 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2.5 text-sm text-emerald-600 dark:text-emerald-300">
+              <CheckCircle2 className="size-4 shrink-0" />
+              {tNew("depositAppliedConfirmation", { amount: currencyFormatter.format(availableDeposit.amount) })}
+            </div>
+          )}
+
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
             <div className="space-y-1.5">
               <Label className="text-xs text-muted-foreground">{tNew("issueDate")}</Label>
@@ -567,10 +611,22 @@ export default function NewInvoicePage() {
                   <span>−{currencyFormatter.format(totals.discountAmount)}</span>
                 </div>
               )}
+              {depositApplied && availableDeposit && (
+                <div className="flex justify-between text-red-500">
+                  <span>{tNew("depositApplied")}</span>
+                  <span>−{currencyFormatter.format(availableDeposit.amount)}</span>
+                </div>
+              )}
               <div className="flex justify-between border-t border-border pt-1.5 text-base font-semibold text-foreground">
                 <span>{tNew("total")}</span>
                 <span>{currencyFormatter.format(totals.total)}</span>
               </div>
+              {depositApplied && availableDeposit && (
+                <div className="flex justify-between text-xs text-muted-foreground">
+                  <span>{tNew("dueAfterDeposit")}</span>
+                  <span>{currencyFormatter.format(Math.max(0, totals.total - availableDeposit.amount))}</span>
+                </div>
+              )}
             </div>
             <Button
               type="button"

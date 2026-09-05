@@ -90,6 +90,7 @@ export async function markDepositPaid(
         total: deposit.amount,
         currency: deposit.currency,
         notes: `Anticipo de reserva en línea — ${providerLabel}, ref. ${deposit.external_reference}`,
+        is_deposit_invoice: true,
       })
       .select("id")
       .single();
