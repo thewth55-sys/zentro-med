@@ -871,6 +871,18 @@
       "billingTab": {
         "invoices": "Facturas",
         "quotes": "Cotizaciones"
+      },
+      "accountStatus": {
+        "title": "Estado de cuenta",
+        "approvedPlan": "Plan aprobado",
+        "invoiced": "Facturado",
+        "collected": "Cobrado",
+        "balance": "Saldo",
+        "recordPayment": "Registrar pago",
+        "sendReminder": "Enviar recordatorio por WhatsApp",
+        "paymentPlanTitle": "Plan de pagos",
+        "paymentPlanEmpty": "Aún no hay facturas para mostrar un plan de pagos.",
+        "loadFailed": "No se pudo cargar el estado de cuenta"
       }
     },
     "importModal": {

@@ -29,9 +29,14 @@ const STATUS_STYLES: Record<InvoiceStatus, string> = {
 
 interface InvoiceListProps {
   contactId?: string;
+  /** Set by a sibling "Registrar pago" shortcut (see AccountStatusPanel)
+   *  to jump straight to that invoice's payment form instead of making
+   *  staff find and click the right row. */
+  autoOpenInvoiceId?: string | null;
+  onAutoOpenHandled?: () => void;
 }
 
-export function InvoiceList({ contactId }: InvoiceListProps) {
+export function InvoiceList({ contactId, autoOpenInvoiceId, onAutoOpenHandled }: InvoiceListProps) {
   const t = useTranslations("Billing.invoiceList");
   const router = useRouter();
 
@@ -65,20 +70,29 @@ export function InvoiceList({ contactId }: InvoiceListProps) {
     router.push(contactId ? `/billing/invoices/new?contact_id=${contactId}` : "/billing/invoices/new");
   }
 
-  async function openEdit(invoiceId: string) {
-    setLoadingInvoiceId(invoiceId);
-    try {
-      const res = await fetch(`/api/billing/invoices/${invoiceId}`);
-      const data = await res.json();
-      setEditingInvoice(data.invoice as Invoice);
-      setFormOpen(true);
-    } catch (err) {
-      console.error("Failed to load invoice:", err);
-      toast.error(t("loadFailed"));
-    } finally {
-      setLoadingInvoiceId(null);
-    }
-  }
+  const openEdit = useCallback(
+    async (invoiceId: string) => {
+      setLoadingInvoiceId(invoiceId);
+      try {
+        const res = await fetch(`/api/billing/invoices/${invoiceId}`);
+        const data = await res.json();
+        setEditingInvoice(data.invoice as Invoice);
+        setFormOpen(true);
+      } catch (err) {
+        console.error("Failed to load invoice:", err);
+        toast.error(t("loadFailed"));
+      } finally {
+        setLoadingInvoiceId(null);
+      }
+    },
+    [t],
+  );
+
+  useEffect(() => {
+    if (!autoOpenInvoiceId) return;
+    void openEdit(autoOpenInvoiceId);
+    onAutoOpenHandled?.();
+  }, [autoOpenInvoiceId, openEdit, onAutoOpenHandled]);
 
   const dateFormatter = new Intl.DateTimeFormat(undefined, { dateStyle: "medium" });
 

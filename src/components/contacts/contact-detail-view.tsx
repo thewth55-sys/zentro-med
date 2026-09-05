@@ -873,17 +873,16 @@ export function ContactDetailView({ contactId }: ContactDetailViewProps) {
                 ellos (mismo principio que el sidebar agrupado). */}
             <Tabs defaultValue={initialGroup} className="flex flex-col">
               <div className="mx-4 mt-3">
-                <TabsList
-                  variant="line"
-                  className="group-data-horizontal/tabs:h-auto w-full flex-wrap justify-start gap-1 border-b border-border"
-                >
+                {/* Pastilla segmentada (mockup) en vez del estilo de
+                    subrayado usado por las sub-pestañas de cada grupo —
+                    el variant "default" de Tabs ya es exactamente esto. */}
+                <TabsList className="group-data-horizontal/tabs:h-auto w-fit gap-1">
                   {TAB_GROUPS.map((group) => (
                     <TabsTrigger
                       key={group.key}
                       value={group.key}
-                      className="h-auto shrink-0 gap-1.5 px-3 py-2.5 text-muted-foreground data-active:text-primary"
+                      className="h-auto shrink-0 px-4 py-2 text-[13px] font-semibold text-muted-foreground data-active:text-foreground"
                     >
-                      <group.icon className="size-4" />
                       {t(group.labelKey)}
                     </TabsTrigger>
                   ))}
@@ -1014,7 +1013,13 @@ export function ContactDetailView({ contactId }: ContactDetailViewProps) {
                       {group.key === 'financiero' && (
                         <>
                           <TabsContent value="billing">
-                            {contactId && <BillingTab contactId={contactId} />}
+                            {contactId && (
+                              <BillingTab
+                                contactId={contactId}
+                                currency={defaultCurrency}
+                                onSendReminder={() => setTemplatePickerOpen(true)}
+                              />
+                            )}
                           </TabsContent>
                           <TabsContent value="deals">
                             {loadingDeals ? (

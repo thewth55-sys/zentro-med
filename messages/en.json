@@ -871,6 +871,18 @@
       "billingTab": {
         "invoices": "Invoices",
         "quotes": "Quotes"
+      },
+      "accountStatus": {
+        "title": "Account status",
+        "approvedPlan": "Approved plan",
+        "invoiced": "Invoiced",
+        "collected": "Collected",
+        "balance": "Balance",
+        "recordPayment": "Record payment",
+        "sendReminder": "Send WhatsApp reminder",
+        "paymentPlanTitle": "Payment plan",
+        "paymentPlanEmpty": "No invoices yet to show a payment plan.",
+        "loadFailed": "Couldn't load the account status"
       }
     },
     "importModal": {

@@ -253,7 +253,7 @@ export function Sidebar({ open = false, onClose, totalUnread }: SidebarProps) {
         </div>
 
         {/* Main navigation */}
-        <nav className="flex-1 overflow-y-auto px-3 py-4">
+        <nav className="flex-1 overflow-y-auto px-3 py-4 [scrollbar-width:thin] [scrollbar-color:var(--border)_transparent] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-border">
           {dashboardItem && (
             <ul className="flex flex-col gap-1">{renderNavRow(dashboardItem)}</ul>
           )}

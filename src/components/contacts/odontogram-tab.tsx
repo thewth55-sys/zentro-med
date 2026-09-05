@@ -40,19 +40,20 @@ const CONDITIONS: ToothCondition[] = [
   "bridge",
 ];
 
-// No text color here on purpose — the tooth number now renders below
-// the swatch, not on top of it (see ToothButton), so the fill can be
-// bolder without hurting legibility.
+// Hex pairs (border/fill) lifted from the mockup for the 4 conditions
+// it actually shows (caries, filled, crown, missing); the remaining 5
+// conditions the mockup doesn't demo get colors picked to fit the same
+// muted, pastel-fill language rather than plain Tailwind primaries.
 const CONDITION_STYLE: Record<ToothCondition, string> = {
-  healthy: "border-border bg-muted/40",
-  caries: "border-red-500 bg-red-500/25",
-  filled: "border-blue-500 bg-blue-500/25",
-  crown: "border-purple-500 bg-purple-500/25",
-  root_canal: "border-orange-500 bg-orange-500/25",
-  missing: "border-dashed border-muted-foreground/40 bg-transparent",
-  extraction_planned: "border-yellow-500 bg-yellow-500/25",
-  implant: "border-teal-500 bg-teal-500/25",
-  bridge: "border-indigo-500 bg-indigo-500/25",
+  healthy: "border-[#CBD6D0] bg-white",
+  caries: "border-[#C0392F] bg-[#FBDDD8]",
+  filled: "border-[#2563A8] bg-[#DCE8F7]",
+  crown: "border-[#B4740A] bg-[#FAEBD2]",
+  root_canal: "border-[#5B4A9E] bg-[#E7E1F6]",
+  missing: "border-[#8A9A92] bg-[#E4E9E6]",
+  extraction_planned: "border-[#CA8A04] bg-[#FEF3C7]",
+  implant: "border-[#0E7C74] bg-[#DCEEEA]",
+  bridge: "border-[#64748B] bg-[#E6E9ED]",
 };
 
 // Nomenclatura FDI estándar (posición dentro del cuadrante + cuadrante) —
@@ -89,16 +90,20 @@ function ToothButton({
       type="button"
       onClick={onClick}
       title={tooth?.notes ?? undefined}
-      className="flex shrink-0 flex-col items-center gap-1 transition-opacity hover:opacity-80"
+      className={cn(
+        "flex w-8 shrink-0 flex-col items-center gap-[3px] rounded-lg border px-0 pb-[3px] pt-[5px] transition-colors",
+        selected ? "border-[#0E7C4A] bg-[#E8F5EE]" : "border-transparent bg-transparent hover:bg-muted/60",
+      )}
     >
+      <span className={cn("block h-[22px] w-5 rounded border-[1.5px]", CONDITION_STYLE[condition])} />
       <span
         className={cn(
-          "flex size-11 items-center justify-center rounded-lg border-2",
-          CONDITION_STYLE[condition],
-          selected && "ring-2 ring-primary ring-offset-2 ring-offset-background",
+          "text-[9.5px] font-bold tabular-nums",
+          selected ? "text-[#0A5C37]" : "text-muted-foreground",
         )}
-      />
-      <span className="text-[11px] font-medium text-muted-foreground">{number}</span>
+      >
+        {number}
+      </span>
     </button>
   );
 }
@@ -299,30 +304,21 @@ export function OdontogramTab({ contactId }: OdontogramTabProps) {
         </div>
       </div>
 
-      <div
-        className={cn(
-          "overflow-x-auto rounded-lg border border-border bg-muted/30 p-4",
-          "[scrollbar-width:thin] [scrollbar-color:var(--border)_transparent]",
-          "[&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar-track]:bg-transparent",
-          "[&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-border",
-        )}
-      >
-        <div className="flex w-max flex-col items-center gap-3">
-          <div className="flex items-start justify-center gap-1.5">
-            {UPPER_RIGHT.map((n) => (
-              <ToothButton key={n} number={n} tooth={teeth[n]} selected={openTooth === n} onClick={() => openToothEditor(n)} />
-            ))}
-            <div className="mx-1 h-11 w-px bg-border" />
-            {UPPER_LEFT.map((n) => (
+      {/* 16 dientes por fila a w-8 (32px) + gap-1 (4px) = 572px de ancho
+          fijo — cabe sin scroll en el ancho real de esta tarjeta (el
+          mockup mide igual). overflow-x-auto se deja solo como red de
+          seguridad para una ventana angosta de verdad, no como el
+          camino esperado; scrollbar-utilities por si acaso se activa. */}
+      <div className="overflow-x-auto rounded-2xl border border-border bg-card p-4 [scrollbar-width:thin] [scrollbar-color:var(--border)_transparent] [&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-border">
+        <div className="mx-auto flex w-fit flex-col items-center gap-1.5">
+          <div className="flex gap-1">
+            {[...UPPER_RIGHT, ...UPPER_LEFT].map((n) => (
               <ToothButton key={n} number={n} tooth={teeth[n]} selected={openTooth === n} onClick={() => openToothEditor(n)} />
             ))}
           </div>
-          <div className="flex items-start justify-center gap-1.5">
-            {LOWER_RIGHT.map((n) => (
-              <ToothButton key={n} number={n} tooth={teeth[n]} selected={openTooth === n} onClick={() => openToothEditor(n)} />
-            ))}
-            <div className="mx-1 h-11 w-px bg-border" />
-            {LOWER_LEFT.map((n) => (
+          <div className="h-px w-[92%] bg-border" />
+          <div className="flex gap-1">
+            {[...LOWER_RIGHT, ...LOWER_LEFT].map((n) => (
               <ToothButton key={n} number={n} tooth={teeth[n]} selected={openTooth === n} onClick={() => openToothEditor(n)} />
             ))}
           </div>
