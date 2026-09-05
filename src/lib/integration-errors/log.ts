@@ -1,6 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 
-export type IntegrationErrorSource = 'whatsapp_send' | 'ai_auto_reply' | 'appointment_reminder'
+export type IntegrationErrorSource = 'whatsapp_send' | 'ai_auto_reply' | 'appointment_reminder' | 'payment_reminder'
 
 export interface LogIntegrationErrorArgs {
   accountId: string

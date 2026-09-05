@@ -25,6 +25,7 @@ import { ApiKeysSettings } from '@/components/settings/api-keys-settings';
 import { ConversionTrackingConfig } from '@/components/settings/conversion-tracking-config';
 import { SchedulingPanel } from '@/components/settings/scheduling-panel';
 import { AppointmentRemindersConfig } from '@/components/settings/appointment-reminders-config';
+import { PaymentRemindersConfig } from '@/components/settings/payment-reminders-config';
 import { BillingPanel } from '@/components/settings/billing-panel';
 import { SubscriptionPanel } from '@/components/settings/subscription-panel';
 import {
@@ -81,7 +82,12 @@ export default function SettingsPage() {
     api: <ApiKeysSettings />,
     conversions: <ConversionTrackingConfig />,
     scheduling: <SchedulingPanel />,
-    reminders: <AppointmentRemindersConfig />,
+    reminders: (
+      <div className="space-y-10">
+        <AppointmentRemindersConfig />
+        <PaymentRemindersConfig />
+      </div>
+    ),
     billing: <BillingPanel />,
     'billing-platform': <SubscriptionPanel />,
   };

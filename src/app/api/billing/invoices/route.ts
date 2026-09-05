@@ -186,6 +186,22 @@ export async function POST(request: Request) {
       }
     }
 
+    // Recordatorios de pago a +7/+15 días de la fecha de emisión (ver
+    // 114_payment_reminders.sql) — el cron los cancela solos si la
+    // factura se paga antes de que toque enviarlos.
+    if (body.schedule_payment_reminders) {
+      const issueDateBase = new Date(`${invoice.issue_date}T00:00:00Z`);
+      const reminderRows = [7, 15].map((days) => ({
+        account_id: accountId,
+        invoice_id: invoice.id,
+        send_at: new Date(issueDateBase.getTime() + days * 24 * 60 * 60 * 1000).toISOString(),
+      }));
+      const { error: reminderError } = await supabase.from('payment_reminders').insert(reminderRows);
+      if (reminderError) {
+        console.error('[invoices POST] failed to schedule payment reminders', reminderError);
+      }
+    }
+
     return NextResponse.json({ invoice: { ...invoice, items: items ?? [] } }, { status: 201 });
   } catch (err) {
     return toErrorResponse(err);

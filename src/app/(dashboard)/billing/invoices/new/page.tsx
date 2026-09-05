@@ -74,6 +74,7 @@ export default function NewInvoicePage() {
 
   const [sendWhatsappOnIssue, setSendWhatsappOnIssue] = useState(true);
   const [markPlanItemsDone, setMarkPlanItemsDone] = useState(true);
+  const [scheduleReminders, setScheduleReminders] = useState(false);
   const [paymentMethodIntent, setPaymentMethodIntent] = useState<PaymentMethodIntent | null>(null);
   const [primaryBankAccount, setPrimaryBankAccount] = useState<BankAccount | null>(null);
   const [gatewayActive, setGatewayActive] = useState(false);
@@ -313,6 +314,7 @@ export default function NewInvoicePage() {
           payment_method_intent: paymentMethodIntent,
           supersede_invoice_id: mergedInvoiceNumber ? priorBalance?.invoiceId : null,
           apply_deposit_invoice_id: depositApplied ? availableDeposit?.invoiceId : null,
+          schedule_payment_reminders: scheduleReminders,
           items: items.map((item) => ({
             ...item,
             source_quote_item_id: markPlanItemsDone ? item.source_quote_item_id : undefined,
@@ -668,6 +670,15 @@ export default function NewInvoicePage() {
                 {tNew("generateLink")}
               </label>
             )}
+            <label className="flex items-start gap-2 text-sm text-muted-foreground">
+              <input
+                type="checkbox"
+                checked={scheduleReminders}
+                onChange={(e) => setScheduleReminders(e.target.checked)}
+                className="mt-0.5 size-3.5 accent-primary"
+              />
+              {tNew("scheduleReminders")}
+            </label>
           </div>
         </div>
       </div>

@@ -387,6 +387,26 @@ export interface AppointmentReminderConfig {
   updated_at: string;
 }
 
+/** Fixed set of invoice/contact fields a payment-reminder template's
+ *  `{{N}}` placeholder can be bound to — resolved server-side in the
+ *  payment-reminders cron, never trusted from the client beyond this enum. */
+export type PaymentReminderVariableToken = 'contact_name' | 'account_name' | 'invoice_number' | 'amount_due' | 'due_date';
+
+export type PaymentReminderVariableMapping =
+  | { type: 'static'; value: string }
+  | { type: 'token'; value: PaymentReminderVariableToken };
+
+export interface PaymentReminderConfig {
+  id: string;
+  account_id: string;
+  is_active: boolean;
+  template_name: string | null;
+  template_language: string | null;
+  variable_mapping: Record<string, PaymentReminderVariableMapping>;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface Pipeline {
   id: string;
   user_id: string;
