@@ -1,9 +1,10 @@
 "use client";
 
-import { BarChart3, Boxes, FileText, Landmark, Receipt, Tag, Wallet } from "lucide-react";
+import { BarChart3, Boxes, FileText, Landmark, Plus, Receipt, Tag, Wallet } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
+import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { QuoteList } from "@/components/billing/quote-list";
 import { InvoiceList } from "@/components/billing/invoice-list";
@@ -18,13 +19,24 @@ const BILLING_TABS = ["summary", "invoices", "quotes", "expenses", "bankAccounts
 
 export default function BillingPage() {
   const t = useTranslations("Billing.page");
+  const router = useRouter();
   const searchParams = useSearchParams();
   const requestedTab = searchParams.get("tab");
   const initialTab = requestedTab && BILLING_TABS.includes(requestedTab) ? requestedTab : "summary";
 
   return (
     <div className="space-y-6">
-      <PageHeader icon={Wallet} title={t("title")} description={t("subtitle")} />
+      <PageHeader
+        icon={Wallet}
+        title={t("title")}
+        description={t("subtitle")}
+        actions={
+          <Button onClick={() => router.push("/billing/invoices/new")}>
+            <Plus className="size-4" />
+            {t("newInvoice")}
+          </Button>
+        }
+      />
 
       <Tabs defaultValue={initialTab}>
         <div className="relative -mx-1">

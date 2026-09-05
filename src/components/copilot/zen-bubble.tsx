@@ -21,9 +21,10 @@ export function ZenBubble() {
       href="/copilot"
       aria-label={`Abrir chat con ${COPILOT_NAME}`}
       title={`Hablar con ${COPILOT_NAME}`}
-      className="fixed bottom-5 right-5 z-40 hidden size-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg transition-transform hover:scale-105 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 lg:flex"
+      className="fixed bottom-6 right-6 z-40 hidden h-[46px] items-center gap-2.5 rounded-full bg-[#0B2A1E] px-[18px] text-[13.5px] font-semibold text-white shadow-[0_8px_24px_rgba(11,42,30,0.28)] transition-transform hover:scale-105 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 lg:flex"
     >
-      <Sparkles className="size-6" />
+      <Sparkles className="size-[17px] shrink-0 text-[#7BE3A8]" />
+      {`Preguntar a ${COPILOT_NAME}`}
     </Link>
   );
 }

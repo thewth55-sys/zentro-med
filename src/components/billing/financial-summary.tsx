@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Loader2, Receipt, TrendingDown, TrendingUp, Wallet } from "lucide-react";
+import { Clock, Loader2, Receipt, TrendingDown, TrendingUp } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 import { useAuth } from "@/hooks/use-auth";
@@ -79,6 +79,21 @@ export function FinancialSummary() {
   const totalCollected = invoicesInRange.reduce((sum, inv) => sum + inv.amount_paid, 0);
   const totalExpenses = expensesInRange.reduce((sum, exp) => sum + exp.amount, 0);
   const netProfit = totalCollected - totalExpenses;
+  const collectedPercent = totalInvoiced > 0 ? Math.round((totalCollected / totalInvoiced) * 100) : null;
+
+  // "Por cobrar" — deliberately scoped to the same period as
+  // Facturado/Cobrado right next to it (total - collected for THIS
+  // period), not the all-time "saldo" convention used elsewhere
+  // (account-status-panel.tsx, use-patients-list.ts) — mixing a
+  // period-scoped pair with an all-time third number on the same row
+  // would make the three cards not add up, which reads as more
+  // confusing than useful here.
+  const billableInRange = invoicesInRange.filter((inv) => inv.status !== "draft" && inv.status !== "void");
+  const totalDue = billableInRange.reduce((sum, inv) => sum + (inv.total - inv.amount_paid), 0);
+  const patientsWithBalance = new Set(
+    billableInRange.filter((inv) => inv.total - inv.amount_paid > 0).map((inv) => inv.contact_id),
+  ).size;
+  const overdueCount = billableInRange.filter((inv) => inv.status === "overdue").length;
 
   const expensesByCategory = expensesInRange.reduce<Record<string, number>>((acc, exp) => {
     acc[exp.category] = (acc[exp.category] ?? 0) + exp.amount;
@@ -121,18 +136,20 @@ export function FinancialSummary() {
           title={t("collected")}
           value={formatCurrency(totalCollected, defaultCurrency)}
           icon={TrendingUp}
+          subtitle={collectedPercent !== null ? t("collectedSubtitle", { percent: collectedPercent }) : undefined}
         />
         <MetricCard
-          title={t("expenses")}
-          value={formatCurrency(totalExpenses, defaultCurrency)}
-          icon={Wallet}
-          subtitle={t("expensesSubtitle", { count: expensesInRange.length })}
+          title={t("due")}
+          value={formatCurrency(totalDue, defaultCurrency)}
+          icon={Clock}
+          accent={totalDue > 0 ? "amber" : "green"}
+          subtitle={t("dueSubtitle", { patients: patientsWithBalance, overdue: overdueCount })}
         />
         <MetricCard
           title={t("netProfit")}
           value={formatCurrency(netProfit, defaultCurrency)}
           icon={netProfit >= 0 ? TrendingUp : TrendingDown}
-          subtitle={t("netProfitSubtitle")}
+          subtitle={t("netProfitSubtitle", { amount: formatCurrency(totalExpenses, defaultCurrency) })}
         />
       </div>
 
