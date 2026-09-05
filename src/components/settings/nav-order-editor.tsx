@@ -54,6 +54,7 @@ function splitByGroup(ordered: NavItem[]): Record<NavGroup, NavItem[]> {
   return {
     atencion: ordered.filter((i) => i.group === "atencion"),
     operacion: ordered.filter((i) => i.group === "operacion"),
+    marketing: ordered.filter((i) => i.group === "marketing"),
     configuracion: ordered.filter((i) => i.group === "configuracion"),
   };
 }

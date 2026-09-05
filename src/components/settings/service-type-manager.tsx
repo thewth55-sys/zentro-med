@@ -45,6 +45,7 @@ export function ServiceTypeManager() {
   const [newName, setNewName] = useState('');
   const [newDuration, setNewDuration] = useState(String(DEFAULT_DURATION));
   const [newProductId, setNewProductId] = useState('');
+  const [newPrice, setNewPrice] = useState('');
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -92,6 +93,7 @@ export function ServiceTypeManager() {
   async function handleCreate() {
     if (!newName.trim() || !accountId) return;
     const duration = Number(newDuration) || DEFAULT_DURATION;
+    const price = newPrice.trim() ? Number(newPrice) : null;
     try {
       setSaving(true);
       const { error } = await supabase.from('service_types').insert({
@@ -99,18 +101,34 @@ export function ServiceTypeManager() {
         name: newName.trim(),
         duration_minutes: duration,
         product_id: newProductId || null,
+        price: price && price > 0 ? price : null,
       });
       if (error) throw error;
       toast.success(t('created'));
       setNewName('');
       setNewDuration(String(DEFAULT_DURATION));
       setNewProductId('');
+      setNewPrice('');
       await fetchServiceTypes(accountId);
     } catch (err) {
       console.error('Create service type error:', err);
       toast.error(t('createFailed'));
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function updatePrice(st: ServiceType, rawValue: string) {
+    const price = rawValue.trim() ? Number(rawValue) : null;
+    if (price !== null && (!Number.isFinite(price) || price < 0)) return;
+    if (price === (st.price ?? null)) return;
+    try {
+      const { error } = await supabase.from('service_types').update({ price }).eq('id', st.id);
+      if (error) throw error;
+      setServiceTypes((prev) => prev.map((s) => (s.id === st.id ? { ...s, price } : s)));
+    } catch (err) {
+      console.error('Update service type price error:', err);
+      toast.error(t('updateFailed'));
     }
   }
 
@@ -197,6 +215,17 @@ export function ServiceTypeManager() {
                       {st.name} <span className="text-muted-foreground">· {t('minutes', { count: st.duration_minutes })}</span>
                     </span>
                     <div className="flex items-center gap-3">
+                      <Input
+                        type="number"
+                        min={0}
+                        step="0.01"
+                        defaultValue={st.price ?? ''}
+                        onBlur={(e) => updatePrice(st, e.target.value)}
+                        disabled={!canEdit}
+                        placeholder={t('noPrice')}
+                        aria-label={t('priceLabel')}
+                        className="h-8 w-24 text-xs"
+                      />
                       <select
                         value={st.product_id ?? ''}
                         onChange={(e) => updateProductLink(st, e.target.value)}
@@ -251,6 +280,17 @@ export function ServiceTypeManager() {
                   disabled={saving}
                   className="w-24"
                   aria-label={t('durationLabel')}
+                />
+                <Input
+                  type="number"
+                  min={0}
+                  step="0.01"
+                  value={newPrice}
+                  onChange={(e) => setNewPrice(e.target.value)}
+                  disabled={saving}
+                  placeholder={t('pricePlaceholder')}
+                  aria-label={t('priceLabel')}
+                  className="w-28"
                 />
                 <select
                   value={newProductId}

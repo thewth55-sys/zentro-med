@@ -104,12 +104,17 @@ export function MobileTabBar({ totalUnread }: MobileTabBarProps) {
             {moreGroups.map(({ group, items }) =>
               items.length === 0 ? null : (
                 <div key={group}>
-                  <p className="mb-1.5 px-1 text-[11px] font-medium tracking-wider text-muted-foreground uppercase">
+                  <p className="mb-1.5 flex items-center gap-1.5 px-1 text-[11px] font-medium tracking-wider text-muted-foreground uppercase">
                     {t(`group_${group}`)}
+                    {group === "marketing" && (
+                      <span className="rounded-full border border-amber-500/40 bg-amber-500/10 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wider text-amber-300">
+                        {t("soon")}
+                      </span>
+                    )}
                   </p>
                   <div className="space-y-1">
                     {items.map((item) => {
-                      const isLocked = item.feature ? !featureAccess[item.feature] : false;
+                      const isLocked = item.comingSoon ? true : item.feature ? !featureAccess[item.feature] : false;
                       return (
                         <Link
                           key={item.href}

@@ -471,6 +471,8 @@ export interface ServiceType {
   is_active: boolean;
   /** Billing catalog price this service type is priced from, if linked. */
   product_id?: string | null;
+  /** Precio mostrado en la página de reserva pública; null = sin precio publicado. */
+  price?: number | null;
   created_at: string;
   updated_at?: string;
   product?: Product;

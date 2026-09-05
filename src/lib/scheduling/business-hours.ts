@@ -142,6 +142,65 @@ export async function isWithinBusinessHoursNow(
   return { open: false, configured: true };
 }
 
+/** "19:00:00" (tz wall-clock) → "7:00 p.m." for display on the public booking page. */
+function formatHM(hh: number, mm: number): string {
+  const period = hh >= 12 ? "p.m." : "a.m.";
+  const h12 = hh % 12 === 0 ? 12 : hh % 12;
+  return mm === 0 ? `${h12}:00 ${period}` : `${h12}:${String(mm).padStart(2, "0")} ${period}`;
+}
+
+/**
+ * Public-booking-page variant of {@link isWithinBusinessHoursNow}: same
+ * "any room open" union, but also returns a formatted closing time for
+ * the "Abierto ahora · cierra a las 7:00 p.m." status line. Deliberately
+ * omits a "next opens at" label for the closed case — computing that
+ * correctly means walking forward across day/gap boundaries, which
+ * isn't worth it for a status line that's happy to just say "Cerrado
+ * ahora" with no time.
+ */
+export async function getBusinessHoursStatus(
+  admin: SupabaseClient,
+  accountId: string,
+  now: Date = new Date(),
+): Promise<{ configured: boolean; open: boolean; closesAtLabel: string | null }> {
+  const [{ data: account }, { data: rows }] = await Promise.all([
+    admin.from("accounts").select("timezone").eq("id", accountId).maybeSingle(),
+    admin.from("business_hours").select("weekday, open_time, close_time").eq("account_id", accountId),
+  ]);
+
+  const hours = (rows ?? []) as BusinessHourRow[];
+  if (hours.length === 0) return { configured: false, open: false, closesAtLabel: null };
+
+  const tz = (account?.timezone as string) || "America/Mexico_City";
+  const dtf = new Intl.DateTimeFormat("en-US", {
+    timeZone: tz,
+    hourCycle: "h23",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  });
+  const m: Record<string, string> = {};
+  for (const p of dtf.formatToParts(now)) m[p.type] = p.value;
+
+  const weekday = new Date(Date.UTC(+m.year, +m.month - 1, +m.day)).getUTCDay();
+  const secOfDay = +m.hour * 3600 + +m.minute * 60 + +m.second;
+
+  for (const h of hours) {
+    if (h.weekday !== weekday) continue;
+    const [oh, om, os] = parseHMS(h.open_time);
+    const [ch, cm, cs] = parseHMS(h.close_time);
+    const openSec = oh * 3600 + om * 60 + os;
+    const closeSec = ch * 3600 + cm * 60 + cs;
+    if (secOfDay >= openSec && secOfDay < closeSec) {
+      return { configured: true, open: true, closesAtLabel: formatHM(ch, cm) };
+    }
+  }
+  return { configured: true, open: false, closesAtLabel: null };
+}
+
 /**
  * Builds a room's open windows (as UTC ranges) that overlap
  * [rangeStart, rangeEnd), from its weekly business hours. Returns

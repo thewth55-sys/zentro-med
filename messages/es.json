@@ -139,8 +139,15 @@
     "bookingPage": "Página de reserva",
     "settings": "Ajustes",
     "beta": "Beta",
+    "soon": "Pronto",
+    "marketingSummary": "Resumen",
+    "marketingCampaigns": "Campañas",
+    "marketingSocial": "Redes sociales",
+    "marketingContent": "Contenido",
+    "marketingRequests": "Solicitudes",
     "group_atencion": "Atención",
     "group_operacion": "Operación",
+    "group_marketing": "Marketing",
     "group_configuracion": "Configuración",
     "more": "Más",
     "moreDesc": "El resto de las secciones, en el mismo orden que en escritorio.",
@@ -158,6 +165,33 @@
     "menuSettings": "Ajustes",
     "menuHelp": "Ayuda",
     "menuSignOut": "Cerrar sesión"
+  },
+  "Marketing": {
+    "summary": {
+      "title": "Resumen de marketing",
+      "description": "Rendimiento de tus canales de marketing en un solo lugar.",
+      "comingSoon": "Estamos construyendo un resumen con el desempeño de tus campañas, redes y contenido."
+    },
+    "campaigns": {
+      "title": "Campañas",
+      "description": "Campañas de marketing multicanal, más allá de las difusiones de WhatsApp.",
+      "comingSoon": "Podrás crear y dar seguimiento a campañas de marketing directamente desde aquí."
+    },
+    "social": {
+      "title": "Redes sociales",
+      "description": "Publica y programa contenido para tus redes sociales.",
+      "comingSoon": "Vas a poder programar publicaciones para tus redes sociales desde Zentro Med."
+    },
+    "content": {
+      "title": "Contenido",
+      "description": "Biblioteca de contenido para tus campañas y redes.",
+      "comingSoon": "Una biblioteca para organizar el contenido que usas en tus campañas y redes."
+    },
+    "requests": {
+      "title": "Solicitudes",
+      "description": "Solicitudes de marketing de tu equipo.",
+      "comingSoon": "Tu equipo podrá pedir piezas de marketing y darles seguimiento desde aquí."
+    }
   },
   "Header": {
     "dashboard": "Panel",
@@ -2852,7 +2886,10 @@
         "cancel": "Cancelar",
         "deleting": "Eliminando...",
         "linkedProduct": "Producto vinculado",
-        "noLinkedProduct": "Sin producto vinculado"
+        "noLinkedProduct": "Sin producto vinculado",
+        "priceLabel": "Precio",
+        "pricePlaceholder": "Precio (opcional)",
+        "noPrice": "Sin precio"
       }
     },
     "reminders": {

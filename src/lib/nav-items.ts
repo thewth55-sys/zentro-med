@@ -10,12 +10,17 @@
 // ============================================================
 
 import {
+  AtSign,
+  BarChart3,
   Bot,
   Calendar,
   CreditCard,
+  Inbox,
   LayoutGrid,
   Link2,
+  Megaphone,
   MessageCircle,
+  Newspaper,
   Radio,
   Share2,
   Sparkles,
@@ -31,11 +36,11 @@ import type { GatedFeature } from "@/lib/billing-platform/features";
  *  headers and how far `applyNavOrder` lets a saved order move an item
  *  (never across a group boundary). Items with no `group` (Panel, Zen)
  *  are pinned above every group and never reorderable. */
-export type NavGroup = "atencion" | "operacion" | "configuracion";
+export type NavGroup = "atencion" | "operacion" | "marketing" | "configuracion";
 
 /** Order the groups render in — also the canonical iteration order for
  *  `applyNavOrder`. */
-export const NAV_GROUP_ORDER: NavGroup[] = ["atencion", "operacion", "configuracion"];
+export const NAV_GROUP_ORDER: NavGroup[] = ["atencion", "operacion", "marketing", "configuracion"];
 
 export interface NavItem {
   href: string;
@@ -57,6 +62,14 @@ export interface NavItem {
   feature?: GatedFeature;
   /** See `NavGroup` — omitted for the pinned items (Panel, Zen). */
   group?: NavGroup;
+  /**
+   * Marks a destination that isn't built yet — the sidebar/mobile "Más"
+   * sheet always renders a lock icon (regardless of plan) and the link
+   * still navigates, but to a page that just says "Próximamente".
+   * Deliberately separate from `feature`: there's no real destination
+   * to upsell into with <PlanGate>, unlike a plan-gated feature.
+   */
+  comingSoon?: boolean;
 }
 
 export const navItems: NavItem[] = [
@@ -81,6 +94,17 @@ export const navItems: NavItem[] = [
   { href: "/automations", labelKey: "automations", icon: Zap, feature: "automations", group: "operacion" },
   { href: "/flows", labelKey: "flows", icon: Workflow, beta: true, feature: "automations", group: "operacion" },
   { href: "/agents", labelKey: "aiAgents", icon: Bot, feature: "ai_autoreply", group: "operacion" },
+
+  // MARKETING — anunciada en el mockup como "PRONTO": los 5 destinos
+  // navegan a una página real de "Próximamente" (ver
+  // src/components/marketing/coming-soon-state.tsx), no a nada
+  // funcional todavía. `comingSoon` fuerza el candado en el nav sin
+  // depender de un plan/feature que no existe.
+  { href: "/marketing/summary", labelKey: "marketingSummary", icon: BarChart3, comingSoon: true, group: "marketing" },
+  { href: "/marketing/campaigns", labelKey: "marketingCampaigns", icon: Megaphone, comingSoon: true, group: "marketing" },
+  { href: "/marketing/social", labelKey: "marketingSocial", icon: AtSign, comingSoon: true, group: "marketing" },
+  { href: "/marketing/content", labelKey: "marketingContent", icon: Newspaper, comingSoon: true, group: "marketing" },
+  { href: "/marketing/requests", labelKey: "marketingRequests", icon: Inbox, comingSoon: true, group: "marketing" },
 
   // CONFIGURACIÓN — se configura una vez, no se visita a diario.
   // Sin `feature` propio: la activación/slug (PublicBookingSettings) es

@@ -139,8 +139,15 @@
     "bookingPage": "Booking page",
     "settings": "Settings",
     "beta": "Beta",
+    "soon": "Soon",
+    "marketingSummary": "Summary",
+    "marketingCampaigns": "Campaigns",
+    "marketingSocial": "Social media",
+    "marketingContent": "Content",
+    "marketingRequests": "Requests",
     "group_atencion": "Patient care",
     "group_operacion": "Operations",
+    "group_marketing": "Marketing",
     "group_configuracion": "Setup",
     "more": "More",
     "moreDesc": "Everything else, in the same order as on desktop.",
@@ -158,6 +165,33 @@
     "menuSettings": "Settings",
     "menuHelp": "Help",
     "menuSignOut": "Sign out"
+  },
+  "Marketing": {
+    "summary": {
+      "title": "Marketing summary",
+      "description": "Performance of all your marketing channels in one place.",
+      "comingSoon": "We're building a summary with your campaigns, social, and content performance."
+    },
+    "campaigns": {
+      "title": "Campaigns",
+      "description": "Multi-channel marketing campaigns, beyond WhatsApp broadcasts.",
+      "comingSoon": "You'll be able to create and track marketing campaigns right from here."
+    },
+    "social": {
+      "title": "Social media",
+      "description": "Publish and schedule content for your social accounts.",
+      "comingSoon": "You'll be able to schedule social media posts from Zentro Med."
+    },
+    "content": {
+      "title": "Content",
+      "description": "A content library for your campaigns and social accounts.",
+      "comingSoon": "A library to organize the content you use across campaigns and social."
+    },
+    "requests": {
+      "title": "Requests",
+      "description": "Marketing requests from your team.",
+      "comingSoon": "Your team will be able to request and track marketing pieces from here."
+    }
   },
   "Header": {
     "dashboard": "Dashboard",
@@ -2852,7 +2886,10 @@
         "cancel": "Cancel",
         "deleting": "Removing...",
         "linkedProduct": "Linked product",
-        "noLinkedProduct": "No linked product"
+        "noLinkedProduct": "No linked product",
+        "priceLabel": "Price",
+        "pricePlaceholder": "Price (optional)",
+        "noPrice": "No price"
       }
     },
     "reminders": {

@@ -2,7 +2,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { decrypt } from "@/lib/whatsapp/encryption";
 import { refreshAccessToken, getFreeBusy } from "@/lib/google-calendar/client";
 import { chunkIntoSlots, subtractRanges, type TimeRange } from "./availability";
-import { computeClinicRanges } from "./business-hours";
+import { computeClinicRanges, getBusinessHoursStatus } from "./business-hours";
 import { resolveFeatureAccess, type FeatureOverrides } from "@/lib/billing-platform/features";
 import type { Plan } from "@/lib/billing-platform/plans";
 import { loadPublicDepositInfo, type PublicDepositInfo } from "@/lib/payments/config";
@@ -120,6 +120,40 @@ export async function computeAvailableSlots(
   return slots.filter((s) => new Date(s.start_at) > now);
 }
 
+/** Un bloque reordenable/activable de la página de reserva pública. */
+export type BookingBlockId = "whatsapp" | "booking" | "services" | "social" | "location";
+
+export interface BookingBlockConfig {
+  id: BookingBlockId;
+  enabled: boolean;
+}
+
+/** Orden y estado por defecto — usado tanto para cuentas nuevas como para
+ *  cuentas que guardaron su página antes de que `blocks` existiera. */
+export const DEFAULT_BOOKING_BLOCKS: BookingBlockConfig[] = [
+  { id: "whatsapp", enabled: true },
+  { id: "booking", enabled: true },
+  { id: "services", enabled: true },
+  { id: "social", enabled: true },
+  { id: "location", enabled: true },
+];
+
+/**
+ * Resuelve el orden/activación de bloques a mostrar. Si la cuenta ya
+ * guardó `blocks` explícitamente, se usa tal cual (permite reordenar y
+ * ocultar). Si no (cuentas creadas antes de esta feature), se deriva de
+ * los dos flags legacy `showServices`/`showAddress` para no cambiarle
+ * la página a nadie en silencio.
+ */
+export function resolveBookingBlocks(page: BookingPageConfig): BookingBlockConfig[] {
+  if (page.blocks && page.blocks.length > 0) return page.blocks;
+  return DEFAULT_BOOKING_BLOCKS.map((b) => ({
+    ...b,
+    enabled:
+      b.id === "services" ? page.showServices !== false : b.id === "location" ? page.showAddress !== false : true,
+  }));
+}
+
 /** Personalización "link-in-bio" de la página pública (accounts.booking_page). */
 export interface BookingPageConfig {
   accentColor?: string | null;
@@ -141,8 +175,14 @@ export interface BookingPageConfig {
     tiktok?: string | null;
     web?: string | null;
   } | null;
+  /** Orden y visibilidad de los bloques de la página — ver {@link resolveBookingBlocks}. */
+  blocks?: BookingBlockConfig[];
+  /** @deprecated usa `blocks` (id "services") — se conserva solo para
+   *  resolver el estado por defecto de cuentas guardadas antes de esa
+   *  feature; el editor ya no lo escribe. */
   showServices?: boolean;
   showDoctors?: boolean;
+  /** @deprecated usa `blocks` (id "location") — ídem `showServices`. */
   showAddress?: boolean;
 }
 
@@ -160,7 +200,7 @@ export interface PublicBookingConfig {
    *  shipped here — no reason to send every visitor every doctor's
    *  full questionnaire before they've even picked one. */
   doctors: { id: string; name: string; specialty: string | null; hasIntakeForm: boolean }[];
-  serviceTypes: { id: string; name: string; duration_minutes: number }[];
+  serviceTypes: { id: string; name: string; duration_minutes: number; price: number | null }[];
   /** Consultorios activos (ubicaciones). El widget muestra un selector de
    *  ubicación solo cuando `clinicHoursEnabled` y hay al menos uno. */
   rooms: { id: string; name: string; address: string | null }[];
@@ -172,6 +212,9 @@ export interface PublicBookingConfig {
    *  activo/configurado o la cuenta no tiene la feature. Nunca incluye
    *  credenciales del proveedor, solo lo que el visitante necesita ver. */
   deposit: PublicDepositInfo | null;
+  /** "Abierto ahora · cierra a las…" — `configured: false` cuando la
+   *  cuenta no declaró horario de negocio, para no fabricar un estado. */
+  businessHours: { configured: boolean; open: boolean; closesAtLabel: string | null };
 }
 
 /**
@@ -201,7 +244,7 @@ export async function getPublicBookingConfig(
       .order("name"),
     admin
       .from("service_types")
-      .select("id, name, duration_minutes")
+      .select("id, name, duration_minutes, price")
       .eq("account_id", account.id)
       .eq("is_active", true)
       .order("name"),
@@ -219,6 +262,7 @@ export async function getPublicBookingConfig(
   const paymentGatewayEnabled = resolveFeatureAccess(account.plan as Plan, "payment_gateway", overrides);
   const deposit = paymentGatewayEnabled ? await loadPublicDepositInfo(admin, account.id) : null;
   const intakeFormsEnabled = resolveFeatureAccess(account.plan as Plan, "intake_forms", overrides);
+  const businessHours = await getBusinessHoursStatus(admin, account.id);
 
   return {
     accountId: account.id,
@@ -239,5 +283,6 @@ export async function getPublicBookingConfig(
     clinicHoursEnabled,
     bookingPageEnabled,
     deposit,
+    businessHours,
   };
 }
