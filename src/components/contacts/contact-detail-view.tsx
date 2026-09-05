@@ -913,15 +913,12 @@ export function ContactDetailView({ contactId }: ContactDetailViewProps) {
                       </div>
                     )}
                     <Tabs defaultValue={groupInitialChild}>
-                      <TabsList
-                        variant="line"
-                        className="group-data-horizontal/tabs:h-auto mb-3 w-full flex-wrap justify-start gap-1 border-b border-border/60"
-                      >
+                      <TabsList className="group-data-horizontal/tabs:h-auto mb-3 w-fit flex-wrap gap-1">
                         {visibleChildren.map((child) => (
                           <TabsTrigger
                             key={child.key}
                             value={child.key}
-                            className="h-auto shrink-0 gap-1.5 px-2.5 py-2 text-xs text-muted-foreground data-active:text-primary"
+                            className="h-auto shrink-0 gap-1.5 px-2.5 py-1.5 text-xs text-muted-foreground data-active:text-foreground"
                           >
                             <child.icon className="size-3.5" />
                             {t(child.labelKey)}

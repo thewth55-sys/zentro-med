@@ -30,11 +30,11 @@ export function BillingTab({ contactId, currency, onSendReminder }: BillingTabPr
 
   return (
     <Tabs defaultValue="invoices">
-      <TabsList className="bg-muted/50 border-b border-border">
-        <TabsTrigger value="invoices" className="data-active:bg-muted data-active:text-primary text-muted-foreground">
+      <TabsList className="w-fit">
+        <TabsTrigger value="invoices" className="text-muted-foreground data-active:text-foreground">
           {t("invoices")}
         </TabsTrigger>
-        <TabsTrigger value="quotes" className="data-active:bg-muted data-active:text-primary text-muted-foreground">
+        <TabsTrigger value="quotes" className="text-muted-foreground data-active:text-foreground">
           {t("quotes")}
         </TabsTrigger>
       </TabsList>
