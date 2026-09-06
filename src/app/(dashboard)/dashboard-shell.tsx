@@ -1,8 +1,10 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { Suspense, useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AuthProvider, useAuth } from "@/hooks/use-auth";
+import { PostHogIdentify } from "@/components/analytics/posthog-identify";
+import { PostHogPageView } from "@/components/analytics/posthog-page-view";
 import { useTotalUnread } from "@/hooks/use-total-unread";
 import { useUnreadNotifications } from "@/hooks/use-unread-notifications";
 import { Sidebar } from "@/components/layout/sidebar";
@@ -69,6 +71,12 @@ function DashboardShellInner({ children }: { children: React.ReactNode }) {
         {/* Plays a chime / fires a native popup on new messages or
             assignments while this tab is open. Headless — renders nothing. */}
         <NotificationAlerts />
+        {/* Product analytics (PostHog) — both no-op without
+            NEXT_PUBLIC_POSTHOG_KEY. Headless — render nothing. */}
+        <PostHogIdentify />
+        <Suspense fallback={null}>
+          <PostHogPageView />
+        </Suspense>
         {/* Registers this device's FCM token when running inside the
             Capacitor Android app — no-op in a regular browser tab. */}
         <PushRegistration />

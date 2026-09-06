@@ -73,7 +73,13 @@ const SECURITY_HEADERS = [
       // unpkg.com serves the Lucide icon UMD bundle used by the
       // public marketing landing (src/app/page.tsx), which renders
       // outside the app's normal lucide-react import graph.
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://challenges.cloudflare.com https://*.zoho.com https://*.zohostatic.com https://*.zohopublic.com https://*.zohocdn.com https://connect.facebook.net https://unpkg.com",
+      // *.posthog.com / *.i.posthog.com are the product-analytics SDK
+      // (src/instrumentation-client.ts) — the core library ships in
+      // our own bundle, but it can still fetch config/decide requests
+      // from these hosts. Allowlisted unconditionally (same reasoning
+      // as Sentry above) so turning it on later doesn't also require
+      // touching the CSP; only active once NEXT_PUBLIC_POSTHOG_KEY is set.
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://challenges.cloudflare.com https://*.zoho.com https://*.zohostatic.com https://*.zohopublic.com https://*.zohocdn.com https://connect.facebook.net https://unpkg.com https://*.posthog.com https://*.i.posthog.com",
       // Tailwind + inline style attributes on lots of components.
       // fonts.googleapis.com serves the landing page's Google Fonts
       // stylesheet (Manrope / JetBrains Mono).
@@ -105,7 +111,12 @@ const SECURITY_HEADERS = [
       // local-currency estimate (src/lib/currency/geo-estimate.ts) —
       // client-side, best-effort, display-only (billing always stays
       // USD via Stripe).
-      "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://www.googletagmanager.com https://www.google.com https://googleads.g.doubleclick.net https://challenges.cloudflare.com https://*.zoho.com wss://*.zoho.com https://*.zohopublic.com wss://*.zohopublic.com https://*.zohocdn.com https://*.sentry.io https://*.ingest.sentry.io https://*.ingest.us.sentry.io https://*.ingest.de.sentry.io https://connect.facebook.net https://www.facebook.com https://graph.facebook.com https://ipwho.is https://open.er-api.com",
+      // *.posthog.com / *.i.posthog.com are where the product-
+      // analytics SDK (src/instrumentation-client.ts) sends capture/
+      // identify/decide requests — only active once
+      // NEXT_PUBLIC_POSTHOG_KEY is set, allowlisted unconditionally
+      // for the same reason as Sentry's ingest hosts above.
+      "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://www.googletagmanager.com https://www.google.com https://googleads.g.doubleclick.net https://challenges.cloudflare.com https://*.zoho.com wss://*.zoho.com https://*.zohopublic.com wss://*.zohopublic.com https://*.zohocdn.com https://*.sentry.io https://*.ingest.sentry.io https://*.ingest.us.sentry.io https://*.ingest.de.sentry.io https://connect.facebook.net https://www.facebook.com https://graph.facebook.com https://ipwho.is https://open.er-api.com https://*.posthog.com https://*.i.posthog.com",
       // Turnstile renders its interactive challenge inside an iframe
       // from this origin when it can't pass invisibly; Zoho Desk's
       // chat panel is also an iframe; WhatsApp Embedded Signup opens

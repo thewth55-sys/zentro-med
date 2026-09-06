@@ -18,6 +18,7 @@ import type { Plan, SubscriptionStatus } from "@/lib/billing-platform/plans";
 import type { FeatureOverrides } from "@/lib/billing-platform/features";
 import { IMPERSONATION_SESSION_FLAG } from "@/lib/auth/impersonation-flag";
 import { isNativePlatform } from "@/lib/native-session";
+import { isPostHogEnabled, posthog } from "@/lib/analytics/posthog";
 import {
   canEditSettings as canEditSettingsFor,
   canManageMembers as canManageMembersFor,
@@ -368,6 +369,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signOut = useCallback(async () => {
     const supabase = createClient();
     await supabase.auth.signOut();
+    // Clears the identified distinct_id — without this, a second staff
+    // member signing in on the same device/browser would otherwise
+    // keep showing up under the previous person's PostHog identity
+    // until their own identify() call catches up.
+    if (isPostHogEnabled) posthog.reset();
     setUser(null);
     setProfile(null);
     setAccount(null);
