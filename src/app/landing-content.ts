@@ -105,7 +105,7 @@ export const LANDING_BODY_HTML = `
       <span class="pill-dark"><span class="dot-green"></span>+80 consultorios · 7 países</span>
     </div>
     <h1>Que no se pierda ni una<br><span class="green">cita que ya tenías agendada.</span></h1>
-    <p class="hero-sub">Zentro Med confirma cada cita por WhatsApp, agenda sola y te trae de vuelta a los pacientes que dejaron de venir. <strong style="color:rgba(255,255,255,.85);">Sin contratar a nadie más.</strong></p>
+    <p class="hero-sub">Zentro Med confirma cada cita por WhatsApp, agenda sola y te trae de vuelta a los pacientes que dejaron de venir. <strong style="color:var(--zm-ink);">Sin contratar a nadie más.</strong></p>
     <div class="hero-ctas">
       <a href="/signup" class="btn btn-green btn-lg" onclick="if(typeof fbq!=='undefined')fbq('track','Lead');if(typeof gtag!=='undefined')gtag('event','generate_lead',{event_category:'cta',event_label:'hero_primary'});">Empezar gratis · sin tarjeta</a>
       <a href="#producto" class="btn btn-ghost-light btn-lg">Ver el producto · 3 min</a>
@@ -113,7 +113,7 @@ export const LANDING_BODY_HTML = `
     <p class="hero-note">// WhatsApp y Zen incluidos en la prueba · Listo en 24 horas</p>
 
     <!-- Hero UI Widgets — muestra contexto del producto sin necesitar imagen -->
-    <p style="text-align:center;font-size:10.5px;color:rgba(255,255,255,.25);font-family:'JetBrains Mono',monospace;margin-bottom:8px;">// Ejemplos ilustrativos del producto</p>
+    <p style="text-align:center;font-size:10.5px;color:var(--zm-muted2);font-family:'IBM Plex Mono',monospace;margin-bottom:8px;">// Ejemplos ilustrativos del producto</p>
     <div class="hero-widgets">
       <div class="hw-card">
         <div class="hw-icon-wrap" style="background:rgba(74,222,90,.1);">
@@ -161,7 +161,7 @@ export const LANDING_BODY_HTML = `
 </section>
 
 <!-- STATS BAR -->
-<div class="stats-bar" style="background:var(--zm-night);border-color:rgba(255,255,255,.07);">
+<div class="stats-bar">
   <div class="wrap">
     <div class="stats-bar-inner">
       <div class="stat-item">
@@ -195,7 +195,7 @@ export const LANDING_BODY_HTML = `
     </div>
     <div class="leak-grid reveal-group">
       <div class="leak-card">
-        <div class="leak-num" style="color:#dc2626;">1 de 5</div>
+        <div class="leak-num" style="color:#B3382C;">1 de 5</div>
         <div class="leak-num-label">Pacientes con cita no se presenta</div>
         <div class="leak-title">El paciente no llega y nadie lo llamó</div>
         <div class="leak-text">Confirmar una por una consume la mañana de recepción, así que se deja de hacer. El hueco queda vacío y el ingreso de esa hora no se recupera.</div>
@@ -205,7 +205,7 @@ export const LANDING_BODY_HTML = `
         </div>
       </div>
       <div class="leak-card">
-        <div class="leak-num" style="color:#b45309;">5×</div>
+        <div class="leak-num" style="color:#B4740A;">5×</div>
         <div class="leak-num-label">Más caro recuperarlo que retenerlo</div>
         <div class="leak-title">El paciente que no agendó su siguiente cita</div>
         <div class="leak-text">Sale del consultorio sin fecha, y sin seguimiento simplemente desaparece del radar. Nadie decide perderlo: se pierde por omisión.</div>
@@ -215,7 +215,7 @@ export const LANDING_BODY_HTML = `
         </div>
       </div>
       <div class="leak-card">
-        <div class="leak-num" style="color:#1d4ed8;">3</div>
+        <div class="leak-num" style="color:#22588F;">3</div>
         <div class="leak-num-label">Lugares distintos con la misma info</div>
         <div class="leak-title">La información no está donde se necesita</div>
         <div class="leak-text">El historial en WhatsApp, la cita en una libreta, el cobro en otro sistema. Nadie del equipo ve el cuadro completo y todos preguntan dos veces.</div>
@@ -270,7 +270,7 @@ export const LANDING_BODY_HTML = `
 </section>
 
 <!-- 03 — CONOCE A ZEN -->
-<section class="solution" id="zen-preview">
+<section class="solution" id="zen-preview" style="background:var(--zm-dark-panel);">
   <div class="wrap">
     <div class="solution-grid">
       <div class="solution-visual" style="padding:0;overflow:hidden;">
@@ -359,7 +359,7 @@ export const LANDING_BODY_HTML = `
         </div>
       </div>
     </div>
-    <p style="text-align:center;margin-top:20px;font-size:11.5px;color:var(--zm-muted2);font-family:'JetBrains Mono',monospace;">// La infraestructura de Zen va incluida — no necesitas cuentas propias en ningún proveedor de IA</p>
+    <p style="text-align:center;margin-top:20px;font-size:11.5px;color:rgba(255,255,255,.4);font-family:'IBM Plex Mono',monospace;">// La infraestructura de Zen va incluida — no necesitas cuentas propias en ningún proveedor de IA</p>
   </div>
 </section>
 
@@ -410,10 +410,10 @@ export const LANDING_BODY_HTML = `
       </div>
     </div>
 
-    <div class="reveal" style="margin-top:56px;background:var(--zm-night);border-radius:22px;padding:clamp(28px,4vw,44px);">
-      <p class="section-label" style="color:rgba(74,222,90,.6);text-align:center;">// También en tu teléfono</p>
-      <h3 style="text-align:center;font-size:clamp(20px,2.4vw,28px);font-weight:800;color:var(--zm-white);letter-spacing:-.03em;margin-bottom:10px;">Entre paciente y paciente, sin sentarte a la computadora</h3>
-      <p style="text-align:center;font-size:14px;color:rgba(255,255,255,.5);max-width:600px;margin:0 auto 28px;line-height:1.7;">La app de Android muestra lo que necesitas junto al sillón: quién está en consulta, qué citas faltan por confirmar y qué presupuestos siguen sin respuesta.</p>
+    <div class="reveal" style="margin-top:56px;background:var(--zm-surface);border:1px solid var(--zm-line);border-radius:22px;padding:clamp(28px,4vw,44px);">
+      <p class="section-label" style="text-align:center;">// También en tu teléfono</p>
+      <h3 style="text-align:center;font-size:clamp(20px,2.4vw,28px);font-weight:800;color:var(--zm-ink);letter-spacing:-.03em;margin-bottom:10px;">Entre paciente y paciente, sin sentarte a la computadora</h3>
+      <p style="text-align:center;font-size:14px;color:var(--zm-muted);max-width:600px;margin:0 auto 28px;line-height:1.7;">La app de Android muestra lo que necesitas junto al sillón: quién está en consulta, qué citas faltan por confirmar y qué presupuestos siguen sin respuesta.</p>
       <div style="display:flex;justify-content:center;gap:14px;flex-wrap:wrap;">
         <span class="pill-dark">📎 Cobro por link en tres toques</span>
         <span class="pill-dark">🎙️ Zen por voz</span>
@@ -546,34 +546,34 @@ export const LANDING_BODY_HTML = `
 </section>
 
 <!-- CROSS-SELL: ZENTRO MED MARKETING -->
-<section class="solution" id="marketing" style="background:var(--zm-night);padding-top:clamp(64px,9vw,100px);padding-bottom:clamp(64px,9vw,100px);">
+<section class="solution" id="marketing" style="background:var(--zm-white);padding-top:clamp(64px,9vw,100px);padding-bottom:clamp(64px,9vw,100px);">
   <div class="wrap">
     <div class="reveal" style="max-width:700px;margin:0 auto;text-align:center;">
-      <p class="section-label" style="color:#a5b4fc;">// 06 — Zentro Med Marketing</p>
-      <h2 class="section-title" style="color:var(--zm-white);">El sistema ordena tu agenda. <span style="color:#a5b4fc;">Marketing la llena.</span></h2>
-      <p class="section-sub" style="color:rgba(255,255,255,.5);margin:14px auto 0;">Un servicio aparte y opcional: un equipo que gestiona tus campañas de Meta y Google Ads y produce el contenido, para traerte pacientes que hoy no te conocen. Incluye el sistema de gestión en el precio, sobre tu misma cuenta, sin migrar nada.</p>
+      <p class="section-label">// 06 — Zentro Med Marketing</p>
+      <h2 class="section-title">El sistema ordena tu agenda. <span class="green">Marketing la llena.</span></h2>
+      <p class="section-sub" style="margin:14px auto 0;">Un servicio aparte y opcional: un equipo que gestiona tus campañas de Meta y Google Ads y produce el contenido, para traerte pacientes que hoy no te conocen. Incluye el sistema de gestión en el precio, sobre tu misma cuenta, sin migrar nada.</p>
     </div>
     <div class="reveal-group marketing-plans-grid">
-      <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:22px;">
-        <div style="font-size:13px;font-weight:800;color:var(--zm-white);margin-bottom:6px;">Med Starter</div>
-        <div style="font-size:22px;font-weight:800;color:#a5b4fc;margin-bottom:8px;">$324<span style="font-size:12px;color:rgba(255,255,255,.4);font-weight:600;"> USD/mes + $129 instalación</span></div>
-        <div style="font-size:12px;color:rgba(255,255,255,.5);line-height:1.6;">Incluye el sistema Profesional (valor $79) + 1 campaña activa en Meta Ads + contenido mensual</div>
+      <div style="background:var(--zm-white);border:1px solid var(--zm-line);border-radius:16px;padding:22px;">
+        <div style="font-size:13px;font-weight:800;color:var(--zm-ink);margin-bottom:6px;">Med Starter</div>
+        <div style="font-size:22px;font-weight:800;color:var(--zm-ink);margin-bottom:8px;">$324<span style="font-size:12px;color:var(--zm-muted);font-weight:600;"> USD/mes + $129 instalación</span></div>
+        <div style="font-size:12px;color:var(--zm-muted);line-height:1.6;">Incluye el sistema Profesional (valor $79) + 1 campaña activa en Meta Ads + contenido mensual</div>
       </div>
-      <div style="background:rgba(99,102,241,.1);border:2px solid rgba(129,140,248,.5);border-radius:16px;padding:22px;position:relative;">
-        <div style="position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:#818cf8;color:#1e1b4b;font-size:9px;font-weight:800;padding:3px 10px;border-radius:20px;text-transform:uppercase;letter-spacing:.05em;white-space:nowrap;">Recomendado</div>
+      <div style="background:var(--zm-ink);border:2px solid var(--zm-g3);border-radius:16px;padding:22px;position:relative;">
+        <div style="position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:var(--zm-g3);color:var(--zm-white);font-size:9px;font-weight:800;padding:3px 10px;border-radius:20px;text-transform:uppercase;letter-spacing:.05em;white-space:nowrap;">Recomendado</div>
         <div style="font-size:13px;font-weight:800;color:var(--zm-white);margin-bottom:6px;">Med Growth</div>
-        <div style="font-size:22px;font-weight:800;color:#a5b4fc;margin-bottom:8px;">$519<span style="font-size:12px;color:rgba(255,255,255,.4);font-weight:600;"> USD/mes + $259 instalación</span></div>
+        <div style="font-size:22px;font-weight:800;color:var(--zm-g-mid);margin-bottom:8px;">$519<span style="font-size:12px;color:rgba(255,255,255,.4);font-weight:600;"> USD/mes + $259 instalación</span></div>
         <div style="font-size:12px;color:rgba(255,255,255,.55);line-height:1.6;">Incluye el sistema Clínica (valor $149) + Meta y Google Ads + página de aterrizaje por especialidad</div>
       </div>
-      <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:22px;">
-        <div style="font-size:13px;font-weight:800;color:var(--zm-white);margin-bottom:6px;">Med Premium</div>
-        <div style="font-size:22px;font-weight:800;color:#a5b4fc;margin-bottom:8px;">$974<span style="font-size:12px;color:rgba(255,255,255,.4);font-weight:600;"> USD/mes + $389 instalación</span></div>
-        <div style="font-size:12px;color:rgba(255,255,255,.5);line-height:1.6;">Incluye el sistema Clínica (valor $149) + posicionamiento local + ejecutivo de cuenta dedicado</div>
+      <div style="background:var(--zm-white);border:1px solid var(--zm-line);border-radius:16px;padding:22px;">
+        <div style="font-size:13px;font-weight:800;color:var(--zm-ink);margin-bottom:6px;">Med Premium</div>
+        <div style="font-size:22px;font-weight:800;color:var(--zm-ink);margin-bottom:8px;">$974<span style="font-size:12px;color:var(--zm-muted);font-weight:600;"> USD/mes + $389 instalación</span></div>
+        <div style="font-size:12px;color:var(--zm-muted);line-height:1.6;">Incluye el sistema Clínica (valor $149) + posicionamiento local + ejecutivo de cuenta dedicado</div>
       </div>
     </div>
     <div class="reveal" style="text-align:center;margin-top:36px;">
-      <a href="/marketing" class="btn btn-lg" style="background:#818cf8;color:#1e1b4b;" onclick="if(typeof gtag!=='undefined')gtag('event','cross_sell_click',{event_category:'cta',event_label:'crm_to_maas'});">Conocer Zentro Med Marketing →</a>
-      <p style="margin-top:12px;font-size:12px;color:rgba(255,255,255,.35);font-family:'JetBrains Mono',monospace;">// Si ya tienes un plan del sistema, su valor se descuenta del precio de Marketing — nunca pagas dos veces</p>
+      <a href="/marketing" class="btn btn-green btn-lg" onclick="if(typeof gtag!=='undefined')gtag('event','cross_sell_click',{event_category:'cta',event_label:'crm_to_maas'});">Conocer Zentro Med Marketing →</a>
+      <p style="margin-top:12px;font-size:12px;color:var(--zm-muted2);font-family:'IBM Plex Mono',monospace;">// Si ya tienes un plan del sistema, su valor se descuenta del precio de Marketing — nunca pagas dos veces</p>
     </div>
   </div>
 </section>
@@ -589,25 +589,25 @@ export const LANDING_BODY_HTML = `
     <div class="how-steps reveal-group">
       <div class="how-step">
         <div class="step-num">1</div>
-        <p style="font-family:'JetBrains Mono',monospace;font-size:10.5px;font-weight:700;color:var(--zm-g3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;">Hoy · 2 min</p>
+        <p style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;font-weight:700;color:var(--zm-g3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;">Hoy · 2 min</p>
         <div class="step-title">Activa tu cuenta</div>
         <div class="step-desc">Sin tarjeta. Entras y ya tienes agenda, pacientes y el tope de cortesía de WhatsApp y Zen.</div>
       </div>
       <div class="how-step">
         <div class="step-num">2</div>
-        <p style="font-family:'JetBrains Mono',monospace;font-size:10.5px;font-weight:700;color:var(--zm-g3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;">En 24 horas</p>
+        <p style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;font-weight:700;color:var(--zm-g3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;">En 24 horas</p>
         <div class="step-title">Un estratega lo configura</div>
         <div class="step-desc">Le cuentas cómo funciona tu consultorio en una llamada. Él deja WhatsApp, agenda y recordatorios listos.</div>
       </div>
       <div class="how-step">
         <div class="step-num">3</div>
-        <p style="font-family:'JetBrains Mono',monospace;font-size:10.5px;font-weight:700;color:var(--zm-g3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;">Día 2</p>
+        <p style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;font-weight:700;color:var(--zm-g3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;">Día 2</p>
         <div class="step-title">Tu equipo entra</div>
         <div class="step-desc">Recepción, doctores y administración usan la misma bandeja y la misma agenda, con permisos por rol.</div>
       </div>
       <div class="how-step">
         <div class="step-num">4</div>
-        <p style="font-family:'JetBrains Mono',monospace;font-size:10.5px;font-weight:700;color:var(--zm-g3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;">Día 30</p>
+        <p style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;font-weight:700;color:var(--zm-g3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;">Día 30</p>
         <div class="step-title">Compara tus números</div>
         <div class="step-desc">Cuenta cuántas citas se te cayeron este mes contra el anterior. Con ese dato decides si sigues.</div>
       </div>
@@ -740,7 +740,7 @@ export const LANDING_BODY_HTML = `
       <a href="https://wa.me/15752137020" target="_blank" rel="noopener" class="btn btn-ghost-light btn-lg">Hablar con un estratega</a>
     </div>
     <p class="cta-note">// Sin tarjeta · Sin permanencia · Cancela cuando quieras</p>
-    <p style="max-width:820px;margin:36px auto 0;font-size:10.5px;line-height:1.8;color:rgba(255,255,255,.25);font-family:'JetBrains Mono',monospace;">La reducción del 54% en citas perdidas es el promedio de nuestros clientes activos en sus primeros 90 días; los resultados varían según especialidad y volumen de pacientes. La activación en 24 horas cubre CRM, agenda, WhatsApp y Zen. Cada plan incluye una cuota mensual de respuestas de Zen, ampliable desde $5 USD por cada 1,000 adicionales. Zentro Med es software de gestión comercial: no es un sistema de expediente clínico ni de facturación tributaria de un país específico. Los precios de marketing no incluyen la inversión publicitaria en Meta ni Google. Los datos se almacenan cifrados en tránsito y en reposo conforme a la Ley 1581 de 2012.</p>
+    <p style="max-width:820px;margin:36px auto 0;font-size:10.5px;line-height:1.8;color:var(--zm-muted2);font-family:'IBM Plex Mono',monospace;">La reducción del 54% en citas perdidas es el promedio de nuestros clientes activos en sus primeros 90 días; los resultados varían según especialidad y volumen de pacientes. La activación en 24 horas cubre CRM, agenda, WhatsApp y Zen. Cada plan incluye una cuota mensual de respuestas de Zen, ampliable desde $5 USD por cada 1,000 adicionales. Zentro Med es software de gestión comercial: no es un sistema de expediente clínico ni de facturación tributaria de un país específico. Los precios de marketing no incluyen la inversión publicitaria en Meta ni Google. Los datos se almacenan cifrados en tránsito y en reposo conforme a la Ley 1581 de 2012.</p>
   </div>
 </section>
 
@@ -748,7 +748,7 @@ export const LANDING_BODY_HTML = `
 <footer>
   <div class="wrap">
     <div class="foot-i">
-      <span style="color:rgba(255,255,255,.3);">© 2026 Zentro Labs · <a href="https://zentrolabs.com">zentrolabs.com</a></span>
+      <span style="color:var(--zm-muted2);">© 2026 Zentro Labs · <a href="https://zentrolabs.com">zentrolabs.com</a></span>
       <span><a href="https://zentrolabs.com/privacidad.html">Privacidad</a> · <a href="https://zentrolabs.com/terminos.html">Términos</a> · <a href="mailto:hello@zentrolabs.com">hello@zentrolabs.com</a></span>
     </div>
   </div>

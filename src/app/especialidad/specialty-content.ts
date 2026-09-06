@@ -564,9 +564,9 @@ function renderFugas(data: SpecialtyData): string {
 
 function renderCapturaVisual(): string {
   return `
-      <div class="solution-visual">
-        <p class="sol-tag">// Odontograma</p>
-        <p class="sol-title">Ficha del paciente</p>
+      <div class="solution-visual" style="background:var(--zm-white);border:1px solid var(--zm-line);">
+        <p class="sol-tag" style="color:var(--zm-g3);">// Odontograma</p>
+        <p class="sol-title" style="color:var(--zm-ink);">Ficha del paciente</p>
         <div class="esp-tooth-grid">
           ${Array.from({ length: 16 }, (_, i) => {
             const n = i + 1;
@@ -574,7 +574,7 @@ function renderCapturaVisual(): string {
             return `<div class="esp-tooth ${cls}">${n}</div>`;
           }).join("")}
         </div>
-        <div class="esp-budget-row" style="border-top:1px solid rgba(255,255,255,.08);">
+        <div class="esp-budget-row" style="border-top:1px solid var(--zm-line);">
           <span class="esp-budget-name">Resina diente 6</span>
           <span class="esp-budget-status" style="background:rgba(245,158,11,.15);color:#fbbf24;">Enviado</span>
         </div>
@@ -601,7 +601,7 @@ function renderPanelVisual(panel: Panel): string {
     .join("\n");
 
   return `
-      <div class="solution-visual" style="padding:0;overflow:hidden;">
+      <div class="solution-visual" style="padding:0;overflow:hidden;background:none;border:none;">
         <div class="esp-panel" style="border:none;border-radius:0;">
           <div class="esp-panel-head">
             <div class="esp-panel-id">
@@ -641,14 +641,14 @@ function renderProducto(data: SpecialtyData): string {
     .join("\n");
 
   return `
-<section class="solution" style="background:var(--zm-night);">
+<section class="solution">
   <div class="wrap">
     <div class="solution-grid">
 ${visual}
       <div class="solution-copy">
-        <p class="section-label" style="color:rgba(74,222,90,.6);">// 02 — Hecho para tu consulta</p>
-        <h2 class="section-title" style="color:var(--zm-white);">${esc(data.prodTitulo)}</h2>
-        <p class="section-sub" style="color:rgba(255,255,255,.5);">${esc(data.prodSub)}</p>
+        <p class="section-label">// 02 — Hecho para tu consulta</p>
+        <h2 class="section-title">${esc(data.prodTitulo)}</h2>
+        <p class="section-sub">${esc(data.prodSub)}</p>
         <div class="benefit-list">${puntos}</div>
       </div>
     </div>
@@ -658,7 +658,7 @@ ${visual}
 
 function renderZen(data: SpecialtyData): string {
   return `
-<section class="solution">
+<section class="solution" style="background:var(--zm-dark-panel);">
   <div class="wrap">
     <div class="solution-grid reverse">
       <div class="solution-visual" style="padding:0;overflow:hidden;">
@@ -684,9 +684,9 @@ function renderZen(data: SpecialtyData): string {
         <p class="mockui-caption" style="padding-bottom:16px;">// Sin intervención</p>
       </div>
       <div class="solution-copy">
-        <p class="section-label">// 03 — Conoce a Zen</p>
-        <h2 class="section-title">${esc(data.zenTitulo)}</h2>
-        <p class="section-sub">${esc(data.zenSub)}</p>
+        <p class="section-label" style="color:rgba(74,222,90,.7);">// 03 — Conoce a Zen</p>
+        <h2 class="section-title" style="color:var(--zm-white);">${esc(data.zenTitulo)}</h2>
+        <p class="section-sub" style="color:rgba(255,255,255,.5);">${esc(data.zenSub)}</p>
         <a href="/zen" class="btn btn-dark">Ver todo lo que hace Zen →</a>
       </div>
     </div>
@@ -820,7 +820,7 @@ ${renderFaq(data)}
       <a href="https://wa.me/15752137020" target="_blank" rel="noopener" class="btn btn-ghost-light btn-lg">Hablar con un estratega</a>
     </div>
     <p class="cta-note">// Sin tarjeta · Sin permanencia · Cancela cuando quieras</p>
-    <p style="max-width:820px;margin:36px auto 0;font-size:10.5px;line-height:1.8;color:rgba(255,255,255,.25);font-family:'JetBrains Mono',monospace;">Las cifras de reducción son promedios de clientes activos en sus primeros 90 días; los resultados varían según especialidad y volumen de pacientes. La activación en 24 horas cubre CRM, agenda, WhatsApp y Zen. Cada plan incluye una cuota mensual de respuestas de Zen, ampliable desde $5 USD por cada 1,000 adicionales. Zentro Med es software de gestión comercial: no es un sistema de expediente clínico ni de facturación tributaria de un país específico. Los datos se almacenan cifrados en tránsito y en reposo conforme a la Ley 1581 de 2012.</p>
+    <p style="max-width:820px;margin:36px auto 0;font-size:10.5px;line-height:1.8;color:var(--zm-muted2);font-family:'IBM Plex Mono',monospace;">Las cifras de reducción son promedios de clientes activos en sus primeros 90 días; los resultados varían según especialidad y volumen de pacientes. La activación en 24 horas cubre CRM, agenda, WhatsApp y Zen. Cada plan incluye una cuota mensual de respuestas de Zen, ampliable desde $5 USD por cada 1,000 adicionales. Zentro Med es software de gestión comercial: no es un sistema de expediente clínico ni de facturación tributaria de un país específico. Los datos se almacenan cifrados en tránsito y en reposo conforme a la Ley 1581 de 2012.</p>
   </div>
 </section>
 
@@ -828,7 +828,7 @@ ${renderFaq(data)}
 <footer>
   <div class="wrap">
     <div class="foot-i">
-      <span style="color:rgba(255,255,255,.3);">© 2026 Zentro Labs · <a href="https://zentrolabs.com">zentrolabs.com</a></span>
+      <span style="color:var(--zm-muted2);">© 2026 Zentro Labs · <a href="https://zentrolabs.com">zentrolabs.com</a></span>
       <span><a href="https://zentrolabs.com/privacidad.html">Privacidad</a> · <a href="https://zentrolabs.com/terminos.html">Términos</a> · <a href="mailto:hello@zentrolabs.com">hello@zentrolabs.com</a></span>
     </div>
   </div>

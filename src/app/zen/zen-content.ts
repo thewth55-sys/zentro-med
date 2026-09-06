@@ -85,7 +85,7 @@ export const ZEN_BODY_HTML = `
 </section>
 
 <!-- STATS BAR -->
-<div class="stats-bar" style="background:var(--zm-night);border-color:rgba(255,255,255,.07);">
+<div class="stats-bar">
   <div class="wrap">
     <div class="stats-bar-inner">
       <div class="stat-item">
@@ -143,34 +143,33 @@ export const ZEN_BODY_HTML = `
 <section class="solution" id="como-funciona">
   <div class="wrap">
     <div class="solution-grid">
-      <div class="solution-visual" style="padding:0;overflow:hidden;">
-        <div class="mockui" style="border-radius:0;border:none;">
-          <div class="mockui-chat-header">
-            <div class="mockui-chat-contact">
+      <div class="solution-visual" style="padding:0;overflow:hidden;background:none;border:none;">
+        <div class="wa-chat">
+          <div class="wa-chat-header">
+            <div class="wa-chat-contact">
               <div class="mockui-avatar" style="background:#dcfce7;color:#15803d;">LG</div>
               <div>
-                <div class="mockui-chat-name">Laura G. · paciente nueva</div>
-                <div class="mockui-chat-meta">Domingo, 11:04 p.m.</div>
+                <div class="wa-chat-name">Laura G. · paciente nueva</div>
+                <div class="wa-chat-meta">Domingo, 11:04 p.m. · Zen activo</div>
               </div>
             </div>
-            <span class="mockui-status-pill active">Zen activo</span>
           </div>
-          <div class="mockui-chat" style="min-height:420px;">
-            <div class="mockui-bubble in">Hola, ¿tienen cita para limpieza esta semana? ¿Cuánto cuesta?</div>
-            <span class="mockui-bubble-time">11:04 p.m.</span>
-            <div class="mockui-bubble auto" style="align-self:flex-end;border-bottom-left-radius:14px;border-bottom-right-radius:4px;">Hola Laura. La limpieza dental cuesta $500 y dura 45 minutos. Tengo lunes 8 a las 10:00 a.m. o miércoles 10 a las 4:30 p.m. ¿Cuál te acomoda?</div>
-            <span class="mockui-bubble-time" style="align-self:flex-end;">11:04 p.m.</span>
-            <div class="mockui-bubble in">El lunes a las 10 me sirve</div>
-            <span class="mockui-bubble-time">11:06 p.m.</span>
-            <div class="mockui-bubble auto" style="align-self:flex-end;border-bottom-left-radius:14px;border-bottom-right-radius:4px;">Listo, quedó el lunes 8 de septiembre a las 10:00 a.m. Te confirmo un día antes por aquí.</div>
-            <span class="mockui-bubble-tag done" style="align-self:flex-end;">✓ Cita creada · lunes 8, 10:00 a.m.</span>
-            <div class="mockui-bubble in" style="margin-top:8px;">Una cosa más, tengo una muela que me duele al morder, ¿qué puede ser?</div>
-            <span class="mockui-bubble-time">11:07 p.m.</span>
-            <div class="mockui-bubble auto" style="align-self:flex-end;border-bottom-left-radius:14px;border-bottom-right-radius:4px;">Eso lo tiene que valorar la doctora. Le paso tu mensaje y te responde mañana temprano; si el dolor aumenta esta noche, escríbenos y te damos prioridad.</div>
-            <span class="mockui-bubble-tag warn" style="align-self:flex-end;">⚠ Pregunta clínica detectada · pasa a la Dra. Gabriela</span>
+          <div class="wa-chat-body">
+            <div class="wa-bubble">Hola, ¿tienen cita para limpieza esta semana? ¿Cuánto cuesta?</div>
+            <span class="wa-bubble-time">11:04 p.m.</span>
+            <div class="wa-bubble out">Hola Laura. La limpieza dental cuesta $500 y dura 45 minutos. Tengo lunes 8 a las 10:00 a.m. o miércoles 10 a las 4:30 p.m. ¿Cuál te acomoda?</div>
+            <span class="wa-bubble-time out">11:04 p.m.</span>
+            <div class="wa-bubble">El lunes a las 10 me sirve</div>
+            <span class="wa-bubble-time">11:06 p.m.</span>
+            <div class="wa-bubble out">Listo, quedó el lunes 8 de septiembre a las 10:00 a.m. Te confirmo un día antes por aquí.</div>
+            <span class="wa-tag done" style="align-self:flex-end;">✓ Cita creada · lunes 8, 10:00 a.m.</span>
+            <div class="wa-bubble" style="margin-top:8px;">Una cosa más, tengo una muela que me duele al morder, ¿qué puede ser?</div>
+            <span class="wa-bubble-time">11:07 p.m.</span>
+            <div class="wa-bubble out">Eso lo tiene que valorar la doctora. Le paso tu mensaje y te responde mañana temprano; si el dolor aumenta esta noche, escríbenos y te damos prioridad.</div>
+            <span class="wa-tag warn" style="align-self:flex-end;">⚠ Pregunta clínica detectada · pasa a la Dra. Gabriela</span>
           </div>
         </div>
-        <p class="mockui-caption" style="padding-bottom:16px;">// Zen dentro del sistema</p>
+        <p class="mockui-caption" style="padding-top:16px;color:var(--zm-muted2);">// Zen dentro del sistema</p>
       </div>
       <div class="solution-copy">
         <p class="section-label">// 02 — Zen en WhatsApp</p>
@@ -272,14 +271,14 @@ export const ZEN_BODY_HTML = `
 </section>
 
 <!-- 04 — LA COMPARACIÓN HONESTA -->
-<section class="solution" id="comparacion" style="background:var(--zm-night);">
+<section class="solution" id="comparacion" style="background:var(--zm-surface);">
   <div class="wrap">
     <div class="reveal" style="max-width:700px;margin:0 auto 40px;text-align:center;">
-      <p class="section-label" style="color:rgba(74,222,90,.6);">// 04 — La comparación honesta</p>
-      <h2 class="section-title" style="color:var(--zm-white);">Zen no reemplaza a tu recepción. Le quita lo repetitivo.</h2>
-      <p class="section-sub" style="color:rgba(255,255,255,.5);margin:14px auto 0;">Contestar precios y horarios a cualquier hora es trabajo que nadie debería hacer a mano. Recibir al paciente en el consultorio sigue siendo humano.</p>
+      <p class="section-label">// 04 — La comparación honesta</p>
+      <h2 class="section-title">Zen no reemplaza a tu recepción. Le quita lo repetitivo.</h2>
+      <p class="section-sub" style="margin:14px auto 0;">Contestar precios y horarios a cualquier hora es trabajo que nadie debería hacer a mano. Recibir al paciente en el consultorio sigue siendo humano.</p>
     </div>
-    <div class="reveal compare-table-wrap dark">
+    <div class="reveal compare-table-wrap">
       <table class="compare-table">
         <thead><tr><th>Tarea</th><th>Zen</th><th>Una persona</th></tr></thead>
         <tbody>
@@ -297,14 +296,14 @@ export const ZEN_BODY_HTML = `
 </section>
 
 <!-- 05 — LOS LÍMITES, POR ESCRITO -->
-<section class="problems">
+<section class="problems" style="background:var(--zm-dark-panel);">
   <div class="wrap">
     <div class="problems-header reveal">
-      <p class="section-label">// 05 — Los límites, por escrito</p>
-      <h2 class="section-title">Lo que Zen no va a hacer nunca</h2>
-      <p class="section-sub">En salud, un asistente que improvisa es un riesgo. Estos límites están puestos a propósito y no se pueden desactivar.</p>
+      <p class="section-label" style="color:rgba(74,222,90,.7);">// 05 — Los límites, por escrito</p>
+      <h2 class="section-title" style="color:var(--zm-white);">Lo que Zen no va a hacer nunca</h2>
+      <p class="section-sub" style="color:rgba(255,255,255,.5);">En salud, un asistente que improvisa es un riesgo. Estos límites están puestos a propósito y no se pueden desactivar.</p>
     </div>
-    <div class="limit-grid reveal-group">
+    <div class="limit-grid dark reveal-group">
       <div class="limit-card">
         <div class="limit-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></div>
         <div class="limit-title">No da diagnósticos</div>
@@ -458,7 +457,7 @@ export const ZEN_BODY_HTML = `
       <a href="/" class="btn btn-ghost-light btn-lg">Ver el CRM completo</a>
     </div>
     <p class="cta-note">// Sin tarjeta · Sin cuentas propias de IA</p>
-    <p style="max-width:820px;margin:36px auto 0;font-size:10.5px;line-height:1.8;color:rgba(255,255,255,.25);font-family:'JetBrains Mono',monospace;">Zen opera sobre WhatsApp Cloud API y requiere un número de WhatsApp Business. En el plan Esencial redacta borradores que tú apruebas; en Profesional y Clínica responde y agenda de forma autónoma. La infraestructura de IA está gestionada por Zentro y va incluida en la cuota de cada plan, ampliable desde $5 USD por cada 1,000 respuestas adicionales. Zen no emite diagnósticos, indicaciones ni opiniones clínicas: transfiere esas conversaciones a una persona del equipo. Zentro Med es software de gestión comercial y no es un sistema de expediente clínico. Los datos se almacenan cifrados en tránsito y en reposo conforme a la Ley 1581 de 2012.</p>
+    <p style="max-width:820px;margin:36px auto 0;font-size:10.5px;line-height:1.8;color:var(--zm-muted2);font-family:'IBM Plex Mono',monospace;">Zen opera sobre WhatsApp Cloud API y requiere un número de WhatsApp Business. En el plan Esencial redacta borradores que tú apruebas; en Profesional y Clínica responde y agenda de forma autónoma. La infraestructura de IA está gestionada por Zentro y va incluida en la cuota de cada plan, ampliable desde $5 USD por cada 1,000 respuestas adicionales. Zen no emite diagnósticos, indicaciones ni opiniones clínicas: transfiere esas conversaciones a una persona del equipo. Zentro Med es software de gestión comercial y no es un sistema de expediente clínico. Los datos se almacenan cifrados en tránsito y en reposo conforme a la Ley 1581 de 2012.</p>
   </div>
 </section>
 
@@ -466,7 +465,7 @@ export const ZEN_BODY_HTML = `
 <footer>
   <div class="wrap">
     <div class="foot-i">
-      <span style="color:rgba(255,255,255,.3);">© 2026 Zentro Labs · <a href="https://zentrolabs.com">zentrolabs.com</a></span>
+      <span style="color:var(--zm-muted2);">© 2026 Zentro Labs · <a href="https://zentrolabs.com">zentrolabs.com</a></span>
       <span><a href="https://zentrolabs.com/privacidad.html">Privacidad</a> · <a href="https://zentrolabs.com/terminos.html">Términos</a> · <a href="mailto:hello@zentrolabs.com">hello@zentrolabs.com</a></span>
     </div>
   </div>
