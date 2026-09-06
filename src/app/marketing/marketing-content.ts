@@ -468,10 +468,10 @@ export const MARKETING_BODY_HTML = `
       <p class="section-sub" style="color:rgba(255,255,255,.5);margin:14px auto 0;">Una agencia te entrega mensajes y ahí termina. Los planes incluyen Zentro Med, el sistema donde vive la agenda y el WhatsApp del consultorio. Es lo que convierte ese mensaje en una cita, y lo que nos permite decirte cuántos pacientes te trajimos de verdad.</p>
     </div>
     <div class="reveal" style="display:flex;justify-content:center;gap:32px;flex-wrap:wrap;margin:36px 0;text-align:center;">
-      <div><div class="stat-n2">4 de 10</div><div class="stat-l2">mensajes de pauta llegan fuera de horario</div></div>
-      <div><div class="stat-n2">&lt;1 min</div><div class="stat-l2">tarda Zen en contestarlos</div></div>
-      <div><div class="stat-n2">1 de 5</div><div class="stat-l2">citas se cae sin confirmación automática</div></div>
-      <div><div class="stat-n2"><span>$0</span></div><div class="stat-l2">extra: viene en los tres planes</div></div>
+      <div><div class="stat-n2" style="color:var(--zm-white);">4 de 10</div><div class="stat-l2" style="color:rgba(255,255,255,.5);">mensajes de pauta llegan fuera de horario</div></div>
+      <div><div class="stat-n2" style="color:var(--zm-white);">&lt;1 min</div><div class="stat-l2" style="color:rgba(255,255,255,.5);">tarda Zen en contestarlos</div></div>
+      <div><div class="stat-n2" style="color:var(--zm-white);">1 de 5</div><div class="stat-l2" style="color:rgba(255,255,255,.5);">citas se cae sin confirmación automática</div></div>
+      <div><div class="stat-n2"><span>$0</span></div><div class="stat-l2" style="color:rgba(255,255,255,.5);">extra: viene en los tres planes</div></div>
     </div>
     <div class="fx-grid reveal-group">
       <div class="fx-card" style="background:rgba(255,255,255,.03);border-color:rgba(255,255,255,.08);">

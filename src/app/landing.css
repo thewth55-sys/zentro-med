@@ -224,7 +224,7 @@
   .zm-landing .pricing-header { text-align: center; margin-bottom: 16px; }
   .zm-landing .pricing-sub-note { text-align: center; font-size: 13px; color: var(--zm-muted); margin-bottom: 52px;
                       font-family: 'IBM Plex Mono', monospace; }
-  .zm-landing .plans-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 16px; align-items: start; }
+  .zm-landing .plans-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 16px; align-items: start; margin: 0 auto; }
   @media(max-width:1060px) { .zm-landing .plans-grid { grid-template-columns: repeat(2,1fr); } }
   @media(max-width:580px)  { .zm-landing .plans-grid { grid-template-columns: 1fr; max-width: 380px; margin: 0 auto; } }
 
