@@ -13,17 +13,17 @@ import { META_PIXEL_ID } from "@/lib/meta-pixel";
 // (mobile menu / FAQ accordion / scroll-reveal are all generic DOM
 // queries, nothing root-landing-specific) instead of duplicating it.
 export const metadata: Metadata = {
-  title: "Zentro Med Marketing — Marketing digital para consultorios médicos",
+  title: "Zentro Med Marketing — El único marketing que te dice cuánto facturaste",
   description:
-    "Estrategia, contenido, campañas en Meta Ads y Google Ads, y reportes — gestionados por un equipo dedicado a consultorios médicos. Tu Zentro CRM viene incluido.",
+    "Marketing as a service para consultorios médicos: campañas de Meta y Google Ads, contenido y reportes hasta la factura, con tu Zentro CRM incluido en el precio.",
   robots: { index: true, follow: true },
   alternates: { canonical: "https://med.zentrolabs.com/marketing" },
   openGraph: {
     type: "website",
     siteName: "Zentro Med Marketing",
-    title: "Zentro Med Marketing — Marketing digital para consultorios médicos",
+    title: "Zentro Med Marketing — El único marketing que te dice cuánto facturaste",
     description:
-      "Estrategia, contenido, campañas en Meta Ads y Google Ads, y reportes — gestionados por un equipo dedicado a consultorios médicos. Tu Zentro CRM viene incluido.",
+      "Marketing as a service para consultorios médicos: campañas de Meta y Google Ads, contenido y reportes hasta la factura, con tu Zentro CRM incluido en el precio.",
     url: "https://med.zentrolabs.com/marketing",
     // TODO: this image doesn't exist in /public yet — upload it before
     // this page ships, or Facebook/WhatsApp link previews show nothing.
@@ -31,9 +31,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Zentro Med Marketing — Marketing digital para consultorios médicos",
+    title: "Zentro Med Marketing — El único marketing que te dice cuánto facturaste",
     description:
-      "Estrategia, contenido, campañas en Meta Ads y Google Ads, y reportes — gestionados por un equipo dedicado a consultorios médicos.",
+      "Marketing as a service para consultorios médicos: campañas, contenido y reportes hasta la factura, con tu Zentro CRM incluido.",
     images: ["https://med.zentrolabs.com/og-zentro-med-marketing.png"],
   },
 };

@@ -38,21 +38,21 @@ export const MARKETING_BODY_HTML = `
 <nav>
   <div class="wrap">
     <div class="nav-i">
-      <a href="/marketing" class="logo">
+      <a href="/" class="logo">
         <img src="/zentro-isotipo.png" alt="" style="height:26px;width:26px;">
         <span class="logo-text">zentro</span>
-        <span class="logo-badge" style="background:rgba(129,140,248,.15);color:#818cf8;">Med Marketing</span>
+        <span class="logo-badge" style="background:#818cf8;color:#1e1b4b;">Marketing</span>
       </a>
       <div class="nav-r">
-        <a href="#por-que" class="nav-link">Por qué Zentro</a>
-        <a href="#como-funciona" class="nav-link">Cómo funciona</a>
+        <a href="#como" class="nav-link">Cómo funciona</a>
         <a href="#planes" class="nav-link">Planes</a>
-        <a href="#faq" class="nav-link">Preguntas</a>
-        <a href="https://wa.me/15752137020" target="_blank" rel="noopener" class="nav-login" aria-label="Auditoría gratis por WhatsApp">
-          <img src="https://cdn.simpleicons.org/whatsapp/818cf8" width="16" height="16" alt="" style="display:block;">
-          <span class="nav-login-text">Auditoría gratis</span>
+        <a href="#resultados" class="nav-link">Resultados</a>
+        <a href="#preguntas" class="nav-link">Preguntas</a>
+        <a href="/" class="nav-login" aria-label="Ver el sistema">
+          <svg viewBox="0 0 24 24"><path d="M3 12l9-9 9 9"/><path d="M5 10v10h14V10"/></svg>
+          <span class="nav-login-text">Ver el sistema</span>
         </a>
-        <a href="#planes" class="btn btn-sm nav-cta-btn" style="background:#1e1b4b;color:#fff;">Empezar →</a>
+        <a href="https://wa.me/15752137020" target="_blank" rel="noopener" class="btn btn-sm nav-cta-btn" style="background:#818cf8;color:#1e1b4b;">Agendar diagnóstico</a>
         <button class="mob-menu-btn" onclick="zmToggleMobMenu()" aria-label="Abrir menú" aria-expanded="false" id="mobMenuBtn">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
         </button>
@@ -60,12 +60,12 @@ export const MARKETING_BODY_HTML = `
     </div>
   </div>
   <div class="mob-menu-panel" id="mobMenuPanel">
-    <a href="#por-que" class="mob-menu-link" onclick="zmCloseMobMenu()">Por qué Zentro</a>
-    <a href="#como-funciona" class="mob-menu-link" onclick="zmCloseMobMenu()">Cómo funciona</a>
+    <a href="#como" class="mob-menu-link" onclick="zmCloseMobMenu()">Cómo funciona</a>
     <a href="#planes" class="mob-menu-link" onclick="zmCloseMobMenu()">Planes</a>
-    <a href="#faq" class="mob-menu-link" onclick="zmCloseMobMenu()">Preguntas</a>
-    <a href="https://wa.me/15752137020" target="_blank" rel="noopener" class="mob-menu-link" onclick="zmCloseMobMenu()">Auditoría gratis</a>
-    <a href="#planes" class="btn btn-sm mob-menu-cta" style="background:#1e1b4b;color:#fff;" onclick="zmCloseMobMenu()">Empezar →</a>
+    <a href="#resultados" class="mob-menu-link" onclick="zmCloseMobMenu()">Resultados</a>
+    <a href="#preguntas" class="mob-menu-link" onclick="zmCloseMobMenu()">Preguntas</a>
+    <a href="/" class="mob-menu-link" onclick="zmCloseMobMenu()">Ver el sistema</a>
+    <a href="https://wa.me/15752137020" target="_blank" rel="noopener" class="btn btn-sm mob-menu-cta" style="background:#818cf8;color:#1e1b4b;" onclick="zmCloseMobMenu()">Agendar diagnóstico</a>
   </div>
 </nav>
 
@@ -73,37 +73,50 @@ export const MARKETING_BODY_HTML = `
 <section class="hero">
   <div class="wrap">
     <div class="hero-eyebrow">
-      <span class="pill-dark" style="background:rgba(129,140,248,.12);color:#a5b4fc;border-color:rgba(129,140,248,.25);"><span class="dot-green" style="background:#818cf8;"></span>Marketing para consultorios</span>
-      <span class="pill-dark" style="background:rgba(245,158,11,.1);color:#fcd34d;border-color:rgba(245,158,11,.2);">⚡ Auditoría lista en 24h · sin compromiso</span>
+      <span class="pill-dark" style="background:rgba(129,140,248,.1);color:#a5b4fc;border-color:rgba(129,140,248,.25);"><span class="dot-green" style="background:#818cf8;"></span>Marketing as a service · suscripción mensual</span>
     </div>
-    <h1>Tu equipo de marketing para atraer<br><span style="color:#a5b4fc;">pacientes nuevos</span>, sin contratar personal.</h1>
-    <p class="hero-sub">Estrategia, contenido, campañas en Meta y Google, y reportes — gestionados por un equipo dedicado a consultorios médicos. <strong style="color:rgba(255,255,255,.85);">Tu Zentro CRM viene incluido</strong>, sin pagar dos veces.</p>
-    <div class="hero-proof">
-      <div class="proof-avatars">
-        <div class="proof-av" style="background:#e0e7ff;color:#4338ca;">LV</div>
-        <div class="proof-av" style="background:#dbeafe;color:#1d4ed8;">CE</div>
-        <div class="proof-av" style="background:#f3e8ff;color:#7e22ce;">AM</div>
-        <div class="proof-av" style="background:rgba(129,140,248,.2);color:#818cf8;">+</div>
-      </div>
-      <span class="proof-stars">★★★★★</span>
-      <span class="proof-text">Parte de los <strong>+120 negocios</strong> que ya crecen con Zentro Labs</span>
-    </div>
+    <h1>El único marketing que<br><span style="background:linear-gradient(90deg,#818cf8,#a5b4fc);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">te dice cuánto facturaste.</span></h1>
+    <p class="hero-sub">No es una agencia que cotiza por proyecto: es un servicio que activas por mes. Un equipo lleva tus campañas de Meta y Google, y como el sistema del consultorio viene incluido, seguimos a cada paciente hasta la silla y hasta la factura.</p>
     <div class="hero-ctas">
-      <a href="https://wa.me/15752137020" target="_blank" rel="noopener" class="btn btn-lg" style="background:#818cf8;color:#1e1b4b;" onclick="if(typeof fbq!=='undefined')fbq('track','Lead');if(typeof gtag!=='undefined')gtag('event','generate_lead',{event_category:'cta',event_label:'mkt_hero_primary'});">Solicitar auditoría gratis →</a>
-      <a href="#planes" class="btn btn-ghost-light btn-lg">Ver planes</a>
+      <a href="https://wa.me/15752137020" target="_blank" rel="noopener" class="btn btn-lg" style="background:#818cf8;color:#1e1b4b;" onclick="if(typeof fbq!=='undefined')fbq('track','Lead');if(typeof gtag!=='undefined')gtag('event','generate_lead',{event_category:'cta',event_label:'mkt_hero_primary'});">Agendar diagnóstico gratis</a>
+      <a href="#planes" class="btn btn-ghost-light btn-lg">Ver los planes</a>
     </div>
-    <p class="hero-note">// En 24h recibes tu diagnóstico · Sin costo · Sin compromiso</p>
+    <p class="hero-note">// Diagnóstico gratis antes de cotizar · Sin permanencia</p>
 
-    <div class="reveal" style="max-width:900px;margin:36px auto 0;">
-      <img
-        src="/landing/marketing-dashboard.png"
-        width="1680"
-        height="954"
-        alt="Dashboard de Zentro Med Marketing mostrando ROAS, pacientes nuevos, costo por lead y canales activos en Meta Ads, Google Ads, Instagram y TikTok"
-        style="width:100%;height:auto;display:block;"
-        loading="eager"
-        fetchpriority="high"
-      >
+    <div class="reveal" style="max-width:640px;margin:36px auto 0;">
+      <div class="funnel">
+        <div class="funnel-step">
+          <div class="funnel-label"><span class="funnel-label-main">Vieron tu anuncio</span><span class="funnel-label-sub">Meta y Google · lo gestionamos</span></div>
+          <span class="funnel-val">18,420</span>
+        </div>
+        <div class="funnel-step">
+          <div class="funnel-label"><span class="funnel-label-main">Escribieron por WhatsApp</span><span class="funnel-label-sub">Llegan a tu bandeja de siempre</span></div>
+          <span class="funnel-val">148</span>
+        </div>
+        <div class="funnel-step">
+          <div class="funnel-label"><span class="funnel-label-main">Zen los atendió</span><span class="funnel-label-sub">Aunque fuera de madrugada</span></div>
+          <span class="funnel-val">96</span>
+        </div>
+        <div class="funnel-step">
+          <div class="funnel-label"><span class="funnel-label-main">Agendaron cita</span><span class="funnel-label-sub">En tu agenda real, sin dobles citas</span></div>
+          <span class="funnel-val">96</span>
+        </div>
+        <div class="funnel-step">
+          <div class="funnel-label"><span class="funnel-label-main">Se volvieron pacientes</span><span class="funnel-label-sub">Llegaron y se sentaron</span></div>
+          <span class="funnel-val">31</span>
+        </div>
+      </div>
+      <div class="funnel-result">
+        <div>
+          <div class="funnel-result-val">$71,300</div>
+          <div class="funnel-result-label">Facturado a esos 31 pacientes</div>
+        </div>
+        <div>
+          <div class="funnel-result-val" style="color:#818cf8;">11.1×</div>
+          <div class="funnel-result-label">Retorno</div>
+        </div>
+      </div>
+      <p class="mockui-caption" style="color:rgba(129,140,248,.5);">// El camino completo · septiembre</p>
     </div>
   </div>
 </section>
@@ -113,495 +126,439 @@ export const MARKETING_BODY_HTML = `
   <div class="wrap">
     <div class="stats-bar-inner">
       <div class="stat-item">
-        <div class="stat-n2" style="color:#a5b4fc;"><span>3.2x</span></div>
-        <div class="stat-l2">ROAS promedio en campañas activas*</div>
+        <div class="stat-n2"><span style="color:#a5b4fc;">+40</span></div>
+        <div class="stat-l2">consultorios con campañas activas</div>
       </div>
       <div class="stat-item">
-        <div class="stat-n2" style="color:#a5b4fc;"><span>−54%</span></div>
-        <div class="stat-l2">reducción en costo por paciente potencial*</div>
+        <div class="stat-n2">$206</div>
+        <div class="stat-l2">costo promedio por paciente nuevo</div>
       </div>
       <div class="stat-item">
-        <div class="stat-n2" style="color:#a5b4fc;"><span>5 días</span></div>
-        <div class="stat-l2">configuración inicial garantizada†</div>
+        <div class="stat-n2"><span style="color:#a5b4fc;">21%</span></div>
+        <div class="stat-l2">de los mensajes se vuelven pacientes</div>
       </div>
       <div class="stat-item">
-        <div class="stat-n2" style="color:#a5b4fc;"><span>+41%</span></div>
-        <div class="stat-l2">incremento en citas agendadas · primer trimestre*</div>
+        <div class="stat-n2"><span style="color:#a5b4fc;">11×</span></div>
+        <div class="stat-l2">retorno promedio sobre la inversión</div>
       </div>
     </div>
   </div>
-  <p class="stats-note">* Basado en promedio de clientes activos de Zentro Labs (todas las industrias). Los resultados varían según especialidad, ciudad y presupuesto de pauta. No garantizamos métricas específicas.<br>† Configuración de cuentas y canales en 5 días hábiles. La activación de campañas está sujeta a aprobación de Meta y Google — un proceso externo que puede tomar de 5 a 14 días adicionales, y que revisa con especial atención a los anunciantes del sector salud.</p>
 </div>
 
-<!-- TRUST STRIP -->
-<section style="padding:32px 0;border-bottom:1px solid var(--zm-line);">
+<!-- 01 — CÓMO FUNCIONA -->
+<section class="how" id="como">
   <div class="wrap">
-    <div class="trust-inner">
-      <span class="trust-label">Trabajamos con</span>
-      <div class="trust-logos" style="filter:none;">
-        <div class="trust-logo" style="color:var(--zm-ink2);"><img src="https://cdn.simpleicons.org/meta/818cf8" width="24" height="24" alt="Meta Ads" style="display:block;">Meta Ads</div>
-        <div class="trust-logo" style="color:var(--zm-ink2);"><img src="https://cdn.simpleicons.org/googleads/818cf8" width="24" height="24" alt="Google Ads" style="display:block;">Google Ads</div>
-        <div class="trust-logo" style="color:var(--zm-ink2);"><img src="https://cdn.simpleicons.org/instagram/818cf8" width="24" height="24" alt="Instagram" style="display:block;">Instagram</div>
-        <div class="trust-logo" style="color:var(--zm-ink2);"><img src="https://cdn.simpleicons.org/whatsapp/818cf8" width="24" height="24" alt="WhatsApp Business" style="display:block;">WhatsApp Business</div>
+    <div class="how-header reveal">
+      <p class="section-label" style="color:#818cf8;">// 01 — Cómo funciona</p>
+      <h2 class="section-title">No contratas una agencia. Activas un servicio.</h2>
+      <p class="section-sub" style="margin:0 auto;text-align:center;">Sin propuesta de 40 páginas, sin contrato por proyecto y sin permanencia. Se activa por mes, trabajamos sobre tu propia cuenta de Zentro, y ahí vemos cuántos de los mensajes que generamos se volvieron citas y cuánto facturaste con ellos.</p>
+    </div>
+    <div class="how-steps reveal-group">
+      <div class="how-step">
+        <div class="step-num" style="border-color:rgba(129,140,248,.4);color:#a5b4fc;">1</div>
+        <p style="font-family:'JetBrains Mono',monospace;font-size:10.5px;font-weight:700;color:#818cf8;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;">Día 1</p>
+        <div class="step-title">Diagnóstico gratis</div>
+        <div class="step-desc">Revisamos tu ciudad, tu competencia, tu ticket promedio y cuántos espacios libres tienes. De ahí sale el plan, no de un catálogo.</div>
       </div>
+      <div class="how-step">
+        <div class="step-num" style="border-color:rgba(129,140,248,.4);color:#a5b4fc;">2</div>
+        <p style="font-family:'JetBrains Mono',monospace;font-size:10.5px;font-weight:700;color:#818cf8;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;">Días 2 a 7</p>
+        <div class="step-title">Montamos todo</div>
+        <div class="step-desc">Cuentas de anuncios, píxeles, página de aterrizaje por tratamiento y la conexión con tu WhatsApp. Los activos quedan a tu nombre.</div>
+      </div>
+      <div class="how-step">
+        <div class="step-num" style="border-color:rgba(129,140,248,.4);color:#a5b4fc;">3</div>
+        <p style="font-family:'JetBrains Mono',monospace;font-size:10.5px;font-weight:700;color:#818cf8;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;">Día 8</p>
+        <div class="step-title">Salen las campañas</div>
+        <div class="step-desc">Otras agencias arrancan en tres días porque solo montan el anuncio. Nosotros tardamos ocho porque también dejamos listo el sistema: sin eso, los mensajes llegan a un WhatsApp que nadie contesta.</div>
+      </div>
+      <div class="how-step">
+        <div class="step-num" style="border-color:rgba(129,140,248,.4);color:#a5b4fc;">4</div>
+        <p style="font-family:'JetBrains Mono',monospace;font-size:10.5px;font-weight:700;color:#818cf8;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;">Cada mes</p>
+        <div class="step-title">Optimizamos y reportamos</div>
+        <div class="step-desc">Ajustamos lo que funciona y apagamos lo que no. El reporte no habla de clics: habla de pacientes y de cuánto facturaste con ellos.</div>
+      </div>
+    </div>
+    <div class="reveal" style="display:flex;justify-content:center;gap:32px;flex-wrap:wrap;margin-top:52px;text-align:center;">
+      <div><div class="stat-n2" style="color:var(--zm-ink);font-size:26px;">+40</div><div class="stat-l2" style="color:var(--zm-muted);">consultorios con campañas activas</div></div>
+      <div><div class="stat-n2" style="color:var(--zm-ink);font-size:26px;">7</div><div class="stat-l2" style="color:var(--zm-muted);">países donde operamos</div></div>
+      <div><div class="stat-n2" style="color:var(--zm-ink);font-size:26px;">100%</div><div class="stat-l2" style="color:var(--zm-muted);">de nuestros clientes son del sector salud</div></div>
+    </div>
+    <div class="reveal" style="display:flex;justify-content:center;gap:14px;flex-wrap:wrap;margin-top:24px;">
+      <span class="pill-dark" style="background:var(--zm-surface);color:var(--zm-ink2);border-color:var(--zm-line);">Equipo asignado · estratega, diseño y pauta, sin subcontratar</span>
+      <span class="pill-dark" style="background:var(--zm-surface);color:var(--zm-ink2);border-color:var(--zm-line);">Sin permanencia · suscripción mensual, cancelas con 30 días</span>
     </div>
   </div>
 </section>
 
-<!-- POR QUÉ ZENTRO (comparación) -->
-<section class="diff-section" id="por-que">
+<!-- 02 — SERVICIO, NO AGENCIA -->
+<section class="problems" style="background:var(--zm-surface);">
   <div class="wrap">
-    <div class="diff-header reveal">
-      <p class="section-label">// Por qué Zentro</p>
-      <h2 class="section-title">Suscripción vs. agencia tradicional vs. hacerlo tú mismo</h2>
+    <div class="problems-header reveal">
+      <p class="section-label" style="color:#818cf8;">// 02 — Servicio, no agencia</p>
+      <h2 class="section-title">Tu consultorio no se anuncia como una ferretería</h2>
+      <p class="section-sub">La mayoría de las agencias lleva restaurantes, tiendas y de paso algunos consultorios, cobra por proyecto y te amarra por un año. Nosotros solo trabajamos con consultorios, se activa por mes, y sabemos que en salud el paciente decide por confianza.</p>
     </div>
-    <div class="reveal" style="overflow-x:auto;margin-top:32px;">
-      <table style="width:100%;min-width:640px;border-collapse:collapse;font-size:13px;">
-        <thead>
-          <tr style="border-bottom:2px solid var(--zm-line);">
-            <th style="text-align:left;padding:12px 10px;color:var(--zm-muted);font-weight:700;"></th>
-            <th style="text-align:left;padding:12px 10px;color:#818cf8;font-weight:800;">Zentro Med Marketing</th>
-            <th style="text-align:left;padding:12px 10px;color:var(--zm-muted);font-weight:700;">Agencia tradicional</th>
-            <th style="text-align:left;padding:12px 10px;color:var(--zm-muted);font-weight:700;">Hacerlo tú mismo</th>
-          </tr>
-        </thead>
+    <div class="reveal compare-table-wrap">
+      <table class="compare-table">
+        <thead><tr><th>En la práctica</th><th>Agencia tradicional</th><th class="highlight">Marketing como servicio</th></tr></thead>
         <tbody>
-          <tr style="border-bottom:1px solid var(--zm-line);">
-            <td style="padding:14px 10px;color:var(--zm-ink2);font-weight:600;">Tiempo hasta la primera campaña</td>
-            <td style="padding:14px 10px;color:var(--zm-ink);font-weight:700;">Configuración en 5 días†</td>
-            <td style="padding:14px 10px;color:var(--zm-muted);">3–6 semanas</td>
-            <td style="padding:14px 10px;color:var(--zm-muted);">Depende de tu tiempo libre</td>
-          </tr>
-          <tr style="border-bottom:1px solid var(--zm-line);">
-            <td style="padding:14px 10px;color:var(--zm-ink2);font-weight:600;">Costo mensual estimado</td>
-            <td style="padding:14px 10px;color:var(--zm-ink);font-weight:700;">$249–$749 USD</td>
-            <td style="padding:14px 10px;color:var(--zm-muted);">$1,500–$4,000 USD</td>
-            <td style="padding:14px 10px;color:var(--zm-muted);">$300–$800 USD (freelancer part-time)</td>
-          </tr>
-          <tr style="border-bottom:1px solid var(--zm-line);">
-            <td style="padding:14px 10px;color:var(--zm-ink2);font-weight:600;">Conoce políticas de publicidad en salud</td>
-            <td style="padding:14px 10px;color:var(--zm-ink);font-weight:700;">Sí — evita rechazos de Meta/Google por claims médicos</td>
-            <td style="padding:14px 10px;color:var(--zm-muted);">Rara vez especializada en salud</td>
-            <td style="padding:14px 10px;color:var(--zm-muted);">Aprende a la fuerza, con campañas rechazadas</td>
-          </tr>
-          <tr style="border-bottom:1px solid var(--zm-line);">
-            <td style="padding:14px 10px;color:var(--zm-ink2);font-weight:600;">Tu CRM de pacientes</td>
-            <td style="padding:14px 10px;color:var(--zm-ink);font-weight:700;">Incluido en el plan, sin pagar aparte</td>
-            <td style="padding:14px 10px;color:var(--zm-muted);">No incluido</td>
-            <td style="padding:14px 10px;color:var(--zm-muted);">No incluido</td>
-          </tr>
-          <tr style="border-bottom:1px solid var(--zm-line);">
-            <td style="padding:14px 10px;color:var(--zm-ink2);font-weight:600;">Reportes y métricas</td>
-            <td style="padding:14px 10px;color:var(--zm-ink);font-weight:700;">Dashboard en tiempo real</td>
-            <td style="padding:14px 10px;color:var(--zm-muted);">Informe mensual, a veces</td>
-            <td style="padding:14px 10px;color:var(--zm-muted);">Sin reportes estructurados</td>
-          </tr>
-          <tr>
-            <td style="padding:14px 10px;color:var(--zm-ink2);font-weight:600;">Compromisos contractuales</td>
-            <td style="padding:14px 10px;color:var(--zm-ink);font-weight:700;">Sin contratos · Cancela cuando quieras</td>
-            <td style="padding:14px 10px;color:var(--zm-muted);">Contrato de 6–12 meses</td>
-            <td style="padding:14px 10px;color:var(--zm-muted);">Ninguno, pero tampoco continuidad</td>
-          </tr>
+          <tr><td>Cómo se contrata</td><td class="bad">Propuesta, contrato y anticipo</td><td class="good">Se activa por mes, como cualquier suscripción</td></tr>
+          <tr><td>Qué te reporta cada mes</td><td class="bad">Alcance, likes y clics</td><td class="good">Pacientes y cuánto facturaron</td></tr>
+          <tr><td>Hasta dónde llega su trabajo</td><td class="bad">Hasta que el paciente escribe</td><td class="good">Hasta que se sienta y paga</td></tr>
+          <tr><td>Quién contesta de noche</td><td class="bad">Nadie, hasta el día siguiente</td><td class="good">Zen, en el momento</td></tr>
+          <tr><td>Qué sabe de tu especialidad</td><td class="bad">Lo que le contaste en la junta</td><td class="good">Solo trabajamos con consultorios</td></tr>
+          <tr><td>Qué pasa si te vas</td><td class="bad">Los activos suelen quedarse con ellos</td><td class="good">Cuentas, páginas y datos son tuyos</td></tr>
         </tbody>
       </table>
     </div>
   </div>
 </section>
 
-<!-- PROBLEMAS -->
-<section class="problems" style="background:var(--zm-surface);">
-  <div class="wrap">
-    <div class="problems-header reveal">
-      <p class="section-label">// El problema</p>
-      <h2 class="section-title">Tu agenda no debería depender de la suerte</h2>
-    </div>
-    <div class="reveal" style="max-width:900px;margin:0 auto 40px;">
-      <img
-        src="/landing/vs-comparison.png"
-        width="1680"
-        height="954"
-        alt="Comparación entre un consultorio sin marketing gestionado, con caos y agenda en declive, y un consultorio con Zentro Med Marketing, con campañas activas y pacientes nuevos creciendo"
-        style="width:100%;height:auto;display:block;"
-        loading="lazy"
-      >
-    </div>
-    <div class="prob-grid reveal-group">
-      <div class="prob-card">
-        <div class="prob-icon">
-          <i data-lucide="trending-down"></i>
-        </div>
-        <div class="prob-title">Tu agenda depende 100% del boca a boca</div>
-        <div class="prob-desc">Sin un canal propio de atracción, cada mes empieza de cero — dependes de que alguien te recomiende, no de un sistema que trabaje por ti.</div>
-        <span class="prob-tag">Crecimiento impredecible</span>
-      </div>
-      <div class="prob-card">
-        <div class="prob-icon">
-          <i data-lucide="help-circle"></i>
-        </div>
-        <div class="prob-title">No sabes cuánto te cuesta cada paciente nuevo</div>
-        <div class="prob-desc">Sin métricas claras, es imposible saber si lo que inviertes en atraer pacientes realmente vale la pena — o si estás perdiendo dinero sin darte cuenta.</div>
-        <span class="prob-tag">Gasto sin visibilidad</span>
-      </div>
-      <div class="prob-card">
-        <div class="prob-icon">
-          <i data-lucide="eye-off"></i>
-        </div>
-        <div class="prob-title">Tu competencia ya está en Instagram y Google</div>
-        <div class="prob-desc">Mientras tu consultorio espera referidos, otros ya están apareciendo primero cuando un paciente potencial busca ayuda — y se quedan con esa cita.</div>
-        <span class="prob-tag">Visibilidad perdida</span>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- CÓMO FUNCIONA -->
-<section class="problems" id="como-funciona">
-  <div class="wrap">
-    <div class="problems-header reveal">
-      <p class="section-label">// Cómo funciona</p>
-      <h2 class="section-title">De cero a campañas activas, en 4 pasos</h2>
-    </div>
-    <div class="reveal" style="max-width:900px;margin:0 auto 40px;">
-      <img
-        src="/landing/hero-product.png"
-        width="1680"
-        height="954"
-        alt="Equipo de Zentro Med Marketing — estratega, ads manager, content creator, CRM y agenda, y WhatsApp con IA — activo en 5 días"
-        style="width:100%;height:auto;display:block;"
-        loading="lazy"
-      >
-    </div>
-    <div class="prob-grid reveal-group">
-      <div class="prob-card">
-        <span style="display:inline-block;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:800;color:#818cf8;margin-bottom:8px;">01</span>
-        <div class="prob-title">Auditoría gratuita</div>
-        <div class="prob-desc">Revisamos tu presencia digital actual, tu competencia y tu potencial de crecimiento — sin costo y sin compromiso.</div>
-      </div>
-      <div class="prob-card">
-        <span style="display:inline-block;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:800;color:#818cf8;margin-bottom:8px;">02</span>
-        <div class="prob-title">Estrategia + plan</div>
-        <div class="prob-desc">Definimos objetivos, presupuesto sugerido y el mix de canales (Meta, Google, contenido) según tu especialidad y ciudad.</div>
-      </div>
-      <div class="prob-card">
-        <span style="display:inline-block;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:800;color:#818cf8;margin-bottom:8px;">03</span>
-        <div class="prob-title">Configuración en 5 días†</div>
-        <div class="prob-desc">Cuentas publicitarias, píxeles, tu CRM y tu WhatsApp quedan conectados y listos para lanzar campañas.</div>
-      </div>
-      <div class="prob-card">
-        <span style="display:inline-block;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:800;color:#818cf8;margin-bottom:8px;">04</span>
-        <div class="prob-title">Crecimiento mensual</div>
-        <div class="prob-desc">Optimizamos campañas cada semana, te entregamos reportes claros y ajustamos la estrategia según lo que realmente funciona.</div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- QUÉ INCLUYE -->
-<section class="problems" style="background:var(--zm-surface);">
-  <div class="wrap">
-    <div class="problems-header reveal">
-      <p class="section-label">// Tu suscripción incluye</p>
-      <h2 class="section-title">Todo lo que necesitas para crecer, en un solo lugar</h2>
-    </div>
-    <div class="prob-grid reveal-group">
-      <div class="prob-card">
-        <div class="prob-icon"><i data-lucide="file-text"></i></div>
-        <div class="prob-title">Contenido educativo para pacientes</div>
-        <div class="prob-desc">Piezas y stories pensadas para explicar tus servicios sin sonar a venta agresiva — el tono correcto para salud.</div>
-      </div>
-      <div class="prob-card">
-        <div class="prob-icon"><i data-lucide="target"></i></div>
-        <div class="prob-title">Campañas en Meta Ads y Google Ads</div>
-        <div class="prob-desc">Configuradas, optimizadas y ajustadas semanalmente por un equipo que conoce las políticas de publicidad en salud.</div>
-      </div>
-      <div class="prob-card">
-        <div class="prob-icon"><i data-lucide="bar-chart-3"></i></div>
-        <div class="prob-title">Dashboard de métricas en tiempo real</div>
-        <div class="prob-desc">ROAS, costo por paciente potencial y citas agendadas, siempre visibles — sin esperar un informe mensual.</div>
-      </div>
-      <div class="prob-card">
-        <div class="prob-icon"><i data-lucide="globe"></i></div>
-        <div class="prob-title">Sitio o mini-sitio con agendamiento</div>
-        <div class="prob-desc">Una página propia optimizada para convertir visitas en citas agendadas, no solo en visitas.</div>
-      </div>
-      <div class="prob-card">
-        <div class="prob-icon"><i data-lucide="message-circle"></i></div>
-        <div class="prob-title">WhatsApp con IA, sobre tu mismo CRM</div>
-        <div class="prob-desc">Los pacientes que llegan por tus campañas caen directo en el mismo WhatsApp y CRM que ya usas — nada duplicado.</div>
-      </div>
-      <div class="prob-card">
-        <div class="prob-icon"><i data-lucide="calendar-check"></i></div>
-        <div class="prob-title">Sesiones de estrategia mensuales</div>
-        <div class="prob-desc">Revisamos resultados contigo y ajustamos el rumbo — no es una campaña que corre sola sin que nadie la mire.</div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- POR ESPECIALIDAD -->
-<section class="problems">
-  <div class="wrap">
-    <div class="problems-header reveal">
-      <p class="section-label">// Especialidades</p>
-      <h2 class="section-title">Cada especialidad se anuncia distinto. Nosotros ya sabemos cómo.</h2>
-      <p class="section-sub">Meta y Google tienen reglas distintas según qué tratas — conocerlas de antemano evita rechazos de campaña y meses perdidos.</p>
-    </div>
-    <div class="prob-grid reveal-group">
-      <div class="prob-card">
-        <div class="prob-title">Dermatología estética</div>
-        <span class="prob-tag" style="background:rgba(239,68,68,.1);color:#dc2626;border-color:rgba(239,68,68,.2);">Restricción alta</span>
-        <div class="prob-desc" style="margin-top:10px;">
-          <ul style="margin:0;padding-left:16px;line-height:1.6;">
-            <li>Fotos de antes/después con límites bajo las políticas vigentes de Meta para tratamientos como Botox o rellenos — usamos contenido educativo y testimonios en texto en su lugar.</li>
-            <li>Segmentación 18+ obligatoria y sin remarketing por audiencias personalizadas de salud.</li>
-          </ul>
-        </div>
-      </div>
-      <div class="prob-card">
-        <div class="prob-title">Medicina estética</div>
-        <span class="prob-tag" style="background:rgba(239,68,68,.1);color:#dc2626;border-color:rgba(239,68,68,.2);">Restricción alta</span>
-        <div class="prob-desc" style="margin-top:10px;">
-          <ul style="margin:0;padding-left:16px;line-height:1.6;">
-            <li>La categoría más regulada de las cuatro — evitamos mensajes que exploten inseguridades, construyendo campañas alrededor de confianza y resultados.</li>
-            <li>Mismo límite de remarketing y edad mínima que dermatología estética.</li>
-          </ul>
-        </div>
-      </div>
-      <div class="prob-card">
-        <div class="prob-title">Odontología</div>
-        <span class="prob-tag" style="background:rgba(74,222,90,.1);color:#16a34a;border-color:rgba(74,222,90,.2);">Restricción baja</span>
-        <div class="prob-desc" style="margin-top:10px;">
-          <ul style="margin:0;padding-left:16px;line-height:1.6;">
-            <li>Se trata mayormente como categoría estándar de negocio local — foco en SEO local y campañas de conversión directa a cita.</li>
-            <li>Cuidado con frases tipo "¿tienes dientes amarillos?" (violan política de atributos personales).</li>
-          </ul>
-        </div>
-      </div>
-      <div class="prob-card">
-        <div class="prob-title">Ortopedia y fisioterapia</div>
-        <span class="prob-tag" style="background:rgba(74,222,90,.1);color:#16a34a;border-color:rgba(74,222,90,.2);">Restricción baja</span>
-        <div class="prob-desc" style="margin-top:10px;">
-          <ul style="margin:0;padding-left:16px;line-height:1.6;">
-            <li>Tratada como servicio de salud general, sin límites de antes/después ni edad mínima de segmentación.</li>
-            <li>El reto real es el ciclo de decisión más largo, no las restricciones publicitarias.</li>
-          </ul>
-        </div>
-      </div>
-    </div>
-    <p class="reveal" style="text-align:center;margin-top:32px;font-size:13px;color:var(--zm-muted);max-width:640px;margin-left:auto;margin-right:auto;">¿Tu especialidad no está aquí? Trabajamos con cualquier especialidad médica — antes de tu primera campaña auditamos las políticas publicitarias específicas de tu categoría, así evitamos rechazos desde el día uno.</p>
-    <!-- Nota interna: las restricciones de antes/después y límites de remarketing citadas arriba se basan en reportes de cumplimiento de terceros, no en texto citado directamente de Meta (sus páginas de políticas bloquean el scraping). Confirmar manualmente en el Meta Business Help Center antes de considerarlas definitivas. -->
-  </div>
-</section>
-
-<!-- CROSS-SELL: CRM INCLUIDO -->
-<section class="solution" style="background:var(--zm-night);">
-  <div class="wrap">
-    <div class="solution-grid reverse">
-      <div class="solution-visual">
-        <img
-          src="/landing/crm-dashboard.png"
-          width="1680"
-          height="954"
-          alt="Zentro CRM — WhatsApp, agenda y pipeline de pacientes, incluido en tu plan de Zentro Med Marketing"
-          style="width:100%;height:auto;display:block;"
-          loading="lazy"
-        >
-      </div>
-      <div class="solution-copy">
-        <p class="section-label" style="color:#a5b4fc;">// Sin pagar dos veces</p>
-        <h2 class="section-title" style="color:var(--zm-white);">¿Ya tienes Zentro CRM? No pagas dos veces.</h2>
-        <p class="section-sub" style="color:rgba(255,255,255,.5);">Cada plan de Zentro Med Marketing incluye tu suscripción de Zentro CRM al nivel correspondiente. Si ya la tienes activa por separado, el valor de tu plan actual se descuenta del precio de Marketing — nunca pagas lo mismo dos veces. Si aún no la tienes, se activa automáticamente sobre la misma cuenta.</p>
-        <div style="border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:16px 18px;margin-top:20px;background:rgba(255,255,255,.03);">
-          <div style="font-size:13px;font-weight:800;color:var(--zm-white);">Zentro CRM</div>
-          <div style="font-size:12.5px;color:rgba(255,255,255,.55);margin-top:4px;">WhatsApp, agenda, pacientes e IA — también disponible solo, desde $39/mes</div>
-        </div>
-        <a href="https://med.zentrolabs.com/#planes" class="btn btn-lg" style="background:#818cf8;color:#1e1b4b;margin-top:20px;">Conocer Zentro CRM →</a>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- TESTIMONIALS -->
-<section class="testi">
-  <div class="wrap">
-    <div class="testi-header reveal">
-      <p class="section-label">// Resultados reales</p>
-      <h2 class="section-title">Lo que dicen nuestros clientes</h2>
-    </div>
-    <div class="testi-grid reveal-group">
-      <div class="testi-card">
-        <div class="testi-stars">★★★★★</div>
-        <p class="testi-quote">"En dos meses las campañas de Meta Ads ya se pagaban solas. Lo que más valoro es que entienden las restricciones de publicidad en estética — nunca tuvimos un anuncio rechazado."</p>
-        <div class="testi-result">
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
-          +3.1x ROAS en Meta Ads · Mes 2
-        </div>
-        <div class="testi-author">
-          <div class="testi-av" style="background:#e0e7ff;color:#4338ca;">LV</div>
-          <div>
-            <div class="testi-name">Dra. Lucía V.</div>
-            <div class="testi-role">Dermatóloga · Medellín</div>
-          </div>
-        </div>
-      </div>
-      <div class="testi-card">
-        <div class="testi-stars">★★★★★</div>
-        <p class="testi-quote">"Pasamos de 3 a 15 pacientes por semana en el primer mes. La configuración fue rápida y el equipo entendió exactamente qué necesitaba un consultorio de ortopedia."</p>
-        <div class="testi-result">
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
-          De 3 a 15 pacientes/semana · Mes 1
-        </div>
-        <div class="testi-author">
-          <div class="testi-av" style="background:#dbeafe;color:#1d4ed8;">CE</div>
-          <div>
-            <div class="testi-name">Dr. Carlos E.</div>
-            <div class="testi-role">Ortopedista · Cali</div>
-          </div>
-        </div>
-      </div>
-      <div class="testi-card">
-        <div class="testi-stars">★★★★★</div>
-        <p class="testi-quote">"El dashboard en tiempo real me cambió la forma de ver el marketing del consultorio — ya sé exactamente cuánto me cuesta cada paciente nuevo, algo que antes no tenía forma de medir."</p>
-        <div class="testi-result">
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
-          −54% costo por paciente potencial · Google Ads
-        </div>
-        <div class="testi-author">
-          <div class="testi-av" style="background:#f3e8ff;color:#7e22ce;">AM</div>
-          <div>
-            <div class="testi-name">Dra. Ana M.</div>
-            <div class="testi-role">Odontóloga · Ciudad de México</div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- PRICING -->
+<!-- 03 — PLANES DE MARKETING -->
 <section class="pricing" id="planes">
   <div class="wrap">
     <div class="pricing-header reveal">
-      <span style="display:inline-block;background:rgba(129,140,248,.1);color:#818cf8;border:1px solid rgba(129,140,248,.25);border-radius:20px;padding:5px 14px;font-size:11.5px;font-weight:700;margin-bottom:14px;">🚀 Precio de lanzamiento — válido para los primeros 50 consultorios inscritos</span>
-      <p class="section-label">// Planes</p>
-      <h2 class="section-title">Un plan para cada etapa de crecimiento</h2>
+      <p class="section-label" style="color:#818cf8;">// 03 — Planes de marketing</p>
+      <h2 class="section-title">Elige según cuánto quieres crecer</h2>
+      <p class="section-sub" style="max-width:640px;margin:12px auto 0;">Los tres planes incluyen el sistema de gestión del consultorio, sin costo aparte. Sin permanencia: cancelas con 30 días de aviso.</p>
     </div>
-    <div class="plans-grid reveal-group" style="max-width:920px;">
+    <div class="plans-grid reveal-group" style="max-width:1040px;">
 
       <!-- MED STARTER -->
       <div class="plan-card">
-        <span class="plan-badge" style="background:rgba(129,140,248,.1);color:#818cf8;border-color:rgba(129,140,248,.25);">Med Starter</span>
+        <span class="plan-badge" style="background:rgba(129,140,248,.1);color:#818cf8;border-color:rgba(129,140,248,.25);">Tu primera campaña</span>
         <div class="plan-name">Med Starter</div>
-        <div class="plan-price"><span style="text-decoration:line-through;color:var(--zm-muted2);font-size:16px;font-weight:600;margin-right:6px;">$298</span><sup class="price-sym">$</sup><span class="price-amt">249</span><sub>/mes</sub></div>
-        <div class="plan-note">+ setup $99 · Incluye tu CRM Profesional (valor $79)</div>
+        <div class="plan-price"><sup class="price-sym">$</sup><span class="price-amt">5,900</span><sub>MXN / mes</sub></div>
+        <div class="plan-note">$324 USD · + $129 de instalación, una sola vez</div>
+        <div class="plan-note">Incluye el sistema de gestión, plan Profesional (valor $79/mes)</div>
         <div class="plan-divider"></div>
         <div class="plan-features">
-          <div class="pf"><div class="pf-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>8 piezas de contenido al mes</div>
-          <div class="pf"><div class="pf-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>4 sets de stories al mes</div>
-          <div class="pf"><div class="pf-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>1 campaña de Meta Ads gestionada</div>
-          <div class="pf"><div class="pf-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>Landing de especialidad con SEO local</div>
-          <div class="pf"><div class="pf-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>Reporte mensual automático</div>
-          <div class="pf"><div class="pf-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>Soporte por WhatsApp en 48h</div>
+          <div class="pf" style="font-weight:700;color:var(--zm-ink);">Publicidad</div>
+          <div class="pf"><div class="pf-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>1 campaña activa en Meta Ads</div>
+          <div class="pf"><div class="pf-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>Segmentación por zona y tratamiento</div>
+          <div class="pf"><div class="pf-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>Optimización mensual</div>
+          <div class="pf" style="font-weight:700;color:var(--zm-ink);margin-top:6px;">Contenido</div>
+          <div class="pf"><div class="pf-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>4 piezas al mes para tus redes</div>
+          <div class="pf"><div class="pf-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>Copys y diseño incluidos</div>
+          <div class="pf" style="font-weight:700;color:var(--zm-ink);margin-top:6px;">Medición</div>
+          <div class="pf"><div class="pf-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>Reporte mensual de resultados</div>
+          <div class="pf"><div class="pf-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>Mensajes atribuidos a su anuncio</div>
         </div>
-        <a href="https://wa.me/15752137020" target="_blank" rel="noopener" class="plan-btn" style="background:rgba(129,140,248,.1);color:#818cf8;" onclick="if(typeof fbq!=='undefined')fbq('track','InitiateCheckout');if(typeof gtag!=='undefined')gtag('event','generate_lead',{event_category:'plan',event_label:'mkt_starter'});">Elegir Med Starter →</a>
-        <p class="plan-fine">// Sin contratos · Cancela cuando quieras</p>
+        <a href="https://wa.me/15752137020" target="_blank" rel="noopener" class="plan-btn" style="background:rgba(129,140,248,.1);color:#818cf8;" onclick="if(typeof fbq!=='undefined')fbq('track','InitiateCheckout');if(typeof gtag!=='undefined')gtag('event','generate_lead',{event_category:'plan',event_label:'mkt_starter'});">Empezar con Starter →</a>
+        <p class="plan-fine">// Sin permanencia · Cancela con 30 días de aviso</p>
       </div>
 
       <!-- MED GROWTH -->
       <div class="plan-card featured" style="border-color:rgba(129,140,248,.5);">
-        <div class="plan-chip" style="background:#818cf8;color:#1e1b4b;">⭐ Recomendado</div>
+        <div class="plan-chip" style="background:#818cf8;color:#1e1b4b;">⭐ El más contratado</div>
+        <span class="plan-badge" style="background:rgba(129,140,248,.15);color:#a5b4fc;border-color:rgba(129,140,248,.3);">Quieres crecer en serio</span>
         <div class="plan-name">Med Growth</div>
-        <div class="plan-price"><span style="text-decoration:line-through;color:var(--zm-muted2);font-size:16px;font-weight:600;margin-right:6px;">$498</span><sup class="price-sym">$</sup><span class="price-amt">399</span><sub>/mes</sub></div>
-        <div class="plan-note">+ setup $199 · Incluye tu CRM Clínica (valor $149)</div>
+        <div class="plan-price"><sup class="price-sym">$</sup><span class="price-amt">9,450</span><sub>MXN / mes</sub></div>
+        <div class="plan-note">$519 USD · + $259 de instalación, una sola vez</div>
+        <div class="plan-note">Incluye el sistema de gestión, plan Clínica (valor $149/mes)</div>
         <div class="plan-divider"></div>
         <div class="plan-features">
-          <div class="pf"><div class="pf-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>Todo lo de Starter, más:</div>
-          <div class="pf"><div class="pf-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>12 piezas + 3 reels al mes</div>
-          <div class="pf"><div class="pf-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>Meta Ads + Google Ads con A/B testing</div>
-          <div class="pf"><div class="pf-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>Mini-sitio completo con agendamiento</div>
-          <div class="pf"><div class="pf-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>Dashboard actualizado semanalmente</div>
-          <div class="pf"><div class="pf-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>Sesión de estrategia mensual (30 min)</div>
-          <div class="pf"><div class="pf-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>Soporte por WhatsApp en 24h</div>
+          <div class="pf" style="font-weight:700;color:var(--zm-ink);">Publicidad</div>
+          <div class="pf"><div class="pf-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>Meta Ads y Google Ads</div>
+          <div class="pf"><div class="pf-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>Hasta 3 campañas activas a la vez</div>
+          <div class="pf"><div class="pf-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>Página de aterrizaje por especialidad</div>
+          <div class="pf"><div class="pf-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>Optimización cada semana</div>
+          <div class="pf" style="font-weight:700;color:var(--zm-ink);margin-top:6px;">Contenido</div>
+          <div class="pf"><div class="pf-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>8 piezas al mes, incluye video corto</div>
+          <div class="pf"><div class="pf-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>Calendario de publicación mensual</div>
+          <div class="pf" style="font-weight:700;color:var(--zm-ink);margin-top:6px;">Medición</div>
+          <div class="pf"><div class="pf-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>Reporte con costo por paciente nuevo</div>
+          <div class="pf"><div class="pf-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>Llamada mensual de estrategia</div>
+          <div class="pf"><div class="pf-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>Tablero en vivo dentro de Zentro</div>
         </div>
-        <a href="https://wa.me/15752137020" target="_blank" rel="noopener" class="plan-btn" style="background:#818cf8;color:#1e1b4b;" onclick="if(typeof fbq!=='undefined')fbq('track','InitiateCheckout');if(typeof gtag!=='undefined')gtag('event','generate_lead',{event_category:'plan',event_label:'mkt_growth'});">Elegir Med Growth →</a>
-        <p class="plan-fine">// Sin contratos · Cancela cuando quieras</p>
+        <a href="https://wa.me/15752137020" target="_blank" rel="noopener" class="plan-btn" style="background:#818cf8;color:#1e1b4b;" onclick="if(typeof fbq!=='undefined')fbq('track','InitiateCheckout');if(typeof gtag!=='undefined')gtag('event','generate_lead',{event_category:'plan',event_label:'mkt_growth'});">Empezar con Growth →</a>
+        <p class="plan-fine">// Sin permanencia · Cancela con 30 días de aviso</p>
       </div>
 
       <!-- MED PREMIUM -->
       <div class="plan-card dark-card">
-        <span class="plan-badge" style="background:rgba(129,140,248,.15);color:#a5b4fc;border-color:rgba(129,140,248,.3);">Med Premium</span>
+        <span class="plan-badge" style="background:rgba(129,140,248,.15);color:#a5b4fc;border-color:rgba(129,140,248,.3);">Clínica con varias sedes</span>
         <div class="plan-name">Med Premium</div>
-        <div class="plan-price"><span style="text-decoration:line-through;color:rgba(255,255,255,.3);font-size:16px;font-weight:600;margin-right:6px;">$899</span><sup class="price-sym">$</sup><span class="price-amt">749</span><sub>/mes</sub></div>
-        <div class="plan-note">+ setup $299 · Incluye tu CRM Clínica (valor $149)</div>
+        <div class="plan-price"><sup class="price-sym">$</sup><span class="price-amt">17,700</span><sub>MXN / mes</sub></div>
+        <div class="plan-note">$974 USD · + $389 de instalación, una sola vez</div>
+        <div class="plan-note">Incluye el sistema de gestión, plan Clínica (valor $149/mes)</div>
         <div class="plan-divider"></div>
         <div class="plan-features">
-          <div class="pf"><div class="pf-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>Todo lo de Growth, más:</div>
-          <div class="pf"><div class="pf-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>20 piezas + 6 reels/stories mensuales</div>
-          <div class="pf"><div class="pf-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>Meta + Google + TikTok Ads + remarketing</div>
-          <div class="pf"><div class="pf-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>SEO local avanzado por especialidad</div>
-          <div class="pf"><div class="pf-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>2 sesiones de estrategia mensuales</div>
-          <div class="pf"><div class="pf-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>Account manager exclusivo (resp. 4h)</div>
+          <div class="pf" style="font-weight:700;color:var(--zm-white);">Publicidad</div>
+          <div class="pf"><div class="pf-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>Todo lo de Med Growth, sin límite de campañas</div>
+          <div class="pf"><div class="pf-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>Estrategia por sede y por especialidad</div>
+          <div class="pf"><div class="pf-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>Posicionamiento en búsquedas locales</div>
+          <div class="pf" style="font-weight:700;color:var(--zm-white);margin-top:6px;">Contenido</div>
+          <div class="pf"><div class="pf-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>16 piezas al mes</div>
+          <div class="pf"><div class="pf-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>Sesión de producción en tu consultorio</div>
+          <div class="pf"><div class="pf-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>Guion y edición de video incluidos</div>
+          <div class="pf" style="font-weight:700;color:var(--zm-white);margin-top:6px;">Acompañamiento</div>
+          <div class="pf"><div class="pf-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>Ejecutivo de cuenta dedicado</div>
+          <div class="pf"><div class="pf-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>Llamada de estrategia cada quince días</div>
+          <div class="pf"><div class="pf-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>Capacitación a tu recepción</div>
         </div>
-        <a href="https://wa.me/15752137020" target="_blank" rel="noopener" class="plan-btn" style="background:#818cf8;color:#1e1b4b;" onclick="if(typeof fbq!=='undefined')fbq('track','InitiateCheckout');if(typeof gtag!=='undefined')gtag('event','generate_lead',{event_category:'plan',event_label:'mkt_premium'});">Elegir Med Premium →</a>
-        <p class="plan-fine">// Sin contratos · Cancela cuando quieras</p>
+        <a href="https://wa.me/15752137020" target="_blank" rel="noopener" class="plan-btn" style="background:#818cf8;color:#1e1b4b;" onclick="if(typeof fbq!=='undefined')fbq('track','InitiateCheckout');if(typeof gtag!=='undefined')gtag('event','generate_lead',{event_category:'plan',event_label:'mkt_premium'});">Hablar de Premium →</a>
+        <p class="plan-fine">// Sin permanencia · Cancela con 30 días de aviso</p>
       </div>
 
     </div>
     <div style="max-width:680px;margin:28px auto 0;text-align:center;">
-      <p style="font-size:13px;color:var(--zm-muted);line-height:1.7;">El presupuesto de pauta publicitaria (lo que pagas directo a Meta o Google) <strong>no está incluido</strong> en la suscripción — va desde tu propia cuenta y tú tienes control total. La suscripción cubre estrategia, gestión, contenido y optimización. Así no hay conflicto de interés: nos va bien cuando a tu consultorio le va bien.</p>
+      <p style="font-size:13px;color:var(--zm-muted);line-height:1.7;"><strong>Lo que no incluye:</strong> la inversión publicitaria en Meta y Google se paga aparte y directo a la plataforma, con tu propia tarjeta. Nosotros no la marcamos ni cobramos comisión sobre ella. Recomendamos empezar con $150 a $300 USD al mes según tu ciudad y especialidad.</p>
     </div>
   </div>
 </section>
 
-<!-- FAQ -->
-<section class="faq" id="faq">
+<!-- 04 — CONTRA QUÉ SE COMPARA -->
+<section class="problems">
+  <div class="wrap">
+    <div class="problems-header reveal">
+      <p class="section-label" style="color:#818cf8;">// 04 — Contra qué se compara</p>
+      <h2 class="section-title">Lo que ya gastas en el mismo problema</h2>
+      <p class="section-sub">La decisión real no es entre nosotros y una agencia. Es entre pagar por atraer pacientes con el seguimiento incluido, o pagar por una de las dos mitades por separado.</p>
+    </div>
+    <div class="prob-grid reveal-group">
+      <div class="prob-card">
+        <div class="leak-num-label" style="margin-bottom:8px;">Contratar recepción de medio turno</div>
+        <div class="leak-num" style="color:var(--zm-ink);font-size:26px;">$6,000 <span style="font-size:13px;font-weight:600;color:var(--zm-muted);">MXN / mes</span></div>
+        <div class="prob-desc" style="margin-top:8px;">Sueldo y prestaciones, sin campañas ni contenido.</div>
+        <span class="prob-tag" style="color:var(--zm-muted);background:var(--zm-line2);border-color:var(--zm-line);">Qué te da: contesta en horario de oficina</span>
+      </div>
+      <div class="prob-card">
+        <div class="leak-num-label" style="margin-bottom:8px;">Agencia tradicional más barata</div>
+        <div class="leak-num" style="color:var(--zm-ink);font-size:26px;">$3,000 <span style="font-size:13px;font-weight:600;color:var(--zm-muted);">MXN / mes</span></div>
+        <div class="prob-desc" style="margin-top:8px;">Solo gestión de pauta, con contrato anual.</div>
+        <span class="prob-tag" style="color:var(--zm-muted);background:var(--zm-line2);border-color:var(--zm-line);">Qué te da: reporta alcance y clics</span>
+      </div>
+      <div class="prob-card" style="border-color:rgba(129,140,248,.4);">
+        <div class="leak-num-label" style="margin-bottom:8px;">Med Starter</div>
+        <div class="leak-num" style="color:#818cf8;font-size:26px;">$5,900 <span style="font-size:13px;font-weight:600;color:var(--zm-muted);">MXN / mes</span></div>
+        <div class="prob-desc" style="margin-top:8px;">Campañas, contenido y el sistema, incluidos.</div>
+        <span class="prob-tag" style="color:#818cf8;background:rgba(129,140,248,.08);border-color:rgba(129,140,248,.2);">Qué te da: reporta pacientes y facturación</span>
+      </div>
+    </div>
+    <p style="text-align:center;margin-top:24px;font-size:11px;color:var(--zm-muted2);font-family:'JetBrains Mono',monospace;">LA INVERSIÓN PUBLICITARIA EN META Y GOOGLE VA APARTE EN LOS TRES CASOS Y SE PAGA DIRECTO A LA PLATAFORMA. PRECIOS EN PESOS MEXICANOS CON TIPO DE CAMBIO REFERENCIAL; EL COBRO SE HACE EN DÓLARES.</p>
+  </div>
+</section>
+
+<!-- 05 — COMPARATIVA -->
+<section class="problems" style="background:var(--zm-surface);">
+  <div class="wrap">
+    <div class="problems-header reveal">
+      <p class="section-label" style="color:#818cf8;">// 05 — Comparativa</p>
+      <h2 class="section-title">Qué cambia entre un plan y otro</h2>
+    </div>
+    <div class="reveal compare-table-wrap">
+      <table class="compare-table">
+        <thead><tr><th></th><th>Med Starter · $324/mes</th><th class="highlight">Med Growth · $519/mes</th><th>Med Premium · $974/mes</th></tr></thead>
+        <tbody>
+          <tr><td>Instalación, una sola vez</td><td>$129</td><td class="highlight">$259</td><td>$389</td></tr>
+          <tr><td>Sistema de gestión incluido</td><td>Plan Profesional</td><td class="highlight">Plan Clínica</td><td>Plan Clínica</td></tr>
+          <tr><td>Campañas activas a la vez</td><td>1</td><td class="highlight">3</td><td>Sin límite</td></tr>
+          <tr><td>Plataformas</td><td>Meta</td><td class="highlight">Meta y Google</td><td>Meta, Google y local</td></tr>
+          <tr><td>Piezas de contenido al mes</td><td>4</td><td class="highlight">8</td><td>16</td></tr>
+          <tr><td>Página de aterrizaje</td><td class="bad">No</td><td class="highlight good">Por especialidad</td><td class="good">Por sede</td></tr>
+          <tr><td>Producción de video en tu consultorio</td><td class="bad">No</td><td class="highlight bad">No</td><td class="good">Sí</td></tr>
+          <tr><td>Frecuencia de optimización</td><td>Mensual</td><td class="highlight">Semanal</td><td>Semanal</td></tr>
+          <tr><td>Llamada de estrategia</td><td class="bad">No</td><td class="highlight good">Mensual</td><td class="good">Cada 15 días</td></tr>
+          <tr><td>Ejecutivo de cuenta dedicado</td><td class="bad">No</td><td class="highlight bad">No</td><td class="good">Sí</td></tr>
+          <tr><td>Capacitación a recepción</td><td class="bad">No</td><td class="highlight bad">No</td><td class="good">Sí</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- 06 — LO QUE NO PROMETEMOS -->
+<section class="problems">
+  <div class="wrap">
+    <div class="problems-header reveal">
+      <p class="section-label" style="color:#818cf8;">// 06 — Lo que no prometemos</p>
+      <h2 class="section-title">Cuatro cosas que otras agencias te van a prometer y nosotros no</h2>
+      <p class="section-sub">Si alguien te garantiza un número de pacientes antes de ver tu ciudad, tu especialidad y tu competencia, está adivinando. Preferimos decirte esto antes de que actives el servicio.</p>
+    </div>
+    <div class="limit-grid reveal-group">
+      <div class="limit-card">
+        <div class="limit-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div>
+        <div class="limit-title">Un número exacto de pacientes</div>
+        <div class="limit-text">Depende de tu ciudad, tu ticket y de cuántos espacios libres tengas. Damos un rango después del diagnóstico, no antes.</div>
+      </div>
+      <div class="limit-card">
+        <div class="limit-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+        <div class="limit-title">Resultados en la primera semana</div>
+        <div class="limit-text">Las campañas necesitan datos para aprender. El primer mes es de calibración; el segundo es el que cuenta.</div>
+      </div>
+      <div class="limit-card">
+        <div class="limit-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18"/><path d="M6 6l12 12"/></svg></div>
+        <div class="limit-title">Que funcione con la agenda desordenada</div>
+        <div class="limit-text">Si los mensajes no se contestan, la pauta solo acelera la pérdida. Por eso el sistema de gestión va incluido y no aparte.</div>
+      </div>
+      <div class="limit-card">
+        <div class="limit-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
+        <div class="limit-title">Quedarnos con tus cuentas</div>
+        <div class="limit-text">El píxel, las cuentas de anuncios y el contenido son tuyos desde el primer día. Si te vas, se queda todo contigo.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 07 — RESULTADOS -->
+<section class="testi" id="resultados">
+  <div class="wrap">
+    <div class="testi-header reveal">
+      <p class="section-label" style="color:#818cf8;">// 07 — Resultados</p>
+      <h2 class="section-title">Tres consultorios, tres números</h2>
+      <p class="section-sub" style="margin:0 auto;text-align:center;">Cada cifra sale del panel del propio consultorio, publicada con su autorización.</p>
+    </div>
+    <div class="testi-grid reveal-group">
+      <div class="testi-card">
+        <div class="testi-stars">★★★★★</div>
+        <p class="testi-quote">"Ya tenía la agenda ordenada con el sistema. Lo que faltaba era gente nueva entrando, y eso empezó en la segunda semana de campaña."</p>
+        <div class="testi-result" style="background:rgba(129,140,248,.1);border-color:rgba(129,140,248,.25);color:#818cf8;">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+          31 pacientes nuevos · Mes 2
+        </div>
+        <div class="testi-author">
+          <div class="testi-av" style="background:rgba(129,140,248,.15);color:#4338ca;">RM</div>
+          <div>
+            <div class="testi-name">Dr. Rodrigo M.</div>
+            <div class="testi-role">Odontología · Bogotá · Growth</div>
+          </div>
+        </div>
+      </div>
+      <div class="testi-card">
+        <div class="testi-stars">★★★★★</div>
+        <p class="testi-quote">"Antes pagaba una agencia que me mandaba reportes de alcance. Aquí veo el paciente, la cita y lo que facturó."</p>
+        <div class="testi-result" style="background:rgba(129,140,248,.1);border-color:rgba(129,140,248,.25);color:#818cf8;">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+          $168 costo por paciente nuevo
+        </div>
+        <div class="testi-author">
+          <div class="testi-av" style="background:rgba(129,140,248,.15);color:#4338ca;">LV</div>
+          <div>
+            <div class="testi-name">Dra. Lucía V.</div>
+            <div class="testi-role">Dermatología · Medellín · Growth</div>
+          </div>
+        </div>
+      </div>
+      <div class="testi-card">
+        <div class="testi-stars">★★★★★</div>
+        <p class="testi-quote">"Cada sede tiene su propia campaña y su propia página. Sé exactamente cuál de las dos está trayendo más pacientes."</p>
+        <div class="testi-result" style="background:rgba(129,140,248,.1);border-color:rgba(129,140,248,.25);color:#818cf8;">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+          2 sedes con campañas separadas
+        </div>
+        <div class="testi-author">
+          <div class="testi-av" style="background:rgba(129,140,248,.15);color:#4338ca;">CE</div>
+          <div>
+            <div class="testi-name">Dr. Carlos E.</div>
+            <div class="testi-role">Ortopedia · Cali · Premium</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 08 — INCLUIDO EN LOS TRES PLANES -->
+<section class="solution" style="background:var(--zm-night);">
+  <div class="wrap">
+    <div class="reveal" style="max-width:700px;margin:0 auto;text-align:center;">
+      <p class="section-label" style="color:#818cf8;">// 08 — Incluido en los tres planes</p>
+      <h2 class="section-title" style="color:var(--zm-white);">Aquí es donde tu pauta deja de desperdiciarse</h2>
+      <p class="section-sub" style="color:rgba(255,255,255,.5);margin:14px auto 0;">Una agencia te entrega mensajes y ahí termina. Los planes incluyen Zentro Med, el sistema donde vive la agenda y el WhatsApp del consultorio. Es lo que convierte ese mensaje en una cita, y lo que nos permite decirte cuántos pacientes te trajimos de verdad.</p>
+    </div>
+    <div class="reveal" style="display:flex;justify-content:center;gap:32px;flex-wrap:wrap;margin:36px 0;text-align:center;">
+      <div><div class="stat-n2">4 de 10</div><div class="stat-l2">mensajes de pauta llegan fuera de horario</div></div>
+      <div><div class="stat-n2">&lt;1 min</div><div class="stat-l2">tarda Zen en contestarlos</div></div>
+      <div><div class="stat-n2">1 de 5</div><div class="stat-l2">citas se cae sin confirmación automática</div></div>
+      <div><div class="stat-n2"><span>$0</span></div><div class="stat-l2">extra: viene en los tres planes</div></div>
+    </div>
+    <div class="fx-grid reveal-group">
+      <div class="fx-card" style="background:rgba(255,255,255,.03);border-color:rgba(255,255,255,.08);">
+        <div class="fx-icon"><i data-lucide="calendar-check"></i></div>
+        <div class="fx-title" style="color:var(--zm-white);">Agenda y citas</div>
+        <div class="fx-desc" style="color:rgba(255,255,255,.5);">La cita se crea sola desde el chat y sin dobles reservas.</div>
+      </div>
+      <div class="fx-card" style="background:rgba(255,255,255,.03);border-color:rgba(255,255,255,.08);">
+        <div class="fx-icon"><i data-lucide="message-circle"></i></div>
+        <div class="fx-title" style="color:var(--zm-white);">WhatsApp del consultorio</div>
+        <div class="fx-desc" style="color:rgba(255,255,255,.5);">Todos los mensajes en una bandeja que ve tu equipo.</div>
+      </div>
+      <div class="fx-card" style="background:rgba(255,255,255,.03);border-color:rgba(255,255,255,.08);">
+        <div class="fx-icon"><i data-lucide="bot"></i></div>
+        <div class="fx-title" style="color:var(--zm-white);">Zen contestando de noche</div>
+        <div class="fx-desc" style="color:rgba(255,255,255,.5);">Responde precios y agenda aunque el consultorio esté cerrado.</div>
+      </div>
+      <div class="fx-card" style="background:rgba(255,255,255,.03);border-color:rgba(255,255,255,.08);">
+        <div class="fx-icon"><i data-lucide="receipt"></i></div>
+        <div class="fx-title" style="color:var(--zm-white);">Expediente y cobros</div>
+        <div class="fx-desc" style="color:rgba(255,255,255,.5);">Ficha por paciente, presupuestos y link de pago.</div>
+      </div>
+    </div>
+    <div class="reveal" style="text-align:center;margin-top:32px;">
+      <a href="/" class="btn btn-ghost-light">Ver todo lo que hace el sistema →</a>
+    </div>
+  </div>
+</section>
+
+<!-- 09 — PREGUNTAS -->
+<section class="faq" id="preguntas">
   <div class="wrap">
     <div class="faq-header reveal">
-      <p class="section-label">// Preguntas frecuentes</p>
-      <h2 class="section-title">Todo lo que quieres saber</h2>
+      <p class="section-label" style="color:#818cf8;">// 09 — Preguntas</p>
+      <h2 class="section-title">Lo que preguntan antes de contratar</h2>
+      <p class="section-sub" style="margin:0 auto 8px;text-align:center;">El diagnóstico es gratis y sin compromiso: revisamos tu ciudad, tu competencia y tu agenda actual antes de proponerte un plan.</p>
+      <a href="https://wa.me/15752137020" target="_blank" rel="noopener" class="btn btn-dark btn-sm" style="margin-top:8px;">Hablar con un estratega</a>
     </div>
     <div class="faq-grid">
       <div class="faq-item" onclick="zmToggleFaq(this)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();zmToggleFaq(this);}" role="button" tabindex="0" aria-expanded="false">
-        <div class="faq-q">¿El presupuesto de anuncios está incluido en la suscripción?
+        <div class="faq-q">¿Me voy a ver como charlatán por hacer publicidad?
           <svg class="faq-chevron" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
         </div>
-        <div class="faq-a"><div class="faq-a-inner">No. Tu suscripción cubre estrategia, gestión, contenido y optimización. El presupuesto que se invierte directamente en Meta o Google va desde tu propia cuenta publicitaria, bajo tu control total — así evitamos cualquier conflicto de interés entre lo que nos pagas a nosotros y lo que gastas en pauta.</div></div>
+        <div class="faq-a"><div class="faq-a-inner">Es la duda que más escuchamos y es legítima: está en juego tu reputación profesional. Nuestro trabajo es que te veas profesional, no llamativo. No publicamos promesas de resultados clínicos, no usamos antes y después engañosos, no inventamos testimonios y no prometemos curas. Cada pieza pasa por tu aprobación antes de salir, y lo que no te representa no se publica.</div></div>
       </div>
       <div class="faq-item" onclick="zmToggleFaq(this)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();zmToggleFaq(this);}" role="button" tabindex="0" aria-expanded="false">
-        <div class="faq-q">Ya tengo Zentro CRM por separado, ¿pago dos veces?
+        <div class="faq-q">¿Por qué incluyen el sistema de gestión en el precio?
           <svg class="faq-chevron" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
         </div>
-        <div class="faq-a"><div class="faq-a-inner">No. El valor de tu plan actual de Zentro CRM se descuenta del precio de tu plan de Marketing — nunca pagas lo mismo dos veces. Todo corre sobre la misma cuenta.</div></div>
+        <div class="faq-a"><div class="faq-a-inner">Porque sin él la pauta no funciona. Si generamos 40 mensajes al mes y nadie los contesta a tiempo, tiramos tu dinero. El sistema es lo que hace que esos mensajes se vuelvan citas y que podamos medir cuántos pacientes te trajimos de verdad. No es un extra de venta: es el requisito para que esto sirva.</div></div>
       </div>
       <div class="faq-item" onclick="zmToggleFaq(this)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();zmToggleFaq(this);}" role="button" tabindex="0" aria-expanded="false">
-        <div class="faq-q">¿Cumplen con las políticas de publicidad médica de Meta y Google?
+        <div class="faq-q">¿Cuánto debo invertir en pauta además del plan?
           <svg class="faq-chevron" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
         </div>
-        <div class="faq-a"><div class="faq-a-inner">Sí. Antes de tu primera campaña auditamos las políticas específicas de tu especialidad (las reglas cambian bastante entre, por ejemplo, medicina estética y odontología) para evitar rechazos y cuentas suspendidas desde el día uno.</div></div>
+        <div class="faq-a"><div class="faq-a-inner">Para un consultorio en una ciudad mediana, entre $3,000 y $8,000 pesos al mes es un punto de partida razonable. Ese dinero se paga directo a Meta o Google y no cobramos comisión sobre él. En el diagnóstico te decimos el rango que tiene sentido para tu ciudad y tu competencia.</div></div>
       </div>
       <div class="faq-item" onclick="zmToggleFaq(this)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();zmToggleFaq(this);}" role="button" tabindex="0" aria-expanded="false">
-        <div class="faq-q">¿Cuánto tiempo hasta ver los primeros resultados?
+        <div class="faq-q">¿Los anuncios y las cuentas quedan a mi nombre?
           <svg class="faq-chevron" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
         </div>
-        <div class="faq-a"><div class="faq-a-inner">La configuración toma 5 días hábiles, pero la activación de campañas depende de la aprobación de Meta y Google — un proceso externo que puede tomar de 5 a 14 días adicionales, especialmente para anunciantes del sector salud. Los primeros datos de rendimiento suelen verse en las primeras 2 a 4 semanas de campaña activa.</div></div>
+        <div class="faq-a"><div class="faq-a-inner">Sí, todo. La cuenta publicitaria, el píxel, las páginas de aterrizaje y los datos históricos son tuyos desde el primer día. Nosotros trabajamos con acceso, no con propiedad. Si un día te vas, revocas el acceso y te quedas con el activo completo, incluido el aprendizaje acumulado de las campañas.</div></div>
       </div>
       <div class="faq-item" onclick="zmToggleFaq(this)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();zmToggleFaq(this);}" role="button" tabindex="0" aria-expanded="false">
-        <div class="faq-q">¿Necesito dar mi tarjeta para el trial de 7 días?
+        <div class="faq-q">¿Qué pasa si ya tengo una agencia?
           <svg class="faq-chevron" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
         </div>
-        <div class="faq-a"><div class="faq-a-inner">La auditoría inicial de 24h no requiere tarjeta ni compromiso alguno — es un diagnóstico gratuito. Solo pedimos datos de pago al activar un plan de suscripción.</div></div>
+        <div class="faq-a"><div class="faq-a-inner">Es común y no hay que apurar nada. En el diagnóstico revisamos qué se hizo, qué está funcionando y qué no, y te decimos con honestidad si vale la pena mover algo. Si tu agencia va bien encaminada, te lo decimos. Si el problema no es la pauta sino que los mensajes se quedan sin contestar, eso también te lo decimos, porque es lo que más vemos.</div></div>
       </div>
       <div class="faq-item" onclick="zmToggleFaq(this)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();zmToggleFaq(this);}" role="button" tabindex="0" aria-expanded="false">
-        <div class="faq-q">¿Trabajan con cualquier especialidad?
+        <div class="faq-q">¿Puedo pausar el servicio un mes?
           <svg class="faq-chevron" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
         </div>
-        <div class="faq-a"><div class="faq-a-inner">Sí. Ya tenemos experiencia directa en dermatología, medicina estética, odontología, ortopedia y fisioterapia — y para cualquier otra especialidad, auditamos sus políticas publicitarias específicas antes de la primera campaña.</div></div>
+        <div class="faq-a"><div class="faq-a-inner">Sí. Al ser suscripción mensual puedes pausar avisando con 30 días, por ejemplo si te vas de vacaciones o si tu agenda ya está llena. Al pausar, las campañas se apagan y el sistema del consultorio se mantiene: no pierdes historial, pacientes ni conversaciones. Al reactivar, retomamos con el aprendizaje que ya tenían los anuncios.</div></div>
       </div>
       <div class="faq-item" onclick="zmToggleFaq(this)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();zmToggleFaq(this);}" role="button" tabindex="0" aria-expanded="false">
-        <div class="faq-q">¿Puedo cambiar de plan o cancelar después?
+        <div class="faq-q">¿Funciona para mi especialidad y mi ciudad?
           <svg class="faq-chevron" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
         </div>
-        <div class="faq-a"><div class="faq-a-inner">Sí. No hay contratos de permanencia — puedes subir, bajar o cancelar tu plan cuando quieras. Solo el setup inicial no es reembolsable, ya que corresponde a trabajo de configuración ya realizado.</div></div>
+        <div class="faq-a"><div class="faq-a-inner">Depende más de tu ciudad, tu competencia y tu capacidad de atención que de la especialidad en sí. Hoy trabajamos con odontología, dermatología, ortopedia, oftalmología, psicología y medicina estética. En el diagnóstico te decimos claro si aplica, y si creemos que no vale la pena en tu caso, te lo decimos antes de cobrarte.</div></div>
+      </div>
+      <div class="faq-item" onclick="zmToggleFaq(this)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();zmToggleFaq(this);}" role="button" tabindex="0" aria-expanded="false">
+        <div class="faq-q">¿Quién aprueba el contenido antes de publicarse?
+          <svg class="faq-chevron" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="faq-a"><div class="faq-a-inner">Tú, siempre. Cada pieza llega a tu bandeja de aprobación con la vista previa de cómo se va a publicar. Apruebas, comentas o pides cambios, y nada sale sin tu visto bueno. Lo que no te representa no se publica, aunque tenga buen rendimiento.</div></div>
       </div>
     </div>
   </div>
@@ -611,14 +568,14 @@ export const MARKETING_BODY_HTML = `
 <section class="cta-final">
   <div class="wrap">
     <p class="section-label" style="color:rgba(129,140,248,.7);margin-bottom:16px;">// Empieza hoy</p>
-    <h2>Solicita tu auditoría gratis<br><span style="color:#a5b4fc;">y decide con datos, no con suposiciones.</span></h2>
-    <p>Diagnóstico en 24h, sin costo y sin compromiso. Tu Zentro CRM viene incluido en cualquier plan.</p>
+    <h2>Empieza con un diagnóstico,<br><span style="color:#a5b4fc;">no con un contrato.</span></h2>
+    <p>Revisamos tu ciudad, tu especialidad y tu agenda, y te decimos si vale la pena invertir en pauta o si primero conviene ordenar el seguimiento.</p>
     <div class="cta-btns">
-      <a href="https://wa.me/15752137020" target="_blank" rel="noopener" class="btn btn-lg" style="background:#818cf8;color:#1e1b4b;" onclick="if(typeof fbq!=='undefined')fbq('track','Lead');if(typeof gtag!=='undefined')gtag('event','generate_lead',{event_category:'cta',event_label:'mkt_cta_final'});">Solicitar auditoría gratis →</a>
-      <a href="#planes" class="btn btn-ghost-light btn-lg">Ver planes</a>
+      <a href="https://wa.me/15752137020" target="_blank" rel="noopener" class="btn btn-lg" style="background:#818cf8;color:#1e1b4b;" onclick="if(typeof fbq!=='undefined')fbq('track','Lead');if(typeof gtag!=='undefined')gtag('event','generate_lead',{event_category:'cta',event_label:'mkt_cta_final'});">Agendar diagnóstico gratis</a>
+      <a href="/" class="btn btn-ghost-light btn-lg">Ver solo el sistema</a>
     </div>
-    <div class="reveal" style="max-width:300px;aspect-ratio:4/3;border:1px dashed rgba(255,255,255,.2);border-radius:12px;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.3);font-size:11.5px;text-align:center;padding:16px;margin:32px auto 0;">// Ilustración pendiente — profesional de salud revisando un reporte de crecimiento (4:3)</div>
-    <p class="cta-note">// Sin tarjeta para la auditoría · Sin contratos · Cancela cuando quieras</p>
+    <p class="cta-note">// Sin contratos · Sin permanencia · Cancela con 30 días de aviso</p>
+    <p style="max-width:820px;margin:36px auto 0;font-size:10.5px;line-height:1.8;color:rgba(255,255,255,.25);font-family:'JetBrains Mono',monospace;">Los precios de marketing no incluyen la inversión publicitaria en Meta ni en Google, que se paga directo a la plataforma y sobre la cual no cobramos comisión. El valor del plan del sistema de gestión incluido se descuenta una sola vez por cuenta. Las cifras de resultados son de clientes activos en sus primeros 90 días y varían según ciudad, especialidad, ticket promedio y capacidad de atención. No garantizamos un número de pacientes nuevos. La instalación se cobra una sola vez al inicio y no es reembolsable una vez entregada. Sin permanencia: puedes cancelar con 30 días de aviso y los activos publicitarios quedan en tus cuentas. Zentro Med es software de gestión comercial y no es un sistema de expediente clínico.</p>
   </div>
 </section>
 
@@ -640,9 +597,9 @@ export const MARKETING_BODY_HTML = `
 <!-- MOBILE STICKY CTA -->
 <div class="mob-cta">
   <div class="mob-cta-info">
-    <span class="mob-cta-price">Auditoría gratis</span>
-    <span class="mob-cta-sub">Sin costo · Diagnóstico en 24h</span>
+    <span class="mob-cta-price">Diagnóstico gratis</span>
+    <span class="mob-cta-sub">Sin costo · Sin compromiso</span>
   </div>
-  <a href="https://wa.me/15752137020" target="_blank" rel="noopener" class="btn" style="background:#818cf8;color:#1e1b4b;font-size:13px;padding:10px 16px;flex-shrink:0;" onclick="if(typeof gtag!=='undefined')gtag('event','mobile_sticky_cta_click',{event_category:'cta',event_label:'mkt_sticky_bar_mobile'});">Empezar →</a>
+  <a href="https://wa.me/15752137020" target="_blank" rel="noopener" class="btn" style="background:#818cf8;color:#1e1b4b;font-size:13px;padding:10px 16px;flex-shrink:0;" onclick="if(typeof gtag!=='undefined')gtag('event','mobile_sticky_cta_click',{event_category:'cta',event_label:'mkt_sticky_bar_mobile'});">Agendar →</a>
 </div>
 `;
