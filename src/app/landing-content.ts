@@ -44,9 +44,11 @@ export const LANDING_BODY_HTML = `
         <span class="logo-badge">Med</span>
       </a>
       <div class="nav-r">
-        <a href="#como" class="nav-link">Cómo funciona</a>
+        <a href="#producto" class="nav-link">Producto</a>
+        <a href="/zen" class="nav-link">Zen</a>
         <a href="#planes" class="nav-link">Planes</a>
         <a href="#marketing" class="nav-link">Marketing</a>
+        <a href="#preguntas" class="nav-link">Preguntas</a>
 
         <!-- Currency Switcher -->
         <div class="curr-switch" id="currSwitch">
@@ -78,7 +80,7 @@ export const LANDING_BODY_HTML = `
           <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
           <span class="nav-login-text">Iniciar sesión</span>
         </a>
-        <a href="/signup" class="btn btn-green btn-sm nav-cta-btn">Probar 30 días gratis →</a>
+        <a href="/signup" class="btn btn-green btn-sm nav-cta-btn">Empezar gratis →</a>
         <button class="mob-menu-btn" onclick="zmToggleMobMenu()" aria-label="Abrir menú" aria-expanded="false" id="mobMenuBtn">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
         </button>
@@ -86,11 +88,13 @@ export const LANDING_BODY_HTML = `
     </div>
   </div>
   <div class="mob-menu-panel" id="mobMenuPanel">
-    <a href="#como" class="mob-menu-link" onclick="zmCloseMobMenu()">Cómo funciona</a>
+    <a href="#producto" class="mob-menu-link" onclick="zmCloseMobMenu()">Producto</a>
+    <a href="/zen" class="mob-menu-link" onclick="zmCloseMobMenu()">Zen</a>
     <a href="#planes" class="mob-menu-link" onclick="zmCloseMobMenu()">Planes</a>
     <a href="#marketing" class="mob-menu-link" onclick="zmCloseMobMenu()">Marketing</a>
+    <a href="#preguntas" class="mob-menu-link" onclick="zmCloseMobMenu()">Preguntas</a>
     <a href="/login" class="mob-menu-link" onclick="zmCloseMobMenu()">Iniciar sesión</a>
-    <a href="/signup" class="btn btn-green btn-sm mob-menu-cta" onclick="zmCloseMobMenu()">Probar 30 días gratis →</a>
+    <a href="/signup" class="btn btn-green btn-sm mob-menu-cta" onclick="zmCloseMobMenu()">Empezar gratis →</a>
   </div>
 </nav>
 
@@ -98,41 +102,28 @@ export const LANDING_BODY_HTML = `
 <section class="hero">
   <div class="wrap">
     <div class="hero-eyebrow">
-      <span class="pill-dark"><span class="dot-green"></span>El CRM hecho para consultorios médicos</span>
-      <span class="pill-dark" style="background:rgba(245,158,11,.1);color:#fcd34d;border-color:rgba(245,158,11,.2);">⚡ 30 días gratis · sin tarjeta</span>
+      <span class="pill-dark"><span class="dot-green"></span>+80 consultorios · 7 países</span>
     </div>
-    <h1>Tu consultorio, organizado.<br><span class="green">Sin caos administrativo.</span></h1>
-    <p class="hero-sub">WhatsApp, agenda, pacientes e IA en un solo lugar — para que dejes de perder citas y pacientes por falta de seguimiento. <strong style="color:rgba(255,255,255,.85);">Sin contratar personal extra.</strong></p>
-    <div class="hero-proof">
-      <div class="proof-avatars">
-        <div class="proof-av" style="background:#dcfce7;color:#15803d;">DR</div>
-        <div class="proof-av" style="background:#dbeafe;color:#1d4ed8;">DL</div>
-        <div class="proof-av" style="background:#f3e8ff;color:#7e22ce;">CE</div>
-        <div class="proof-av" style="background:rgba(74,222,90,.2);color:var(--zm-g);">+</div>
-      </div>
-      <span class="proof-stars">★★★★★</span>
-      <span class="proof-text"><strong>+80 consultorios</strong> ya gestionan con Zentro Med</span>
-    </div>
+    <h1>Que no se pierda ni una<br><span class="green">cita que ya tenías agendada.</span></h1>
+    <p class="hero-sub">Zentro Med confirma cada cita por WhatsApp, agenda sola y te trae de vuelta a los pacientes que dejaron de venir. <strong style="color:rgba(255,255,255,.85);">Sin contratar a nadie más.</strong></p>
     <div class="hero-ctas">
-      <a href="/signup" class="btn btn-green btn-lg" onclick="if(typeof fbq!=='undefined')fbq('track','Lead');if(typeof gtag!=='undefined')gtag('event','generate_lead',{event_category:'cta',event_label:'hero_primary'});">Probar 30 días gratis →</a>
-      <a href="#planes" class="btn btn-ghost-light btn-lg">Ver planes</a>
+      <a href="/signup" class="btn btn-green btn-lg" onclick="if(typeof fbq!=='undefined')fbq('track','Lead');if(typeof gtag!=='undefined')gtag('event','generate_lead',{event_category:'cta',event_label:'hero_primary'});">Empezar gratis · sin tarjeta</a>
+      <a href="#producto" class="btn btn-ghost-light btn-lg">Ver el producto · 3 min</a>
     </div>
-    <p class="hero-note">// Sin tarjeta · Configuración en 24h · Cancela cuando quieras</p>
+    <p class="hero-note">// WhatsApp y Zen incluidos en la prueba · Listo en 24 horas</p>
 
     <!-- Hero UI Widgets — muestra contexto del producto sin necesitar imagen -->
     <p style="text-align:center;font-size:10.5px;color:rgba(255,255,255,.25);font-family:'JetBrains Mono',monospace;margin-bottom:8px;">// Ejemplos ilustrativos del producto</p>
     <div class="hero-widgets">
-      <!-- Widget: cita confirmada (CRM) -->
       <div class="hw-card">
         <div class="hw-icon-wrap" style="background:rgba(74,222,90,.1);">
           <svg viewBox="0 0 24 24" stroke="var(--zm-g)"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><polyline points="9 16 11 18 15 14"/></svg>
         </div>
         <div>
           <div class="hw-title">Cita confirmada</div>
-          <div class="hw-sub">Dr. Martínez · Hoy 3:00pm · WhatsApp ✓</div>
+          <div class="hw-sub">Zen · Hoy 3:00pm · WhatsApp ✓</div>
         </div>
       </div>
-      <!-- Widget: reactivación automática (CRM) -->
       <div class="hw-card">
         <div class="hw-icon-wrap" style="background:rgba(59,130,246,.1);">
           <svg viewBox="0 0 24 24" stroke="#60a5fa"><path d="M17 1l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
@@ -142,14 +133,13 @@ export const LANDING_BODY_HTML = `
           <div class="hw-sub">12 pacientes sin cita en 90 días · mensaje enviado</div>
         </div>
       </div>
-      <!-- Widget: no-shows reducidos -->
       <div class="hw-card">
         <div class="hw-icon-wrap" style="background:rgba(37,211,102,.1);">
           <img src="https://cdn.simpleicons.org/whatsapp/25D366" width="15" height="15" alt="WA" style="display:block;">
         </div>
         <div>
           <div class="hw-title">Recordatorio enviado</div>
-          <div class="hw-sub">−54% no-shows en promedio*</div>
+          <div class="hw-sub">−54% citas perdidas en promedio*</div>
         </div>
       </div>
     </div>
@@ -160,14 +150,13 @@ export const LANDING_BODY_HTML = `
         src="/landing/hero-dashboard-preview.webp"
         width="1536"
         height="1024"
-        alt="Panel de Zentro CRM mostrando conversaciones activas, pacientes nuevos, ingresos cobrados y la agenda del día"
+        alt="Panel de Zentro Med mostrando conversaciones activas, pacientes nuevos, ingresos cobrados y la agenda del día"
         style="width:100%;height:auto;display:block;border-radius:16px;box-shadow:0 30px 80px -20px rgba(0,0,0,.5);"
         loading="eager"
         fetchpriority="high"
       >
     </div>
-    <p class="mockui-caption">// Así se ve tu panel de control en Zentro CRM</p>
-
+    <p class="mockui-caption">// Así se ve tu panel de control en Zentro Med</p>
   </div>
 </section>
 
@@ -177,313 +166,258 @@ export const LANDING_BODY_HTML = `
     <div class="stats-bar-inner">
       <div class="stat-item">
         <div class="stat-n2"><span>+80</span></div>
-        <div class="stat-l2">consultorios usan Zentro CRM</div>
+        <div class="stat-l2">consultorios activos en 7 países</div>
       </div>
       <div class="stat-item">
-        <div class="stat-n2"><span>−54%</span></div>
-        <div class="stat-l2">reducción de no-shows con WhatsApp IA*</div>
+        <div class="stat-n2"><span>54%</span></div>
+        <div class="stat-l2">menos citas perdidas con recordatorios</div>
       </div>
       <div class="stat-item">
         <div class="stat-n2">24h</div>
-        <div class="stat-l2">activación del CRM y agenda†</div>
+        <div class="stat-l2">de la cuenta nueva al sistema configurado</div>
       </div>
       <div class="stat-item">
         <div class="stat-n2"><span>30</span></div>
-        <div class="stat-l2">días de prueba, sin tarjeta</div>
+        <div class="stat-l2">días de prueba, sin tarjeta, con Zen</div>
       </div>
     </div>
   </div>
-  <p class="stats-note">* Promedio de clientes activos en los primeros 90 días. Resultados individuales varían según especialidad y volumen de pacientes. No garantizamos métricas específicas.<br>† Activación del CRM y agenda en 24h. WhatsApp, IA y automatizaciones se activan al elegir un plan pago (Esencial, Profesional o Clínica).</p>
+  <p class="stats-note">* Promedio de clientes activos en los primeros 90 días. Resultados individuales varían según especialidad y volumen de pacientes. No garantizamos métricas específicas.<br>† Activación del CRM y agenda en 24h. WhatsApp y Zen se activan al elegir un plan pago (Esencial, Profesional o Clínica), o durante el tope de cortesía de la prueba gratuita.</p>
 </div>
 
-<!-- TRUST STRIP -->
-<div class="trust-section">
-  <div class="wrap">
-    <div class="trust-inner">
-      <span class="trust-label">Integrado con</span>
-      <div class="trust-logos">
-        <div class="trust-logo"><img src="https://cdn.simpleicons.org/whatsapp/4ade5a" width="28" height="28" alt="WhatsApp" style="display:block;">WhatsApp Cloud API</div>
-        <div class="trust-div"></div>
-        <div class="trust-logo"><img src="https://cdn.simpleicons.org/googlecalendar/4ade5a" width="28" height="28" alt="Google Calendar" style="display:block;">Google Calendar<span style="font-size:9px;color:rgba(255,255,255,.3);margin-left:2px;">· Profesional+</span></div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- DIFERENCIADOR: CRM PURO -->
-<section class="diff-section">
-  <div class="wrap">
-    <div class="diff-header reveal">
-      <p class="section-label" style="color:rgba(74,222,90,.6);">// Por qué Zentro CRM</p>
-      <h2 class="section-title" style="color:var(--zm-white);">Construido para consultorios.<br>No reciclado de un CRM de ventas.</h2>
-      <p class="section-sub" style="color:rgba(255,255,255,.45);margin:12px auto 0;">La mayoría de consultorios organiza pacientes en WhatsApp, Excel o un cuaderno. Zentro CRM reemplaza los tres — sin la curva de aprendizaje de un CRM genérico.</p>
-    </div>
-    <div class="diff-cols reveal-group">
-
-      <div class="diff-col diff-col-good">
-        <div class="diff-col-label">
-          <div class="diff-icon">✓</div>
-          <span>Zentro CRM</span>
-        </div>
-        <ul class="diff-list">
-          <li class="diff-item">
-            <div class="diff-dot">✓</div>
-            <span class="diff-item-text"><strong>WhatsApp compartido</strong> con historial completo por paciente, para todo el equipo</span>
-          </li>
-          <li class="diff-item">
-            <div class="diff-dot">✓</div>
-            <span class="diff-item-text"><strong>Agenda online 24/7</strong> sincronizada con Google Calendar — los pacientes agendan solos</span>
-          </li>
-          <li class="diff-item">
-            <div class="diff-dot">✓</div>
-            <span class="diff-item-text"><strong>IA</strong> que responde y agenda automáticamente, con traspaso a humano cuando se necesita <span style="color:rgba(255,255,255,.35);font-size:11px;">(Profesional y Clínica)</span></span>
-          </li>
-          <li class="diff-item">
-            <div class="diff-dot">✓</div>
-            <span class="diff-item-text">Recordatorios automáticos en todos los planes; <strong>automatización de reactivación</strong> sin que nadie tenga que acordarse <span style="color:rgba(255,255,255,.35);font-size:11px;">(Profesional y Clínica)</span></span>
-          </li>
-          <li class="diff-item">
-            <div class="diff-dot">✓</div>
-            <span class="diff-item-text">Un solo lugar para todo el equipo, <strong>con roles y permisos</strong> por persona</span>
-          </li>
-        </ul>
-      </div>
-
-    </div>
-    <!-- Comparación visual: caos disperso vs. bandeja organizada -->
-    <div class="reveal compare-grid">
-      <div style="border-radius:16px;border:1px solid rgba(239,68,68,.15);background:rgba(239,68,68,.03);">
-        <div class="mockui-chaos">
-          <span class="mockui-chaos-chip" style="--r:-4deg;">📓 Libreta de citas</span>
-          <span class="mockui-chaos-chip" style="--r:3deg;">💬 WhatsApp personal</span>
-          <span class="mockui-chaos-chip" style="--r:-2deg;">📊 Excel desordenado</span>
-          <span class="mockui-chaos-chip" style="--r:5deg;">🗒️ Notas sueltas</span>
-        </div>
-        <p class="mockui-caption" style="color:rgba(239,68,68,.5);">// Antes: información en 4 lugares distintos</p>
-      </div>
-      <div class="mockui">
-        <div class="mockui-bar">
-          <span class="mockui-bardot" style="background:#ef4444;"></span>
-          <span class="mockui-bardot" style="background:#f59e0b;"></span>
-          <span class="mockui-bardot" style="background:#22c55e;"></span>
-          <span class="mockui-url">Zentro CRM</span>
-        </div>
-        <div class="mockui-agenda">
-          <div class="mockui-agenda-row"><span class="mockui-agenda-time">9:00</span><span class="mockui-agenda-name">Ana L.</span><span class="mockui-agenda-pill ok">Confirmada</span></div>
-          <div class="mockui-agenda-row"><span class="mockui-agenda-time">10:30</span><span class="mockui-agenda-name">Julián C.</span><span class="mockui-agenda-pill pending">Pendiente</span></div>
-          <div class="mockui-agenda-row"><span class="mockui-agenda-time">15:00</span><span class="mockui-agenda-name">María R.</span><span class="mockui-agenda-pill ok">Confirmada</span></div>
-        </div>
-      </div>
-    </div>
-
-    <div class="diff-bottom reveal">
-      <a href="/signup" class="btn btn-green btn-lg" onclick="if(typeof fbq!=='undefined')fbq('track','Lead');if(typeof gtag!=='undefined')gtag('event','generate_lead',{event_category:'cta',event_label:'differentiator'});">Probar 30 días gratis →</a>
-      <p class="diff-price-note">// Sin tarjeta · Setup en 24h · Cancela cuando quieras</p>
-    </div>
-  </div>
-</section>
-
-<!-- PROBLEMS -->
-<section class="problems">
+<!-- 01 — FUGAS -->
+<section class="problems" id="fugas">
   <div class="wrap">
     <div class="problems-header reveal">
-      <p class="section-label">// El problema</p>
-      <h2 class="section-title">Los 3 problemas que frenan tu consultorio</h2>
-      <p class="section-sub">Si tu agenda depende del boca a boca y tu WhatsApp es un caos, no estás solo.</p>
+      <p class="section-label">// 01 — Dónde se va el dinero</p>
+      <h2 class="section-title">Tres fugas que ya están costándote dinero este mes</h2>
+      <p class="section-sub">Ninguna es un problema de esfuerzo. Las tres son problemas de seguimiento, y el seguimiento es exactamente lo que un sistema hace mejor que una persona ocupada.</p>
     </div>
-    <div class="prob-grid reveal-group">
-      <div class="prob-card">
-        <div class="prob-icon">
-          <i data-lucide="user-x"></i>
+    <div class="leak-grid reveal-group">
+      <div class="leak-card">
+        <div class="leak-num" style="color:#dc2626;">1 de 5</div>
+        <div class="leak-num-label">Pacientes con cita no se presenta</div>
+        <div class="leak-title">El paciente no llega y nadie lo llamó</div>
+        <div class="leak-text">Confirmar una por una consume la mañana de recepción, así que se deja de hacer. El hueco queda vacío y el ingreso de esa hora no se recupera.</div>
+        <div class="leak-fix">
+          <span class="leak-fix-label">Cómo se cierra</span>
+          <div class="leak-fix-text">Confirmación por WhatsApp 24 horas antes, en todos los planes, sin que nadie se acuerde.</div>
         </div>
-        <div class="prob-title">Pacientes que no regresan</div>
-        <div class="prob-desc">Sin seguimiento automático, el paciente que no agenda su próxima cita simplemente desaparece. Recuperarlo después cuesta 5 veces más que retenerlo.</div>
-        <span class="prob-tag">Pérdida de retención</span>
       </div>
-      <div class="prob-card">
-        <div class="prob-icon">
-          <i data-lucide="message-circle-warning"></i>
+      <div class="leak-card">
+        <div class="leak-num" style="color:#b45309;">5×</div>
+        <div class="leak-num-label">Más caro recuperarlo que retenerlo</div>
+        <div class="leak-title">El paciente que no agendó su siguiente cita</div>
+        <div class="leak-text">Sale del consultorio sin fecha, y sin seguimiento simplemente desaparece del radar. Nadie decide perderlo: se pierde por omisión.</div>
+        <div class="leak-fix">
+          <span class="leak-fix-label">Cómo se cierra</span>
+          <div class="leak-fix-text">Detecta quién no ha vuelto en 30, 60 o 90 días y le escribe un mensaje personalizado.</div>
         </div>
-        <div class="prob-title">WhatsApp desbordado</div>
-        <div class="prob-desc">Confirmaciones manuales, citas por mensaje, recordatorios uno a uno. El WhatsApp del consultorio se convierte en un caos que consume horas cada día.</div>
-        <span class="prob-tag">Caos operativo</span>
       </div>
-      <div class="prob-card">
-        <div class="prob-icon">
-          <i data-lucide="folder-x"></i>
+      <div class="leak-card">
+        <div class="leak-num" style="color:#1d4ed8;">3</div>
+        <div class="leak-num-label">Lugares distintos con la misma info</div>
+        <div class="leak-title">La información no está donde se necesita</div>
+        <div class="leak-text">El historial en WhatsApp, la cita en una libreta, el cobro en otro sistema. Nadie del equipo ve el cuadro completo y todos preguntan dos veces.</div>
+        <div class="leak-fix">
+          <span class="leak-fix-label">Cómo se cierra</span>
+          <div class="leak-fix-text">Una bandeja compartida y una ficha por paciente, con roles y permisos por persona.</div>
         </div>
-        <div class="prob-title">Información dispersa en 3 lugares</div>
-        <div class="prob-desc">El historial del paciente vive en WhatsApp, la cita en una libreta y el cobro en otro sistema. Nadie del equipo ve el cuadro completo.</div>
-        <span class="prob-tag">Datos fragmentados</span>
       </div>
     </div>
   </div>
 </section>
 
-<!-- SOLUTION: CRM -->
-<section class="solution" id="como">
+<!-- 02 — ROI CALCULATOR -->
+<section class="solution" style="background:var(--zm-surface);">
+  <div class="wrap">
+    <div class="problems-header reveal">
+      <p class="section-label">// 02 — La cuenta, hecha</p>
+      <h2 class="section-title">Una consulta recuperada al mes ya paga el plan</h2>
+      <p class="section-sub">No hay que creernos nada: la aritmética es la de tu propio consultorio. Ajusta el valor de tu consulta y cuántas citas se te caen al mes.</p>
+    </div>
+    <div class="reveal roi-card" data-roi data-roi-ratio="0.875" id="roiHome">
+      <div class="roi-inner">
+        <div class="roi-inputs">
+          <div class="roi-row">
+            <div class="roi-row-head"><span class="roi-row-num">01</span><span class="roi-row-label">Citas que se te caen al mes</span></div>
+            <input class="roi-input" type="number" min="0" step="1" value="8" data-roi-citas oninput="zmRoiUpdate()">
+          </div>
+          <div class="roi-row">
+            <div class="roi-row-head"><span class="roi-row-num">02</span><span class="roi-row-label">Valor de tu consulta</span></div>
+            <input class="roi-input" type="number" min="0" step="50" value="1200" data-roi-valor oninput="zmRoiUpdate()">
+          </div>
+          <div class="roi-static">
+            <span class="roi-row-head"><span class="roi-row-num">03</span><span class="roi-row-label">Se pierden hoy</span></span>
+            <span class="roi-static-val" data-roi-perdidas>$9,600</span>
+          </div>
+          <div class="roi-static">
+            <span class="roi-row-head"><span class="roi-row-num">04</span><span class="roi-row-label">Con recordatorios automáticos</span></span>
+            <span class="roi-static-val">54% menos</span>
+          </div>
+        </div>
+        <div class="roi-results">
+          <div class="roi-final">
+            <div class="roi-final-label">Recuperas al mes</div>
+            <div class="roi-final-val" data-roi-recupera>$8,400</div>
+            <span class="roi-final-multiple">10× el plan Esencial</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <p class="roi-assumptions">SUPUESTOS: 8 CITAS PERDIDAS AL MES · $1,200 POR CONSULTA · 54% MENOS AUSENCIAS CON RECORDATORIOS, PROMEDIO DE CLIENTES ACTIVOS EN SUS PRIMEROS 90 DÍAS.</p>
+  </div>
+</section>
+
+<!-- 03 — CONOCE A ZEN -->
+<section class="solution" id="zen-preview">
   <div class="wrap">
     <div class="solution-grid">
-      <div class="solution-visual">
-        <!-- MOCKUP: agenda del día -->
-        <img
-          src="/landing/agenda-mockup.png"
-          width="1536"
-          height="1024"
-          alt="Vista de Agenda de Zentro CRM en escritorio y móvil, mostrando citas de la semana por doctor y consultorio"
-          style="width:100%;height:auto;display:block;border-radius:12px;"
-          loading="lazy"
-        >
-        <p class="mockui-caption">// Agenda de hoy · Zentro CRM</p>
-        <div>
-          <p class="sol-tag">// Zentro Med CRM</p>
-          <p class="sol-title">La operación de tu consultorio, organizada</p>
+      <div class="solution-visual" style="padding:0;overflow:hidden;">
+        <div class="mockui" style="border-radius:0;border:none;">
+          <div class="mockui-chat-header">
+            <div class="mockui-chat-contact">
+              <div class="mockui-avatar" style="background:#dcfce7;color:#15803d;">LG</div>
+              <div>
+                <div class="mockui-chat-name">Laura G.</div>
+                <div class="mockui-chat-meta">Domingo, 11:04 p.m.</div>
+              </div>
+            </div>
+            <span class="mockui-status-pill active">Activo</span>
+          </div>
+          <div class="mockui-chat" style="min-height:260px;">
+            <div class="mockui-bubble in">Hola, ¿tienen cita para limpieza esta semana? ¿Cuánto cuesta?</div>
+            <span class="mockui-bubble-time">11:04 p.m.</span>
+            <div class="mockui-bubble auto" style="align-self:flex-end;border-bottom-left-radius:14px;border-bottom-right-radius:4px;">Hola Laura. La limpieza dental cuesta $500 y dura 45 minutos. Tengo lunes 8 a las 10:00 a.m. o miércoles 10 a las 4:30 p.m. ¿Cuál te acomoda?</div>
+            <span class="mockui-bubble-time" style="align-self:flex-end;">11:04 p.m.</span>
+            <div class="mockui-bubble in">El lunes a las 10 me sirve</div>
+            <span class="mockui-bubble-time">11:06 p.m.</span>
+            <div class="mockui-bubble auto" style="align-self:flex-end;border-bottom-left-radius:14px;border-bottom-right-radius:4px;">Listo, quedó el lunes 8 de septiembre a las 10:00 a.m. Te confirmo un día antes por aquí.</div>
+            <span class="mockui-bubble-tag done" style="align-self:flex-end;">✓ Cita creada · lunes 8, 10:00 a.m.</span>
+          </div>
         </div>
-        <div class="feature-row">
-          <div class="feat-check"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
-          <div class="feat-text"><strong>WhatsApp compartido</strong> — Toda la comunicación del consultorio centralizada, con respuestas automáticas para citas y recordatorios.</div>
-        </div>
-        <div class="feature-row">
-          <div class="feat-check"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
-          <div class="feat-text"><strong>Seguimiento de contactos</strong> — Nuevo prospecto → primera cita → seguimiento → reactivación. Sin que nadie se pierda en el camino.</div>
-        </div>
-        <div class="feature-row">
-          <div class="feat-check"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
-          <div class="feat-text"><strong>Agenda online 24/7</strong> — Los pacientes agendan solos. Recordatorio automático 24h antes. Sin llamadas manuales.</div>
-        </div>
-        <div class="feature-row">
-          <div class="feat-check"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
-          <div class="feat-text"><strong>Perfil del contacto</strong> — Historial de citas, comunicaciones y notas de seguimiento por persona. Accesible desde cualquier dispositivo. <span style="color:rgba(255,255,255,.35);font-size:12px;">(No es historia clínica)</span></div>
-        </div>
-        <div class="feature-row">
-          <div class="feat-check"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
-          <div class="feat-text"><strong>Cotizaciones y cobros</strong> — Genera propuestas de servicio y registra pagos desde el mismo sistema que la agenda.</div>
-        </div>
+        <p class="mockui-caption" style="padding-bottom:16px;">// Zen en WhatsApp — sin intervención</p>
       </div>
       <div class="solution-copy">
-        <p class="section-label">// CRM para consultorios</p>
-        <h2 class="section-title">Un sistema que trabaja mientras tú consultas</h2>
-        <p class="section-sub">Zentro Med gestiona la parte comercial y operativa del consultorio para que tú te concentres en el paciente. No en el WhatsApp.</p>
+        <p class="section-label">// 03 — Conoce a Zen</p>
+        <h2 class="section-title">Zen es la recepcionista que nunca se va a comer</h2>
+        <p class="section-sub">Contesta WhatsApp a las once de la noche, agenda dentro de la misma conversación y te pasa el chat en cuanto la pregunta se vuelve clínica. Y dentro del sistema, le hablas y hace el trabajo.</p>
         <div class="benefit-list">
           <div class="benefit-item">
             <div class="benefit-num">1</div>
             <div class="benefit-text">
-              <h3>Reducción de no-shows</h3>
-              <p>Los recordatorios automáticos por WhatsApp reducen los no-shows en un 54% en promedio.* Sin que nadie tenga que llamar.</p>
+              <h3>Habla como tu consultorio</h3>
+              <p>Configuras precios, horarios y preguntas frecuentes una vez. Zen los usa en cada conversación, sin inventar nada.</p>
             </div>
           </div>
           <div class="benefit-item">
             <div class="benefit-num">2</div>
             <div class="benefit-text">
-              <h3>Más reactivaciones</h3>
-              <p>Identifica pacientes que no han vuelto en 30, 60 o 90 días y reactívalos automáticamente con un mensaje personalizado.</p>
+              <h3>Agenda dentro del chat</h3>
+              <p>Confirma, mueve o cancela citas sin que nadie del equipo intervenga, y la cita aparece en tu calendario.</p>
             </div>
           </div>
           <div class="benefit-item">
             <div class="benefit-num">3</div>
             <div class="benefit-text">
-              <h3>Equipo alineado</h3>
-              <p>Médicos, recepcionistas y administrativos ven lo mismo en tiempo real. Sin hojas de cálculo ni cuadernos.</p>
+              <h3>Sabe cuándo llamarte</h3>
+              <p>Si la pregunta es clínica o sale de lo que tiene configurado, pasa la conversación a una persona del equipo.</p>
+            </div>
+          </div>
+          <div class="benefit-item">
+            <div class="benefit-num">4</div>
+            <div class="benefit-text">
+              <h3>Nunca actúa sin permiso</h3>
+              <p>Dentro del sistema te propone las acciones y espera tu confirmación antes de mover una cita o enviar un cobro.</p>
             </div>
           </div>
         </div>
+        <a href="/zen" class="btn btn-dark" style="margin-top:8px;">Ver todo lo que hace Zen →</a>
       </div>
     </div>
-  </div>
-</section>
 
-<!-- SOLUTION: IA -->
-<section class="solution" id="ia" style="background:#f8faf9;">
-  <div class="wrap">
-    <div class="solution-grid reverse">
-      <div class="solution-visual">
-        <img
-          src="/landing/inbox-mockup.png"
-          width="1536"
-          height="1024"
-          alt="Bandeja de entrada de Zentro CRM mostrando una conversación de WhatsApp con respuesta automática de IA agendando una cita"
-          style="width:100%;height:auto;display:block;border-radius:12px;"
-          loading="lazy"
-        >
-        <p class="mockui-caption" style="margin-top:14px;">// Incluida en tu plan — no necesitas cuentas propias en OpenAI ni Anthropic</p>
-      </div>
-      <div class="solution-copy">
-        <p class="section-label">// Tu agente de IA en WhatsApp</p>
-        <h2 class="section-title">Un agente que contesta, agenda y sabe cuándo pasarte el chat</h2>
-        <p class="section-sub">Zentro Med pone la infraestructura de IA — el agente responde preguntas frecuentes, confirma o reagenda citas, y transfiere la conversación a una persona del equipo apenas el caso lo requiere.</p>
-        <div class="benefit-list">
-          <div class="benefit-item">
-            <div class="benefit-num">1</div>
-            <div class="benefit-text">
-              <h3>Responde con el contexto de tu consultorio</h3>
-              <p>Configuras precios, horarios y preguntas frecuentes una vez; el agente los usa en cada conversación.</p>
-            </div>
+    <div class="reveal" style="max-width:420px;margin:56px auto 0;">
+      <div class="voice-card">
+        <div class="voice-mic">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+        </div>
+        <div class="voice-label">Zen por voz · con las manos ocupadas</div>
+        <p class="voice-quote">"Agenda a Kenia el jueves a las once y mándale el link de cobro"</p>
+        <div class="voice-actions-label">Zen va a hacer</div>
+        <div class="voice-actions">
+          <div class="voice-action">
+            <span class="voice-action-num">1</span>
+            <span class="voice-action-text">Mover cita a jueves 10 · 11:00</span>
           </div>
-          <div class="benefit-item">
-            <div class="benefit-num">2</div>
-            <div class="benefit-text">
-              <h3>Agenda dentro de la misma conversación</h3>
-              <p>Confirma, reagenda o cancela citas sin que nadie del equipo tenga que intervenir manualmente.</p>
-            </div>
-          </div>
-          <div class="benefit-item">
-            <div class="benefit-num">3</div>
-            <div class="benefit-text">
-              <h3>Sabe cuándo pasarte el chat</h3>
-              <p>Si el paciente pregunta algo clínico o fuera de guion, el agente transfiere la conversación a una persona — no improvisa.</p>
-            </div>
+          <div class="voice-action">
+            <span class="voice-action-num">2</span>
+            <span class="voice-action-text">Enviar link de cobro por $1,150</span>
           </div>
         </div>
-        <p style="font-size:12px;color:var(--zm-muted2);font-family:'JetBrains Mono',monospace;line-height:1.7;margin-top:4px;">// Esencial incluye hasta 300 borradores/mes; Profesional hasta 2.000 respuestas/mes; Clínica hasta 6.000 respuestas/mes. En Esencial el agente redacta un borrador que revisas antes de enviar; en Profesional y Clínica responde y agenda de forma autónoma, 24/7. ¿Necesitas más? Puedes ampliar tu cuota sin cambiar de plan.</p>
+        <div class="voice-btns">
+          <button class="voice-confirm-btn" type="button">Confirmar ambas</button>
+        </div>
       </div>
     </div>
+    <p style="text-align:center;margin-top:20px;font-size:11.5px;color:var(--zm-muted2);font-family:'JetBrains Mono',monospace;">// La infraestructura de Zen va incluida — no necesitas cuentas propias en ningún proveedor de IA</p>
   </div>
 </section>
 
-<!-- FEATURES OVERVIEW -->
-<section class="problems" style="background:var(--zm-surface);">
+<!-- 04 — QUÉ INCLUYE -->
+<section class="problems" style="background:var(--zm-surface);" id="producto">
   <div class="wrap">
     <div class="problems-header reveal">
-      <p class="section-label">// Todo lo que incluye</p>
+      <p class="section-label">// 04 — Qué incluye</p>
       <h2 class="section-title">Un sistema, no seis pestañas abiertas</h2>
-      <p class="section-sub">Esto es lo que vive dentro de Zentro CRM — sin herramientas sueltas que mantener por separado.</p>
+      <p class="section-sub">Reemplaza la libreta, el WhatsApp personal y la hoja de cálculo. No es expediente clínico, y es a propósito: así funciona igual en odontología, dermatología o psicología, en siete países, sin atarte al formato clínico ni fiscal de uno solo.</p>
     </div>
     <div class="fx-grid reveal-group">
       <div class="fx-card">
         <div class="fx-icon"><i data-lucide="calendar-check"></i></div>
-        <div class="fx-title">Agenda inteligente</div>
-        <div class="fx-desc">Agenda online 24/7 con página pública de citas, sincronizada con Google Calendar, y recordatorio automático 24h antes de cada cita.</div>
+        <div class="fx-title">Agenda en línea, día y noche</div>
+        <div class="fx-desc">Página pública de citas, sincronización con Google Calendar y recordatorio automático el día previo.</div>
+        <span class="fx-tag">Todos los planes</span>
+      </div>
+      <div class="fx-card">
+        <div class="fx-icon"><i data-lucide="message-circle"></i></div>
+        <div class="fx-title">WhatsApp compartido</div>
+        <div class="fx-desc">Bandeja de equipo con el hilo completo por paciente, visible para todo el consultorio.</div>
         <span class="fx-tag">Todos los planes</span>
       </div>
       <div class="fx-card">
         <div class="fx-icon"><i data-lucide="users"></i></div>
-        <div class="fx-title">Gestión de pacientes</div>
-        <div class="fx-desc">Pipeline visual desde primer contacto hasta paciente recurrente, con seguimiento y reactivación automática de quienes dejaron de agendar.</div>
+        <div class="fx-title">Seguimiento de pacientes</div>
+        <div class="fx-desc">Del primer contacto al paciente que regresa, con reactivación automática de quienes dejaron de agendar.</div>
         <span class="fx-tag">Todos los planes</span>
       </div>
       <div class="fx-card">
         <div class="fx-icon"><i data-lucide="receipt"></i></div>
         <div class="fx-title">Presupuestos y cobros</div>
-        <div class="fx-desc">Genera cotizaciones y registra pagos sin salir del sistema — todo queda ligado a la ficha del paciente y a su cita.</div>
+        <div class="fx-desc">Genera presupuestos y registra pagos ligados a la ficha y a la cita, con recibo en PDF.</div>
         <span class="fx-tag">Todos los planes</span>
       </div>
       <div class="fx-card">
-        <div class="fx-icon"><i data-lucide="history"></i></div>
-        <div class="fx-title">Historial del paciente</div>
-        <div class="fx-desc">Cada contacto tiene su ficha con citas pasadas, comunicaciones y notas de seguimiento, accesible para todo el equipo. <span style="color:var(--zm-muted2);font-size:12px;">(No es historia clínica)</span></div>
-        <span class="fx-tag">Todos los planes</span>
+        <div class="fx-icon"><i data-lucide="bot"></i></div>
+        <div class="fx-title">Zen contestando solo</div>
+        <div class="fx-desc">Responde y agenda de forma autónoma las 24 horas, con la información de tu consultorio y traspaso a una persona.</div>
+        <span class="fx-tag">Profesional y Clínica</span>
       </div>
       <div class="fx-card">
         <div class="fx-icon"><i data-lucide="building-2"></i></div>
-        <div class="fx-title">Multi-consultorio y multi-clínica</div>
-        <div class="fx-desc">Administra la agenda de varios profesionales o varias sedes desde una sola cuenta, con vistas y permisos filtrados por consultorio.</div>
+        <div class="fx-title">Varios doctores y sedes</div>
+        <div class="fx-desc">Administra la agenda de varios profesionales o consultorios desde una cuenta, con permisos por sede.</div>
         <span class="fx-tag">Clínica</span>
       </div>
-      <div class="fx-card">
-        <div class="fx-icon"><i data-lucide="message-circle"></i></div>
-        <div class="fx-title">WhatsApp compartido</div>
-        <div class="fx-desc">Bandeja de equipo con historial completo por paciente — el mismo hilo de conversación, visible para todo el consultorio.</div>
-        <span class="fx-tag">Todos los planes</span>
+    </div>
+
+    <div class="reveal" style="margin-top:56px;background:var(--zm-night);border-radius:22px;padding:clamp(28px,4vw,44px);">
+      <p class="section-label" style="color:rgba(74,222,90,.6);text-align:center;">// También en tu teléfono</p>
+      <h3 style="text-align:center;font-size:clamp(20px,2.4vw,28px);font-weight:800;color:var(--zm-white);letter-spacing:-.03em;margin-bottom:10px;">Entre paciente y paciente, sin sentarte a la computadora</h3>
+      <p style="text-align:center;font-size:14px;color:rgba(255,255,255,.5);max-width:600px;margin:0 auto 28px;line-height:1.7;">La app de Android muestra lo que necesitas junto al sillón: quién está en consulta, qué citas faltan por confirmar y qué presupuestos siguen sin respuesta.</p>
+      <div style="display:flex;justify-content:center;gap:14px;flex-wrap:wrap;">
+        <span class="pill-dark">📎 Cobro por link en tres toques</span>
+        <span class="pill-dark">🎙️ Zen por voz</span>
+        <span class="pill-dark">🦷 Odontograma en la palma</span>
       </div>
     </div>
   </div>
@@ -495,70 +429,37 @@ export const LANDING_BODY_HTML = `
     <div class="mid-cta-inner">
       <div>
         <p class="mid-cta-pre">// ¿Convencido hasta aquí?</p>
-        <p class="mid-cta-head">Empieza gratis hoy — suma WhatsApp, IA y automatizaciones al elegir tu plan.</p>
+        <p class="mid-cta-head">Empieza gratis hoy — con WhatsApp y Zen incluidos en la prueba.</p>
       </div>
-      <a href="/signup" class="btn btn-green btn-lg" style="flex-shrink:0;" onclick="if(typeof fbq!=='undefined')fbq('track','Lead');if(typeof gtag!=='undefined')gtag('event','generate_lead',{event_category:'cta',event_label:'mid_page'});">Probar 30 días gratis →</a>
+      <a href="/signup" class="btn btn-green btn-lg" style="flex-shrink:0;" onclick="if(typeof fbq!=='undefined')fbq('track','Lead');if(typeof gtag!=='undefined')gtag('event','generate_lead',{event_category:'cta',event_label:'mid_page'});">Empezar gratis →</a>
     </div>
   </div>
 </div>
 
-<!-- HOW IT WORKS -->
-<section class="how">
-  <div class="wrap">
-    <div class="how-header reveal">
-      <p class="section-label">// Cómo funciona</p>
-      <h2 class="section-title">De cero a consultorio digital en una semana</h2>
-    </div>
-    <div class="how-steps reveal-group">
-      <div class="how-step">
-        <div class="step-num">1</div>
-        <div class="step-title">Prueba gratis</div>
-        <div class="step-desc">Activa tu cuenta en 2 minutos. 30 días con funciones básicas, sin tarjeta.</div>
-      </div>
-      <div class="how-step">
-        <div class="step-num">2</div>
-        <div class="step-title">Setup en 24h</div>
-        <div class="step-desc">Tu estratega configura WhatsApp, agenda y CRM. Tú solo nos dices cómo funciona tu consultorio.</div>
-      </div>
-      <div class="how-step">
-        <div class="step-num">3</div>
-        <div class="step-title">Tu equipo lo adopta</div>
-        <div class="step-desc">Recepción, médicos y administrativos usan el mismo sistema. Automatizaciones activas desde el día 1.</div>
-      </div>
-      <div class="how-step">
-        <div class="step-num">4</div>
-        <div class="step-title">Menos caos, más seguimiento</div>
-        <div class="step-desc">Recordatorios y reactivaciones corren solas. Tú decides cuándo — si quieres — sumar Zentro Med Marketing.</div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- PRICING -->
+<!-- 05 — PLANES -->
 <section class="pricing" id="planes">
   <div class="wrap">
     <div class="pricing-header reveal">
-      <p class="section-label">// Planes</p>
-      <h2 class="section-title">Un CRM. Un plan gratis. Tres niveles pagos.</h2>
-      <p class="section-sub" style="max-width:640px;margin:12px auto 0;">No es una plantilla clínica pensada para un solo país ni una sola especialidad — es un mismo sistema que se adapta a dermatología, ortopedia, odontología, psicología y más, en 7 países, con infraestructura de IA gestionada por Zentro incluida en tu cuota.</p>
+      <p class="section-label">// 05 — Planes del sistema</p>
+      <h2 class="section-title">Si recuperas una consulta al mes, el plan ya se pagó</h2>
+      <p class="section-sub" style="max-width:640px;margin:12px auto 0;">Sin costo de instalación, sin permanencia y sin cobro automático al terminar la prueba.</p>
     </div>
-    <p class="pricing-sub-note">// Sin setup · Sin permanencia · Cancela cuando quieras</p>
     <div class="reveal fitme-grid">
       <div style="border:1px solid var(--zm-line);border-radius:12px;padding:14px 16px;background:var(--zm-surface);">
-        <div style="font-size:11px;font-weight:800;color:var(--zm-muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;">¿Es para mí? — Prueba gratuita</div>
-        <div style="font-size:12.5px;color:var(--zm-ink2);line-height:1.5;">Quieres ver cómo se siente el sistema antes de pagar — sin WhatsApp ni IA todavía.</div>
+        <div style="font-size:11px;font-weight:800;color:var(--zm-muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;">Quieres probarlo antes de pagar</div>
+        <div style="font-size:12.5px;color:var(--zm-ink2);line-height:1.5;">Ves cómo se siente el sistema, con Zen y WhatsApp de cortesía, antes de decidir.</div>
       </div>
       <div style="border:1px solid var(--zm-line);border-radius:12px;padding:14px 16px;background:var(--zm-surface);">
-        <div style="font-size:11px;font-weight:800;color:var(--zm-muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;">¿Es para mí? — Esencial</div>
-        <div style="font-size:12.5px;color:var(--zm-ink2);line-height:1.5;">Trabajas solo o con 1 persona más, y solo necesitas ordenar WhatsApp y la agenda.</div>
+        <div style="font-size:11px;font-weight:800;color:var(--zm-muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;">Trabajas solo o con una persona más</div>
+        <div style="font-size:12.5px;color:var(--zm-ink2);line-height:1.5;">Solo necesitas ordenar WhatsApp y la agenda, con Zen redactando tus borradores.</div>
       </div>
       <div style="border:1px solid var(--zm-g-mid);border-radius:12px;padding:14px 16px;background:#f0fdf4;">
-        <div style="font-size:11px;font-weight:800;color:var(--zm-g3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;">¿Es para mí? — Profesional</div>
-        <div style="font-size:12.5px;color:var(--zm-ink2);line-height:1.5;">Tienes recepcionista y quieres que la IA y las automatizaciones hagan el seguimiento por ti.</div>
+        <div style="font-size:11px;font-weight:800;color:var(--zm-g3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;">Tienes recepción y quieres que el seguimiento corra solo</div>
+        <div style="font-size:12.5px;color:var(--zm-ink2);line-height:1.5;">Zen contesta y agenda por su cuenta, con reactivación automática de pacientes.</div>
       </div>
       <div style="border:1px solid var(--zm-line);border-radius:12px;padding:14px 16px;background:var(--zm-surface);">
-        <div style="font-size:11px;font-weight:800;color:var(--zm-muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;">¿Es para mí? — Clínica</div>
-        <div style="font-size:12.5px;color:var(--zm-ink2);line-height:1.5;">Varios especialistas o sedes, y necesitas roles, API o integraciones propias.</div>
+        <div style="font-size:11px;font-weight:800;color:var(--zm-muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;">Varios especialistas o consultorios</div>
+        <div style="font-size:12.5px;color:var(--zm-ink2);line-height:1.5;">Necesitas roles, API o conexiones propias, con Zen de alto volumen.</div>
       </div>
     </div>
     <div class="plans-grid reveal-group">
@@ -566,16 +467,16 @@ export const LANDING_BODY_HTML = `
       <!-- PRUEBA GRATUITA -->
       <div class="plan-card">
         <span class="plan-badge badge-free">30 días gratis</span>
-        <div class="plan-name">Prueba gratuita</div>
-        <div class="plan-price"><sup class="price-sym">$</sup><span class="price-amt" data-usd="0">0</span><sub>/mes</sub></div>
-        <div class="plan-note">Sin tarjeta de crédito</div>
+        <div class="plan-name">Prueba</div>
+        <div class="plan-price"><sup class="price-sym">$</sup><span class="price-amt" data-usd="0">0</span><sub>/ 30 días</sub></div>
+        <div class="plan-note">1 usuario · sin tarjeta</div>
         <div class="plan-divider"></div>
         <div class="plan-features">
-          <div class="pf"><div class="pf-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>Pipeline de pacientes (CRM)</div>
-          <div class="pf"><div class="pf-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>Agenda de citas online 24/7</div>
-          <div class="pf"><div class="pf-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>Perfil del contacto (citas + notas)</div>
-          <div class="pf"><div class="pf-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>Cotizaciones y cobros</div>
-          <div class="pf"><div class="pf-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>1 usuario incluido</div>
+          <div class="pf"><div class="pf-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>Agenda y página de citas</div>
+          <div class="pf"><div class="pf-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>Seguimiento de pacientes</div>
+          <div class="pf"><div class="pf-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>Presupuestos y cobros</div>
+          <div class="pf"><div class="pf-check pf-check-ai"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div><span>WhatsApp y Zen <span class="pf-ai-num">con tope de cortesía</span> <span class="pf-ai-pill">IA</span></span></div>
+          <div class="pf"><div class="pf-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>Tus datos se conservan al terminar</div>
         </div>
         <a href="/signup" class="plan-btn btn-plan-free" onclick="if(typeof fbq!=='undefined')fbq('track','Lead');if(typeof gtag!=='undefined')gtag('event','generate_lead',{event_category:'plan',event_label:'crm_trial'});">Empezar gratis →</a>
         <p class="plan-fine">// Sin tarjeta · Cancela cuando quieras</p>
@@ -584,39 +485,35 @@ export const LANDING_BODY_HTML = `
       <!-- ESENCIAL -->
       <div class="plan-card">
         <span class="plan-badge badge-crm">Esencial</span>
-        <div class="plan-name">Zentro CRM Esencial</div>
-        <div class="plan-price"><sup class="price-sym">$</sup><span class="price-amt" data-usd="39">39</span><sub>/mes</sub></div>
-        <div class="plan-note">1 usuario incluido · +<span class="price-sym">$</span><span class="price-amt" data-usd="25">25</span> <span class="price-curr-label">USD</span> por usuario extra</div>
+        <div class="plan-name">Zentro Med Esencial</div>
+        <div class="plan-price"><sup class="price-sym">$</sup><span class="price-amt" data-usd="39">39</span><sub>/ mes</sub></div>
+        <div class="plan-note">1 usuario · +<span class="price-sym">$</span><span class="price-amt" data-usd="25">25</span> <span class="price-curr-label">USD</span> por usuario extra</div>
         <div class="plan-divider"></div>
         <div class="plan-features">
-          <div class="pf"><div class="pf-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>Bandeja de WhatsApp (Cloud API)</div>
-          <div class="pf"><div class="pf-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>Agenda + página pública de citas</div>
-          <div class="pf"><div class="pf-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>Contactos y pipeline de pacientes</div>
-          <div class="pf"><div class="pf-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>Recordatorio automático 24h antes de cada cita</div>
-          <div class="pf"><div class="pf-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>Cotizaciones y recibos de cobro en PDF</div>
-          <div class="pf"><div class="pf-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>Hasta 1.000 pacientes activos</div>
-          <div class="pf"><div class="pf-check pf-check-ai"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div><span><span class="pf-ai-num">Borradores de respuesta con IA</span> · hasta 300 al mes incluidos <span class="pf-ai-pill">IA</span></span></div>
-          <div class="pf" style="color:var(--zm-muted2);"><div class="pf-check" style="background:var(--zm-line2);"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div>Automatizaciones y campañas de difusión</div>
+          <div class="pf"><div class="pf-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>Bandeja de WhatsApp Cloud API</div>
+          <div class="pf"><div class="pf-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>Recordatorio automático 24h antes</div>
+          <div class="pf"><div class="pf-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>Hasta 1,000 pacientes activos</div>
+          <div class="pf"><div class="pf-check pf-check-ai"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div><span><span class="pf-ai-num">Zen redacta y tú apruebas</span> · 300 al mes <span class="pf-ai-pill">IA</span></span></div>
+          <div class="pf"><div class="pf-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>Recibos y presupuestos en PDF</div>
         </div>
         <a href="/signup?plan=esencial" class="plan-btn btn-plan-crm" onclick="if(typeof fbq!=='undefined')fbq('track','InitiateCheckout');if(typeof gtag!=='undefined')gtag('event','generate_lead',{event_category:'plan',event_label:'crm_esencial'});">Elegir Esencial →</a>
-        <p class="plan-fine">// Factura mensual · Cancela cuando quieras</p>
+        <p class="plan-fine">// 7 de cada 10 eligen este · Cancela cuando quieras</p>
       </div>
 
       <!-- PROFESIONAL -->
       <div class="plan-card featured">
         <div class="plan-chip">⭐ Más popular</div>
-        <div class="plan-name">Zentro CRM Profesional</div>
-        <div class="plan-price"><sup class="price-sym">$</sup><span class="price-amt" data-usd="79">79</span><sub>/mes</sub></div>
-        <div class="plan-note">3 usuarios incluidos · +<span class="price-sym">$</span><span class="price-amt" data-usd="25">25</span> <span class="price-curr-label">USD</span> por usuario extra</div>
+        <div class="plan-name">Zentro Med Profesional</div>
+        <div class="plan-price"><sup class="price-sym">$</sup><span class="price-amt" data-usd="79">79</span><sub>/ mes</sub></div>
+        <div class="plan-note">3 usuarios · +<span class="price-sym">$</span><span class="price-amt" data-usd="25">25</span> <span class="price-curr-label">USD</span> por usuario extra</div>
         <div class="plan-divider"></div>
         <div class="plan-features">
-          <div class="pf"><div class="pf-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>Todo lo de Esencial, más:</div>
-          <div class="pf"><div class="pf-check pf-check-ai"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div><span><span class="pf-ai-num">IA 24/7 con base de conocimiento</span> y traspaso a humano · hasta 2.000 respuestas/mes incluidas <span class="pf-ai-pill">IA</span></span></div>
-          <div class="pf"><div class="pf-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div><span class="pf-new">Automatizaciones personalizables: recordatorios, seguimiento y reactivación por plantilla</span></div>
-          <div class="pf"><div class="pf-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div><span class="pf-new">Campañas de difusión por WhatsApp</span></div>
-          <div class="pf"><div class="pf-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div><span class="pf-new">Sincronización con Google Calendar</span></div>
-          <div class="pf"><div class="pf-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div><span class="pf-new">Mini-sitio propio del consultorio</span></div>
-          <div class="pf"><div class="pf-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>Hasta 5.000 pacientes activos</div>
+          <div class="pf"><div class="pf-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>Todo lo de Esencial</div>
+          <div class="pf"><div class="pf-check pf-check-ai"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div><span><span class="pf-ai-num">Zen contestando solo</span> · 2,000 respuestas/mes <span class="pf-ai-pill">IA</span></span></div>
+          <div class="pf"><div class="pf-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div><span class="pf-new">Reactivación automática de pacientes</span></div>
+          <div class="pf"><div class="pf-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div><span class="pf-new">Campañas por WhatsApp</span></div>
+          <div class="pf"><div class="pf-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div><span class="pf-new">Google Calendar y mini-sitio propio</span></div>
+          <div class="pf"><div class="pf-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>Hasta 5,000 pacientes activos</div>
         </div>
         <a href="/signup?plan=profesional" class="plan-btn btn-plan-pop" onclick="if(typeof fbq!=='undefined')fbq('track','InitiateCheckout');if(typeof gtag!=='undefined')gtag('event','generate_lead',{event_category:'plan',event_label:'crm_profesional'});">Elegir Profesional →</a>
         <p class="plan-fine">// Factura mensual · Cancela cuando quieras</p>
@@ -625,18 +522,17 @@ export const LANDING_BODY_HTML = `
       <!-- CLINICA -->
       <div class="plan-card dark-card">
         <span class="plan-badge badge-pro">Clínica</span>
-        <div class="plan-name">Zentro CRM Clínica</div>
-        <div class="plan-price"><sup class="price-sym">$</sup><span class="price-amt" data-usd="149">149</span><sub>/mes</sub></div>
-        <div class="plan-note">5 usuarios incluidos · +<span class="price-sym">$</span><span class="price-amt" data-usd="25">25</span> <span class="price-curr-label">USD</span> por usuario extra</div>
+        <div class="plan-name">Zentro Med Clínica</div>
+        <div class="plan-price"><sup class="price-sym">$</sup><span class="price-amt" data-usd="149">149</span><sub>/ mes</sub></div>
+        <div class="plan-note">5 usuarios · +<span class="price-sym">$</span><span class="price-amt" data-usd="25">25</span> <span class="price-curr-label">USD</span> por usuario extra</div>
         <div class="plan-divider"></div>
         <div class="plan-features">
-          <div class="pf"><div class="pf-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>Todo lo de Profesional, más:</div>
+          <div class="pf"><div class="pf-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>Todo lo de Profesional</div>
           <div class="pf"><div class="pf-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div><span class="pf-new">Pacientes activos ilimitados</span></div>
-          <div class="pf"><div class="pf-check pf-check-ai"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div><span><span class="pf-new">IA de alto volumen</span> · hasta 6.000 respuestas/mes incluidas <span class="pf-ai-pill">IA</span></span></div>
-          <div class="pf"><div class="pf-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div><span class="pf-new">API pública + webhooks para tus propias integraciones</span></div>
-          <div class="pf"><div class="pf-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div><span class="pf-new">Multi-profesional y multi-consultorio avanzado</span></div>
-          <div class="pf"><div class="pf-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div><span class="pf-new">Roles, invitaciones y auditoría de equipo</span></div>
-          <div class="pf"><div class="pf-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>Soporte prioritario + onboarding asistido</div>
+          <div class="pf"><div class="pf-check pf-check-ai"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div><span><span class="pf-new">Zen de alto volumen</span> · 6,000 respuestas/mes <span class="pf-ai-pill">IA</span></span></div>
+          <div class="pf"><div class="pf-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div><span class="pf-new">API pública y conexiones propias</span></div>
+          <div class="pf"><div class="pf-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div><span class="pf-new">Roles, invitaciones y auditoría</span></div>
+          <div class="pf"><div class="pf-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>Soporte prioritario y acompañamiento</div>
         </div>
         <a href="/signup?plan=clinica" class="plan-btn btn-plan-pro" onclick="if(typeof fbq!=='undefined')fbq('track','InitiateCheckout');if(typeof gtag!=='undefined')gtag('event','generate_lead',{event_category:'plan',event_label:'crm_clinica'});">Elegir Clínica →</a>
         <p class="plan-fine">// Factura mensual · Cancela cuando quieras</p>
@@ -644,99 +540,132 @@ export const LANDING_BODY_HTML = `
 
     </div>
     <div style="max-width:680px;margin:28px auto 0;text-align:center;">
-      <p style="font-size:13px;color:var(--zm-muted);line-height:1.7;">La <strong>Prueba gratuita</strong> dura 30 días, sin tarjeta, con funciones básicas de agenda y pipeline de pacientes. Si tu consultorio necesita WhatsApp, IA o automatizaciones, elige <strong>Esencial, Profesional o Clínica</strong> — son planes pagos desde el primer día, sin período de prueba extendido. Si no activas un plan al terminar tu prueba gratuita, tu cuenta pasa a solo lectura; nunca te cobramos sin que actives un plan primero.</p>
+      <p style="font-size:13px;color:var(--zm-muted);line-height:1.7;"><strong>La prueba sí incluye Zen:</strong> 100 mensajes de WhatsApp y 50 respuestas de Zen, de cortesía — para que veas funcionar lo que promete esta página antes de pagar. Al terminar los 30 días eliges plan; si no eliges, tu cuenta pasa a solo lectura y conservas tus datos. Nunca cobramos sin que actives un plan.</p>
     </div>
-    <p style="text-align:center;margin-top:20px;font-size:12px;color:var(--zm-muted2);font-family:'JetBrains Mono',monospace;line-height:1.8;">
-      <span style="color:rgba(167,139,250,.7);">IA</span> = auto-respuestas + redacción asistida en WhatsApp, con infraestructura de IA gestionada por Zentro — no necesitas cuentas propias en OpenAI ni Anthropic. Cada plan incluye una cantidad mensual de respuestas de IA (ver detalle en cada plan); si tu consultorio la supera, puedes ampliarla desde $5 USD por cada 1.000 respuestas adicionales, sin cambiar de plan.<br>
-      Zentro CRM es software de gestión comercial. No incluye gestión de campañas publicitarias — eso es <a href="#marketing" style="color:var(--zm-g3);font-weight:700;">Zentro Med Marketing</a>, un servicio aparte y opcional.<br>
-      Zentro CRM no es un software de historia clínica ni de facturación tributaria de un país específico — es una decisión deliberada: te mantiene flexible entre especialidades y entre países, sin atarte al formato clínico o fiscal de uno solo, y sin que cargues con la responsabilidad legal de un expediente clínico que no es tu core.
-    </p>
   </div>
 </section>
 
-<!-- CROSS-SELL: ZENTRO MED MARKETING (después de ver el precio del CRM, para que no se confunda con él) -->
+<!-- CROSS-SELL: ZENTRO MED MARKETING -->
 <section class="solution" id="marketing" style="background:var(--zm-night);padding-top:clamp(64px,9vw,100px);padding-bottom:clamp(64px,9vw,100px);">
   <div class="wrap">
     <div class="reveal" style="max-width:700px;margin:0 auto;text-align:center;">
-      <p class="section-label" style="color:#a5b4fc;">// Ya tienes tu CRM. ¿Y si además quieres pacientes nuevos?</p>
-      <h2 class="section-title" style="color:var(--zm-white);">Esto es <span style="color:#a5b4fc;">Zentro Med Marketing</span> — un servicio aparte, opcional.</h2>
-      <p class="section-sub" style="color:rgba(255,255,255,.5);margin:14px auto 0;">No es otro nivel del CRM ni un cobro escondido: es un equipo que gestiona campañas de Meta Ads, Google Ads y contenido para traerte pacientes nuevos, si tu agenda depende hoy del boca a boca. Corre sobre la misma bandeja de WhatsApp Cloud API y el mismo calendario sincronizado con Google Calendar de tu CRM actual — no migras nada, no duplicas herramientas.</p>
+      <p class="section-label" style="color:#a5b4fc;">// 06 — Zentro Med Marketing</p>
+      <h2 class="section-title" style="color:var(--zm-white);">El sistema ordena tu agenda. <span style="color:#a5b4fc;">Marketing la llena.</span></h2>
+      <p class="section-sub" style="color:rgba(255,255,255,.5);margin:14px auto 0;">Un servicio aparte y opcional: un equipo que gestiona tus campañas de Meta y Google Ads y produce el contenido, para traerte pacientes que hoy no te conocen. Incluye el sistema de gestión en el precio, sobre tu misma cuenta, sin migrar nada.</p>
     </div>
     <div class="reveal-group marketing-plans-grid">
       <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:22px;">
         <div style="font-size:13px;font-weight:800;color:var(--zm-white);margin-bottom:6px;">Med Starter</div>
-        <div style="font-size:22px;font-weight:800;color:#a5b4fc;margin-bottom:8px;">$249<span style="font-size:12px;color:rgba(255,255,255,.4);font-weight:600;"> USD/mes + setup $99</span></div>
-        <div style="font-size:12px;color:rgba(255,255,255,.5);line-height:1.6;">Incluye tu CRM Profesional (valor $79) + 1 campaña activa en Meta Ads + contenido mensual</div>
+        <div style="font-size:22px;font-weight:800;color:#a5b4fc;margin-bottom:8px;">$324<span style="font-size:12px;color:rgba(255,255,255,.4);font-weight:600;"> USD/mes + $129 instalación</span></div>
+        <div style="font-size:12px;color:rgba(255,255,255,.5);line-height:1.6;">Incluye el sistema Profesional (valor $79) + 1 campaña activa en Meta Ads + contenido mensual</div>
       </div>
       <div style="background:rgba(99,102,241,.1);border:2px solid rgba(129,140,248,.5);border-radius:16px;padding:22px;position:relative;">
         <div style="position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:#818cf8;color:#1e1b4b;font-size:9px;font-weight:800;padding:3px 10px;border-radius:20px;text-transform:uppercase;letter-spacing:.05em;white-space:nowrap;">Recomendado</div>
         <div style="font-size:13px;font-weight:800;color:var(--zm-white);margin-bottom:6px;">Med Growth</div>
-        <div style="font-size:22px;font-weight:800;color:#a5b4fc;margin-bottom:8px;">$399<span style="font-size:12px;color:rgba(255,255,255,.4);font-weight:600;"> USD/mes + setup $199</span></div>
-        <div style="font-size:12px;color:rgba(255,255,255,.55);line-height:1.6;">Incluye tu CRM Clínica (valor $149) + Meta + Google Ads + landing de especialidad</div>
+        <div style="font-size:22px;font-weight:800;color:#a5b4fc;margin-bottom:8px;">$519<span style="font-size:12px;color:rgba(255,255,255,.4);font-weight:600;"> USD/mes + $259 instalación</span></div>
+        <div style="font-size:12px;color:rgba(255,255,255,.55);line-height:1.6;">Incluye el sistema Clínica (valor $149) + Meta y Google Ads + página de aterrizaje por especialidad</div>
       </div>
       <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:22px;">
         <div style="font-size:13px;font-weight:800;color:var(--zm-white);margin-bottom:6px;">Med Premium</div>
-        <div style="font-size:22px;font-weight:800;color:#a5b4fc;margin-bottom:8px;">$749<span style="font-size:12px;color:rgba(255,255,255,.4);font-weight:600;"> USD/mes + setup $299</span></div>
-        <div style="font-size:12px;color:rgba(255,255,255,.5);line-height:1.6;">Incluye tu CRM Clínica (valor $149) + SEO local + account manager dedicado</div>
+        <div style="font-size:22px;font-weight:800;color:#a5b4fc;margin-bottom:8px;">$974<span style="font-size:12px;color:rgba(255,255,255,.4);font-weight:600;"> USD/mes + $389 instalación</span></div>
+        <div style="font-size:12px;color:rgba(255,255,255,.5);line-height:1.6;">Incluye el sistema Clínica (valor $149) + posicionamiento local + ejecutivo de cuenta dedicado</div>
       </div>
     </div>
     <div class="reveal" style="text-align:center;margin-top:36px;">
       <a href="/marketing" class="btn btn-lg" style="background:#818cf8;color:#1e1b4b;" onclick="if(typeof gtag!=='undefined')gtag('event','cross_sell_click',{event_category:'cta',event_label:'crm_to_maas'});">Conocer Zentro Med Marketing →</a>
-      <p style="margin-top:12px;font-size:12px;color:rgba(255,255,255,.35);font-family:'JetBrains Mono',monospace;">// Si ya tienes el CRM, el valor de tu plan se descuenta del precio de Marketing — nunca pagas dos veces</p>
+      <p style="margin-top:12px;font-size:12px;color:rgba(255,255,255,.35);font-family:'JetBrains Mono',monospace;">// Si ya tienes un plan del sistema, su valor se descuenta del precio de Marketing — nunca pagas dos veces</p>
     </div>
   </div>
 </section>
 
-<!-- TESTIMONIALS -->
+<!-- 07 — PUESTA EN MARCHA -->
+<section class="how">
+  <div class="wrap">
+    <div class="how-header reveal">
+      <p class="section-label">// 07 — Puesta en marcha</p>
+      <h2 class="section-title">Tú explicas cómo trabajas. Nosotros lo configuramos.</h2>
+      <p class="section-sub" style="margin:0 auto;text-align:center;">Un estratega deja WhatsApp, agenda y automatizaciones funcionando en 24 horas. Tu única tarea es la llamada.</p>
+    </div>
+    <div class="how-steps reveal-group">
+      <div class="how-step">
+        <div class="step-num">1</div>
+        <p style="font-family:'JetBrains Mono',monospace;font-size:10.5px;font-weight:700;color:var(--zm-g3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;">Hoy · 2 min</p>
+        <div class="step-title">Activa tu cuenta</div>
+        <div class="step-desc">Sin tarjeta. Entras y ya tienes agenda, pacientes y el tope de cortesía de WhatsApp y Zen.</div>
+      </div>
+      <div class="how-step">
+        <div class="step-num">2</div>
+        <p style="font-family:'JetBrains Mono',monospace;font-size:10.5px;font-weight:700;color:var(--zm-g3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;">En 24 horas</p>
+        <div class="step-title">Un estratega lo configura</div>
+        <div class="step-desc">Le cuentas cómo funciona tu consultorio en una llamada. Él deja WhatsApp, agenda y recordatorios listos.</div>
+      </div>
+      <div class="how-step">
+        <div class="step-num">3</div>
+        <p style="font-family:'JetBrains Mono',monospace;font-size:10.5px;font-weight:700;color:var(--zm-g3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;">Día 2</p>
+        <div class="step-title">Tu equipo entra</div>
+        <div class="step-desc">Recepción, doctores y administración usan la misma bandeja y la misma agenda, con permisos por rol.</div>
+      </div>
+      <div class="how-step">
+        <div class="step-num">4</div>
+        <p style="font-family:'JetBrains Mono',monospace;font-size:10.5px;font-weight:700;color:var(--zm-g3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;">Día 30</p>
+        <div class="step-title">Compara tus números</div>
+        <div class="step-desc">Cuenta cuántas citas se te cayeron este mes contra el anterior. Con ese dato decides si sigues.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 08 — TESTIMONIALS -->
 <section class="testi">
   <div class="wrap">
     <div class="testi-header reveal">
-      <p class="section-label">// Resultados reales</p>
-      <h2 class="section-title">Lo que dicen nuestros clientes</h2>
+      <p class="section-label">// 08 — Consultorios que ya lo usan</p>
+      <h2 class="section-title">Tres consultorios, tres números</h2>
+      <p class="section-sub" style="margin:0 auto;text-align:center;">Cada cifra viene de la cuenta del propio consultorio, publicada con su autorización.</p>
     </div>
     <div class="testi-grid reveal-group">
       <div class="testi-card">
         <div class="testi-stars">★★★★★</div>
-        <p class="testi-quote">"Antes perdía al menos 8 citas por semana por no-shows. Con los recordatorios de WhatsApp de Zentro Med ese número bajó a casi cero en el primer mes."</p>
+        <p class="testi-quote">"Antes perdía al menos 8 citas por semana. Con los recordatorios por WhatsApp ese número bajó a casi cero."</p>
         <div class="testi-result">
           <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
-          −87% no-shows · Mes 1
+          −87% citas perdidas · Mes 1
         </div>
         <div class="testi-author">
-          <div class="testi-av" style="background:#dcfce7;color:#15803d;">DR</div>
+          <div class="testi-av" style="background:#dcfce7;color:#15803d;">RM</div>
           <div>
             <div class="testi-name">Dr. Rodrigo M.</div>
-            <div class="testi-role">Médico general · Bogotá</div>
+            <div class="testi-role">Medicina general · Bogotá</div>
           </div>
         </div>
       </div>
       <div class="testi-card">
         <div class="testi-stars">★★★★★</div>
-        <p class="testi-quote">"La automatización de reactivación me devolvió pacientes que llevaban meses sin volver. No tuve que escribirle a nadie manualmente."</p>
+        <p class="testi-quote">"La reactivación automática me devolvió pacientes que llevaban meses sin volver. No le escribí a nadie manualmente."</p>
         <div class="testi-result">
           <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
-          +35% citas de reactivación · Mes 2
+          +35% pacientes que volvieron · Mes 2
         </div>
         <div class="testi-author">
-          <div class="testi-av" style="background:#dbeafe;color:#1d4ed8;">DL</div>
+          <div class="testi-av" style="background:#dbeafe;color:#1d4ed8;">LV</div>
           <div>
             <div class="testi-name">Dra. Lucía V.</div>
-            <div class="testi-role">Dermatóloga · Medellín</div>
+            <div class="testi-role">Dermatología · Medellín</div>
           </div>
         </div>
       </div>
       <div class="testi-card">
         <div class="testi-stars">★★★★★</div>
-        <p class="testi-quote">"Empecé solo con el CRM para ordenar la agenda. A los 3 meses activé Zentro Med Marketing sobre la misma cuenta — sin migrar nada ni perder historial."</p>
+        <p class="testi-quote">"Empecé solo por ordenar la agenda. Terminé quitando la libreta, el Excel y el WhatsApp personal del consultorio."</p>
         <div class="testi-result">
           <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
-          CRM → Marketing sin perder historial · Mes 3
+          3 herramientas reemplazadas
         </div>
         <div class="testi-author">
           <div class="testi-av" style="background:#f3e8ff;color:#7e22ce;">CE</div>
           <div>
             <div class="testi-name">Dr. Carlos E.</div>
-            <div class="testi-role">Ortopedista · Cali</div>
+            <div class="testi-role">Ortopedia · Cali</div>
           </div>
         </div>
       </div>
@@ -744,49 +673,57 @@ export const LANDING_BODY_HTML = `
   </div>
 </section>
 
-<!-- FAQ -->
-<section class="faq">
+<!-- 09 — FAQ -->
+<section class="faq" id="preguntas">
   <div class="wrap">
     <div class="faq-header reveal">
-      <p class="section-label">// Preguntas frecuentes</p>
-      <h2 class="section-title">Todo lo que necesitas saber</h2>
+      <p class="section-label">// 09 — Preguntas</p>
+      <h2 class="section-title">Lo que preguntan antes de decidir</h2>
+      <p class="section-sub" style="margin:0 auto 8px;text-align:center;">Si te falta algo, escríbenos por WhatsApp y te responde una persona.</p>
+      <a href="https://wa.me/15752137020" target="_blank" rel="noopener" class="btn btn-dark btn-sm" style="margin-top:8px;">Hablar con un estratega</a>
     </div>
     <div class="faq-grid">
       <div class="faq-item" onclick="zmToggleFaq(this)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();zmToggleFaq(this);}" role="button" tabindex="0" aria-expanded="false">
-        <div class="faq-q">¿El CRM maneja datos de pacientes de forma segura?
+        <div class="faq-q">¿Qué incluye exactamente la prueba de 30 días?
           <svg class="faq-chevron" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
         </div>
-        <div class="faq-a"><div class="faq-a-inner">Sí. Los datos se almacenan con cifrado en tránsito y en reposo, cumpliendo la Ley 1581 de 2012 (habeas data) para el tratamiento de datos de contacto. Zentro Med es una herramienta de gestión comercial — gestiona citas, contactos y comunicaciones de negocio. No es un sistema de historia clínica; los datos clínicos de tus pacientes son tu responsabilidad exclusiva como profesional de salud. Si un paciente te envía una foto o documento por WhatsApp (por ejemplo, un examen), ese archivo queda guardado en la conversación igual que cualquier mensaje — te recomendamos no solicitar ni conservar ahí información clínica sensible, y borrarla del hilo si la recibes.</div></div>
+        <div class="faq-a"><div class="faq-a-inner">Agenda, página pública de citas, seguimiento de pacientes, presupuestos y cobros, más un tope de cortesía de 100 mensajes de WhatsApp y 50 respuestas de Zen. La idea es que puedas ver funcionar la confirmación automática antes de pagar. No pedimos tarjeta y no cobramos nada de forma automática.</div></div>
       </div>
       <div class="faq-item" onclick="zmToggleFaq(this)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();zmToggleFaq(this);}" role="button" tabindex="0" aria-expanded="false">
-        <div class="faq-q">¿Funciona para especialistas, no solo médicos generales?
+        <div class="faq-q">¿Qué hace Zen y qué no hace?
           <svg class="faq-chevron" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
         </div>
-        <div class="faq-a"><div class="faq-a-inner">Sí. Trabajamos con dermatología, ortopedia, odontología, psicología, oftalmología, medicina estética y más. El CRM se adapta a tu especialidad: plantillas de WhatsApp, campos del pipeline y flujos de automatización configurables por tipo de consulta.</div></div>
+        <div class="faq-a"><div class="faq-a-inner">Zen contesta preguntas frecuentes con la información que tú configuras, agenda y mueve citas dentro de la conversación, y dentro del sistema ejecuta lo que le dictas después de que lo confirmas. No opina de temas clínicos: si la pregunta se sale de lo configurado, pasa la conversación a una persona del equipo.</div></div>
       </div>
       <div class="faq-item" onclick="zmToggleFaq(this)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();zmToggleFaq(this);}" role="button" tabindex="0" aria-expanded="false">
-        <div class="faq-q">¿Necesito contratar marketing para usar el CRM?
+        <div class="faq-q">¿Funciona para mi especialidad?
           <svg class="faq-chevron" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
         </div>
-        <div class="faq-a"><div class="faq-a-inner">No. El CRM funciona 100% independiente — ningún plan requiere contratar marketing. Si más adelante quieres atraer pacientes nuevos con campañas gestionadas, existe Zentro Med Marketing como servicio aparte y opcional, sobre la misma cuenta.</div></div>
+        <div class="faq-a"><div class="faq-a-inner">Trabajamos con odontología, dermatología, ortopedia, psicología, oftalmología y medicina estética, entre otras. Las plantillas de WhatsApp, los campos del seguimiento y las automatizaciones se configuran por tipo de consulta, así que el sistema se adapta a cómo trabajas tú y no al revés.</div></div>
       </div>
       <div class="faq-item" onclick="zmToggleFaq(this)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();zmToggleFaq(this);}" role="button" tabindex="0" aria-expanded="false">
-        <div class="faq-q">¿Qué pasa cuando termina el trial de 30 días?
+        <div class="faq-q">¿Es un sistema de expediente clínico?
           <svg class="faq-chevron" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
         </div>
-        <div class="faq-a"><div class="faq-a-inner">Tu prueba gratuita corre 30 días con funciones básicas (agenda y pipeline de pacientes). Si quieres WhatsApp, IA o automatizaciones, eliges el plan pago que se ajuste a tu consultorio (Esencial, Profesional o Clínica) y sigues sin perder tu información. Si no decides, tu cuenta pasa a solo lectura — nunca te cobramos sin que actives un plan primero.</div></div>
+        <div class="faq-a"><div class="faq-a-inner">No, y es una decisión deliberada. Zentro gestiona la parte comercial y operativa: citas, pacientes, comunicaciones, presupuestos y cobros. Eso lo mantiene válido en varias especialidades y siete países, sin atarte al formato clínico o fiscal de uno solo. Tus notas viven en la ficha, pero no sustituyen el expediente que te exija tu normativa local.</div></div>
+      </div>
+      <div class="faq-item" onclick="zmToggleFaq(this)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();zmToggleFaq(this);}" role="button" tabindex="0" aria-expanded="false">
+        <div class="faq-q">¿Tengo que contratar Marketing para usar el sistema?
+          <svg class="faq-chevron" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="faq-a"><div class="faq-a-inner">No. Ningún plan lo requiere y el sistema funciona completo por su cuenta. Zentro Med Marketing es un servicio aparte para quien además quiere campañas gestionadas, y si ya pagas un plan del sistema, su valor se descuenta del precio de Marketing. Nunca pagas dos veces.</div></div>
       </div>
       <div class="faq-item" onclick="zmToggleFaq(this)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();zmToggleFaq(this);}" role="button" tabindex="0" aria-expanded="false">
         <div class="faq-q">¿Puedo cancelar cuando quiera?
           <svg class="faq-chevron" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
         </div>
-        <div class="faq-a"><div class="faq-a-inner">Sí. Sin contratos ni penalidades. Eres dueño de todos tus datos, accesos y activos digitales desde el día uno — al cancelar simplemente revocas nuestro acceso colaborador. No te dejamos rehén de nada.</div></div>
+        <div class="faq-a"><div class="faq-a-inner">Sí, sin contratos ni penalidades. Tus datos, accesos y activos son tuyos desde el primer día; al cancelar simplemente revocas nuestro acceso. Puedes exportar tu información de pacientes y citas antes de irte, y tu cuenta pasa a solo lectura en vez de desaparecer.</div></div>
       </div>
       <div class="faq-item" onclick="zmToggleFaq(this)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();zmToggleFaq(this);}" role="button" tabindex="0" aria-expanded="false">
-        <div class="faq-q">¿Funciona si ya tengo otro sistema de citas?
+        <div class="faq-q">¿Y si ya tengo otro sistema de citas?
           <svg class="faq-chevron" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
         </div>
-        <div class="faq-a"><div class="faq-a-inner">Sí, podemos hacer la transición gradual. Tu estratega revisa tu setup actual y define el plan de migración para que no pierdas ninguna cita ni información durante el cambio.</div></div>
+        <div class="faq-a"><div class="faq-a-inner">La transición es gradual y no tienes que apagar nada de golpe. Tu estratega revisa el setup actual, importa tus pacientes y define el plan de migración para que no pierdas ninguna cita ni información. Lo normal es correr los dos sistemas una o dos semanas hasta que el equipo se acomoda.</div></div>
       </div>
     </div>
   </div>
@@ -796,13 +733,14 @@ export const LANDING_BODY_HTML = `
 <section class="cta-final">
   <div class="wrap">
     <p class="section-label" style="color:rgba(74,222,90,.6);margin-bottom:16px;">// Empieza hoy</p>
-    <h2>Tu consultorio merece<br><span>pacientes que regresen.</span></h2>
-    <p>30 días de prueba gratis con funciones básicas. Sin tarjeta. Configuración en 24 horas.</p>
+    <h2>Empieza hoy y cuenta<br><span>tus citas perdidas en 30 días.</span></h2>
+    <p>Con WhatsApp y Zen incluidos en la prueba. Sin tarjeta, sin permanencia y con tus datos siempre tuyos.</p>
     <div class="cta-btns">
-      <a href="/signup" class="btn btn-green btn-lg" onclick="if(typeof fbq!=='undefined')fbq('track','Lead');if(typeof gtag!=='undefined')gtag('event','generate_lead',{event_category:'cta',event_label:'cta_final'});">Probar 30 días gratis →</a>
+      <a href="/signup" class="btn btn-green btn-lg" onclick="if(typeof fbq!=='undefined')fbq('track','Lead');if(typeof gtag!=='undefined')gtag('event','generate_lead',{event_category:'cta',event_label:'cta_final'});">Empezar gratis · sin tarjeta</a>
       <a href="https://wa.me/15752137020" target="_blank" rel="noopener" class="btn btn-ghost-light btn-lg">Hablar con un estratega</a>
     </div>
-    <p class="cta-note">// Sin tarjeta · Sin contratos · Cancela cuando quieras</p>
+    <p class="cta-note">// Sin tarjeta · Sin permanencia · Cancela cuando quieras</p>
+    <p style="max-width:820px;margin:36px auto 0;font-size:10.5px;line-height:1.8;color:rgba(255,255,255,.25);font-family:'JetBrains Mono',monospace;">La reducción del 54% en citas perdidas es el promedio de nuestros clientes activos en sus primeros 90 días; los resultados varían según especialidad y volumen de pacientes. La activación en 24 horas cubre CRM, agenda, WhatsApp y Zen. Cada plan incluye una cuota mensual de respuestas de Zen, ampliable desde $5 USD por cada 1,000 adicionales. Zentro Med es software de gestión comercial: no es un sistema de expediente clínico ni de facturación tributaria de un país específico. Los precios de marketing no incluyen la inversión publicitaria en Meta ni Google. Los datos se almacenan cifrados en tránsito y en reposo conforme a la Ley 1581 de 2012.</p>
   </div>
 </section>
 
@@ -825,7 +763,7 @@ export const LANDING_BODY_HTML = `
 <div class="mob-cta">
   <div class="mob-cta-info">
     <span class="mob-cta-price">30 días gratis</span>
-    <span class="mob-cta-sub">sin tarjeta · Solo CRM, sin compromisos</span>
+    <span class="mob-cta-sub">sin tarjeta · WhatsApp y Zen incluidos</span>
   </div>
   <a href="/signup" class="btn btn-green" style="font-size:13px;padding:10px 16px;flex-shrink:0;" onclick="if(typeof gtag!=='undefined')gtag('event','mobile_sticky_cta_click',{event_category:'cta',event_label:'sticky_bar_mobile'});">Empezar →</a>
 </div>
@@ -912,4 +850,40 @@ function zmSetCurr(code) {
     el.classList.toggle('curr-active', el.dataset.curr === code)
   );
 }
+
+/* ── ROI CALCULATOR ──
+   Each [data-roi] block owns two inputs (citas perdidas, valor de la
+   consulta) and a fixed data-roi-ratio — the fraction of "lo perdido"
+   that recordatorios + reactivación recuperan, tuned per page so the
+   calculator's default render matches that page's own headline
+   numbers. Only "se pierden hoy" and "recuperas al mes" recompute
+   live; the "×" badge next to the plan is left as static editorial
+   copy since it isn't a pure function of these two inputs. */
+function zmRoiUpdate(root) {
+  (root ? [root] : document.querySelectorAll('[data-roi]')).forEach(function(calc) {
+    var citasEl = calc.querySelector('[data-roi-citas]');
+    var valorEl = calc.querySelector('[data-roi-valor]');
+    if (!citasEl || !valorEl) return;
+    var citas = parseFloat(citasEl.value) || 0;
+    var valor = parseFloat(valorEl.value) || 0;
+    var ratio = parseFloat(calc.dataset.roiRatio) || 0;
+    var perdidas = Math.round(citas * valor);
+    var recupera = Math.round(perdidas * ratio);
+    var perdidasEl = calc.querySelector('[data-roi-perdidas]');
+    var recuperaEl = calc.querySelector('[data-roi-recupera]');
+    if (perdidasEl) perdidasEl.textContent = '$' + perdidas.toLocaleString('en-US');
+    if (recuperaEl) recuperaEl.textContent = '$' + recupera.toLocaleString('en-US');
+  });
+}
+document.addEventListener('DOMContentLoaded', function() { zmRoiUpdate(); });
+
+/* ── ESPECIALIDAD SWITCHER (nav dropdown on /especialidad/[slug]) ── */
+function zmToggleEspSwitch(e) {
+  e.stopPropagation();
+  document.getElementById('espSwitch').classList.toggle('open');
+}
+document.addEventListener('click', function() {
+  var el = document.getElementById('espSwitch');
+  if (el) el.classList.remove('open');
+});
 `;

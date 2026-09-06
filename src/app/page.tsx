@@ -17,17 +17,17 @@ import { META_PIXEL_ID } from "@/lib/meta-pixel";
 // the whole app (it's a private CRM). This is the one page meant to
 // be crawled, so it overrides that here.
 export const metadata: Metadata = {
-  title: "Zentro CRM — El CRM para consultorios médicos en Latinoamérica",
+  title: "Zentro Med — Que no se pierda ni una cita que ya tenías agendada",
   description:
-    "CRM con WhatsApp, IA y automatizaciones para consultorios en Latinoamérica. 3 planes desde $39/mes. Prueba 30 días gratis, sin tarjeta.",
+    "Zentro Med confirma cada cita por WhatsApp, agenda sola con Zen y trae de vuelta a los pacientes que dejaron de venir. 3 planes desde $39/mes. Prueba 30 días gratis, sin tarjeta.",
   robots: { index: true, follow: true },
   alternates: { canonical: "https://med.zentrolabs.com" },
   openGraph: {
     type: "website",
-    siteName: "Zentro CRM",
-    title: "Zentro CRM — El CRM para consultorios médicos en Latinoamérica",
+    siteName: "Zentro Med",
+    title: "Zentro Med — Que no se pierda ni una cita que ya tenías agendada",
     description:
-      "CRM con WhatsApp, IA y automatizaciones para consultorios en Latinoamérica. 3 planes desde $39/mes. Prueba 30 días gratis, sin tarjeta.",
+      "Zentro Med confirma cada cita por WhatsApp, agenda sola con Zen y trae de vuelta a los pacientes que dejaron de venir. 3 planes desde $39/mes. Prueba 30 días gratis, sin tarjeta.",
     url: "https://med.zentrolabs.com",
     // TODO: this image doesn't exist in /public yet — upload it before
     // this page ships, or Facebook/WhatsApp link previews show nothing.
@@ -35,8 +35,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Zentro CRM — El CRM para consultorios médicos en Latinoamérica",
-    description: "CRM con WhatsApp, IA y automatizaciones para consultorios en Latinoamérica. 3 planes desde $39/mes.",
+    title: "Zentro Med — Que no se pierda ni una cita que ya tenías agendada",
+    description: "Zentro Med confirma cada cita por WhatsApp, agenda sola con Zen y trae de vuelta a los pacientes que dejaron de venir.",
     images: ["https://med.zentrolabs.com/og-zentro-crm.png"],
   },
 };
