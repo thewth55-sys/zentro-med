@@ -2008,6 +2008,23 @@
         "partial": "Partially paid",
         "overdue": "Overdue",
         "void": "Void"
+      },
+      "overdueCard": {
+        "title": "Overdue collections",
+        "caption": "{count} invoices · avg {days} days",
+        "sendReminders": "Send reminders",
+        "none": "No overdue invoices.",
+        "sendSuccess": "{sent} reminder(s) sent.",
+        "sendPartial": "{sent} sent, {failed} failed.",
+        "sendFailed": "Couldn't send reminders."
+      },
+      "paymentMethods": {
+        "title": "Payment methods",
+        "empty": "No payments recorded this month.",
+        "cash": "Cash",
+        "card": "Card",
+        "transfer": "Transfer",
+        "other": "Other"
       }
     },
     "newInvoicePage": {

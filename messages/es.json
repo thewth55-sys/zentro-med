@@ -2008,6 +2008,23 @@
         "partial": "Pago parcial",
         "overdue": "Vencida",
         "void": "Anulada"
+      },
+      "overdueCard": {
+        "title": "Cobranza vencida",
+        "caption": "{count} facturas · promedio {days} días",
+        "sendReminders": "Enviar recordatorios",
+        "none": "No hay facturas vencidas.",
+        "sendSuccess": "{sent} recordatorio(s) enviado(s).",
+        "sendPartial": "{sent} enviado(s), {failed} con error.",
+        "sendFailed": "No se pudieron enviar los recordatorios."
+      },
+      "paymentMethods": {
+        "title": "Formas de pago",
+        "empty": "Sin pagos registrados este mes.",
+        "cash": "Efectivo",
+        "card": "Tarjeta",
+        "transfer": "Transferencia",
+        "other": "Otro"
       }
     },
     "newInvoicePage": {
