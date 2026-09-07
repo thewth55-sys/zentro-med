@@ -10,18 +10,24 @@
 # musl (alpine) prebuilds exist too, but this avoids the extra libc6-compat
 # shims the main Dockerfile needs and keeps this image's dependency surface
 # closer to what actually gets tested locally.
-FROM node:20-slim AS deps
+#
+# Node 22, not 20: this Baileys version (7.0.0-rc14) requires the native
+# `WebSocket` global, which only ships stable (unflagged) from Node 22 —
+# on Node 20 it throws "Node.js detected but native WebSocket not found"
+# the moment a session tries to connect. Confirmed against the deployed
+# service before this was found.
+FROM node:22-slim AS deps
 WORKDIR /app
 COPY services/wa-qr-gateway/package.json services/wa-qr-gateway/package-lock.json* ./
 RUN npm ci
 
-FROM node:20-slim AS builder
+FROM node:22-slim AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY services/wa-qr-gateway/ .
 RUN npm run build
 
-FROM node:20-slim AS runner
+FROM node:22-slim AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 
