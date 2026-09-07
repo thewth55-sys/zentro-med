@@ -292,11 +292,15 @@ export default function BankingPage() {
       setInvoiceResults((prev) => ({ ...prev, [txId]: [] }));
       return;
     }
-    const { data: rows } = await supabase
+    const { data: rows, error } = await supabase
       .from("invoices")
       .select("id, invoice_number, contact:contacts(name, phone)")
       .ilike("invoice_number", `%${query.trim()}%`)
       .limit(6);
+    if (error) {
+      console.error("Search invoices error:", error);
+      return;
+    }
     const results = ((rows ?? []) as { id: string; invoice_number: string; contact: { name: string | null; phone: string } | { name: string | null; phone: string }[] | null }[]).map(
       (r) => {
         const contact = Array.isArray(r.contact) ? r.contact[0] : r.contact;
@@ -741,15 +745,19 @@ export default function BankingPage() {
                       +{formatCurrency(row.amount, currency)}
                     </span>
                   </div>
-                  <div className="relative mt-2">
+                  <div className="mt-2">
                     <Input
                       value={invoiceQuery[row.id] ?? ""}
                       onChange={(e) => void searchInvoicesFor(row.id, e.target.value)}
                       placeholder={t("unreconciled.searchPlaceholder")}
                       className="h-8 text-xs"
                     />
+                    {/* Rendered in normal flow, not `absolute` — this list already
+                        scrolls (`overflow-y-auto` on its parent), which would clip
+                        an absolutely-positioned dropdown instead of letting it
+                        overlay the next row. */}
                     {(invoiceResults[row.id]?.length ?? 0) > 0 && (
-                      <div className="absolute z-10 mt-1 w-full overflow-hidden rounded-md border border-border bg-popover shadow-lg">
+                      <div className="mt-1 overflow-hidden rounded-md border border-border bg-popover shadow-sm">
                         {invoiceResults[row.id].map((inv) => (
                           <button
                             key={inv.id}
