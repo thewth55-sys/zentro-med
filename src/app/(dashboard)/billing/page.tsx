@@ -9,13 +9,12 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { QuoteList } from "@/components/billing/quote-list";
 import { InvoiceList } from "@/components/billing/invoice-list";
 import { ExpenseList } from "@/components/billing/expense-list";
-import { BankAccountList } from "@/components/billing/bank-account-list";
 import { InventoryList } from "@/components/billing/inventory-list";
 import { FinancialSummary } from "@/components/billing/financial-summary";
 import { ProductManager } from "@/components/settings/product-manager";
 import { PageHeader } from "@/components/layout/page-header";
 
-const BILLING_TABS = ["summary", "invoices", "quotes", "expenses", "bankAccounts", "inventory", "priceList"];
+const BILLING_TABS = ["summary", "invoices", "quotes", "expenses", "inventory", "priceList"];
 
 export default function BillingPage() {
   const t = useTranslations("Billing.page");
@@ -53,9 +52,6 @@ export default function BillingPage() {
             <TabsTrigger value="expenses" className="shrink-0 px-3.5 py-1.5 text-xs">
               {t("expenses")}
             </TabsTrigger>
-            <TabsTrigger value="bankAccounts" className="shrink-0 px-3.5 py-1.5 text-xs">
-              {t("bankAccounts")}
-            </TabsTrigger>
             <TabsTrigger value="inventory" className="shrink-0 px-3.5 py-1.5 text-xs">
               {t("inventory")}
             </TabsTrigger>
@@ -75,9 +71,6 @@ export default function BillingPage() {
         </TabsContent>
         <TabsContent value="expenses" className="pt-4">
           <ExpenseList />
-        </TabsContent>
-        <TabsContent value="bankAccounts" className="pt-4">
-          <BankAccountList />
         </TabsContent>
         <TabsContent value="inventory" className="pt-4">
           <InventoryList />

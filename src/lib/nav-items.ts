@@ -16,6 +16,7 @@ import {
   Calendar,
   CreditCard,
   Inbox,
+  Landmark,
   LayoutGrid,
   Link2,
   Megaphone,
@@ -90,6 +91,10 @@ export const navItems: NavItem[] = [
 
   // OPERACIÓN — administración del negocio, no del sillón.
   { href: "/billing", labelKey: "billing", icon: CreditCard, group: "operacion" },
+  // Antes era una pestaña dentro de Finanzas — se independiza para que
+  // caja/bancos/conciliación tengan su propio espacio en vez de
+  // competir por lugar en la barra de pestañas de Facturas/Cotizaciones.
+  { href: "/banking", labelKey: "banking", icon: Landmark, group: "operacion" },
   { href: "/broadcasts", labelKey: "broadcasts", icon: Radio, feature: "broadcasts", group: "operacion" },
   { href: "/automations", labelKey: "automations", icon: Zap, feature: "automations", group: "operacion" },
   { href: "/flows", labelKey: "flows", icon: Workflow, beta: true, feature: "automations", group: "operacion" },

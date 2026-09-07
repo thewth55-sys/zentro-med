@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 import { requireRole, toErrorResponse } from '@/lib/auth/account';
 import type { BankTransactionCategory, BankTransactionDirection } from '@/types';
 
-const PATCHABLE_FIELDS = ['direction', 'category', 'description', 'amount', 'transaction_date'] as const;
+const PATCHABLE_FIELDS = ['direction', 'category', 'description', 'amount', 'transaction_date', 'invoice_id'] as const;
 const DIRECTIONS: BankTransactionDirection[] = ['in', 'out'];
 const CATEGORIES: BankTransactionCategory[] = [
   'transfer', 'owner_draw', 'capital_contribution', 'bank_fee', 'interest', 'other',

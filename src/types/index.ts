@@ -1345,8 +1345,28 @@ export interface BankTransaction {
   amount: number;
   description: string;
   transaction_date: string;
+  /** Migration 118 — reconciliation: which invoice this deposit actually
+   *  belongs to, once known. Null means "not reconciled yet". */
+  invoice_id?: string | null;
   created_by?: string | null;
   created_at: string;
+}
+
+/** Migration 118 — a cash-drawer shift ("Caja del consultorio"): opens
+ *  with a float, accrues cash payments/expenses, closes with a snapshot
+ *  total. At most one 'open' row per account at a time. */
+export interface CashRegister {
+  id: string;
+  account_id: string;
+  opening_balance: number;
+  status: 'open' | 'closed';
+  opened_at: string;
+  opened_by?: string | null;
+  closed_at?: string | null;
+  closed_by?: string | null;
+  closing_balance?: number | null;
+  created_at: string;
+  updated_at?: string;
 }
 
 // ============================================================

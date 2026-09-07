@@ -129,6 +129,7 @@
     "pipelines": "Prospects",
     "agenda": "Agenda",
     "billing": "Finance",
+    "banking": "Bank & cash",
     "broadcasts": "Broadcasts",
     "automations": "Automations",
     "flows": "Flows",
@@ -1741,6 +1742,75 @@
       "editTransaction": "Edit transaction",
       "transactionUpdated": "Transaction updated",
       "transactionUpdateFailed": "Failed to update the transaction"
+    },
+    "banking": {
+      "title": "Bank & cash",
+      "subtitle": "Accounts, the cash drawer, and deposit reconciliation.",
+      "loadFailed": "Failed to load bank & cash data",
+      "cash": {
+        "title": "Practice cash drawer",
+        "subtitle": "Cash on hand this shift",
+        "openChip": "OPEN",
+        "closedChip": "CLOSED",
+        "detail": "Float {opening} · collected {cashIn} · spent {cashExpenses}"
+      },
+      "account": {
+        "add": "Add account",
+        "defaultMeta": "Bank account"
+      },
+      "openRegister": {
+        "title": "Open the register",
+        "openingBalance": "Opening float",
+        "open": "Open register",
+        "opened": "Register opened",
+        "openFailed": "Failed to open the register"
+      },
+      "closeRegister": {
+        "confirm": "Close today's register? This will record the close-out with the current total.",
+        "closed": "Register closed",
+        "closeFailed": "Failed to close the register"
+      },
+      "ledger": {
+        "title": "{month} movements",
+        "subtitle": "Every deposit is linked to its invoice and patient",
+        "export": "Export",
+        "newMovement": "Movement",
+        "empty": "No movements this month.",
+        "columns": {
+          "date": "Date",
+          "concept": "Concept",
+          "account": "Account",
+          "amount": "Amount",
+          "balance": "Balance"
+        }
+      },
+      "newMovement": {
+        "accountLabel": "Account",
+        "accountRequired": "Select a bank account"
+      },
+      "cashCorte": {
+        "title": "Register close-out",
+        "subtitle": "Shift since {date}",
+        "opening": "Opening float",
+        "cashIn": "Cash collected",
+        "cashExpenses": "Cash expenses paid",
+        "balance": "Expected total",
+        "closeButton": "Close today's register",
+        "noRegister": "There's no open register.",
+        "openButton": "Open register"
+      },
+      "unreconciled": {
+        "title": "Unreconciled",
+        "count": "{count} deposit(s)",
+        "caption": "{amount} arrived at the bank with no invoice assigned",
+        "none": "Every deposit is reconciled.",
+        "reconcileNow": "Reconcile now",
+        "dialogTitle": "Reconcile deposits",
+        "searchPlaceholder": "Search invoice by number…",
+        "linked": "Deposit reconciled",
+        "linkFailed": "Failed to reconcile the deposit",
+        "loadFailed": "Failed to load unreconciled deposits"
+      }
     },
     "inventory": {
       "subtitle": "Practice supplies, materials, and instruments.",

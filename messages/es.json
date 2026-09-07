@@ -129,6 +129,7 @@
     "pipelines": "Prospectos",
     "agenda": "Agenda",
     "billing": "Finanzas",
+    "banking": "Banco y caja",
     "broadcasts": "Difusiones",
     "automations": "Automatizaciones",
     "flows": "Flujos",
@@ -1741,6 +1742,75 @@
       "editTransaction": "Editar movimiento",
       "transactionUpdated": "Movimiento actualizado",
       "transactionUpdateFailed": "No se pudo actualizar el movimiento"
+    },
+    "banking": {
+      "title": "Banco y caja",
+      "subtitle": "Cuentas, caja y conciliación de cobros.",
+      "loadFailed": "No se pudo cargar la información de banco y caja",
+      "cash": {
+        "title": "Caja del consultorio",
+        "subtitle": "Efectivo del turno",
+        "openChip": "ABIERTA",
+        "closedChip": "CERRADA",
+        "detail": "Fondo {opening} · cobros {cashIn} · gastos {cashExpenses}"
+      },
+      "account": {
+        "add": "Agregar cuenta",
+        "defaultMeta": "Cuenta bancaria"
+      },
+      "openRegister": {
+        "title": "Abrir caja",
+        "openingBalance": "Fondo inicial",
+        "open": "Abrir caja",
+        "opened": "Caja abierta",
+        "openFailed": "No se pudo abrir la caja"
+      },
+      "closeRegister": {
+        "confirm": "¿Cerrar la caja del día? Se registrará el corte con el total actual.",
+        "closed": "Caja cerrada",
+        "closeFailed": "No se pudo cerrar la caja"
+      },
+      "ledger": {
+        "title": "Movimientos de {month}",
+        "subtitle": "Cada cobro queda ligado a su factura y a su paciente",
+        "export": "Exportar",
+        "newMovement": "Movimiento",
+        "empty": "Sin movimientos este mes.",
+        "columns": {
+          "date": "Fecha",
+          "concept": "Concepto",
+          "account": "Cuenta",
+          "amount": "Monto",
+          "balance": "Saldo"
+        }
+      },
+      "newMovement": {
+        "accountLabel": "Cuenta",
+        "accountRequired": "Selecciona una cuenta bancaria"
+      },
+      "cashCorte": {
+        "title": "Corte de caja",
+        "subtitle": "Turno desde {date}",
+        "opening": "Fondo inicial",
+        "cashIn": "Cobros en efectivo",
+        "cashExpenses": "Gastos pagados de caja",
+        "balance": "Debe haber",
+        "closeButton": "Cerrar caja del día",
+        "noRegister": "No hay una caja abierta.",
+        "openButton": "Abrir caja"
+      },
+      "unreconciled": {
+        "title": "Sin conciliar",
+        "count": "{count} cobro(s)",
+        "caption": "{amount} llegaron al banco sin factura asignada",
+        "none": "Todos los cobros están conciliados.",
+        "reconcileNow": "Conciliar ahora",
+        "dialogTitle": "Conciliar cobros",
+        "searchPlaceholder": "Buscar factura por número…",
+        "linked": "Cobro conciliado",
+        "linkFailed": "No se pudo conciliar el cobro",
+        "loadFailed": "No se pudieron cargar los cobros sin conciliar"
+      }
     },
     "inventory": {
       "subtitle": "Insumos, materiales e instrumental del consultorio.",
