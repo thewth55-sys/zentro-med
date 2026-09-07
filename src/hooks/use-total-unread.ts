@@ -12,6 +12,17 @@ import type { Conversation } from "@/types";
  * Lives on its own realtime channel (distinct from the inbox page's
  * "inbox-realtime") so both can coexist without sharing state.
  */
+// Belt-and-suspenders refetch interval. Realtime is the fast path and
+// normally all this needs, but a `postgres_changes` subscription can
+// miss events after a connection blip (server restart, a brief
+// network drop, a websocket reconnect that lands after the change
+// already happened) with no visible error — the UI would just be
+// silently stuck showing an unread conversation as read until the
+// next unrelated re-render. Polling this cheap query on an interval
+// bounds how stale the badge can ever get, independent of whatever
+// caused a missed event.
+const POLL_INTERVAL_MS = 20_000;
+
 export function useTotalUnread(): number {
   const [total, setTotal] = useState(0);
 
@@ -23,9 +34,10 @@ export function useTotalUnread(): number {
     const supabase = createClient();
     let cancelled = false;
 
-    // Initial load. RLS scopes this to the signed-in user automatically —
-    // no explicit user_id filter needed here.
-    (async () => {
+    // Initial load, and the periodic fallback refetch below share this —
+    // both just need the current {id: unread_count} snapshot. RLS scopes
+    // this to the signed-in user automatically, no explicit filter needed.
+    const refetch = async () => {
       const { data, error } = await supabase
         .from("conversations")
         .select("id, unread_count");
@@ -40,7 +52,10 @@ export function useTotalUnread(): number {
       }
       countsRef.current = map;
       setTotal(sum);
-    })();
+    };
+
+    void refetch();
+    const pollId = setInterval(() => void refetch(), POLL_INTERVAL_MS);
 
     const channel = supabase
       .channel("total-unread-realtime")
@@ -66,6 +81,7 @@ export function useTotalUnread(): number {
 
     return () => {
       cancelled = true;
+      clearInterval(pollId);
       supabase.removeChannel(channel);
     };
   }, []);
