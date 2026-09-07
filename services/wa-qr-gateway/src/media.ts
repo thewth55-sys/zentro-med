@@ -1,7 +1,7 @@
 import { downloadMediaMessage, getContentType, type WAMessage, type WASocket } from 'baileys';
 import type { Logger } from 'pino';
 import { supabaseAdmin } from './supabase.js';
-import { extensionForMimetype, mediaKindForContentType, type InboundMediaKind } from './mime.js';
+import { baseMimetype, extensionForMimetype, mediaKindForContentType, type InboundMediaKind } from './mime.js';
 
 export interface StoredInboundMedia {
   kind: InboundMediaKind;
@@ -41,7 +41,10 @@ export async function downloadAndStoreInboundMedia(
   const submessage = (msg.message as Record<string, { mimetype?: string; caption?: string } | undefined>)[
     contentTypeKey
   ];
-  const mimetype = submessage?.mimetype || 'application/octet-stream';
+  // Storage's `contentType` is what the browser eventually receives
+  // back (via the signed URL), so the parameter-stripped form is what
+  // we want everywhere from here on — not just for the extension.
+  const mimetype = baseMimetype(submessage?.mimetype);
   const caption = submessage?.caption || null;
 
   let buffer: Buffer;

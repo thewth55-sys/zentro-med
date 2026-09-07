@@ -20,12 +20,22 @@ const MIME_TO_EXT: Record<string, string> = {
   'application/pdf': 'pdf',
 };
 
-/** Baileys reports audio mimetypes with a codec suffix sometimes, e.g.
- *  "audio/ogg; codecs=opus" — strip that before the lookup. */
+/** Baileys reports audio mimetypes with a codec parameter almost
+ *  always, e.g. "audio/ogg; codecs=opus" — the qr-inbound-media
+ *  bucket's `allowed_mime_types` (migration 117) only lists the bare
+ *  "audio/ogg", and Supabase Storage matches that exactly, so passing
+ *  the raw value through as the upload's Content-Type gets every
+ *  voice note rejected while images (whose mimetypes never carry a
+ *  parameter) upload fine. Strip it before using the mimetype ANYWHERE
+ *  downstream — both for the extension lookup and for the upload's
+ *  own `contentType` option. */
+export function baseMimetype(mimetype: string | null | undefined): string {
+  if (!mimetype) return 'application/octet-stream';
+  return mimetype.split(';')[0].trim().toLowerCase();
+}
+
 export function extensionForMimetype(mimetype: string | null | undefined): string {
-  if (!mimetype) return 'bin';
-  const base = mimetype.split(';')[0].trim().toLowerCase();
-  return MIME_TO_EXT[base] ?? 'bin';
+  return MIME_TO_EXT[baseMimetype(mimetype)] ?? 'bin';
 }
 
 /** The Baileys message-content key (from getContentType()) mapped to
