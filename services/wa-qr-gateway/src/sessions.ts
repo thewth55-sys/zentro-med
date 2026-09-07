@@ -5,6 +5,7 @@ import makeWASocket, {
   isJidGroup,
   isJidBroadcast,
   isJidStatusBroadcast,
+  isLidUser,
   jidNormalizedUser,
   type WASocket,
   type WAMessage,
@@ -102,7 +103,7 @@ export async function connectSession(accountId: string): Promise<void> {
   sock.ev.on('messages.upsert', ({ messages, type }) => {
     if (type !== 'notify') return;
     for (const msg of messages) {
-      void handleInboundMessage(accountId, msg);
+      void handleInboundMessage(accountId, sock, msg);
     }
   });
 }
@@ -174,13 +175,33 @@ async function handleConnectionUpdate(
   }
 }
 
-async function handleInboundMessage(accountId: string, msg: WAMessage): Promise<void> {
+async function handleInboundMessage(accountId: string, sock: WASocket, msg: WAMessage): Promise<void> {
   if (msg.key.fromMe) return;
-  const remoteJid = msg.key.remoteJid;
+  let remoteJid = msg.key.remoteJid;
   if (!remoteJid || isJidGroup(remoteJid) || isJidBroadcast(remoteJid) || isJidStatusBroadcast(remoteJid)) {
     // Phase 1 is 1:1 text only — group/broadcast/status messages are
     // silently ignored rather than misfiled into a contact's DM thread.
     return;
+  }
+
+  // WhatsApp increasingly addresses contacts by LID (a privacy identifier,
+  // e.g. "123456@lid") instead of their real phone-number JID
+  // ("<phone>@s.whatsapp.net") — confirmed in production logs. A LID's
+  // numeric part is NOT a phone number; storing it as one silently breaks
+  // every future reply (the contact gets a phone that resolves to no real
+  // WhatsApp chat, so sends "succeed" but never arrive). Resolve to the
+  // real phone-number JID via Baileys' own LID<->PN store before using it.
+  if (isLidUser(remoteJid)) {
+    try {
+      const pn = await sock.signalRepository.lidMapping.getPNForLID(remoteJid);
+      if (pn) {
+        remoteJid = pn;
+      } else {
+        logger.warn({ accountId, lid: remoteJid }, 'no phone-number mapping for inbound LID yet — contact will be misfiled under the LID');
+      }
+    } catch (err) {
+      logger.error({ accountId, lid: remoteJid, err }, 'LID->PN resolution failed');
+    }
   }
 
   const text =
