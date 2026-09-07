@@ -87,15 +87,34 @@ export async function disconnectQrSession(accountId: string): Promise<void> {
   });
 }
 
-/** Send a plain-text message through an account's QR-connected line.
- *  Phase 1 only supports text — see provider-dispatch.ts for where
- *  other message types are rejected before this is ever called. */
+/** Send a plain-text message through an account's QR-connected line. */
 export async function sendQrTextMessage(args: {
   accountId: string;
   to: string;
   text: string;
 }): Promise<{ messageId: string }> {
   const data = await gatewayFetch('/send', {
+    method: 'POST',
+    body: JSON.stringify(args),
+  });
+  return { messageId: data.messageId };
+}
+
+/** Send an image, video, audio, or document via a public URL — the
+ *  gateway fetches `link` itself and re-uploads it (encrypted) to
+ *  WhatsApp's media servers, same "just give me a link" model as
+ *  Meta's own sendMediaMessage. See provider-dispatch.ts for where
+ *  templates/interactive are still rejected before reaching here —
+ *  QR has no equivalent to a Meta-approved template. */
+export async function sendQrMediaMessage(args: {
+  accountId: string;
+  to: string;
+  kind: 'image' | 'video' | 'audio' | 'document';
+  link: string;
+  caption?: string;
+  filename?: string;
+}): Promise<{ messageId: string }> {
+  const data = await gatewayFetch('/send-media', {
     method: 'POST',
     body: JSON.stringify(args),
   });

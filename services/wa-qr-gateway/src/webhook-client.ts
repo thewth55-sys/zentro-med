@@ -10,7 +10,15 @@ export interface QrInboundPayload {
   externalMessageId: string;
   senderPhone: string;
   contactName?: string;
-  contentText: string;
+  /** 'text' | 'image' | 'video' | 'audio' | 'document' — matches the
+   *  monolith's ALLOWED_CONTENT_TYPES (deliver-inbound-message.ts). */
+  contentType: string;
+  /** The message text, or a media message's caption. Null for
+   *  uncaptioned media. */
+  contentText: string | null;
+  /** Set only for media messages — a path under the monolith's
+   *  /api/whatsapp/qr-media proxy, not a directly-fetchable URL. */
+  mediaUrl: string | null;
   timestamp: number;
 }
 

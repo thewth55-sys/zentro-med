@@ -1,6 +1,13 @@
 import express from 'express';
 import { timingSafeEqual } from 'node:crypto';
-import { connectSession, disconnectSession, restoreSessionsOnBoot, sendText } from './sessions.js';
+import {
+  connectSession,
+  disconnectSession,
+  restoreSessionsOnBoot,
+  sendText,
+  sendMedia,
+  type OutboundMediaKind,
+} from './sessions.js';
 
 const app = express();
 app.use(express.json());
@@ -72,6 +79,23 @@ app.post('/send', async (req, res) => {
   }
   try {
     const result = await sendText(accountId, to, text);
+    res.json(result);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'unknown error';
+    res.status(502).json({ error: message });
+  }
+});
+
+const MEDIA_KINDS: OutboundMediaKind[] = ['image', 'video', 'audio', 'document'];
+
+app.post('/send-media', async (req, res) => {
+  const { accountId, to, kind, link, caption, filename } = req.body ?? {};
+  if (!accountId || !to || !link || !MEDIA_KINDS.includes(kind)) {
+    res.status(400).json({ error: 'accountId, to, link, and a valid kind are required' });
+    return;
+  }
+  try {
+    const result = await sendMedia(accountId, to, kind, link, caption, filename);
     res.json(result);
   } catch (err) {
     const message = err instanceof Error ? err.message : 'unknown error';

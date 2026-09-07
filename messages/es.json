@@ -2593,7 +2593,7 @@
         "riskDialogTitle": "Esta no es la integración oficial de WhatsApp",
         "riskDialogUnofficial": "La conexión por QR usa el protocolo no oficial de WhatsApp Web, no la API de negocio de Meta. No está avalada ni soportada por Meta ni por Zentro Med.",
         "riskDialogBanRisk": "Meta puede suspender o banear el número conectado a su propio criterio, sin aviso previo. Esto corre enteramente bajo la responsabilidad de la cuenta que se conecta.",
-        "riskDialogLimitedFeatures": "En esta primera versión, los números conectados por QR solo pueden enviar y recibir mensajes de texto — automatizaciones, flujos y campañas todavía no están disponibles para líneas QR.",
+        "riskDialogLimitedFeatures": "Los números conectados por QR pueden enviar y recibir texto y multimedia (imágenes, video, audio, documentos) — automatizaciones, flujos y campañas todavía no están disponibles para líneas QR.",
         "riskDialogRecommendation": "WhatsApp Business API (WABA) sigue siendo la opción recomendada y totalmente soportada.",
         "riskDialogCheckboxLabel": "Entiendo los riesgos descritos arriba y quiero continuar de todas formas.",
         "riskDialogCancel": "Cancelar",

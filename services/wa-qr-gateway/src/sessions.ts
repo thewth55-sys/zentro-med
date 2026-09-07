@@ -16,6 +16,7 @@ import QRCode from 'qrcode';
 import { loadSupabaseAuthState } from './auth-state.js';
 import { supabaseAdmin } from './supabase.js';
 import { notifyInboundMessage } from './webhook-client.js';
+import { downloadAndStoreInboundMedia } from './media.js';
 
 // One entry per account with an active (or connecting) socket. Accounts
 // with no entry here are simply disconnected — the row in
@@ -208,20 +209,38 @@ async function handleInboundMessage(accountId: string, sock: WASocket, msg: WAMe
     msg.message?.conversation ??
     msg.message?.extendedTextMessage?.text ??
     null;
-  if (!text) {
-    // Phase 1 doesn't ingest media/interactive replies over QR — see
-    // provider-dispatch.ts's Phase 1 scope note.
+
+  const senderPhone = jidNormalizedUser(remoteJid).replace('@s.whatsapp.net', '');
+  const timestamp = typeof msg.messageTimestamp === 'number' ? msg.messageTimestamp * 1000 : Date.now();
+  const common = {
+    accountId,
+    whatsappSessionId: remoteJid,
+    externalMessageId: msg.key.id ?? '',
+    senderPhone,
+    contactName: msg.pushName ?? undefined,
+    timestamp,
+  };
+
+  if (text) {
+    await notifyInboundMessage({ ...common, contentType: 'text', contentText: text, mediaUrl: null });
+    return;
+  }
+
+  const media = await downloadAndStoreInboundMedia(sock, msg, accountId, logger);
+  if (!media) {
+    // Not a supported media type (interactive reply, poll vote, reaction
+    // handled elsewhere, etc.) or the download/upload failed — already
+    // logged inside downloadAndStoreInboundMedia for the failure case.
     return;
   }
 
   await notifyInboundMessage({
-    accountId,
-    whatsappSessionId: remoteJid,
-    externalMessageId: msg.key.id ?? '',
-    senderPhone: jidNormalizedUser(remoteJid).replace('@s.whatsapp.net', ''),
-    contactName: msg.pushName ?? undefined,
-    contentText: text,
-    timestamp: typeof msg.messageTimestamp === 'number' ? msg.messageTimestamp * 1000 : Date.now(),
+    ...common,
+    contentType: media.kind,
+    contentText: media.caption,
+    // The monolith resolves this to a short-lived signed URL on each
+    // authenticated request — see src/app/api/whatsapp/qr-media/.
+    mediaUrl: `/api/whatsapp/qr-media/${media.storagePath}`,
   });
 }
 
@@ -232,6 +251,49 @@ export async function sendText(accountId: string, to: string, text: string): Pro
   }
   const jid = toWhatsAppJid(to);
   const result = await sock.sendMessage(jid, { text });
+  if (!result?.key.id) {
+    throw new Error('wa-qr-gateway: sendMessage returned no message id');
+  }
+  return { messageId: result.key.id };
+}
+
+export type OutboundMediaKind = 'image' | 'video' | 'audio' | 'document';
+
+/**
+ * Sends a remote-hosted attachment. Mirrors the Meta Cloud API's own
+ * "just give me a link" model (src/lib/whatsapp/meta-api.ts's
+ * sendMediaMessage) — Baileys fetches `link` itself, re-uploads it
+ * (encrypted) to WhatsApp's media servers, and infers the Content-Type
+ * from that fetch when we don't pass an explicit mimetype, same as the
+ * Meta path relies on. `filename`/`caption` only apply to `document`
+ * and `image`/`video` respectively — Meta itself rejects a caption on
+ * audio (see that same file's comment), so this mirrors that instead
+ * of silently sending something WhatsApp would drop anyway.
+ */
+export async function sendMedia(
+  accountId: string,
+  to: string,
+  kind: OutboundMediaKind,
+  link: string,
+  caption?: string,
+  filename?: string
+): Promise<{ messageId: string }> {
+  const sock = sessions.get(accountId);
+  if (!sock) {
+    throw new Error(`No active qr session for account ${accountId}`);
+  }
+  const jid = toWhatsAppJid(to);
+
+  const content =
+    kind === 'image'
+      ? { image: { url: link }, caption }
+      : kind === 'video'
+        ? { video: { url: link }, caption }
+        : kind === 'audio'
+          ? { audio: { url: link } }
+          : { document: { url: link }, mimetype: 'application/octet-stream', fileName: filename };
+
+  const result = await sock.sendMessage(jid, content);
   if (!result?.key.id) {
     throw new Error('wa-qr-gateway: sendMessage returned no message id');
   }

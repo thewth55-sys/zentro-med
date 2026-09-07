@@ -13,9 +13,13 @@ import { deliverInboundMessage } from '@/lib/whatsapp/deliver-inbound-message'
 // HMAC signature), and transport (services/wa-qr-gateway/, not Meta)
 // are all different from the start.
 //
-// Phase 1 scope: plain text only, 1:1 conversations only — the gateway
-// itself already drops group/broadcast/status messages and anything
-// without a text body (see services/wa-qr-gateway/src/sessions.ts).
+// 1:1 conversations only — the gateway itself already drops group/
+// broadcast/status messages (see services/wa-qr-gateway/src/sessions.ts).
+// Media (image/video/audio/document) is supported: the gateway
+// downloads + decrypts it and uploads to the private qr-inbound-media
+// bucket, handing back a path this route turns into `mediaUrl` — see
+// src/app/api/whatsapp/qr-media/[...path]/route.ts for how that's
+// served back out (a short-lived signed URL, not a public link).
 
 // Lazy-initialized to avoid build-time crash when env vars are missing.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -36,7 +40,9 @@ interface QrWebhookPayload {
   externalMessageId: string
   senderPhone: string
   contactName?: string
-  contentText: string
+  contentType: string
+  contentText: string | null
+  mediaUrl: string | null
   timestamp: number
 }
 
@@ -57,8 +63,13 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'invalid JSON body' }, { status: 400 })
   }
 
-  const { accountId, externalMessageId, senderPhone, contactName, contentText, timestamp } = body
-  if (!accountId || !externalMessageId || !senderPhone || !contentText) {
+  const { accountId, externalMessageId, senderPhone, contactName, contentType, contentText, mediaUrl, timestamp } = body
+  // Either a text body or a media attachment is required — a media
+  // message with no caption has neither `contentText` nor is missing
+  // anything, so this checks for at least one of the two rather than
+  // requiring contentText unconditionally (that would 400 every
+  // uncaptioned photo/voice note).
+  if (!accountId || !externalMessageId || !senderPhone || !contentType || (!contentText && !mediaUrl)) {
     return NextResponse.json({ error: 'missing required fields' }, { status: 400 })
   }
 
@@ -93,9 +104,9 @@ export async function POST(request: Request) {
     senderPhone: normalizePhone(senderPhone),
     contactName: contactName || senderPhone,
     externalMessageId,
-    contentType: 'text',
+    contentType,
     contentText,
-    mediaUrl: null,
+    mediaUrl,
     interactiveReplyId: null,
     replyToExternalId: null,
     timestamp: new Date(timestamp),

@@ -3,11 +3,12 @@
 // API vs. the unofficial QR/Baileys gateway) for an outbound send,
 // based on which whatsapp_config row is resolved for the message.
 //
-// Phase 1 scope (see the approved plan): only plain text is
-// supported over QR. Everything else (templates, media, interactive
-// buttons/lists) throws before ever reaching the gateway — Baileys
-// has no equivalent to a Meta-approved template, and media/
-// interactive support for QR is Phase 3.
+// QR now supports text AND media (image/video/audio/document) — see
+// qrSender's sendMedia below and services/wa-qr-gateway/src/sessions.ts.
+// Templates and interactive buttons/lists still throw before ever
+// reaching the gateway: Baileys has no equivalent to a Meta-approved
+// template, and native WhatsApp buttons/lists are a separate, more
+// involved piece of work than "give Baileys a link" media sends.
 //
 // This does NOT yet cover automations (src/lib/automations/meta-send.ts),
 // flows (src/lib/flows/meta-send.ts), or broadcasts
@@ -26,7 +27,7 @@ import {
 } from '@/lib/whatsapp/meta-api';
 import type { MessageTemplate } from '@/types';
 import type { SendTimeParams } from '@/lib/whatsapp/template-send-builder';
-import { sendQrTextMessage } from '@/lib/whatsapp/qr-gateway-client';
+import { sendQrTextMessage, sendQrMediaMessage } from '@/lib/whatsapp/qr-gateway-client';
 import type { InteractiveButton, InteractiveListSection } from '@/lib/whatsapp/interactive';
 
 export type WhatsAppProvider = 'cloud_api' | 'qr';
@@ -125,9 +126,20 @@ function qrSender(config: WhatsAppConfigForSend): WhatsAppSender {
     async sendText(args) {
       return sendQrTextMessage({ accountId: config.account_id, to: args.to, text: args.text });
     },
-    // No sendTemplate/sendMedia/sendInteractive* — Phase 1 QR is
-    // text-only. Leaving these undefined (rather than throwing inside
-    // them) lets dispatchSend() below give a clearer, uniform error
+    async sendMedia(args) {
+      return sendQrMediaMessage({
+        accountId: config.account_id,
+        to: args.to,
+        kind: args.kind,
+        link: args.link,
+        caption: args.caption,
+        filename: args.filename,
+      });
+    },
+    // No sendTemplate/sendInteractive* — Baileys has no equivalent to a
+    // Meta-approved template, and native buttons/lists aren't wired up
+    // yet. Leaving these undefined (rather than throwing inside them)
+    // lets assertProviderSupports() below give a clearer, uniform error
     // before ever constructing a request.
   };
 }
@@ -154,14 +166,13 @@ export function assertProviderSupports(
   kind: OutboundMessageKind
 ): void {
   if (provider === 'cloud_api') return; // Cloud API supports everything send-message.ts already validates.
-  if (kind !== 'text') {
+  // QR supports text and media (image/video/audio/document) — see
+  // qrSender.sendMedia above. Only templates and interactive
+  // buttons/lists have no QR equivalent.
+  if (kind === 'template' || kind === 'interactive') {
     throw new UnsupportedOnProviderError(
       provider,
-      kind === 'template'
-        ? 'Plantillas de WhatsApp'
-        : kind === 'interactive'
-          ? 'Mensajes interactivos (botones/listas)'
-          : 'El envío de multimedia'
+      kind === 'template' ? 'Plantillas de WhatsApp' : 'Mensajes interactivos (botones/listas)'
     );
   }
 }
