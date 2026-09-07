@@ -314,7 +314,9 @@
   },
   "Inbox": {
     "page": {
-      "whatsappNotConnected": "WhatsApp® no está conectado. Ve a Ajustes para conectar tu cuenta."
+      "whatsappNotConnected": "WhatsApp® no está conectado. Ve a Ajustes para conectar tu cuenta.",
+      "qrUnofficialBanner": "Estás usando una conexión no oficial de WhatsApp (código QR).",
+      "qrUnofficialBannerCta": "Activar WhatsApp Business API"
     },
     "conversationList": {
       "searchPlaceholder": "Buscar conversaciones...",
@@ -1885,6 +1887,7 @@
       "status": "Estado",
       "notes": "Notas",
       "save": "Guardar",
+      "saving": "Guardando...",
       "contactRequired": "Selecciona primero un paciente",
       "itemsRequired": "Agrega al menos una línea",
       "created": "Cotización creada",
@@ -1910,6 +1913,38 @@
         "converted": "Convertida"
       }
     },
+    "quoteDetail": {
+      "back": "Volver a cotizaciones",
+      "notFound": "Cotización no encontrada",
+      "loadFailed": "No se pudo cargar la cotización",
+      "quoteLabel": "Cotización",
+      "billTo": "Paciente",
+      "issued": "Emisión",
+      "expiry": "Vigencia",
+      "columns": {
+        "concept": "Concepto",
+        "qty": "Cant.",
+        "unitPrice": "P. unitario",
+        "amount": "Importe"
+      },
+      "subtotal": "Subtotal",
+      "discount": "Descuento",
+      "total": "Total",
+      "notes": "Notas",
+      "history": {
+        "title": "Historial",
+        "empty": "Sin actividad registrada.",
+        "created": "Cotización creada",
+        "accepted": "Aceptada por el paciente",
+        "converted": "Convertida a factura {invoiceNumber}"
+      },
+      "actions": {
+        "edit": "Editar cotización",
+        "duplicate": "Duplicar cotización",
+        "duplicateSuccess": "Cotización duplicada",
+        "duplicateFailed": "No se pudo duplicar la cotización"
+      }
+    },
     "invoiceForm": {
       "editTitle": "Editar factura",
       "newTitle": "Nueva factura",
@@ -1920,6 +1955,7 @@
       "status": "Estado",
       "notes": "Notas",
       "save": "Guardar",
+      "saving": "Guardando...",
       "contactRequired": "Selecciona primero un paciente",
       "itemsRequired": "Agrega al menos una línea",
       "created": "Factura creada",
@@ -2021,7 +2057,8 @@
       "columns": {
         "number": "Número",
         "contact": "Paciente",
-        "date": "Fecha",
+        "date": "Enviada",
+        "vigencia": "Vigencia",
         "total": "Total",
         "status": "Estado"
       },
@@ -2032,6 +2069,28 @@
         "rejected": "Rechazada",
         "expired": "Vencida",
         "converted": "Convertida"
+      },
+      "vigencia": {
+        "expired": "Vencida",
+        "none": "Sin vigencia",
+        "dueSoon": "Vence en {days} días",
+        "daysLeft": "{days} días"
+      },
+      "conversionCard": {
+        "title": "Conversión",
+        "subtitle": "De cotización enviada a tratamiento",
+        "caption": "{accepted} de {total} este mes",
+        "accepted": "Aceptadas",
+        "noResponse": "Sin respuesta",
+        "rejected": "Rechazadas"
+      },
+      "followUpCard": {
+        "title": "Sin respuesta hace +7 días",
+        "caption": "{count} cotización(es) sin respuesta.",
+        "sendFollowUp": "Dar seguimiento por WhatsApp",
+        "none": "No hay cotizaciones sin respuesta.",
+        "sendSuccess": "{sent} seguimiento(s) enviado(s).",
+        "sendPartial": "{sent} enviado(s), {failed} con error."
       }
     },
     "invoiceList": {
@@ -2114,6 +2173,17 @@
       "checkoutLinkMessage": "Aquí tienes el link para pagar tu factura: {url}",
       "checkoutLinkSent": "Link de cobro enviado por WhatsApp",
       "checkoutLinkFailed": "No se pudo generar el link de cobro"
+    },
+    "newQuotePage": {
+      "back": "Volver a finanzas",
+      "cancel": "Cancelar",
+      "draftBadge": "Borrador",
+      "numberAssignedOnSave": "El número se asigna al guardar",
+      "summary": "Resumen",
+      "total": "Total",
+      "issueAndSend": "Emitir y enviar por WhatsApp",
+      "onIssue": "Al emitir",
+      "sendWhatsapp": "Enviar la cotización por WhatsApp al paciente"
     }
   },
   "Flows": {

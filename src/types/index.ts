@@ -206,6 +206,11 @@ export interface Conversation {
   ai_autoreply_disabled?: boolean;
   ai_reply_count?: number;
   ai_handoff_summary?: string | null;
+  /** Migration 116 — which WhatsApp line this thread lives on. Joined in
+   *  via {@link CONVERSATION_SELECT} to know whether the Meta 24-hour
+   *  customer-service window applies (it doesn't for `qr`). */
+  whatsapp_config_id?: string | null;
+  whatsapp_config?: { provider: 'cloud_api' | 'qr' } | null;
 }
 
 // ============================================================
@@ -1180,6 +1185,9 @@ export interface Quote {
   contact?: Contact;
   items?: QuoteItem[];
   phases?: QuotePhase[];
+  /** Only present on the single-quote GET (detail view's Historial) —
+   *  the invoice this quote became, if it was converted. */
+  convertedInvoice?: { id: string; invoice_number: string; created_at: string } | null;
 }
 
 export type InvoiceStatus = 'draft' | 'sent' | 'paid' | 'partial' | 'overdue' | 'void';

@@ -1,6 +1,6 @@
 "use client";
 
-import { BarChart3, Boxes, FileText, Landmark, Plus, Receipt, Tag, Wallet } from "lucide-react";
+import { Plus, Wallet } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useRouter, useSearchParams } from "next/navigation";
 
@@ -39,41 +39,30 @@ export default function BillingPage() {
       />
 
       <Tabs defaultValue={initialTab}>
-        <div className="relative -mx-1">
-          <TabsList
-            variant="line"
-            className="group-data-horizontal/tabs:h-auto w-full justify-start gap-1 overflow-x-auto border-b border-border px-1 pb-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-          >
-            <TabsTrigger value="summary" className="h-auto shrink-0 gap-1.5 px-3 py-2.5 text-muted-foreground data-active:text-primary">
-              <BarChart3 className="size-4" />
+        <div className="relative -mx-1 overflow-x-auto px-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <TabsList className="h-auto w-fit shrink-0 gap-0.5 bg-muted p-1">
+            <TabsTrigger value="summary" className="shrink-0 px-3.5 py-1.5 text-xs">
               {t("summary")}
             </TabsTrigger>
-            <TabsTrigger value="invoices" className="h-auto shrink-0 gap-1.5 px-3 py-2.5 text-muted-foreground data-active:text-primary">
-              <Receipt className="size-4" />
+            <TabsTrigger value="invoices" className="shrink-0 px-3.5 py-1.5 text-xs">
               {t("invoices")}
             </TabsTrigger>
-            <TabsTrigger value="quotes" className="h-auto shrink-0 gap-1.5 px-3 py-2.5 text-muted-foreground data-active:text-primary">
-              <FileText className="size-4" />
+            <TabsTrigger value="quotes" className="shrink-0 px-3.5 py-1.5 text-xs">
               {t("quotes")}
             </TabsTrigger>
-            <TabsTrigger value="expenses" className="h-auto shrink-0 gap-1.5 px-3 py-2.5 text-muted-foreground data-active:text-primary">
-              <Wallet className="size-4" />
+            <TabsTrigger value="expenses" className="shrink-0 px-3.5 py-1.5 text-xs">
               {t("expenses")}
             </TabsTrigger>
-            <TabsTrigger value="bankAccounts" className="h-auto shrink-0 gap-1.5 px-3 py-2.5 text-muted-foreground data-active:text-primary">
-              <Landmark className="size-4" />
+            <TabsTrigger value="bankAccounts" className="shrink-0 px-3.5 py-1.5 text-xs">
               {t("bankAccounts")}
             </TabsTrigger>
-            <TabsTrigger value="inventory" className="h-auto shrink-0 gap-1.5 px-3 py-2.5 text-muted-foreground data-active:text-primary">
-              <Boxes className="size-4" />
+            <TabsTrigger value="inventory" className="shrink-0 px-3.5 py-1.5 text-xs">
               {t("inventory")}
             </TabsTrigger>
-            <TabsTrigger value="priceList" className="h-auto shrink-0 gap-1.5 px-3 py-2.5 text-muted-foreground data-active:text-primary">
-              <Tag className="size-4" />
+            <TabsTrigger value="priceList" className="shrink-0 px-3.5 py-1.5 text-xs">
               {t("priceList")}
             </TabsTrigger>
           </TabsList>
-          <div className="pointer-events-none absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-background to-transparent" />
         </div>
         <TabsContent value="summary" className="pt-4">
           <FinancialSummary />

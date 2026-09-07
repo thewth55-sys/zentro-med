@@ -227,8 +227,16 @@ export function MessageThread({
     };
   }, []);
 
+  // Meta's 24h customer-service window is a Cloud API rule — it doesn't
+  // apply to the unofficial QR/Baileys line, which has no template-only
+  // fallback. Default to enforcing when the provider isn't resolved yet
+  // (unjoined `whatsapp_config_id`, or a pre-QR account) — that matches
+  // the only behavior this ever had before QR existed.
+  const enforceSessionWindow = conversation?.whatsapp_config?.provider !== "qr";
+
   // 24-hour session timer
   const sessionInfo = useMemo(() => {
+    if (!enforceSessionWindow) return { expired: false, remaining: "" };
     if (!messages.length) return { expired: false, remaining: "" };
 
     // Find last customer message
@@ -252,7 +260,7 @@ export function MessageThread({
         : tTimer("xmRemaining", { minutes: Math.floor(hoursLeft * 60) });
 
     return { expired, remaining };
-  }, [messages, tTimer]);
+  }, [enforceSessionWindow, messages, tTimer]);
 
   // Store latest callback in a ref so fetchMessages doesn't need to
   // depend on `onMessagesLoaded` — otherwise parent re-renders cause
@@ -915,17 +923,20 @@ export function MessageThread({
             <p className="truncate text-xs text-muted-foreground">{contact.phone}</p>
           </div>
           {/* Session timer badge — hidden on the narrowest phones so
-              the name + back arrow keep their room. */}
-          <Badge
-            variant="outline"
-            className={cn(
-              "ml-1 hidden gap-1 border-border text-[10px] sm:inline-flex sm:ml-2",
-              sessionInfo.expired ? "text-red-400" : "text-primary"
-            )}
-          >
-            <Clock className="h-3 w-3" />
-            {sessionInfo.remaining}
-          </Badge>
+              the name + back arrow keep their room. Meaningless (and
+              hidden) for QR conversations, which have no 24h window. */}
+          {enforceSessionWindow && (
+            <Badge
+              variant="outline"
+              className={cn(
+                "ml-1 hidden gap-1 border-border text-[10px] sm:inline-flex sm:ml-2",
+                sessionInfo.expired ? "text-red-400" : "text-primary"
+              )}
+            >
+              <Clock className="h-3 w-3" />
+              {sessionInfo.remaining}
+            </Badge>
+          )}
         </div>
 
         <div className="flex items-center gap-2">

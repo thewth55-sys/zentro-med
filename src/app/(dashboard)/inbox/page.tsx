@@ -14,7 +14,8 @@ import { ConversationList } from "@/components/inbox/conversation-list";
 import { MessageThread } from "@/components/inbox/message-thread";
 import { ContactSidebar } from "@/components/inbox/contact-sidebar";
 import { toast } from "sonner";
-import { WifiOff } from "lucide-react";
+import Link from "next/link";
+import { WifiOff, Info } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { PlanGate } from "@/components/billing-platform/plan-gate";
 
@@ -41,6 +42,10 @@ export default function InboxPage() {
   const [whatsappConnected, setWhatsappConnected] = useState<boolean | null>(
     null
   );
+  /** True when the account is sending/receiving over the unofficial QR
+   *  line and has no WABA (cloud_api) line connected — surfaces the
+   *  discreet "you're on an unofficial connection" banner below. */
+  const [qrOnlyActive, setQrOnlyActive] = useState(false);
   /**
    * Bumped whenever we want children (ConversationList, MessageThread)
    * to refetch from the DB — used as a safety net against missed
@@ -201,12 +206,11 @@ export default function InboxPage() {
         .select("provider, status, qr_connection_state")
         .eq("account_id", accountId);
 
-      const connected = (data ?? []).some(
-        (row: { provider: string; status: string; qr_connection_state: string | null }) =>
-          (row.provider === "cloud_api" && row.status === "connected") ||
-          (row.provider === "qr" && row.qr_connection_state === "connected")
-      );
-      setWhatsappConnected(connected);
+      const rows = (data ?? []) as { provider: string; status: string; qr_connection_state: string | null }[];
+      const cloudConnected = rows.some((row) => row.provider === "cloud_api" && row.status === "connected");
+      const qrConnected = rows.some((row) => row.provider === "qr" && row.qr_connection_state === "connected");
+      setWhatsappConnected(cloudConnected || qrConnected);
+      setQrOnlyActive(qrConnected && !cloudConnected);
     };
 
     checkConnection();
@@ -571,6 +575,21 @@ export default function InboxPage() {
           <WifiOff className="h-4 w-4 text-amber-400" />
           <p className="text-xs text-amber-400">
             {t("whatsappNotConnected")}
+          </p>
+        </div>
+      )}
+
+      {/* Discreet — QR is a supported, working connection, not an error
+          state like the banner above. Just a nudge toward the officially
+          recommended path. */}
+      {qrOnlyActive && (
+        <div className="flex shrink-0 items-center justify-center gap-2 border-b border-border bg-muted/40 px-4 py-1.5">
+          <Info className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+          <p className="text-[11px] text-muted-foreground">
+            {t("qrUnofficialBanner")}{" "}
+            <Link href="/settings?tab=whatsapp" className="font-medium text-foreground hover:underline">
+              {t("qrUnofficialBannerCta")}
+            </Link>
           </p>
         </div>
       )}

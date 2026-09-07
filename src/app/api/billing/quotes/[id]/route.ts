@@ -24,16 +24,26 @@ export async function GET(
       return NextResponse.json({ error: 'Quote not found' }, { status: 404 });
     }
 
-    const [{ data: items }, { data: phases }] = await Promise.all([
+    const [{ data: items }, { data: phases }, { data: convertedInvoice }] = await Promise.all([
       supabase
         .from('quote_items')
         .select('*, product:products(*), tax:taxes(*), odontogram_tooth:odontogram_teeth(tooth_number)')
         .eq('quote_id', id)
         .order('position', { ascending: true }),
       supabase.from('quote_phases').select('*').eq('quote_id', id).order('position', { ascending: true }),
+      // Powers the "Historial" timeline on the quote detail view — link
+      // to the real invoice this quote became, when it was converted.
+      supabase
+        .from('invoices')
+        .select('id, invoice_number, created_at')
+        .eq('quote_id', id)
+        .eq('account_id', accountId)
+        .maybeSingle(),
     ]);
 
-    return NextResponse.json({ quote: { ...quote, items: items ?? [], phases: phases ?? [] } });
+    return NextResponse.json({
+      quote: { ...quote, items: items ?? [], phases: phases ?? [], convertedInvoice: convertedInvoice ?? null },
+    });
   } catch (err) {
     return toErrorResponse(err);
   }

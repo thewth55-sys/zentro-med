@@ -314,7 +314,9 @@
   },
   "Inbox": {
     "page": {
-      "whatsappNotConnected": "WhatsApp® is not connected. Go to Settings to connect your account."
+      "whatsappNotConnected": "WhatsApp® is not connected. Go to Settings to connect your account.",
+      "qrUnofficialBanner": "You're using an unofficial WhatsApp connection (QR code).",
+      "qrUnofficialBannerCta": "Activate WhatsApp Business API"
     },
     "conversationList": {
       "searchPlaceholder": "Search conversations...",
@@ -1885,6 +1887,7 @@
       "status": "Status",
       "notes": "Notes",
       "save": "Save",
+      "saving": "Saving...",
       "contactRequired": "Select a patient first",
       "itemsRequired": "Add at least one line item",
       "created": "Quote created",
@@ -1910,6 +1913,38 @@
         "converted": "Converted"
       }
     },
+    "quoteDetail": {
+      "back": "Back to quotes",
+      "notFound": "Quote not found",
+      "loadFailed": "Failed to load the quote",
+      "quoteLabel": "Quote",
+      "billTo": "Patient",
+      "issued": "Issued",
+      "expiry": "Expiry",
+      "columns": {
+        "concept": "Concept",
+        "qty": "Qty.",
+        "unitPrice": "Unit price",
+        "amount": "Amount"
+      },
+      "subtotal": "Subtotal",
+      "discount": "Discount",
+      "total": "Total",
+      "notes": "Notes",
+      "history": {
+        "title": "History",
+        "empty": "No activity recorded yet.",
+        "created": "Quote created",
+        "accepted": "Accepted by the patient",
+        "converted": "Converted to invoice {invoiceNumber}"
+      },
+      "actions": {
+        "edit": "Edit quote",
+        "duplicate": "Duplicate quote",
+        "duplicateSuccess": "Quote duplicated",
+        "duplicateFailed": "Failed to duplicate the quote"
+      }
+    },
     "invoiceForm": {
       "editTitle": "Edit invoice",
       "newTitle": "New invoice",
@@ -1920,6 +1955,7 @@
       "status": "Status",
       "notes": "Notes",
       "save": "Save",
+      "saving": "Saving...",
       "contactRequired": "Select a patient first",
       "itemsRequired": "Add at least one line item",
       "created": "Invoice created",
@@ -2021,7 +2057,8 @@
       "columns": {
         "number": "Number",
         "contact": "Patient",
-        "date": "Date",
+        "date": "Sent",
+        "vigencia": "Validity",
         "total": "Total",
         "status": "Status"
       },
@@ -2032,6 +2069,28 @@
         "rejected": "Rejected",
         "expired": "Expired",
         "converted": "Converted"
+      },
+      "vigencia": {
+        "expired": "Expired",
+        "none": "No expiry",
+        "dueSoon": "Due in {days} days",
+        "daysLeft": "{days} days"
+      },
+      "conversionCard": {
+        "title": "Conversion",
+        "subtitle": "From quote sent to treatment",
+        "caption": "{accepted} of {total} this month",
+        "accepted": "Accepted",
+        "noResponse": "No response",
+        "rejected": "Rejected"
+      },
+      "followUpCard": {
+        "title": "No response for 7+ days",
+        "caption": "{count} quote(s) with no response.",
+        "sendFollowUp": "Follow up via WhatsApp",
+        "none": "No quotes are waiting on a response.",
+        "sendSuccess": "{sent} follow-up(s) sent.",
+        "sendPartial": "{sent} sent, {failed} failed."
       }
     },
     "invoiceList": {
@@ -2114,6 +2173,17 @@
       "checkoutLinkMessage": "Here's the link to pay your invoice: {url}",
       "checkoutLinkSent": "Payment link sent via WhatsApp",
       "checkoutLinkFailed": "Failed to generate the payment link"
+    },
+    "newQuotePage": {
+      "back": "Back to finances",
+      "cancel": "Cancel",
+      "draftBadge": "Draft",
+      "numberAssignedOnSave": "The number is assigned on save",
+      "summary": "Summary",
+      "total": "Total",
+      "issueAndSend": "Issue and send via WhatsApp",
+      "onIssue": "On issue",
+      "sendWhatsapp": "Send the quote via WhatsApp to the patient"
     }
   },
   "Flows": {
