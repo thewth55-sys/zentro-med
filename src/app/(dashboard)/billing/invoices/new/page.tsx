@@ -334,7 +334,7 @@ export default function NewInvoicePage() {
         await sendCheckoutLink(body.invoice.id, contact.id);
       }
 
-      router.push(backHref);
+      router.push(`/billing/invoices/${body.invoice.id}`);
     } catch (err) {
       console.error("Create invoice error:", err);
       toast.error(t("saveFailed"));
@@ -424,7 +424,7 @@ export default function NewInvoicePage() {
                 <button type="button" onClick={handleMergeInvoice} className="text-xs font-medium text-primary hover:underline">
                   {tNew("mergeInvoices")}
                 </button>
-                <Link href={`/billing?tab=invoices&invoice=${priorBalance.invoiceId}`} className="text-xs text-muted-foreground hover:text-foreground">
+                <Link href={`/billing/invoices/${priorBalance.invoiceId}`} className="text-xs text-muted-foreground hover:text-foreground">
                   {tNew("viewInvoice")}
                 </Link>
               </div>

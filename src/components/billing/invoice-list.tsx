@@ -18,7 +18,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { InvoiceForm } from "./invoice-form";
 import type { Invoice, InvoiceStatus, PaymentMethod } from "@/types";
 
 const STATUS_STYLES: Record<InvoiceStatus, string> = {
@@ -49,9 +48,6 @@ export function InvoiceList({ contactId, autoOpenInvoiceId, onAutoOpenHandled }:
 
   const [loading, setLoading] = useState(true);
   const [invoices, setInvoices] = useState<Invoice[]>([]);
-  const [formOpen, setFormOpen] = useState(false);
-  const [editingInvoice, setEditingInvoice] = useState<Invoice | null>(null);
-  const [loadingInvoiceId, setLoadingInvoiceId] = useState<string | null>(null);
   const [sendingReminders, setSendingReminders] = useState(false);
   // "Formas de pago" — this month's payments by method. Only shown on
   // the account-wide view (not a single contact's invoice history),
@@ -113,29 +109,21 @@ export function InvoiceList({ contactId, autoOpenInvoiceId, onAutoOpenHandled }:
     router.push(contactId ? `/billing/invoices/new?contact_id=${contactId}` : "/billing/invoices/new");
   }
 
-  const openEdit = useCallback(
-    async (invoiceId: string) => {
-      setLoadingInvoiceId(invoiceId);
-      try {
-        const res = await fetch(`/api/billing/invoices/${invoiceId}`);
-        const data = await res.json();
-        setEditingInvoice(data.invoice as Invoice);
-        setFormOpen(true);
-      } catch (err) {
-        console.error("Failed to load invoice:", err);
-        toast.error(t("loadFailed"));
-      } finally {
-        setLoadingInvoiceId(null);
-      }
+  const openInvoice = useCallback(
+    (invoiceId: string) => {
+      router.push(`/billing/invoices/${invoiceId}`);
     },
-    [t],
+    [router],
   );
 
   useEffect(() => {
     if (!autoOpenInvoiceId) return;
-    void openEdit(autoOpenInvoiceId);
+    // Jump straight to the payment dialog on the detail page instead of
+    // making staff find and click the right row (see AccountStatusPanel's
+    // "Registrar pago" shortcut).
+    router.push(`/billing/invoices/${autoOpenInvoiceId}?action=payment`);
     onAutoOpenHandled?.();
-  }, [autoOpenInvoiceId, openEdit, onAutoOpenHandled]);
+  }, [autoOpenInvoiceId, router, onAutoOpenHandled]);
 
   const dateFormatter = new Intl.DateTimeFormat(undefined, { dateStyle: "medium" });
   const currencyFormatter = new Intl.NumberFormat(undefined, { style: "currency", currency: defaultCurrency });
@@ -227,12 +215,10 @@ export function InvoiceList({ contactId, autoOpenInvoiceId, onAutoOpenHandled }:
                 {invoices.map((invoice) => (
                   <TableRow
                     key={invoice.id}
-                    onClick={() => openEdit(invoice.id)}
+                    onClick={() => openInvoice(invoice.id)}
                     className="cursor-pointer hover:bg-muted/50"
                   >
-                    <TableCell className="font-medium text-foreground">
-                      {loadingInvoiceId === invoice.id ? <Loader2 className="size-3.5 animate-spin" /> : invoice.invoice_number}
-                    </TableCell>
+                    <TableCell className="font-medium text-foreground">{invoice.invoice_number}</TableCell>
                     {!contactId && <TableCell>{invoice.contact?.name || invoice.contact?.phone}</TableCell>}
                     <TableCell>{dateFormatter.format(new Date(invoice.issue_date))}</TableCell>
                     <TableCell>
@@ -299,14 +285,6 @@ export function InvoiceList({ contactId, autoOpenInvoiceId, onAutoOpenHandled }:
           )}
         </div>
       )}
-
-      <InvoiceForm
-        open={formOpen}
-        onOpenChange={setFormOpen}
-        invoice={editingInvoice}
-        contactId={contactId}
-        onSaved={fetchInvoices}
-      />
     </div>
   );
 }

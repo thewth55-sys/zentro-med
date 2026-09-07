@@ -1945,6 +1945,52 @@
       "emailSendSuccess": "Factura enviada por correo",
       "emailSendFailed": "No se pudo enviar por correo"
     },
+    "invoiceDetail": {
+      "back": "Volver a facturas",
+      "notFound": "Factura no encontrada",
+      "loadFailed": "No se pudo cargar la factura",
+      "invoiceLabel": "Factura",
+      "billTo": "Facturar a",
+      "issued": "Emisión",
+      "due": "Vencimiento",
+      "columns": {
+        "concept": "Concepto",
+        "qty": "Cant.",
+        "unitPrice": "P. unitario",
+        "amount": "Importe"
+      },
+      "subtotal": "Subtotal",
+      "discount": "Descuento",
+      "paid": "Pagado",
+      "balanceDue": "Por pagar",
+      "total": "Total",
+      "notes": "Notas",
+      "collect": {
+        "title": "Cobrar",
+        "generateLink": "Generar link de cobro",
+        "manualPayment": "Registrar pago manual",
+        "linkHint": "El link se envía por WhatsApp y se marca como pagada cuando el proveedor confirma.",
+        "gatewayInactive": "Activa una pasarela de pago en Ajustes → Configuración para generar links de cobro."
+      },
+      "history": {
+        "title": "Historial",
+        "empty": "Sin actividad registrada.",
+        "created": "Factura creada",
+        "checkoutGenerated": "Link de cobro generado",
+        "reminderSent": "Recordatorio de pago enviado",
+        "paymentReceived": "Pago registrado — {amount}"
+      },
+      "actions": {
+        "edit": "Editar factura",
+        "duplicate": "Duplicar factura",
+        "duplicateSuccess": "Factura duplicada",
+        "duplicateFailed": "No se pudo duplicar la factura",
+        "cancel": "Cancelar factura",
+        "cancelConfirm": "¿Cancelar esta factura? La factura quedará anulada — esta acción no se puede deshacer.",
+        "cancelSuccess": "Factura cancelada",
+        "cancelFailed": "No se pudo cancelar la factura"
+      }
+    },
     "payments": {
       "empty": "Aún no hay pagos registrados.",
       "delete": "Eliminar pago",

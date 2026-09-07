@@ -1231,6 +1231,17 @@ export interface Invoice {
   contact?: Contact;
   items?: InvoiceItem[];
   payments?: Payment[];
+  /** Only present on the single-invoice GET (detail view's Historial). */
+  checkouts?: InvoiceCheckout[];
+  /** Only present on the single-invoice GET (detail view's Historial) — sent reminders only. */
+  reminders?: { id: string; sent_at: string | null }[];
+}
+
+export interface InvoiceCheckout {
+  id: string;
+  provider: 'stripe' | 'mercadopago' | 'clip';
+  status: 'pending' | 'paid' | 'failed';
+  created_at: string;
 }
 
 export type PaymentMethod = 'cash' | 'card' | 'transfer' | 'other';

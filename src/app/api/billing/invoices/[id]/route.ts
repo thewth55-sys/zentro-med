@@ -24,16 +24,37 @@ export async function GET(
       return NextResponse.json({ error: 'Invoice not found' }, { status: 404 });
     }
 
-    const [{ data: items }, { data: payments }] = await Promise.all([
+    const [{ data: items }, { data: payments }, { data: checkouts }, { data: reminders }] = await Promise.all([
       supabase
         .from('invoice_items')
         .select('*, product:products(*), tax:taxes(*)')
         .eq('invoice_id', id)
         .order('position', { ascending: true }),
       supabase.from('payments').select('*').eq('invoice_id', id).order('paid_at', { ascending: false }),
+      // Powers the "Historial" timeline on the invoice detail view —
+      // real checkout-link attempts, not fabricated activity.
+      supabase
+        .from('invoice_checkouts')
+        .select('id, provider, status, created_at')
+        .eq('invoice_id', id)
+        .order('created_at', { ascending: false }),
+      supabase
+        .from('payment_reminders')
+        .select('id, sent_at')
+        .eq('invoice_id', id)
+        .eq('status', 'sent')
+        .order('sent_at', { ascending: false }),
     ]);
 
-    return NextResponse.json({ invoice: { ...invoice, items: items ?? [], payments: payments ?? [] } });
+    return NextResponse.json({
+      invoice: {
+        ...invoice,
+        items: items ?? [],
+        payments: payments ?? [],
+        checkouts: checkouts ?? [],
+        reminders: reminders ?? [],
+      },
+    });
   } catch (err) {
     return toErrorResponse(err);
   }

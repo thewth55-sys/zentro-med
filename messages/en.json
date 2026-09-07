@@ -1945,6 +1945,52 @@
       "emailSendSuccess": "Invoice sent by email",
       "emailSendFailed": "Could not send by email"
     },
+    "invoiceDetail": {
+      "back": "Back to invoices",
+      "notFound": "Invoice not found",
+      "loadFailed": "Failed to load the invoice",
+      "invoiceLabel": "Invoice",
+      "billTo": "Bill to",
+      "issued": "Issued",
+      "due": "Due",
+      "columns": {
+        "concept": "Concept",
+        "qty": "Qty.",
+        "unitPrice": "Unit price",
+        "amount": "Amount"
+      },
+      "subtotal": "Subtotal",
+      "discount": "Discount",
+      "paid": "Paid",
+      "balanceDue": "Balance due",
+      "total": "Total",
+      "notes": "Notes",
+      "collect": {
+        "title": "Collect",
+        "generateLink": "Generate payment link",
+        "manualPayment": "Record manual payment",
+        "linkHint": "The link is sent via WhatsApp and marked as paid once the provider confirms.",
+        "gatewayInactive": "Activate a payment gateway in Settings → Payment gateway to generate payment links."
+      },
+      "history": {
+        "title": "History",
+        "empty": "No activity recorded yet.",
+        "created": "Invoice created",
+        "checkoutGenerated": "Payment link generated",
+        "reminderSent": "Payment reminder sent",
+        "paymentReceived": "Payment received — {amount}"
+      },
+      "actions": {
+        "edit": "Edit invoice",
+        "duplicate": "Duplicate invoice",
+        "duplicateSuccess": "Invoice duplicated",
+        "duplicateFailed": "Failed to duplicate the invoice",
+        "cancel": "Cancel invoice",
+        "cancelConfirm": "Cancel this invoice? It will be voided — this cannot be undone.",
+        "cancelSuccess": "Invoice cancelled",
+        "cancelFailed": "Failed to cancel the invoice"
+      }
+    },
     "payments": {
       "empty": "No payments recorded yet.",
       "delete": "Delete payment",
