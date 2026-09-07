@@ -4,7 +4,7 @@ import { PlanGate } from '@/components/billing-platform/plan-gate';
 import { PublicBookingSettings } from '@/components/settings/public-booking-settings';
 import { BookingPageEditor } from '@/components/settings/booking-page-editor';
 import { IntakeFormsSection } from '@/components/settings/intake-forms-section';
-import { PaymentGatewayEditor } from '@/components/settings/payment-gateway-editor';
+import { BookingDepositEditor } from '@/components/settings/booking-deposit-editor';
 
 /**
  * Top-level page (not a Settings tab) so the personalización/anticipo
@@ -31,8 +31,8 @@ export default function BookingPagePage() {
       <PlanGate feature="intake_forms" featureLabel="Formulario de admisión de pacientes">
         <IntakeFormsSection />
       </PlanGate>
-      <PlanGate feature="payment_gateway" featureLabel="Pasarela de pago (anticipo)">
-        <PaymentGatewayEditor />
+      <PlanGate feature="payment_gateway" featureLabel="Anticipo de reserva">
+        <BookingDepositEditor />
       </PlanGate>
     </div>
   );

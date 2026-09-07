@@ -515,8 +515,8 @@
       "nameLabel": "Nombre",
       "namePlaceholder": "Juana Pérez",
       "phoneLabel": "Número de teléfono",
-      "phonePlaceholder": "+1234567890",
-      "phoneHint": "Incluye el código de país, ej. +52 para México",
+      "phonePlaceholder": "55 1234 5678",
+      "phoneHint": "Verifica que el país seleccionado sea el correcto — WhatsApp no entrega mensajes a un número sin su código de país.",
       "emailLabel": "Correo electrónico",
       "emailPlaceholder": "juana@ejemplo.com",
       "companyLabel": "Empresa",
@@ -2637,6 +2637,7 @@
       "scheduling": "Agendamiento",
       "reminders": "Recordatorios",
       "billing": "Finanzas",
+      "payment-gateway": "Pasarela de pago",
       "billing-platform": "Suscripción"
     },
     "groups": {

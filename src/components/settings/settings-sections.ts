@@ -5,6 +5,7 @@ import {
   CreditCard,
   FileText,
   KeyRound,
+  Landmark,
   LayoutGrid,
   Palette,
   PlugZap,
@@ -42,6 +43,7 @@ export const SETTINGS_SECTIONS = [
   'scheduling',
   'reminders',
   'billing',
+  'payment-gateway',
   'billing-platform',
 ] as const;
 
@@ -73,6 +75,7 @@ export const SECTION_META: Record<SettingsSection, SectionMeta> = {
   scheduling: { id: 'scheduling', label: 'Scheduling', icon: CalendarClock, group: 'workspace' },
   reminders: { id: 'reminders', label: 'Reminders', icon: BellRing, group: 'workspace' },
   billing: { id: 'billing', label: 'Finance', icon: Wallet, group: 'workspace' },
+  'payment-gateway': { id: 'payment-gateway', label: 'Payment gateway', icon: Landmark, group: 'workspace' },
   'billing-platform': { id: 'billing-platform', label: 'Subscription', icon: CreditCard, group: 'workspace' },
 };
 

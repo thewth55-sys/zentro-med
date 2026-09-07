@@ -26,6 +26,7 @@ import { SchedulingPanel } from '@/components/settings/scheduling-panel';
 import { AppointmentRemindersConfig } from '@/components/settings/appointment-reminders-config';
 import { PaymentRemindersConfig } from '@/components/settings/payment-reminders-config';
 import { BillingPanel } from '@/components/settings/billing-panel';
+import { PaymentGatewayEditor } from '@/components/settings/payment-gateway-editor';
 import { SubscriptionPanel } from '@/components/settings/subscription-panel';
 import {
   resolveSection,
@@ -83,6 +84,7 @@ export default function SettingsPage() {
       </div>
     ),
     billing: <BillingPanel />,
+    'payment-gateway': <PaymentGatewayEditor />,
     'billing-platform': <SubscriptionPanel />,
   };
 

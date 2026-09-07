@@ -6,6 +6,7 @@ import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { PhoneInput } from "@/components/ui/phone-input";
 import type { IntakeFormConfig } from "@/lib/intake-forms/types";
 
 export interface IdentifyResult {
@@ -74,10 +75,10 @@ export function IdentifyStep({
     <div className="space-y-4">
       <div className="space-y-2">
         <Label htmlFor="booking-phone">Teléfono (WhatsApp)</Label>
-        <Input
+        <PhoneInput
           id="booking-phone"
           value={phone}
-          onChange={(e) => setPhone(e.target.value)}
+          onChange={setPhone}
           placeholder="55 1234 5678"
         />
       </div>

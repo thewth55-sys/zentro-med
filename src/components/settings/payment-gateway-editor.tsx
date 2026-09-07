@@ -6,11 +6,11 @@ import { CheckCircle2, Copy, CreditCard, Loader2 } from 'lucide-react';
 
 import { useAuth } from '@/hooks/use-auth';
 import { useCan } from '@/hooks/use-can';
+import { PlanGate } from '@/components/billing-platform/plan-gate';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import {
   Card,
   CardContent,
@@ -23,9 +23,6 @@ import { PAYMENT_PROVIDERS, PAYMENT_PROVIDER_LABEL, type PaymentProviderId } fro
 interface ConfigResponse {
   provider: PaymentProviderId;
   is_active: boolean;
-  deposit_amount: number;
-  currency: string;
-  booking_terms: string | null;
   has_credentials: boolean;
   /** Últimos 4 caracteres de cada campo, ej. `{ secretKey: "•••• a1b2" }` — nunca el valor completo. */
   credentials_preview: Record<string, string>;
@@ -44,10 +41,12 @@ function StoredBadge({ preview }: { preview: string | undefined }) {
 }
 
 /**
- * Editor de la pasarela de pago para el anticipo de reserva (Ajustes
- * → Agenda). Se monta detrás de PlanGate (payment_gateway,
- * Profesional+). A diferencia de BookingPageEditor, guarda vía API
- * (no Supabase directo) porque las credenciales necesitan cifrado en
+ * Editor de la pasarela de pago (Ajustes → Pasarela de pago) —
+ * configuración de cuenta, no específica de la reserva. Una vez
+ * activa aquí, la misma pasarela se usa tanto para el anticipo de
+ * reservas (monto configurado por separado en Página de reserva) como
+ * para el cobro de facturas (checkout-link). Guarda vía API (no
+ * Supabase directo) porque las credenciales necesitan cifrado en
  * servidor — ver /api/payment-gateway/config.
  *
  * Los campos de credenciales SIEMPRE empiezan vacíos, incluso si ya
@@ -69,9 +68,6 @@ export function PaymentGatewayEditor() {
 
   const [provider, setProvider] = useState<PaymentProviderId>('stripe');
   const [isActive, setIsActive] = useState(false);
-  const [depositAmount, setDepositAmount] = useState('');
-  const [currency, setCurrency] = useState('MXN');
-  const [bookingTerms, setBookingTerms] = useState('');
 
   const [stripeSecretKey, setStripeSecretKey] = useState('');
   const [stripeWebhookSecret, setStripeWebhookSecret] = useState('');
@@ -112,9 +108,6 @@ export function PaymentGatewayEditor() {
         setProvider(config.provider);
         setStoredProvider(config.provider);
         setIsActive(config.is_active);
-        setDepositAmount(String(config.deposit_amount ?? ''));
-        setCurrency(config.currency ?? 'MXN');
-        setBookingTerms(config.booking_terms ?? '');
         setHasStoredCredentials(config.has_credentials);
         setCredentialsPreview(config.credentials_preview ?? {});
       } else {
@@ -148,12 +141,6 @@ export function PaymentGatewayEditor() {
   async function handleSave() {
     try {
       setSaving(true);
-      const amount = Number(depositAmount);
-      if (!Number.isFinite(amount) || amount < 0) {
-        toast.error('El monto del anticipo debe ser un número válido.');
-        return;
-      }
-
       const credentials =
         provider === 'stripe'
           ? { secretKey: stripeSecretKey.trim(), webhookSecret: stripeWebhookSecret.trim() }
@@ -167,9 +154,6 @@ export function PaymentGatewayEditor() {
         body: JSON.stringify({
           provider,
           is_active: isActive,
-          deposit_amount: amount,
-          currency,
-          booking_terms: bookingTerms,
           credentials,
         }),
       });
@@ -191,15 +175,18 @@ export function PaymentGatewayEditor() {
   const disabled = !canEdit || saving;
 
   return (
+    <PlanGate feature="payment_gateway" featureLabel="Pasarela de pago">
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-foreground">
           <CreditCard className="size-4 text-primary" />
-          Pasarela de pago (anticipo)
+          Pasarela de pago
         </CardTitle>
         <CardDescription className="text-muted-foreground">
-          Cobra un anticipo al confirmar una reserva en línea. Cada cuenta trae su propia cuenta de
-          Stripe, Mercado Pago o Clip — Zentro Med no procesa ni retiene el dinero.
+          Configuración general de cobros para toda la cuenta — se usa tanto para el anticipo de
+          reservas (el monto se define en Página de reserva) como para cobrar facturas. Cada cuenta
+          trae su propia cuenta de Stripe, Mercado Pago o Clip — Zentro Med no procesa ni retiene el
+          dinero.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-5">
@@ -342,54 +329,15 @@ export function PaymentGatewayEditor() {
               </div>
             )}
 
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <div className="space-y-1.5">
-                <Label>Monto del anticipo</Label>
-                <Input
-                  type="number"
-                  min={0}
-                  step="0.01"
-                  value={depositAmount}
-                  onChange={(e) => setDepositAmount(e.target.value)}
-                  disabled={disabled}
-                  placeholder="0.00"
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label>Moneda</Label>
-                <Input
-                  value={currency}
-                  onChange={(e) => setCurrency(e.target.value.toUpperCase().slice(0, 3))}
-                  disabled={disabled}
-                  placeholder="MXN"
-                />
-              </div>
-            </div>
-
             <div className="flex items-center justify-between gap-4">
               <div>
-                <Label>Cobrar anticipo al reservar</Label>
+                <Label>Pasarela de pago activa</Label>
                 <p className="text-xs text-muted-foreground">
-                  Con esto activo, quien reserve en línea paga el anticipo antes de que la cita quede
-                  confirmada.
+                  Con esto activo, la cuenta puede cobrar tanto anticipos de reserva como facturas con
+                  esta pasarela. Desactívalo para dejar de aceptar cobros sin borrar tus credenciales.
                 </p>
               </div>
               <Switch checked={isActive} onCheckedChange={setIsActive} disabled={disabled} />
-            </div>
-
-            <div className="space-y-1.5">
-              <Label>Términos de la reserva (opcional)</Label>
-              <Textarea
-                value={bookingTerms}
-                onChange={(e) => setBookingTerms(e.target.value)}
-                disabled={disabled}
-                rows={5}
-                placeholder="Ej. El anticipo no es reembolsable si cancelas con menos de 24 horas de anticipación…"
-              />
-              <p className="text-xs text-muted-foreground">
-                Se muestra al paciente en la página de reserva, antes de que pague el anticipo. Redacta tus
-                propias políticas de cancelación y reembolso — Zentro Med solo las guarda y las muestra.
-              </p>
             </div>
           </>
         )}
@@ -401,5 +349,6 @@ export function PaymentGatewayEditor() {
         </Button>
       </CardContent>
     </Card>
+    </PlanGate>
   );
 }

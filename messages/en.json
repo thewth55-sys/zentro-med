@@ -515,8 +515,8 @@
       "nameLabel": "Name",
       "namePlaceholder": "Jane Doe",
       "phoneLabel": "Phone Number",
-      "phonePlaceholder": "+1234567890",
-      "phoneHint": "Include country code, e.g. +1 for US",
+      "phonePlaceholder": "555 123 4567",
+      "phoneHint": "Double-check the selected country — WhatsApp won't deliver to a number without its country code.",
       "emailLabel": "Email",
       "emailPlaceholder": "jane@example.com",
       "companyLabel": "Company",
@@ -2637,6 +2637,7 @@
       "scheduling": "Scheduling",
       "reminders": "Reminders",
       "billing": "Finance",
+      "payment-gateway": "Payment gateway",
       "billing-platform": "Subscription"
     },
     "groups": {

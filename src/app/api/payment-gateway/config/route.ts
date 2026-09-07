@@ -23,6 +23,19 @@ interface ConfigRow {
   booking_terms: string | null;
 }
 
+/** Same row shape as ConfigRow, but this is specifically what we read
+ *  back before a write to decide what a partial POST should preserve
+ *  — kept separate so a future field added to one doesn't silently
+ *  leak into the other's assumptions. */
+interface ExistingRow {
+  provider: PaymentProviderId;
+  credentials: string;
+  is_active: boolean;
+  deposit_amount: number;
+  currency: string;
+  booking_terms: string | null;
+}
+
 /** Never the value itself — just enough for a human to recognize
  *  "yes, that's my key" (Stripe/Clip's own dashboards do the same
  *  last-4 preview). A value too short to mask meaningfully still
@@ -120,57 +133,100 @@ export async function POST(request: Request) {
 
     const body = (await request.json().catch(() => ({}))) as Record<string, unknown>;
 
-    const provider = body.provider as PaymentProviderId;
-    if (!PAYMENT_PROVIDERS.includes(provider)) {
-      return NextResponse.json({ error: `'provider' must be one of: ${PAYMENT_PROVIDERS.join(", ")}` }, { status: 400 });
-    }
+    // Two independent forms now save through this same route (Ajustes
+    // → Pasarela de pago sends provider+credentials+is_active; Página
+    // de reserva sends only deposit_amount/currency/booking_terms) —
+    // `provider` present is what tells them apart. Whichever fields a
+    // given save omits keep their previously-stored value below.
+    const isGatewaySave = typeof body.provider === "string";
 
-    const depositAmount = Number(body.deposit_amount);
-    if (!Number.isFinite(depositAmount) || depositAmount < 0) {
-      return NextResponse.json({ error: "'deposit_amount' must be a non-negative number" }, { status: 400 });
-    }
-
-    const currency = typeof body.currency === "string" && /^[A-Z]{3}$/.test(body.currency) ? body.currency : "MXN";
-    const isActive = Boolean(body.is_active);
-
-    // Free text the clinic writes itself — no validation beyond a
-    // sane length cap, same posture as accounts.quote_terms.
-    const bookingTerms =
-      typeof body.booking_terms === "string" && body.booking_terms.trim().length > 0
-        ? body.booking_terms.trim().slice(0, 5000)
-        : null;
-
-    // Merge, don't replace: any field the caller left blank means
-    // "keep what's already stored," so changing just the webhook
-    // secret (say) doesn't require re-typing the secret key too.
-    // Switching provider discards the old blob entirely — a
-    // Mercado Pago access token has no business surviving as a
-    // Stripe secret key.
     const { data: existing } = await supabase
       .from("payment_gateway_configs")
-      .select("credentials, provider")
+      .select("provider, credentials, is_active, deposit_amount, currency, booking_terms")
       .eq("account_id", accountId)
-      .maybeSingle<{ credentials: string; provider: PaymentProviderId }>();
+      .maybeSingle<ExistingRow>();
 
-    let existingFields: Record<string, unknown> = {};
-    if (existing && existing.provider === provider) {
-      try {
-        existingFields = JSON.parse(decrypt(existing.credentials));
-      } catch (err) {
-        console.error("[payment-gateway/config POST] failed to decrypt existing credentials:", err);
-      }
-    }
-
-    const merged = { provider, ...existingFields, ...nonEmptyFields(body.credentials) };
-    if (!isProviderCredentials(provider, merged)) {
+    // provider/credentials are NOT NULL on the row (migration 102) —
+    // there's no such thing as a deposit-only row with no gateway
+    // behind it yet, so the deposit form can't create the row itself.
+    if (!isGatewaySave && !existing) {
       return NextResponse.json(
-        { error: "Faltan credenciales del proveedor — completa todos los campos requeridos." },
+        { error: "Configura primero tu pasarela de pago en Ajustes → Pasarela de pago." },
         { status: 400 },
       );
     }
-    const encryptedCredentials = encryptCredentials(merged);
-    if (isActive && depositAmount <= 0) {
-      return NextResponse.json({ error: "Define un monto de anticipo mayor a cero antes de activar" }, { status: 400 });
+
+    let provider: PaymentProviderId;
+    let encryptedCredentials: string;
+    let isActive: boolean;
+
+    if (isGatewaySave) {
+      provider = body.provider as PaymentProviderId;
+      if (!PAYMENT_PROVIDERS.includes(provider)) {
+        return NextResponse.json({ error: `'provider' must be one of: ${PAYMENT_PROVIDERS.join(", ")}` }, { status: 400 });
+      }
+
+      // Merge, don't replace: any field the caller left blank means
+      // "keep what's already stored," so changing just the webhook
+      // secret (say) doesn't require re-typing the secret key too.
+      // Switching provider discards the old blob entirely — a
+      // Mercado Pago access token has no business surviving as a
+      // Stripe secret key.
+      let existingFields: Record<string, unknown> = {};
+      if (existing && existing.provider === provider) {
+        try {
+          existingFields = JSON.parse(decrypt(existing.credentials));
+        } catch (err) {
+          console.error("[payment-gateway/config POST] failed to decrypt existing credentials:", err);
+        }
+      }
+
+      const merged = { provider, ...existingFields, ...nonEmptyFields(body.credentials) };
+      if (!isProviderCredentials(provider, merged)) {
+        return NextResponse.json(
+          { error: "Faltan credenciales del proveedor — completa todos los campos requeridos." },
+          { status: 400 },
+        );
+      }
+      encryptedCredentials = encryptCredentials(merged);
+      // `is_active` now gates the gateway generally (deposits AND
+      // invoice checkout links — see loadActivePaymentGatewayConfig),
+      // not just booking deposits, so it's only settable from this
+      // side. Omitted in the body keeps whatever was already stored.
+      isActive = typeof body.is_active === "boolean" ? body.is_active : (existing?.is_active ?? false);
+    } else {
+      // Deposit-only save — `existing` is guaranteed non-null here
+      // (checked above), so the gateway fields just pass through
+      // untouched.
+      provider = existing!.provider;
+      encryptedCredentials = existing!.credentials;
+      isActive = existing!.is_active;
+    }
+
+    let depositAmount = existing?.deposit_amount ?? 0;
+    if (body.deposit_amount !== undefined) {
+      const parsed = Number(body.deposit_amount);
+      if (!Number.isFinite(parsed) || parsed < 0) {
+        return NextResponse.json({ error: "'deposit_amount' must be a non-negative number" }, { status: 400 });
+      }
+      depositAmount = parsed;
+    }
+
+    let currency = existing?.currency ?? "MXN";
+    if (typeof body.currency === "string" && /^[A-Z]{3}$/.test(body.currency)) {
+      currency = body.currency;
+    }
+
+    // Free text the clinic writes itself — no validation beyond a
+    // sane length cap, same posture as accounts.quote_terms. Only
+    // touched when the caller actually sends the field (the gateway
+    // form never does), otherwise keep whatever's stored.
+    let bookingTerms = existing?.booking_terms ?? null;
+    if (body.booking_terms !== undefined) {
+      bookingTerms =
+        typeof body.booking_terms === "string" && body.booking_terms.trim().length > 0
+          ? body.booking_terms.trim().slice(0, 5000)
+          : null;
     }
 
     const { error } = await supabase.from("payment_gateway_configs").upsert(
