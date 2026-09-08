@@ -130,6 +130,7 @@
     "agenda": "Agenda",
     "billing": "Finanzas",
     "banking": "Banco y caja",
+    "inventory": "Inventario",
     "broadcasts": "Difusiones",
     "automations": "Automatizaciones",
     "flows": "Flujos",
@@ -1813,6 +1814,7 @@
       }
     },
     "inventory": {
+      "pageTitle": "Inventario",
       "subtitle": "Insumos, materiales e instrumental del consultorio.",
       "loadFailed": "No se pudo cargar el inventario",
       "empty": "Aún no hay insumos registrados.",
@@ -1830,12 +1832,51 @@
       "movementCreated": "Movimiento registrado",
       "movementCreateFailed": "No se pudo registrar el movimiento",
       "movementDeleteFailed": "No se pudo eliminar el movimiento",
+      "noSupplier": "Sin proveedor",
+      "registerEntry": "Registrar entrada",
+      "entryItemRequired": "Selecciona un insumo",
+      "filteredBySupplier": "Filtrado por {supplier}",
+      "clearFilter": "Quitar filtro",
+      "supplierItemCount": "{count} insumo(s)",
+      "tabs": {
+        "all": "Todos · {count}",
+        "low": "Bajo mínimo · {count}",
+        "expiring": "Por caducar · {count}",
+        "suppliers": "Proveedores"
+      },
+      "cards": {
+        "value": "Valor del inventario",
+        "consumption": "Consumo del mes",
+        "lowStock": "Bajo mínimo",
+        "expiring": "Caducan en {days} días"
+      },
+      "status": {
+        "orderNow": "Pedir hoy",
+        "low": "Bajo mínimo",
+        "expiring": "Caduca {month}",
+        "ok": "En nivel"
+      },
+      "purchaseOrder": {
+        "generate": "Generar orden de compra",
+        "none": "No hay insumos por debajo del mínimo.",
+        "columns": {
+          "item": "Insumo",
+          "supplier": "Proveedor",
+          "stock": "Existencia",
+          "minimum": "Mínimo",
+          "toOrder": "A pedir",
+          "unitCost": "Costo unit.",
+          "subtotal": "Subtotal"
+        }
+      },
       "columns": {
         "name": "Nombre",
         "category": "Categoría",
         "stock": "Stock",
+        "minimumShort": "Mínimo",
         "unitCost": "Costo unitario",
-        "supplier": "Proveedor"
+        "supplier": "Proveedor",
+        "status": "Estado"
       },
       "form": {
         "name": "Nombre",
@@ -1847,6 +1888,7 @@
         "initialStock": "Stock inicial",
         "minimumStock": "Stock mínimo",
         "supplier": "Proveedor",
+        "expiryDate": "Fecha de caducidad",
         "direction": "Tipo",
         "reason": "Motivo",
         "quantity": "Cantidad",

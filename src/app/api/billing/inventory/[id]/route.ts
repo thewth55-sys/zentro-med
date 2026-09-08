@@ -4,7 +4,7 @@ import { requireRole, toErrorResponse } from '@/lib/auth/account';
 import type { InventoryCategory } from '@/types';
 
 const CATEGORIES: InventoryCategory[] = ['supplies', 'materials', 'instruments', 'equipment', 'other'];
-const PATCHABLE_FIELDS = ['name', 'category', 'sku', 'unit', 'unit_cost', 'minimum_stock', 'supplier', 'is_active'] as const;
+const PATCHABLE_FIELDS = ['name', 'category', 'sku', 'unit', 'unit_cost', 'minimum_stock', 'supplier', 'is_active', 'expiry_date'] as const;
 
 export async function PATCH(
   request: Request,

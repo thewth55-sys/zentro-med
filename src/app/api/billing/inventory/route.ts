@@ -89,6 +89,7 @@ export async function POST(request: Request) {
         initial_stock: initialStock,
         minimum_stock: minimumStock,
         supplier: typeof body?.supplier === 'string' ? body.supplier.trim() || null : null,
+        expiry_date: typeof body?.expiry_date === 'string' && body.expiry_date ? body.expiry_date : null,
         created_by: userId,
       })
       .select('*')

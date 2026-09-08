@@ -13,6 +13,7 @@ import {
   AtSign,
   BarChart3,
   Bot,
+  Boxes,
   Calendar,
   CreditCard,
   Inbox,
@@ -95,6 +96,9 @@ export const navItems: NavItem[] = [
   // caja/bancos/conciliación tengan su propio espacio en vez de
   // competir por lugar en la barra de pestañas de Facturas/Cotizaciones.
   { href: "/banking", labelKey: "banking", icon: Landmark, group: "operacion" },
+  // Mismo razonamiento que Banco y caja — insumos/stock no compite ya
+  // por espacio en la barra de pestañas de Finanzas.
+  { href: "/inventory", labelKey: "inventory", icon: Boxes, group: "operacion" },
   { href: "/broadcasts", labelKey: "broadcasts", icon: Radio, feature: "broadcasts", group: "operacion" },
   { href: "/automations", labelKey: "automations", icon: Zap, feature: "automations", group: "operacion" },
   { href: "/flows", labelKey: "flows", icon: Workflow, beta: true, feature: "automations", group: "operacion" },

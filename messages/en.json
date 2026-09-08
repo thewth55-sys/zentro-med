@@ -130,6 +130,7 @@
     "agenda": "Agenda",
     "billing": "Finance",
     "banking": "Bank & cash",
+    "inventory": "Inventory",
     "broadcasts": "Broadcasts",
     "automations": "Automations",
     "flows": "Flows",
@@ -1813,6 +1814,7 @@
       }
     },
     "inventory": {
+      "pageTitle": "Inventory",
       "subtitle": "Practice supplies, materials, and instruments.",
       "loadFailed": "Failed to load inventory",
       "empty": "No inventory items registered yet.",
@@ -1830,12 +1832,51 @@
       "movementCreated": "Movement recorded",
       "movementCreateFailed": "Failed to record the movement",
       "movementDeleteFailed": "Failed to delete the movement",
+      "noSupplier": "No supplier",
+      "registerEntry": "Register entry",
+      "entryItemRequired": "Select an item",
+      "filteredBySupplier": "Filtered by {supplier}",
+      "clearFilter": "Clear filter",
+      "supplierItemCount": "{count} item(s)",
+      "tabs": {
+        "all": "All · {count}",
+        "low": "Low stock · {count}",
+        "expiring": "Expiring soon · {count}",
+        "suppliers": "Suppliers"
+      },
+      "cards": {
+        "value": "Inventory value",
+        "consumption": "This month's consumption",
+        "lowStock": "Low stock",
+        "expiring": "Expiring in {days} days"
+      },
+      "status": {
+        "orderNow": "Order now",
+        "low": "Low stock",
+        "expiring": "Expires {month}",
+        "ok": "In stock"
+      },
+      "purchaseOrder": {
+        "generate": "Generate purchase order",
+        "none": "No items are below their minimum stock.",
+        "columns": {
+          "item": "Item",
+          "supplier": "Supplier",
+          "stock": "Stock",
+          "minimum": "Minimum",
+          "toOrder": "To order",
+          "unitCost": "Unit cost",
+          "subtotal": "Subtotal"
+        }
+      },
       "columns": {
         "name": "Name",
         "category": "Category",
         "stock": "Stock",
+        "minimumShort": "Minimum",
         "unitCost": "Unit cost",
-        "supplier": "Supplier"
+        "supplier": "Supplier",
+        "status": "Status"
       },
       "form": {
         "name": "Name",
@@ -1847,6 +1888,7 @@
         "initialStock": "Initial stock",
         "minimumStock": "Minimum stock",
         "supplier": "Supplier",
+        "expiryDate": "Expiry date",
         "direction": "Direction",
         "reason": "Reason",
         "quantity": "Quantity",

@@ -1390,6 +1390,8 @@ export interface InventoryItem {
   minimum_stock: number;
   supplier?: string | null;
   is_active: boolean;
+  /** Migration 119 — nullable; when set, feeds the "Por caducar" filter. */
+  expiry_date?: string | null;
   computed_stock?: number;
   created_by?: string | null;
   created_at: string;
