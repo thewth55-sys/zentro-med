@@ -124,6 +124,7 @@ export async function POST(
       .eq("id", body.service_type_id)
       .eq("account_id", account.id)
       .eq("is_active", true)
+      .eq("visible_in_booking", true)
       .maybeSingle(),
   ]);
   if (!doctor || !serviceType) {

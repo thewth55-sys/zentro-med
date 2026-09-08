@@ -10,7 +10,7 @@ import { QuoteList } from "@/components/billing/quote-list";
 import { InvoiceList } from "@/components/billing/invoice-list";
 import { ExpenseList } from "@/components/billing/expense-list";
 import { FinancialSummary } from "@/components/billing/financial-summary";
-import { ProductManager } from "@/components/settings/product-manager";
+import { PricingCatalog } from "@/components/billing/pricing-catalog";
 import { PageHeader } from "@/components/layout/page-header";
 
 const BILLING_TABS = ["summary", "invoices", "quotes", "expenses", "priceList"];
@@ -69,7 +69,7 @@ export default function BillingPage() {
           <ExpenseList />
         </TabsContent>
         <TabsContent value="priceList" className="pt-4">
-          <ProductManager />
+          <PricingCatalog />
         </TabsContent>
       </Tabs>
     </div>

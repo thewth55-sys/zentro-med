@@ -68,6 +68,7 @@ export async function GET(
       .eq("id", serviceTypeId)
       .eq("account_id", account.id)
       .eq("is_active", true)
+      .eq("visible_in_booking", true)
       .maybeSingle(),
   ]);
 

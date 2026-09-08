@@ -197,7 +197,7 @@ export const COPILOT_TOOLS: ToolDefinition[] = [
   },
   {
     name: 'listar_servicios',
-    description: 'Lista los tipos de servicio activos. Devuelve id, nombre y duración en minutos.',
+    description: 'Lista los tipos de servicio activos. Devuelve id, nombre, duración en minutos, categoría y precio.',
     parameters: { type: 'object', properties: {} },
   },
   {
@@ -648,12 +648,22 @@ async function listarDoctores(ctx: CopilotContext): Promise<string> {
 async function listarServicios(ctx: CopilotContext): Promise<string> {
   const { data, error } = await ctx.supabase
     .from('service_types')
-    .select('id, name, duration_minutes')
+    .select('id, name, duration_minutes, category, price, product:products(unit_price)')
     .eq('is_active', true)
     .order('name', { ascending: true })
     .limit(50)
   if (error) return JSON.stringify({ error: error.message })
-  return JSON.stringify({ total: (data ?? []).length, servicios: data ?? [] })
+  // The linked product's unit_price is the one kept in sync from the
+  // Precios screen going forward — prefer it, falling back to the
+  // service type's own (booking-page-only) price for older rows that
+  // predate the sync.
+  const servicios = (data ?? []).map((s) => {
+    const product = Array.isArray(s.product) ? s.product[0] : s.product
+    const { product: _product, ...rest } = s
+    void _product
+    return { ...rest, price: product?.unit_price ?? s.price ?? null }
+  })
+  return JSON.stringify({ total: servicios.length, servicios })
 }
 
 async function listarNegocios(ctx: CopilotContext): Promise<string> {

@@ -1920,6 +1920,42 @@
         "empty": "No movements for this item yet."
       }
     },
+    "pricing": {
+      "loadFailed": "Failed to load the price catalog",
+      "empty": "No treatments registered yet.",
+      "updateFailed": "Failed to update the treatment",
+      "newTreatment": "New treatment",
+      "created": "Treatment created",
+      "createFailed": "Failed to create the treatment",
+      "save": "Save",
+      "columns": {
+        "treatment": "Treatment",
+        "category": "Category",
+        "duration": "Duration",
+        "price": "Price",
+        "booking": "Booking"
+      },
+      "categories": {
+        "diagnostic": "Diagnostic",
+        "preventive": "Preventive",
+        "restorative": "Restorative",
+        "rehabilitation": "Rehabilitation",
+        "esthetic": "Esthetic",
+        "orthodontics": "Orthodontics",
+        "other": "Other"
+      },
+      "catalog": {
+        "title": "Catalog",
+        "subtitle": "These prices feed quotes, invoices, your booking page, and Zen's replies.",
+        "activeTreatments": "Active treatments",
+        "visibleInBooking": "Visible in booking",
+        "avgTicket": "Average ticket"
+      },
+      "insight": {
+        "title": "Zen noticed",
+        "body": "{name} hasn't had a price adjustment in {months} months and is your #{rank} most-billed treatment."
+      }
+    },
     "financialSummary": {
       "subtitle": "Income, expense, and net profit estimate.",
       "loadFailed": "Failed to load the financial summary",

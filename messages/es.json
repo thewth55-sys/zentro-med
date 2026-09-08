@@ -1920,6 +1920,42 @@
         "empty": "Aún no hay movimientos para este insumo."
       }
     },
+    "pricing": {
+      "loadFailed": "No se pudo cargar el catálogo de precios",
+      "empty": "Aún no hay tratamientos registrados.",
+      "updateFailed": "No se pudo actualizar el tratamiento",
+      "newTreatment": "Nuevo tratamiento",
+      "created": "Tratamiento creado",
+      "createFailed": "No se pudo crear el tratamiento",
+      "save": "Guardar",
+      "columns": {
+        "treatment": "Tratamiento",
+        "category": "Categoría",
+        "duration": "Duración",
+        "price": "Precio",
+        "booking": "Reserva"
+      },
+      "categories": {
+        "diagnostic": "Diagnóstico",
+        "preventive": "Preventivo",
+        "restorative": "Restaurativo",
+        "rehabilitation": "Rehabilitación",
+        "esthetic": "Estética",
+        "orthodontics": "Ortodoncia",
+        "other": "Otro"
+      },
+      "catalog": {
+        "title": "Catálogo",
+        "subtitle": "Estos precios alimentan cotizaciones, facturas, tu página de reserva y las respuestas de Zen.",
+        "activeTreatments": "Tratamientos activos",
+        "visibleInBooking": "Visibles en reserva",
+        "avgTicket": "Ticket promedio"
+      },
+      "insight": {
+        "title": "Zen detectó",
+        "body": "{name} lleva {months} meses sin ajuste de precio y es tu tratamiento #{rank} más facturado."
+      }
+    },
     "financialSummary": {
       "subtitle": "Estimación de ingresos, gastos y ganancia neta.",
       "loadFailed": "No se pudo cargar el resumen financiero",

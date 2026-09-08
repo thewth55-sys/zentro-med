@@ -247,6 +247,7 @@ export async function getPublicBookingConfig(
       .select("id, name, duration_minutes, price")
       .eq("account_id", account.id)
       .eq("is_active", true)
+      .eq("visible_in_booking", true)
       .order("name"),
     admin
       .from("rooms")

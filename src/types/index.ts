@@ -488,6 +488,15 @@ export interface Room {
   updated_at?: string;
 }
 
+export type ServiceTypeCategory =
+  | 'diagnostic'
+  | 'preventive'
+  | 'restorative'
+  | 'rehabilitation'
+  | 'esthetic'
+  | 'orthodontics'
+  | 'other';
+
 export interface ServiceType {
   id: string;
   account_id: string;
@@ -498,6 +507,11 @@ export interface ServiceType {
   product_id?: string | null;
   /** Precio mostrado en la página de reserva pública; null = sin precio publicado. */
   price?: number | null;
+  /** Migration 120. */
+  category: ServiceTypeCategory;
+  /** Migration 120 — independent from `is_active`: a treatment can stay
+   *  schedulable internally while hidden from public self-booking. */
+  visible_in_booking: boolean;
   created_at: string;
   updated_at?: string;
   product?: Product;
