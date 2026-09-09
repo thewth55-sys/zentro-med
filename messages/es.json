@@ -1922,11 +1922,15 @@
     },
     "pricing": {
       "loadFailed": "No se pudo cargar el catálogo de precios",
-      "empty": "Aún no hay tratamientos registrados.",
+      "empty": "Aún no hay tratamientos ni productos registrados.",
       "updateFailed": "No se pudo actualizar el tratamiento",
       "newTreatment": "Nuevo tratamiento",
       "created": "Tratamiento creado",
       "createFailed": "No se pudo crear el tratamiento",
+      "newProduct": "Nuevo producto",
+      "newProductHint": "Para artículos que se cobran pero no se agendan (ej. un kit para llevar a casa).",
+      "productCreated": "Producto creado",
+      "productCreateFailed": "No se pudo crear el producto",
       "save": "Guardar",
       "columns": {
         "treatment": "Tratamiento",

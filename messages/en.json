@@ -1922,11 +1922,15 @@
     },
     "pricing": {
       "loadFailed": "Failed to load the price catalog",
-      "empty": "No treatments registered yet.",
+      "empty": "No treatments or products registered yet.",
       "updateFailed": "Failed to update the treatment",
       "newTreatment": "New treatment",
       "created": "Treatment created",
       "createFailed": "Failed to create the treatment",
+      "newProduct": "New product",
+      "newProductHint": "For items that are billed but never scheduled (e.g. a take-home kit).",
+      "productCreated": "Product created",
+      "productCreateFailed": "Failed to create the product",
       "save": "Save",
       "columns": {
         "treatment": "Treatment",

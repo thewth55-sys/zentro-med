@@ -488,7 +488,10 @@ export interface Room {
   updated_at?: string;
 }
 
-export type ServiceTypeCategory =
+/** Shared by `service_types` (120) and `products` (121) — one category
+ *  vocabulary for any billable line item, whether it's a scheduled
+ *  treatment or a plain retail product. */
+export type PriceCategory =
   | 'diagnostic'
   | 'preventive'
   | 'restorative'
@@ -508,7 +511,7 @@ export interface ServiceType {
   /** Precio mostrado en la página de reserva pública; null = sin precio publicado. */
   price?: number | null;
   /** Migration 120. */
-  category: ServiceTypeCategory;
+  category: PriceCategory;
   /** Migration 120 — independent from `is_active`: a treatment can stay
    *  schedulable internally while hidden from public self-booking. */
   visible_in_booking: boolean;
@@ -1113,6 +1116,8 @@ export interface Product {
   description?: string | null;
   unit_price: number;
   is_active: boolean;
+  /** Migration 121. */
+  category: PriceCategory;
   created_at: string;
   updated_at?: string;
 }
