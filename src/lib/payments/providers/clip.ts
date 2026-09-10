@@ -76,10 +76,28 @@ async function fetchCheckoutStatus(
   if (!res.ok) {
     return { paid: false, externalReference: null, externalCheckoutId: paymentRequestId, raw: fallbackRaw };
   }
-  const link = (await res.json()) as { status?: string; metadata?: { external_reference?: string } };
+  const link = (await res.json()) as {
+    status?: string;
+    resource_status?: string;
+    metadata?: { external_reference?: string };
+  };
+
+  // Clip's own docs disagree on this: the Checkout API reference names
+  // the field `status` with value `CHECKOUT_COMPLETED`, while the
+  // reconciliation guide names it `resource_status` with value
+  // `COMPLETED`. Accept either so a real completed payment isn't missed
+  // — and log the raw values whenever we don't recognize it as paid, so
+  // a future mismatch is visible instead of silently staying "pending".
+  const paid = link.status === "CHECKOUT_COMPLETED" || link.resource_status === "COMPLETED";
+  if (!paid) {
+    console.error(`[payments] Clip checkout ${paymentRequestId} not recognized as paid`, {
+      status: link.status,
+      resource_status: link.resource_status,
+    });
+  }
 
   return {
-    paid: link.status === "COMPLETED",
+    paid,
     externalReference: link.metadata?.external_reference ?? null,
     externalCheckoutId: paymentRequestId,
     raw: link,
