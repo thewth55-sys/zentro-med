@@ -27,7 +27,11 @@ import {
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 let client: S3Client | null = null;
+let publicClient: S3Client | null = null;
 
+/** For direct server-to-server calls (upload/download/copy/delete) —
+ *  these run inside Easypanel's network, so the internal endpoint
+ *  (faster, not exposed to the internet) is the right one. */
 function getS3Client(): S3Client {
   if (client) return client;
   client = new S3Client({
@@ -40,6 +44,27 @@ function getS3Client(): S3Client {
     },
   });
   return client;
+}
+
+/** For any presigned URL that's handed to someone OUTSIDE Easypanel's
+ *  network — a browser doing a direct PUT upload, a patient's browser
+ *  or Meta's WhatsApp media fetch reading a signed GET. SigV4 signs
+ *  the Host header itself, so a URL signed against the internal
+ *  endpoint can't just be re-hosted afterward — it has to be signed
+ *  against the public endpoint from the start (this was the bug
+ *  behind "Failed to fetch (services_minio:9000)" from the browser). */
+function getPublicS3Client(): S3Client {
+  if (publicClient) return publicClient;
+  publicClient = new S3Client({
+    endpoint: process.env.MINIO_PUBLIC_URL,
+    region: process.env.MINIO_REGION || "us-east-1",
+    forcePathStyle: true,
+    credentials: {
+      accessKeyId: process.env.MINIO_ACCESS_KEY!,
+      secretAccessKey: process.env.MINIO_SECRET_KEY!,
+    },
+  });
+  return publicClient;
 }
 
 export async function uploadObject(
@@ -79,7 +104,7 @@ export async function getObjectUrl(
   if (opts.public) {
     return `${process.env.MINIO_PUBLIC_URL}/${bucket}/${path}`;
   }
-  return getSignedUrl(getS3Client(), new GetObjectCommand({ Bucket: bucket, Key: path }), {
+  return getSignedUrl(getPublicS3Client(), new GetObjectCommand({ Bucket: bucket, Key: path }), {
     expiresIn: opts.expiresInSeconds ?? 3600,
   });
 }
@@ -95,7 +120,7 @@ export async function presignPutUrl(
   expiresInSeconds = 300,
 ): Promise<string> {
   return getSignedUrl(
-    getS3Client(),
+    getPublicS3Client(),
     new PutObjectCommand({ Bucket: bucket, Key: path, ContentType: contentType }),
     { expiresIn: expiresInSeconds },
   );
