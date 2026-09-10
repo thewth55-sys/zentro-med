@@ -19,6 +19,11 @@ function getS3Client(): S3Client {
       accessKeyId: process.env.MINIO_ACCESS_KEY!,
       secretAccessKey: process.env.MINIO_SECRET_KEY!,
     },
+    // See the monolith's src/lib/storage/object-storage.ts for why —
+    // the SDK's default checksum behavior sends aws-chunked bodies
+    // that MinIO rejects with "InvalidRequest".
+    requestChecksumCalculation: 'WHEN_REQUIRED',
+    responseChecksumValidation: 'WHEN_REQUIRED',
   });
   return client;
 }

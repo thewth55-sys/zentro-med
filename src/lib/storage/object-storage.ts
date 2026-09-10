@@ -42,6 +42,13 @@ function getS3Client(): S3Client {
       accessKeyId: process.env.MINIO_ACCESS_KEY!,
       secretAccessKey: process.env.MINIO_SECRET_KEY!,
     },
+    // The SDK defaults to always computing a request checksum, which
+    // sends the body as aws-chunked with trailing checksums — MinIO
+    // rejects that with "InvalidRequest" (400). Restoring the
+    // pre-default behavior (only checksum when the API requires it)
+    // is the documented fix for AWS SDK v3 against MinIO.
+    requestChecksumCalculation: "WHEN_REQUIRED",
+    responseChecksumValidation: "WHEN_REQUIRED",
   });
   return client;
 }
@@ -63,6 +70,13 @@ function getPublicS3Client(): S3Client {
       accessKeyId: process.env.MINIO_ACCESS_KEY!,
       secretAccessKey: process.env.MINIO_SECRET_KEY!,
     },
+    // The SDK defaults to always computing a request checksum, which
+    // sends the body as aws-chunked with trailing checksums — MinIO
+    // rejects that with "InvalidRequest" (400). Restoring the
+    // pre-default behavior (only checksum when the API requires it)
+    // is the documented fix for AWS SDK v3 against MinIO.
+    requestChecksumCalculation: "WHEN_REQUIRED",
+    responseChecksumValidation: "WHEN_REQUIRED",
   });
   return publicClient;
 }
