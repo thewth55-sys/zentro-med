@@ -2198,6 +2198,9 @@
       "paidAt": "Fecha de pago",
       "receipt": "Recibo",
       "receiptFailed": "No se pudo generar el recibo",
+      "sendReceiptEmail": "Enviar recibo por correo",
+      "receiptEmailSuccess": "Recibo enviado por correo",
+      "receiptEmailFailed": "No se pudo enviar el recibo por correo",
       "bankAccount": "Cuenta bancaria",
       "noBankAccount": "Sin cuenta asociada"
     },

@@ -89,13 +89,14 @@ export async function POST(
       brandName: account.name,
       logoUrl: account.logoUrl,
       accentColor: account.quoteAccentColor,
-      footerNote: `Enviado por ${account.name} vía Zentro Med.`,
+      footerNote: `Enviado por ${account.name}.`,
     });
 
     await sendEmail({
       to: quote.contact.email,
       subject: `Cotización ${quote.quote_number} — ${account.name}`,
       html,
+      fromName: account.name,
       attachments: [{ filename: `Cotizacion-${quote.quote_number}.pdf`, content: buffer }],
     });
 

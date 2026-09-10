@@ -422,6 +422,7 @@ export function InvoiceForm({ open, onOpenChange, invoice, contactId, dealId, on
                   invoiceId={invoice.id}
                   payments={payments}
                   currency={currency}
+                  contactEmail={invoice.contact?.email ?? null}
                   onDelete={handleDeletePayment}
                   deletingId={deletingPaymentId}
                   disabled={status === "void"}

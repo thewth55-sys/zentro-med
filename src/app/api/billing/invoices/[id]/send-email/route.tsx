@@ -95,13 +95,14 @@ export async function POST(
       brandName: account.name,
       logoUrl: account.logoUrl,
       accentColor: account.quoteAccentColor,
-      footerNote: `Enviado por ${account.name} vía Zentro Med.`,
+      footerNote: `Enviado por ${account.name}.`,
     });
 
     await sendEmail({
       to: invoice.contact.email,
       subject: `Factura ${invoice.invoice_number} — ${account.name}`,
       html,
+      fromName: account.name,
       attachments: [{ filename: `Factura-${invoice.invoice_number}.pdf`, content: buffer }],
     });
 

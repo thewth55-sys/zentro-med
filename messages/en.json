@@ -2198,6 +2198,9 @@
       "paidAt": "Payment date",
       "receipt": "Receipt",
       "receiptFailed": "Could not generate the receipt",
+      "sendReceiptEmail": "Send receipt by email",
+      "receiptEmailSuccess": "Receipt sent by email",
+      "receiptEmailFailed": "Could not send the receipt by email",
       "bankAccount": "Bank account",
       "noBankAccount": "No linked account"
     },

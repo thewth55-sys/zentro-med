@@ -27,6 +27,19 @@ export interface SendEmailParams {
   html: string;
   replyTo?: string;
   attachments?: { filename: string; content: Buffer }[];
+  /** Overrides the display name the recipient sees (e.g. the clinic's
+   *  own name), keeping the underlying address from RESEND_FROM_EMAIL
+   *  — clinics don't have their own verified sending domain, so the
+   *  address itself can't be tenant-specific, only the display name. */
+  fromName?: string;
+}
+
+function resolveFrom(fromName?: string): string {
+  const configured = process.env.RESEND_FROM_EMAIL;
+  if (!configured) throw new Error("RESEND_FROM_EMAIL is not configured");
+  if (!fromName) return configured;
+  const address = /<([^>]+)>/.exec(configured)?.[1] ?? configured;
+  return `${fromName} <${address}>`;
 }
 
 /**
@@ -36,8 +49,7 @@ export interface SendEmailParams {
  * notification that shouldn't block the triggering action).
  */
 export async function sendEmail(params: SendEmailParams): Promise<{ id: string }> {
-  const from = process.env.RESEND_FROM_EMAIL;
-  if (!from) throw new Error("RESEND_FROM_EMAIL is not configured");
+  const from = resolveFrom(params.fromName);
 
   const { data, error } = await resendClient().emails.send({
     from,

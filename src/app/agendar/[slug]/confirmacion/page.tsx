@@ -1,11 +1,35 @@
+import { cache } from "react";
 import { notFound } from "next/navigation";
+import { PHASE_PRODUCTION_BUILD } from "next/constants";
 import type { Metadata } from "next";
 
 import { supabaseAdmin } from "@/lib/billing-platform/admin-client";
 import { reconcileDeposit } from "@/lib/payments/reconcile-deposit";
 import { DepositConfirmation } from "@/components/public-booking/deposit-confirmation";
 
-export const metadata: Metadata = { title: "Confirmación de pago" };
+const FALLBACK_TITLE = "Confirmación de pago";
+
+// Deduped with React's cache() so generateMetadata and the page body
+// below share one Supabase round trip per request instead of two.
+const loadAccount = cache((slug: string) =>
+  supabaseAdmin().from("accounts").select("id, name").eq("public_booking_slug", slug).maybeSingle(),
+);
+
+// See src/app/agendar/[slug]/page.tsx's generateMetadata for why the
+// build phase is skipped, and why the title is `absolute` (this is
+// the patient-facing, white-labeled page — no Zentro Med branding).
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  if (process.env.NEXT_PHASE === PHASE_PRODUCTION_BUILD) {
+    return { title: { absolute: FALLBACK_TITLE } };
+  }
+  const { slug } = await params;
+  const { data: account } = await loadAccount(slug);
+  return { title: { absolute: account?.name || FALLBACK_TITLE } };
+}
 
 /**
  * Landing page after a deposit checkout (Stripe/Mercado Pago/Clip) —
@@ -32,11 +56,7 @@ export default async function DepositConfirmationPage({
   if (!deposit) notFound();
 
   const admin = supabaseAdmin();
-  const { data: account } = await admin
-    .from("accounts")
-    .select("id, name")
-    .eq("public_booking_slug", slug)
-    .maybeSingle();
+  const { data: account } = await loadAccount(slug);
   if (!account) notFound();
 
   const { data: depositRow } = await admin

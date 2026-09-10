@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
-import { Download, Loader2, Trash2 } from "lucide-react";
+import { Download, Loader2, Mail, Trash2 } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 import type { Payment } from "@/types";
@@ -11,16 +11,18 @@ interface PaymentListProps {
   invoiceId: string;
   payments: Payment[];
   currency: string;
+  contactEmail?: string | null;
   onDelete: (paymentId: string) => void;
   deletingId: string | null;
   disabled?: boolean;
 }
 
-export function PaymentList({ invoiceId, payments, currency, onDelete, deletingId, disabled }: PaymentListProps) {
+export function PaymentList({ invoiceId, payments, currency, contactEmail, onDelete, deletingId, disabled }: PaymentListProps) {
   const t = useTranslations("Billing.payments");
   const currencyFormatter = new Intl.NumberFormat(undefined, { style: "currency", currency });
   const dateFormatter = new Intl.DateTimeFormat(undefined, { dateStyle: "medium" });
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
+  const [emailingId, setEmailingId] = useState<string | null>(null);
 
   async function handleDownloadReceipt(paymentId: string) {
     setDownloadingId(paymentId);
@@ -34,6 +36,23 @@ export function PaymentList({ invoiceId, payments, currency, onDelete, deletingI
       window.open(body.url, "_blank");
     } finally {
       setDownloadingId(null);
+    }
+  }
+
+  async function handleSendReceiptEmail(paymentId: string) {
+    setEmailingId(paymentId);
+    try {
+      const res = await fetch(`/api/billing/invoices/${invoiceId}/payments/${paymentId}/receipt/send-email`, {
+        method: "POST",
+      });
+      const body = await res.json().catch(() => null);
+      if (!res.ok) {
+        toast.error(body?.error ?? t("receiptEmailFailed"));
+        return;
+      }
+      toast.success(t("receiptEmailSuccess"));
+    } finally {
+      setEmailingId(null);
     }
   }
 
@@ -65,6 +84,18 @@ export function PaymentList({ invoiceId, payments, currency, onDelete, deletingI
             >
               {downloadingId === payment.id ? <Loader2 className="size-3.5 animate-spin" /> : <Download className="size-3.5" />}
             </button>
+            {contactEmail && (
+              <button
+                type="button"
+                onClick={() => handleSendReceiptEmail(payment.id)}
+                disabled={emailingId === payment.id}
+                aria-label={t("sendReceiptEmail")}
+                title={t("sendReceiptEmail")}
+                className="text-muted-foreground hover:text-foreground disabled:opacity-50"
+              >
+                {emailingId === payment.id ? <Loader2 className="size-3.5 animate-spin" /> : <Mail className="size-3.5" />}
+              </button>
+            )}
             {!disabled && (
               <button
                 type="button"
