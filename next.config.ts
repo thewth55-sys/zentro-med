@@ -116,7 +116,12 @@ const SECURITY_HEADERS = [
       // identify/decide requests — only active once
       // NEXT_PUBLIC_POSTHOG_KEY is set, allowlisted unconditionally
       // for the same reason as Sentry's ingest hosts above.
-      "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://www.googletagmanager.com https://www.google.com https://googleads.g.doubleclick.net https://challenges.cloudflare.com https://*.zoho.com wss://*.zoho.com https://*.zohopublic.com wss://*.zohopublic.com https://*.zohocdn.com https://*.sentry.io https://*.ingest.sentry.io https://*.ingest.us.sentry.io https://*.ingest.de.sentry.io https://connect.facebook.net https://www.facebook.com https://graph.facebook.com https://ipwho.is https://open.er-api.com https://*.posthog.com https://*.i.posthog.com",
+      // services-minio.b4jshi.easypanel.host is our self-hosted MinIO
+      // instance (replacing Supabase Storage for new uploads, see
+      // src/lib/storage/object-storage.ts) — the browser PUTs/GETs
+      // directly against it via presigned URLs, so it needs to be
+      // reachable from connect-src same as Supabase's own storage host.
+      "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://services-minio.b4jshi.easypanel.host https://www.googletagmanager.com https://www.google.com https://googleads.g.doubleclick.net https://challenges.cloudflare.com https://*.zoho.com wss://*.zoho.com https://*.zohopublic.com wss://*.zohopublic.com https://*.zohocdn.com https://*.sentry.io https://*.ingest.sentry.io https://*.ingest.us.sentry.io https://*.ingest.de.sentry.io https://connect.facebook.net https://www.facebook.com https://graph.facebook.com https://ipwho.is https://open.er-api.com https://*.posthog.com https://*.i.posthog.com",
       // Turnstile renders its interactive challenge inside an iframe
       // from this origin when it can't pass invisibly; Zoho Desk's
       // chat panel is also an iframe; WhatsApp Embedded Signup opens
