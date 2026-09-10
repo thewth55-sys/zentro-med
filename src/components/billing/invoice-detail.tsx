@@ -9,6 +9,7 @@ import {
   Download,
   Link2,
   Loader2,
+  Mail,
   Plus,
   Receipt,
   XCircle,
@@ -70,6 +71,7 @@ export function InvoiceDetail({ invoiceId, autoOpenPayment }: InvoiceDetailProps
   const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [downloadingPdf, setDownloadingPdf] = useState(false);
+  const [sendingEmail, setSendingEmail] = useState(false);
   const [duplicating, setDuplicating] = useState(false);
   const [cancelling, setCancelling] = useState(false);
 
@@ -173,6 +175,22 @@ export function InvoiceDetail({ invoiceId, autoOpenPayment }: InvoiceDetailProps
       if (result) window.open(result.url, "_blank");
     } finally {
       setDownloadingPdf(false);
+    }
+  }
+
+  async function handleSendEmail() {
+    if (!invoice) return;
+    setSendingEmail(true);
+    try {
+      const res = await fetch(`/api/billing/invoices/${invoice.id}/send-email`, { method: "POST" });
+      const body = await res.json().catch(() => null);
+      if (!res.ok) {
+        toast.error(body?.error ?? tForm("emailSendFailed"));
+        return;
+      }
+      toast.success(tForm("emailSendSuccess"));
+    } finally {
+      setSendingEmail(false);
     }
   }
 
@@ -477,6 +495,12 @@ export function InvoiceDetail({ invoiceId, autoOpenPayment }: InvoiceDetailProps
                 {downloadingPdf ? <Loader2 className="size-3.5 animate-spin" /> : <Download className="size-3.5" />}
                 {tForm("downloadPdf")}
               </Button>
+              {invoice.contact?.email && (
+                <Button type="button" variant="outline" size="sm" onClick={handleSendEmail} disabled={sendingEmail} className="text-xs">
+                  {sendingEmail ? <Loader2 className="size-3.5 animate-spin" /> : <Mail className="size-3.5" />}
+                  {tForm("sendEmail")}
+                </Button>
+              )}
               <Button type="button" variant="outline" size="sm" onClick={() => setEditOpen(true)} className="text-xs">
                 {t("actions.edit")}
               </Button>
