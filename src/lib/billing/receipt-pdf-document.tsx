@@ -7,8 +7,9 @@
 // anything) is still owed.
 // ============================================================
 
-import { Document, Page, View, Text, Image, StyleSheet } from "@react-pdf/renderer";
-import { createPdfStyles, fmtMoney, ZENTRO_GREEN, ZENTRO_GREEN_DARK } from "./pdf-theme";
+import { Document, Page, View, Text, StyleSheet } from "@react-pdf/renderer";
+import { createPdfStyles, fmtMoney, ZENTRO_GREEN, ZENTRO_GREEN_DARK, lighten } from "./pdf-theme";
+import { PdfGradientHeader, PdfInfoGrid, PdfFooter } from "./pdf-components";
 
 export interface ReceiptPdfProps {
   accountName: string;
@@ -38,6 +39,7 @@ const METHOD_LABELS: Record<string, string> = {
 export function ReceiptPdfDocument(props: ReceiptPdfProps) {
   const accent = props.accentColor || ZENTRO_GREEN;
   const remaining = Math.max(0, props.invoiceTotal - props.amountPaid);
+  const fullyPaid = remaining <= 0;
   const styles = createPdfStyles(accent);
   const receiptStyles = StyleSheet.create({
     amountBlock: {
@@ -46,7 +48,7 @@ export function ReceiptPdfDocument(props: ReceiptPdfProps) {
       alignItems: "center",
       paddingVertical: 24,
       borderRadius: 6,
-      backgroundColor: "#f7f7f7",
+      backgroundColor: lighten(accent, 0.92),
     },
     amountLabel: { fontSize: 9, color: "#999", textTransform: "uppercase", letterSpacing: 0.5 },
     amountValue: { fontSize: 30, fontWeight: 700, color: ZENTRO_GREEN_DARK, marginTop: 6 },
@@ -58,30 +60,36 @@ export function ReceiptPdfDocument(props: ReceiptPdfProps) {
   return (
     <Document>
       <Page size="A4" style={styles.page}>
-        <View style={styles.topBar} fixed />
-        <View style={styles.header}>
-          <View>
-            {/* eslint-disable-next-line jsx-a11y/alt-text -- @react-pdf/renderer's Image, not an HTML <img>; has no alt prop */}
-            {props.logoUrl ? <Image src={props.logoUrl} style={styles.logo} /> : null}
-            <Text style={[styles.accountName, { marginTop: props.logoUrl ? 8 : 0 }]}>
-              {props.accountName}
-            </Text>
-            {props.address ? <Text style={styles.issuerMeta}>{props.address}</Text> : null}
-            {props.taxId ? <Text style={styles.issuerMeta}>RFC: {props.taxId}</Text> : null}
-          </View>
-          <View>
-            <Text style={styles.title}>Recibo de pago</Text>
-            <View style={styles.titleUnderline} />
-            <Text style={styles.meta}>Factura {props.invoiceNumber}</Text>
-            <Text style={styles.meta}>Fecha: {props.paidAt}</Text>
-          </View>
-        </View>
+        <PdfGradientHeader
+          styles={styles}
+          accent={accent}
+          accountName={props.accountName}
+          logoUrl={props.logoUrl}
+          address={props.address}
+          taxId={props.taxId}
+          docLabel="Recibo"
+          docNumber={`Factura ${props.invoiceNumber}`}
+          metaLines={[`Fecha: ${props.paidAt}`]}
+          statusPill={
+            fullyPaid
+              ? { label: "Pago recibido", bg: "#d1fae5", color: "#065f46" }
+              : { label: "Pago parcial", bg: "#fde9c8", color: "#92400e" }
+          }
+        />
 
-        <View style={styles.infoBox}>
-          <Text style={styles.label}>Recibido de</Text>
-          <Text style={styles.value}>{props.contactName}</Text>
-          {props.contactPhone ? <Text style={styles.value}>{props.contactPhone}</Text> : null}
-        </View>
+        <PdfInfoGrid
+          styles={styles}
+          columns={[
+            { label: "Recibido de", name: props.contactName, detail: [props.contactPhone] },
+            {
+              label: "Emite",
+              name: props.accountName,
+              detail: [props.address, props.taxId ? `RFC: ${props.taxId}` : null].filter(
+                (v): v is string => Boolean(v),
+              ),
+            },
+          ]}
+        />
 
         <View style={receiptStyles.amountBlock}>
           <Text style={receiptStyles.amountLabel}>Monto recibido</Text>
@@ -114,6 +122,13 @@ export function ReceiptPdfDocument(props: ReceiptPdfProps) {
             <Text style={styles.value}>{props.notes}</Text>
           </View>
         ) : null}
+
+        <PdfFooter
+          styles={styles}
+          legalText="Este documento es un comprobante de gestión comercial y no constituye un comprobante fiscal digital por internet (CFDI)."
+          brandLabel={props.accountName}
+          generatedAtLabel={`Generado el ${new Date().toLocaleString("es-MX")}`}
+        />
       </Page>
     </Document>
   );

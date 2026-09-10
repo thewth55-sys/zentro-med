@@ -3,6 +3,7 @@ import { renderToBuffer } from "@react-pdf/renderer";
 
 import { requireRole, toErrorResponse } from "@/lib/auth/account";
 import { InvoicePdfDocument, type InvoicePdfLineItem } from "@/lib/billing/invoice-pdf-document";
+import { fetchAttendedBy, resolveToothNumbers } from "@/lib/billing/pdf-data";
 import { fmtMoney } from "@/lib/billing/pdf-theme";
 import { sendEmail } from "@/lib/email/resend-client";
 import { renderBrandedEmail, escapeHtml } from "@/lib/email/branded-template";
@@ -39,15 +40,21 @@ export async function POST(
 
     const { data: itemRows } = await supabase
       .from("invoice_items")
-      .select("description, quantity, unit_price, line_total")
+      .select("description, quantity, unit_price, line_total, odontogram_tooth_id")
       .eq("invoice_id", id)
       .order("position", { ascending: true });
+
+    const [attendedBy, toothNumbers] = await Promise.all([
+      fetchAttendedBy(supabase, invoice.appointment_id ?? null),
+      resolveToothNumbers(supabase, itemRows ?? []),
+    ]);
 
     const items: InvoicePdfLineItem[] = (itemRows ?? []).map((row) => ({
       description: row.description,
       quantity: row.quantity,
       unitPrice: row.unit_price,
       lineTotal: row.line_total,
+      toothNumber: row.odontogram_tooth_id ? (toothNumbers.get(row.odontogram_tooth_id) ?? null) : null,
     }));
 
     const buffer = await renderToBuffer(
@@ -64,6 +71,7 @@ export async function POST(
         dueDate={invoice.due_date ?? null}
         contactName={invoice.contact?.name || invoice.contact?.phone || "—"}
         contactPhone={invoice.contact?.phone ?? ""}
+        attendedBy={attendedBy}
         items={items}
         subtotal={invoice.subtotal}
         taxTotal={invoice.tax_total}

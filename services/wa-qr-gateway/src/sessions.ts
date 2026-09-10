@@ -239,8 +239,11 @@ async function handleInboundMessage(accountId: string, sock: WASocket, msg: WAMe
     contentType: media.kind,
     contentText: media.caption,
     // The monolith resolves this to a short-lived signed URL on each
-    // authenticated request — see src/app/api/whatsapp/qr-media/.
-    mediaUrl: `/api/whatsapp/qr-media/${media.storagePath}`,
+    // authenticated request — see src/app/api/whatsapp/qr-media/. The
+    // `minio/` prefix tells that route which backend actually holds
+    // the object (this gateway only ever writes new media to MinIO;
+    // a URL without the prefix is a pre-cutover Supabase-stored one).
+    mediaUrl: `/api/whatsapp/qr-media/minio/${media.storagePath}`,
   });
 }
 

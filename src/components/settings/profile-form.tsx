@@ -126,22 +126,30 @@ export function ProfileForm() {
 
       // Upload a newly-staged image, if any.
       if (pendingAvatar) {
-        const ext =
-          pendingAvatar.name.split('.').pop()?.toLowerCase() || 'png';
-        const path = `${user.id}/avatar-${Date.now()}.${ext}`;
-        const { error: uploadError } = await supabase.storage
-          .from('avatars')
-          .upload(path, pendingAvatar, {
-            cacheControl: '3600',
-            upsert: true,
+        const presignRes = await fetch('/api/storage/presign-upload', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            bucket: 'avatars',
+            fileName: pendingAvatar.name,
             contentType: pendingAvatar.type,
-          });
-        if (uploadError) {
-          throw new Error(t('uploadFailed', { message: uploadError.message }));
+          }),
+        });
+        if (!presignRes.ok) {
+          throw new Error(t('uploadFailed', { message: 'presign failed' }));
         }
-        const {
-          data: { publicUrl },
-        } = supabase.storage.from('avatars').getPublicUrl(path);
+        const { uploadUrl, publicUrl } = (await presignRes.json()) as {
+          uploadUrl: string;
+          publicUrl: string;
+        };
+        const putRes = await fetch(uploadUrl, {
+          method: 'PUT',
+          headers: { 'Content-Type': pendingAvatar.type },
+          body: pendingAvatar,
+        });
+        if (!putRes.ok) {
+          throw new Error(t('uploadFailed', { message: 'upload failed' }));
+        }
         nextAvatarUrl = publicUrl;
       } else if (removeAvatar) {
         nextAvatarUrl = null;

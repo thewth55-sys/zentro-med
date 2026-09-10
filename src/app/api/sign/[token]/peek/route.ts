@@ -40,13 +40,16 @@ export async function GET(
 
   const payload = data as Record<string, unknown> | null;
   if (payload?.ok) {
-    const { delivered_to_email, pdf_storage_path, ...rest } = payload;
+    const { delivered_to_email, pdf_storage_path, pdf_storage_provider, ...rest } = payload;
     const response: Record<string, unknown> = { ...rest };
     if (typeof delivered_to_email === "string") {
       response.delivered_to_email_masked = maskEmail(delivered_to_email);
     }
     if (typeof pdf_storage_path === "string") {
-      response.pdf_url = await getClinicalPhotoUrlAdmin(pdf_storage_path);
+      response.pdf_url = await getClinicalPhotoUrlAdmin(
+        pdf_storage_path,
+        (pdf_storage_provider as "supabase" | "minio" | null) ?? "supabase",
+      );
     }
     return NextResponse.json(response);
   }

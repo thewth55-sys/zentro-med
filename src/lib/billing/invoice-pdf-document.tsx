@@ -6,14 +6,23 @@
 // money owed.
 // ============================================================
 
-import { Document, Page, View, Text, Image } from "@react-pdf/renderer";
-import { createPdfStyles, fmtMoney, ZENTRO_GREEN, ZENTRO_GREEN_DARK } from "./pdf-theme";
+import { Document, Page, View, Text } from "@react-pdf/renderer";
+import { createPdfStyles, fmtMoney, ZENTRO_GREEN } from "./pdf-theme";
+import { PdfGradientHeader, PdfInfoGrid, PdfItemsTable, PdfTotalsBox, PdfFooter, type PdfInfoGridColumn } from "./pdf-components";
 
 export interface InvoicePdfLineItem {
   description: string;
   quantity: number;
   unitPrice: number;
   lineTotal: number;
+  toothNumber: number | null;
+}
+
+export interface InvoicePdfAttendedBy {
+  name: string;
+  specialty: string | null;
+  roomName: string | null;
+  appointmentDate: string | null;
 }
 
 export interface InvoicePdfProps {
@@ -29,6 +38,7 @@ export interface InvoicePdfProps {
   dueDate: string | null;
   contactName: string;
   contactPhone: string;
+  attendedBy: InvoicePdfAttendedBy | null;
   items: InvoicePdfLineItem[];
   subtotal: number;
   taxTotal: number;
@@ -53,96 +63,86 @@ export function InvoicePdfDocument(props: InvoicePdfProps) {
   const accent = props.accentColor || ZENTRO_GREEN;
   const balanceDue = Math.max(0, props.total - props.amountPaid);
   const styles = createPdfStyles(accent);
-  const statusBg = balanceDue > 0 ? "#fef3c7" : "#d1fae5";
+  const statusBg = balanceDue > 0 ? "#fde9c8" : "#d1fae5";
   const statusColor = balanceDue > 0 ? "#92400e" : "#065f46";
-  const balanceColor = balanceDue > 0 ? "#b45309" : ZENTRO_GREEN_DARK;
+
+  const columns: PdfInfoGridColumn[] = [
+    { label: "Facturar a", name: props.contactName, detail: [props.contactPhone] },
+  ];
+  if (props.attendedBy) {
+    columns.push({
+      label: "Atendió",
+      name: props.attendedBy.name,
+      detail: [
+        props.attendedBy.specialty,
+        props.attendedBy.roomName,
+        props.attendedBy.appointmentDate ? `Cita del ${props.attendedBy.appointmentDate}` : null,
+      ].filter((v): v is string => Boolean(v)),
+    });
+  }
+  columns.push({
+    label: "Emite",
+    name: props.accountName,
+    detail: [props.address, props.taxId ? `RFC: ${props.taxId}` : null].filter((v): v is string => Boolean(v)),
+  });
 
   return (
     <Document>
       <Page size="A4" style={styles.page}>
-        <View style={styles.topBar} fixed />
-        <View style={styles.header}>
-          <View>
-            {/* eslint-disable-next-line jsx-a11y/alt-text -- @react-pdf/renderer's Image, not an HTML <img>; has no alt prop */}
-            {props.logoUrl ? <Image src={props.logoUrl} style={styles.logo} /> : null}
-            <Text style={[styles.accountName, { marginTop: props.logoUrl ? 8 : 0 }]}>
-              {props.accountName}
-            </Text>
-            {props.address ? <Text style={styles.issuerMeta}>{props.address}</Text> : null}
-            {props.taxId ? <Text style={styles.issuerMeta}>RFC: {props.taxId}</Text> : null}
-          </View>
-          <View>
-            <Text style={styles.title}>Factura</Text>
-            <View style={styles.titleUnderline} />
-            <Text style={styles.meta}>{props.invoiceNumber}</Text>
-            <Text style={styles.meta}>Fecha: {props.issueDate}</Text>
-            {props.dueDate ? <Text style={styles.meta}>Vence: {props.dueDate}</Text> : null}
-            <View style={[styles.statusBadge, { backgroundColor: statusBg }]}>
-              <Text style={[styles.statusBadgeText, { color: statusColor }]}>
-                {(STATUS_LABEL[props.status] ?? props.status).toUpperCase()}
-              </Text>
-            </View>
-          </View>
-        </View>
+        <PdfGradientHeader
+          styles={styles}
+          accent={accent}
+          accountName={props.accountName}
+          logoUrl={props.logoUrl}
+          docLabel="Factura"
+          docNumber={props.invoiceNumber}
+          metaLines={[`Fecha: ${props.issueDate}`, ...(props.dueDate ? [`Vence: ${props.dueDate}`] : [])]}
+          statusPill={{ label: STATUS_LABEL[props.status] ?? props.status, bg: statusBg, color: statusColor }}
+        />
 
-        <View style={styles.infoBox}>
-          <Text style={styles.label}>Para</Text>
-          <Text style={styles.value}>{props.contactName}</Text>
-          {props.contactPhone ? <Text style={styles.value}>{props.contactPhone}</Text> : null}
-        </View>
+        <PdfInfoGrid styles={styles} columns={columns} />
 
-        <View style={styles.table}>
-          <View style={styles.tableHeaderRow}>
-            <Text style={[styles.tableHeaderCell, { width: "46%" }]}>Descripción</Text>
-            <Text style={[styles.tableHeaderCell, { width: "14%", textAlign: "right" }]}>Cant.</Text>
-            <Text style={[styles.tableHeaderCell, { width: "20%", textAlign: "right" }]}>P. unitario</Text>
-            <Text style={[styles.tableHeaderCell, { width: "20%", textAlign: "right" }]}>Total</Text>
-          </View>
-          {props.items.map((item, i) => (
-            <View key={i} style={[styles.tableRow, i % 2 === 1 ? styles.tableRowAlt : {}]}>
-              <Text style={[styles.tableCell, { width: "46%" }]}>{item.description}</Text>
-              <Text style={[styles.tableCell, { width: "14%", textAlign: "right" }]}>{item.quantity}</Text>
-              <Text style={[styles.tableCell, { width: "20%", textAlign: "right" }]}>
-                {fmtMoney(item.unitPrice, props.currency)}
-              </Text>
-              <Text style={[styles.tableCell, { width: "20%", textAlign: "right" }]}>
-                {fmtMoney(item.lineTotal, props.currency)}
-              </Text>
-            </View>
-          ))}
-        </View>
+        <PdfItemsTable
+          styles={styles}
+          columns={[
+            { key: "description", label: "Concepto", width: "40%" },
+            { key: "tooth", label: "Diente", width: "12%", align: "right" },
+            { key: "quantity", label: "Cant.", width: "12%", align: "right" },
+            { key: "unitPrice", label: "P. unitario", width: "18%", align: "right" },
+            { key: "total", label: "Importe", width: "18%", align: "right" },
+          ]}
+          rows={props.items.map((item) => ({
+            cells: {
+              description: item.description,
+              tooth: item.toothNumber != null ? String(item.toothNumber) : "—",
+              quantity: String(item.quantity),
+              unitPrice: fmtMoney(item.unitPrice, props.currency),
+              total: fmtMoney(item.lineTotal, props.currency),
+            },
+          }))}
+        />
 
-        <View style={styles.totalsCard}>
-          <View style={styles.totalsRow}>
-            <Text style={styles.totalsRowLabel}>Subtotal</Text>
-            <Text>{fmtMoney(props.subtotal, props.currency)}</Text>
-          </View>
-          {props.discountAmount > 0 ? (
-            <View style={styles.totalsRow}>
-              <Text style={styles.totalsRowLabel}>
-                Descuento{props.discountLabel ? ` (${props.discountLabel})` : ""}
-              </Text>
-              <Text>-{fmtMoney(props.discountAmount, props.currency)}</Text>
-            </View>
-          ) : null}
-          <View style={styles.totalsRow}>
-            <Text style={styles.totalsRowLabel}>Impuestos</Text>
-            <Text>{fmtMoney(props.taxTotal, props.currency)}</Text>
-          </View>
-          <View style={styles.grandTotalRow}>
-            <Text style={styles.grandTotalLabel}>Total</Text>
-            <Text style={styles.grandTotalValue}>{fmtMoney(props.total, props.currency)}</Text>
-          </View>
-          <View style={styles.totalsRow}>
-            <Text style={styles.totalsRowLabel}>Pagado</Text>
-            <Text>{fmtMoney(props.amountPaid, props.currency)}</Text>
-          </View>
-          <View style={styles.balanceRow}>
-            <Text style={styles.balanceLabel}>Saldo pendiente</Text>
-            <Text style={[styles.grandTotalValue, { color: balanceColor }]}>
-              {fmtMoney(balanceDue, props.currency)}
-            </Text>
-          </View>
+        <View style={{ marginTop: 12 }}>
+          <PdfTotalsBox
+            styles={styles}
+            rows={[
+              { label: "Subtotal", value: fmtMoney(props.subtotal, props.currency) },
+              ...(props.discountAmount > 0
+                ? [
+                    {
+                      label: `Descuento${props.discountLabel ? ` (${props.discountLabel})` : ""}`,
+                      value: `-${fmtMoney(props.discountAmount, props.currency)}`,
+                      tone: "negative" as const,
+                    },
+                  ]
+                : []),
+              { label: "Impuestos", value: fmtMoney(props.taxTotal, props.currency) },
+              { label: "Pagado", value: fmtMoney(props.amountPaid, props.currency) },
+            ]}
+            grandLabel="Total por pagar"
+            grandValue={fmtMoney(balanceDue, props.currency)}
+            sublineText={props.dueDate ? `Vence el ${props.dueDate}` : undefined}
+          />
         </View>
 
         {props.notes ? (
@@ -151,6 +151,13 @@ export function InvoicePdfDocument(props: InvoicePdfProps) {
             <Text style={styles.value}>{props.notes}</Text>
           </View>
         ) : null}
+
+        <PdfFooter
+          styles={styles}
+          legalText="Este documento es un comprobante de gestión comercial y no constituye un comprobante fiscal digital por internet (CFDI)."
+          brandLabel={props.accountName}
+          generatedAtLabel={`Generado el ${new Date().toLocaleString("es-MX")}`}
+        />
 
         {props.quoteTerms ? (
           <View style={styles.terms}>

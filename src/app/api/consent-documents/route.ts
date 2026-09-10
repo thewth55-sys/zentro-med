@@ -18,7 +18,7 @@ import { randomUUID, createHash } from "node:crypto";
 import { NextResponse } from "next/server";
 
 import { requireRole, toErrorResponse } from "@/lib/auth/account";
-import { CLINICAL_PHOTOS_BUCKET } from "@/lib/storage/clinical-photos";
+import { copyClinicalPhotoAdmin, downloadClinicalPhotoAdmin, type StorageProvider } from "@/lib/storage/clinical-photos";
 import type { StampField } from "@/types";
 
 export async function GET(request: Request) {
@@ -70,6 +70,7 @@ export async function POST(request: Request) {
       if (templateErr || !template) {
         return NextResponse.json({ error: "Template not found" }, { status: 404 });
       }
+      const templateProvider: StorageProvider = (template.storage_provider as StorageProvider | null) ?? "supabase";
 
       const templateFields = (template.stamp_fields ?? []) as StampField[];
       const customFieldValues = (body?.customFieldValues ?? {}) as Record<string, unknown>;
@@ -90,22 +91,20 @@ export async function POST(request: Request) {
       const documentId = randomUUID();
       const destPath = `account-${accountId}/consent-documents/${documentId}.pdf`;
 
-      const { error: copyErr } = await supabase.storage
-        .from(CLINICAL_PHOTOS_BUCKET)
-        .copy(template.storage_path, destPath);
-      if (copyErr) {
+      try {
+        await copyClinicalPhotoAdmin(template.storage_path, destPath, templateProvider);
+      } catch (copyErr) {
         console.error("[POST /api/consent-documents] template copy error:", copyErr);
         return NextResponse.json({ error: "Failed to copy the template file" }, { status: 500 });
       }
 
-      const { data: pdfBlob, error: downloadErr } = await supabase.storage
-        .from(CLINICAL_PHOTOS_BUCKET)
-        .download(destPath);
-      if (downloadErr || !pdfBlob) {
+      let pdfBuffer: Buffer;
+      try {
+        pdfBuffer = await downloadClinicalPhotoAdmin(destPath, templateProvider);
+      } catch (downloadErr) {
         console.error("[POST /api/consent-documents] template download error:", downloadErr);
         return NextResponse.json({ error: "Failed to read the copied template" }, { status: 500 });
       }
-      const pdfBuffer = Buffer.from(await pdfBlob.arrayBuffer());
       const pdfHash = createHash("sha256").update(pdfBuffer).digest("hex");
 
       const { data, error } = await supabase
@@ -118,6 +117,7 @@ export async function POST(request: Request) {
           source_type: "pdf",
           template_id: template.id,
           pdf_storage_path: destPath,
+          storage_provider: templateProvider,
           pdf_hash: pdfHash,
           stamp_fields: documentFields,
           created_by: userId,

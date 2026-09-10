@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { supabaseAdmin } from '@/lib/whatsapp/admin-client'
+import { getObjectUrl } from '@/lib/storage/object-storage'
 
 // Serves media received over the unofficial QR/Baileys connection.
 // Counterpart to src/app/api/whatsapp/media/[mediaId]/route.ts (the
@@ -20,7 +21,13 @@ export async function GET(
   { params }: { params: Promise<{ path: string[] }> }
 ) {
   try {
-    const { path } = await params
+    const { path: rawPath } = await params
+    // A `minio/` leading segment means the gateway wrote this object
+    // after the storage cutover — strip it before using the rest as
+    // the real object path. Its absence means a pre-cutover,
+    // Supabase-stored object (see sessions.ts's mediaUrl comment).
+    const isMinio = rawPath[0] === 'minio'
+    const path = isMinio ? rawPath.slice(1) : rawPath
     if (!path || path.length < 2) {
       return NextResponse.json({ error: 'Invalid media path' }, { status: 400 })
     }
@@ -54,6 +61,11 @@ export async function GET(
       // point of view, but logged distinctly for our own visibility.
       console.warn(`[qr-media] account ${accountId} requested media outside its own scope: ${storagePath}`)
       return NextResponse.json({ error: 'Not found' }, { status: 404 })
+    }
+
+    if (isMinio) {
+      const url = await getObjectUrl('qr-inbound-media', storagePath, { public: false, expiresInSeconds: 3600 })
+      return NextResponse.redirect(url)
     }
 
     const { data: signed, error: signError } = await supabaseAdmin()

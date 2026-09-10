@@ -107,7 +107,7 @@ export function VisitPhotosTab({ contactId }: VisitPhotosTabProps) {
         .order("created_at", { ascending: false });
       const rows = (data ?? []) as VisitPhoto[];
       const withUrls = await Promise.all(
-        rows.map(async (p) => ({ ...p, url: await getClinicalPhotoUrl(p.storage_path) })),
+        rows.map(async (p) => ({ ...p, url: await getClinicalPhotoUrl(p.storage_path, p.storage_provider ?? "supabase") })),
       );
       setFiles(withUrls);
     },
@@ -165,6 +165,7 @@ export function VisitPhotosTab({ contactId }: VisitPhotosTabProps) {
         account_id: accountId,
         patient_profile_id: profile.id,
         storage_path: path,
+        storage_provider: "minio",
         file_name: pendingFile.name,
         content_type: pendingFile.type,
         caption: pendingNote.trim() || null,
@@ -188,7 +189,7 @@ export function VisitPhotosTab({ contactId }: VisitPhotosTabProps) {
     try {
       const { error } = await supabase.from("visit_photos").delete().eq("id", file.id);
       if (error) throw error;
-      await deleteClinicalPhoto(file.storage_path).catch(() => {});
+      await deleteClinicalPhoto(file.storage_path, file.storage_provider ?? "supabase").catch(() => {});
       setFiles((prev) => prev.filter((p) => p.id !== file.id));
       if (viewerFile?.id === file.id) setViewerFile(null);
       toast.success(t("deleted"));

@@ -87,10 +87,10 @@ export function ConsentFormsTab({ contactId }: ConsentFormsTabProps) {
         docs.map(async (doc) => {
           const sig = Array.isArray(doc.signature) ? doc.signature[0] : doc.signature;
           if (sig?.signature_storage_path) {
-            urls[doc.id] = await getClinicalPhotoUrl(sig.signature_storage_path);
+            urls[doc.id] = await getClinicalPhotoUrl(sig.signature_storage_path, sig.storage_provider ?? "supabase");
           }
           if (sig?.signed_pdf_storage_path) {
-            pdfUrls[doc.id] = await getClinicalPhotoUrl(sig.signed_pdf_storage_path);
+            pdfUrls[doc.id] = await getClinicalPhotoUrl(sig.signed_pdf_storage_path, sig.storage_provider ?? "supabase");
           }
         }),
       );

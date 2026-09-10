@@ -688,6 +688,7 @@ export interface VisitPhoto {
   patient_profile_id: string;
   appointment_id?: string | null;
   storage_path: string;
+  storage_provider?: "supabase" | "minio" | null;
   caption?: string | null;
   /** Original filename — stored explicitly (migration 070) since
    *  non-image files have no thumbnail to fall back on for display. */
@@ -776,6 +777,7 @@ export interface ConsentSignature {
   signer_email: string;
   signature_storage_path: string;
   signed_pdf_storage_path?: string | null;
+  storage_provider?: "supabase" | "minio" | null;
   otp_verified_at: string;
   document_hash_at_signing: string;
   ip_address?: string | null;
@@ -813,6 +815,7 @@ export interface ClinicalNoteSignature {
   signer_name: string;
   signer_email: string;
   signature_storage_path: string;
+  storage_provider?: "supabase" | "minio" | null;
   otp_verified_at: string;
   document_hash_at_signing: string;
   ip_address?: string | null;

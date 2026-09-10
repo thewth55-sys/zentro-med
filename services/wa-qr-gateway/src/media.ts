@@ -1,6 +1,6 @@
 import { downloadMediaMessage, getContentType, type WAMessage, type WASocket } from 'baileys';
 import type { Logger } from 'pino';
-import { supabaseAdmin } from './supabase.js';
+import { uploadObject } from './object-storage.js';
 import { baseMimetype, extensionForMimetype, mediaKindForContentType, type InboundMediaKind } from './mime.js';
 
 export interface StoredInboundMedia {
@@ -62,12 +62,10 @@ export async function downloadAndStoreInboundMedia(
   const messageId = msg.key.id || `${Date.now()}`;
   const storagePath = `account-${accountId}/${messageId}.${ext}`;
 
-  const { error } = await supabaseAdmin()
-    .storage.from('qr-inbound-media')
-    .upload(storagePath, buffer, { contentType: mimetype, upsert: true });
-
-  if (error) {
-    logger.error({ accountId, error: error.message }, 'failed to upload inbound media to storage');
+  try {
+    await uploadObject('qr-inbound-media', storagePath, buffer, mimetype);
+  } catch (err) {
+    logger.error({ accountId, err }, 'failed to upload inbound media to storage');
     return null;
   }
 

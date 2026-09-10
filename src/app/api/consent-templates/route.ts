@@ -86,6 +86,7 @@ export async function POST(request: Request) {
         account_id: accountId,
         name,
         storage_path: storagePath,
+        storage_provider: "minio",
         stamp_fields: stampFields,
         created_by: userId,
       })

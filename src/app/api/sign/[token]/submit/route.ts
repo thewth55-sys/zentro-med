@@ -18,7 +18,9 @@ import {
   CLINICAL_PHOTOS_BUCKET,
   downloadClinicalPhotoAdmin,
   uploadSignatureImage,
+  type StorageProvider,
 } from "@/lib/storage/clinical-photos";
+import { uploadObject } from "@/lib/storage/object-storage";
 import { stampSignatureOntoPdf } from "@/lib/pdf/stamp-signature";
 import { sendEmail } from "@/lib/email/resend-client";
 import { renderBrandedEmail, escapeHtml } from "@/lib/email/branded-template";
@@ -99,14 +101,17 @@ export async function POST(
   if (req.consent_document_id) {
     const { data: doc } = await admin
       .from("consent_documents")
-      .select("title, source_type, content, pdf_storage_path, stamp_fields")
+      .select("title, source_type, content, pdf_storage_path, storage_provider, stamp_fields")
       .eq("id", req.consent_document_id)
       .maybeSingle();
     consentDoc = doc ? { title: doc.title, source_type: doc.source_type, content: doc.content } : null;
 
     if (doc?.source_type === "pdf" && doc.pdf_storage_path) {
       try {
-        const originalPdf = await downloadClinicalPhotoAdmin(doc.pdf_storage_path);
+        const originalPdf = await downloadClinicalPhotoAdmin(
+          doc.pdf_storage_path,
+          (doc.storage_provider as StorageProvider | null) ?? "supabase",
+        );
         const stampedPdf = await stampSignatureOntoPdf({
           pdfBytes: originalPdf,
           signaturePngBytes: pngBuffer,
@@ -116,14 +121,10 @@ export async function POST(
         });
         stampedPdfBytes = stampedPdf;
         signedPdfStoragePath = `account-${req.account_id}/signatures/${req.consent_document_id}-signed.pdf`;
-        const { error: uploadErr } = await admin.storage
-          .from(CLINICAL_PHOTOS_BUCKET)
-          .upload(signedPdfStoragePath, Buffer.from(stampedPdf), {
-            cacheControl: "3600",
-            upsert: false,
-            contentType: "application/pdf",
-          });
-        if (uploadErr) throw new Error(uploadErr.message);
+        // Brand-new artifact, produced right now — always goes to MinIO,
+        // unlike the original template PDF above which may still be
+        // Supabase-stored from before the cutover.
+        await uploadObject(CLINICAL_PHOTOS_BUCKET, signedPdfStoragePath, Buffer.from(stampedPdf), "application/pdf");
       } catch (err) {
         console.error("[sign/submit] pdf stamping error:", err);
         return NextResponse.json({ ok: false, reason: "pdf_stamp_failed" }, { status: 500 });

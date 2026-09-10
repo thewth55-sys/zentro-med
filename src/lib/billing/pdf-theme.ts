@@ -25,6 +25,38 @@ export function fmtMoney(value: number, currency: string): string {
   }
 }
 
+/** Darkens a #rrggbb hex color by `amount` (0-1) toward black — used to
+ *  derive the gradient header's base from the account's accent color,
+ *  since the accent itself (often a light/mid brand green) is too
+ *  bright to hold white header text at good contrast. */
+export function darken(hex: string, amount: number): string {
+  const m = /^#?([0-9a-f]{6})$/i.exec(hex);
+  if (!m) return hex;
+  const n = parseInt(m[1], 16);
+  const channel = (shift: number) => Math.round(((n >> shift) & 0xff) * (1 - amount));
+  const r = channel(16);
+  const g = channel(8);
+  const b = channel(0);
+  return `#${[r, g, b].map((c) => c.toString(16).padStart(2, "0")).join("")}`;
+}
+
+/** Lightens a #rrggbb hex color by `amount` (0-1) toward white — used
+ *  for pale accent-tinted backgrounds (e.g. the receipt's "amount
+ *  received" block), the inverse of `darken` above. */
+export function lighten(hex: string, amount: number): string {
+  const m = /^#?([0-9a-f]{6})$/i.exec(hex);
+  if (!m) return hex;
+  const n = parseInt(m[1], 16);
+  const channel = (shift: number) => {
+    const c = (n >> shift) & 0xff;
+    return Math.round(c + (255 - c) * amount);
+  };
+  const r = channel(16);
+  const g = channel(8);
+  const b = channel(0);
+  return `#${[r, g, b].map((c) => c.toString(16).padStart(2, "0")).join("")}`;
+}
+
 /**
  * Builds the shared style set for one document, parameterized by the
  * resolved accent color (account's own color, or the Zentro green
@@ -95,5 +127,78 @@ export function createPdfStyles(accent: string) {
     balanceLabel: { fontSize: 11, fontWeight: 700 },
     section: { marginBottom: 16 },
     terms: { marginTop: 28, paddingTop: 12, borderTop: "1 solid #ddd", fontSize: 8, color: "#888", lineHeight: 1.5 },
+
+    // --- Gradient header band (PdfGradientHeader) ---
+    headerBand: {
+      position: "relative",
+      paddingHorizontal: 40,
+      paddingTop: 28,
+      paddingBottom: 20,
+      marginHorizontal: -40,
+      marginBottom: 24,
+      backgroundColor: darken(accent, 0.55),
+      overflow: "hidden",
+    },
+    headerGradientSvg: { position: "absolute", top: 0, right: 0, bottom: 0, width: 260 },
+    headerRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" },
+    logoOnHeader: { width: 44, height: 44, objectFit: "contain" },
+    accountNameOnHeader: { fontSize: 15, fontWeight: 700, color: "#ffffff" },
+    issuerMetaOnHeader: { fontSize: 8, color: "rgba(255,255,255,0.72)", marginTop: 2 },
+    docLabelOnHeader: {
+      fontSize: 8,
+      color: "rgba(255,255,255,0.72)",
+      textTransform: "uppercase",
+      letterSpacing: 1,
+      textAlign: "right",
+    },
+    docNumberOnHeader: { fontSize: 20, fontWeight: 700, color: "#ffffff", textAlign: "right", marginTop: 2 },
+    metaOnHeader: { fontSize: 8, color: "rgba(255,255,255,0.72)", textAlign: "right", marginTop: 3 },
+
+    // --- Status pill (generalizes the old statusBadge) ---
+    statusPill: { alignSelf: "flex-end", marginTop: 8, paddingVertical: 4, paddingHorizontal: 10, borderRadius: 10 },
+    statusPillText: { fontSize: 7.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.3 },
+
+    // --- Multi-column info grid (PdfInfoGrid) ---
+    infoGrid: { flexDirection: "row", marginBottom: 20 },
+    infoGridColumn: { flex: 1, paddingRight: 12 },
+    infoGridLabel: { fontSize: 7.5, color: "#999", textTransform: "uppercase", letterSpacing: 0.8, marginBottom: 4 },
+    infoGridName: { fontSize: 10.5, fontWeight: 700, color: "#1a1a1a", marginBottom: 2 },
+    infoGridDetail: { fontSize: 8.5, color: "#777", lineHeight: 1.4 },
+
+    // --- Table header/subtitle refresh (light row, gray small-caps) ---
+    tableHeaderRowLight: {
+      flexDirection: "row",
+      backgroundColor: "#fafafa",
+      paddingVertical: 6,
+      paddingHorizontal: 8,
+      borderBottom: "1 solid #eee",
+    },
+    tableHeaderCellLight: { fontSize: 7.5, color: "#999", textTransform: "uppercase", fontWeight: 700, letterSpacing: 0.5 },
+    tableRowSubtitle: { fontSize: 7.5, color: "#999", marginTop: 1 },
+
+    // --- Bold filled totals box (PdfTotalsBox) ---
+    totalsBoxBold: {
+      marginTop: 14,
+      alignSelf: "flex-end",
+      width: 220,
+      padding: 14,
+      borderRadius: 6,
+      backgroundColor: darken(accent, 0.45),
+    },
+    totalsBoxLabel: { fontSize: 7.5, color: "rgba(255,255,255,0.72)", textTransform: "uppercase", letterSpacing: 0.8 },
+    totalsBoxValue: { fontSize: 20, fontWeight: 700, color: "#ffffff", marginTop: 4 },
+    totalsBoxSubline: { fontSize: 7.5, color: "rgba(255,255,255,0.72)", marginTop: 4 },
+
+    // --- Footer (PdfFooter) ---
+    footerRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "flex-end",
+      marginTop: 28,
+      paddingTop: 12,
+      borderTop: "1 solid #eee",
+    },
+    footerLegal: { fontSize: 7, color: "#aaa", lineHeight: 1.5, width: "70%" },
+    footerBrand: { fontSize: 8, color: "#999", textAlign: "right" },
   });
 }

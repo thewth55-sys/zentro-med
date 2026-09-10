@@ -116,7 +116,7 @@ export function MedicalTab({ contactId }: MedicalTabProps) {
         const urls: Record<string, string | null> = {};
         await Promise.all(
           sigRows.map(async (s) => {
-            urls[s.clinical_note_id] = await getClinicalPhotoUrl(s.signature_storage_path);
+            urls[s.clinical_note_id] = await getClinicalPhotoUrl(s.signature_storage_path, s.storage_provider ?? "supabase");
           }),
         );
         setSignatureUrlsByNote(urls);

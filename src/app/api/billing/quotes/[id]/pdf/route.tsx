@@ -2,8 +2,9 @@ import { NextResponse } from "next/server";
 import { renderToBuffer } from "@react-pdf/renderer";
 
 import { requireRole, toErrorResponse } from "@/lib/auth/account";
-import { supabaseAdmin } from "@/lib/billing-platform/admin-client";
+import { uploadObject, getObjectUrl } from "@/lib/storage/object-storage";
 import { QuotePdfDocument, type QuotePdfLineItem } from "@/lib/billing/quote-pdf-document";
+import { fetchAttendedBy, resolveToothNumbers } from "@/lib/billing/pdf-data";
 
 const BUCKET = "chat-media";
 
@@ -42,15 +43,21 @@ export async function POST(
 
     const { data: itemRows } = await supabase
       .from("quote_items")
-      .select("description, quantity, unit_price, line_total")
+      .select("description, quantity, unit_price, line_total, odontogram_tooth_id")
       .eq("quote_id", id)
       .order("position", { ascending: true });
+
+    const [attendedBy, toothNumbers] = await Promise.all([
+      fetchAttendedBy(supabase, quote.appointment_id ?? null),
+      resolveToothNumbers(supabase, itemRows ?? []),
+    ]);
 
     const items: QuotePdfLineItem[] = (itemRows ?? []).map((row) => ({
       description: row.description,
       quantity: row.quantity,
       unitPrice: row.unit_price,
       lineTotal: row.line_total,
+      toothNumber: row.odontogram_tooth_id ? (toothNumbers.get(row.odontogram_tooth_id) ?? null) : null,
     }));
 
     const buffer = await renderToBuffer(
@@ -67,6 +74,7 @@ export async function POST(
         expiryDate={quote.expiry_date ?? null}
         contactName={quote.contact?.name || quote.contact?.phone || "—"}
         contactPhone={quote.contact?.phone ?? ""}
+        attendedBy={attendedBy}
         items={items}
         subtotal={quote.subtotal}
         taxTotal={quote.tax_total}
@@ -79,29 +87,19 @@ export async function POST(
     );
 
     const path = `account-${accountId}/quote-${quote.quote_number}-${Date.now()}.pdf`;
-    const admin = supabaseAdmin();
-    const { error: uploadErr } = await admin.storage.from(BUCKET).upload(path, buffer, {
-      contentType: "application/pdf",
-      upsert: true,
-    });
-
-    if (uploadErr) {
+    try {
+      await uploadObject(BUCKET, path, buffer, "application/pdf");
+    } catch (uploadErr) {
       console.error("[POST /api/billing/quotes/[id]/pdf] upload error:", uploadErr);
       return NextResponse.json({ error: "Failed to generate PDF" }, { status: 500 });
     }
 
     // Signed, not public — see the identical comment on the invoice
     // PDF route (same BUCKET, same rationale).
-    const { data: signed, error: signErr } = await admin.storage
-      .from(BUCKET)
-      .createSignedUrl(path, 60 * 60 * 48);
-    if (signErr || !signed) {
-      console.error("[POST /api/billing/quotes/[id]/pdf] sign error:", signErr);
-      return NextResponse.json({ error: "Failed to generate PDF" }, { status: 500 });
-    }
+    const url = await getObjectUrl(BUCKET, path, { public: false, expiresInSeconds: 60 * 60 * 48 });
 
     return NextResponse.json({
-      url: signed.signedUrl,
+      url,
       filename: `Cotizacion-${quote.quote_number}.pdf`,
     });
   } catch (err) {

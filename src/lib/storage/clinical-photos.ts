@@ -8,43 +8,79 @@ const BUCKET = CLINICAL_PHOTOS_BUCKET;
 /** Matches the bucket's file_size_limit (migration 070). */
 export const CLINICAL_PHOTO_MAX_BYTES = 15 * 1024 * 1024;
 
+/** Which backend a given `storage_path` was written to — new uploads
+ *  are always `'minio'`; a row with no value (or `'supabase'`,
+ *  written before this cutover) still lives in Supabase Storage. See
+ *  `visit_photos.storage_provider` and siblings. This file is
+ *  imported by BOTH client components and server routes, so it never
+ *  statically imports `object-storage.ts` (Node-only, pulls in the
+ *  AWS SDK) — the browser-reachable MinIO read path below goes
+ *  through `/api/storage/signed-url` instead, same reason the upload
+ *  path goes through `/api/storage/presign-upload`. */
+export type StorageProvider = "supabase" | "minio";
+
 /**
- * Uploads a clinical photo for a patient. Unlike uploadAccountMedia
- * (chat-media/flow-media/landing-media, all public buckets returning
- * a public URL), this bucket is PRIVATE — patient medical imagery,
- * not a WhatsApp attachment. Callers get back the storage path only;
- * use getClinicalPhotoUrl() for a short-lived signed URL to display it.
+ * Uploads a clinical photo for a patient. This bucket is PRIVATE —
+ * patient medical imagery, not a WhatsApp attachment. Callers get
+ * back the storage path only; use getClinicalPhotoUrl() for a
+ * short-lived signed URL to display it. Always writes to MinIO now —
+ * callers persist `storage_provider: 'minio'` alongside this path.
  *
  * Path: clinical-photos/account-<account_id>/patient-<patient_profile_id>/<timestamp>-<basename>.<ext>
  * — the extra patient segment on top of the account-scoped convention
- * (020/023) is cosmetic (RLS only checks the first, account- segment)
- * but keeps a patient's photos visually grouped in the Supabase
- * dashboard's storage browser.
+ * (020/023) is cosmetic but keeps a patient's photos visually grouped.
  */
 export async function uploadClinicalPhoto(
   accountId: string,
   patientProfileId: string,
   file: File,
 ): Promise<{ path: string }> {
-  const supabase = createClient();
   const accountScopedPath = buildMediaPath(accountId, file.name);
   const path = accountScopedPath.replace(
     `account-${accountId}/`,
     `account-${accountId}/patient-${patientProfileId}/`,
   );
-
-  const { error } = await supabase.storage.from(BUCKET).upload(path, file, {
-    cacheControl: "3600",
-    upsert: false,
-    contentType: file.type,
-  });
-  if (error) throw new Error(error.message);
-
+  await uploadViaPresign(BUCKET, path, file);
   return { path };
 }
 
-/** Short-lived signed URL — the only way to read from this private bucket. */
-export async function getClinicalPhotoUrl(path: string, expiresInSeconds = 3600): Promise<string | null> {
+/** Shared browser-upload helper for this bucket's two client-side
+ *  writers (clinical photos, consent templates) — goes through the
+ *  presigned-PUT flow rather than a direct SDK call, since the
+ *  browser never holds MinIO's secret key. `path` already has its
+ *  final account-scoped + sub-folder shape; the route re-derives the
+ *  same shape server-side from `subPath` for its own validation. */
+async function uploadViaPresign(bucket: string, path: string, file: File): Promise<void> {
+  const accountSegment = path.split("/")[0];
+  const subPath = path.slice(accountSegment.length + 1, path.lastIndexOf("/"));
+  const presignRes = await fetch("/api/storage/presign-upload", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ bucket, fileName: path.split("/").pop(), subPath: subPath || undefined, contentType: file.type }),
+  });
+  if (!presignRes.ok) throw new Error("Could not prepare upload.");
+  const { uploadUrl } = (await presignRes.json()) as { uploadUrl: string };
+  const putRes = await fetch(uploadUrl, { method: "PUT", headers: { "Content-Type": file.type }, body: file });
+  if (!putRes.ok) throw new Error("Upload failed.");
+}
+
+/** Short-lived signed URL — the only way to read from this private
+ *  bucket. `provider` says which backend actually holds the object;
+ *  defaults to `'supabase'` so existing call sites that haven't been
+ *  updated to pass it yet keep resolving pre-cutover rows correctly. */
+export async function getClinicalPhotoUrl(
+  path: string,
+  provider: StorageProvider = "supabase",
+  expiresInSeconds = 3600,
+): Promise<string | null> {
+  if (provider === "minio") {
+    const res = await fetch(
+      `/api/storage/signed-url?bucket=${BUCKET}&path=${encodeURIComponent(path)}&expiresIn=${expiresInSeconds}`,
+    );
+    if (!res.ok) return null;
+    const { url } = (await res.json()) as { url: string };
+    return url;
+  }
   const supabase = createClient();
   const { data, error } = await supabase.storage.from(BUCKET).createSignedUrl(path, expiresInSeconds);
   if (error) {
@@ -54,7 +90,16 @@ export async function getClinicalPhotoUrl(path: string, expiresInSeconds = 3600)
   return data.signedUrl;
 }
 
-export async function deleteClinicalPhoto(path: string): Promise<void> {
+export async function deleteClinicalPhoto(path: string, provider: StorageProvider = "supabase"): Promise<void> {
+  if (provider === "minio") {
+    const res = await fetch("/api/storage/presign-upload", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ bucket: BUCKET, path }),
+    });
+    if (!res.ok) throw new Error("Delete failed.");
+    return;
+  }
   const supabase = createClient();
   const { error } = await supabase.storage.from(BUCKET).remove([path]);
   if (error) throw new Error(error.message);
@@ -63,19 +108,11 @@ export async function deleteClinicalPhoto(path: string): Promise<void> {
 /**
  * Uploads a patient's signature PNG (informed consent or clinical
  * note, migrations 072/073) — same bucket as clinical photos, under a
- * signatures/ subfolder so RLS's account-<id> path check (067) still
- * applies without any new policy. Uses the service-role client, not
- * the browser one: the signer is an anonymous patient following an
- * emailed link with no Supabase session, so the normal "Members can
- * upload" storage policy (which requires auth.uid() to resolve to an
- * account member) would reject them. This is the one write in the
- * signing flow that bypasses RLS outright, mirroring how every other
- * server-side admin write in this codebase uses supabaseAdmin().
- *
- * `targetId` is whichever of consent_document_id/clinical_note_id the
- * signature_requests row actually points at — it only namespaces this
- * file's path, it doesn't determine which table gets the signature
- * row (submit_signature's own branching decides that).
+ * signatures/ subfolder. This already runs server-side (signing an
+ * anonymous patient's request), so it writes directly via the
+ * service-role S3 credentials — dynamic import keeps `object-storage`
+ * (and its AWS SDK dependency) out of this file's static import graph,
+ * since browser components import other functions from this same file.
  */
 export async function uploadSignatureImage(
   accountId: string,
@@ -83,42 +120,36 @@ export async function uploadSignatureImage(
   pngBuffer: Buffer,
 ): Promise<{ path: string }> {
   const path = `account-${accountId}/signatures/${targetId}.png`;
-  const { error } = await supabaseAdmin()
-    .storage.from(BUCKET)
-    .upload(path, pngBuffer, { cacheControl: "3600", upsert: false, contentType: "image/png" });
-  if (error) throw new Error(error.message);
+  const { uploadObject } = await import("@/lib/storage/object-storage");
+  await uploadObject(BUCKET, path, pngBuffer, "image/png");
   return { path };
 }
 
 /** Uploads a reusable PDF consent template (migration 074), from the
- *  browser client — staff are authenticated, so the normal "Members
- *  can upload" storage policy already covers this, same as
- *  uploadClinicalPhoto. Filename goes through buildMediaPath's
- *  sanitizer (spaces/accents/parens in the original filename
- *  otherwise trip Supabase Storage's "Invalid key" check). */
+ *  browser client — staff are authenticated, goes through the same
+ *  presigned-upload flow as uploadClinicalPhoto. */
 export async function uploadConsentTemplatePdf(
   accountId: string,
   file: File,
 ): Promise<{ path: string }> {
-  const supabase = createClient();
   const accountScopedPath = buildMediaPath(accountId, file.name);
   const path = accountScopedPath.replace(`account-${accountId}/`, `account-${accountId}/consent-templates/`);
-  const { error } = await supabase.storage.from(BUCKET).upload(path, file, {
-    cacheControl: "3600",
-    upsert: false,
-    contentType: "application/pdf",
-  });
-  if (error) throw new Error(error.message);
+  await uploadViaPresign(BUCKET, path, file);
   return { path };
 }
 
 /** Server-side signed URL for a caller with no Supabase session (the
- *  public /firmar/[token] flow) — bypasses storage RLS via the
- *  service-role client, same reasoning as uploadSignatureImage. */
+ *  public /firmar/[token] flow) — see `provider` note above. Server-
+ *  only, so it can import `object-storage` directly. */
 export async function getClinicalPhotoUrlAdmin(
   path: string,
+  provider: StorageProvider = "supabase",
   expiresInSeconds = 3600,
 ): Promise<string | null> {
+  if (provider === "minio") {
+    const { getObjectUrl } = await import("@/lib/storage/object-storage");
+    return getObjectUrl(BUCKET, path, { public: false, expiresInSeconds });
+  }
   const { data, error } = await supabaseAdmin()
     .storage.from(BUCKET)
     .createSignedUrl(path, expiresInSeconds);
@@ -129,21 +160,36 @@ export async function getClinicalPhotoUrlAdmin(
   return data.signedUrl;
 }
 
-/** Downloads a file's bytes via the service-role client — used
- *  server-side to read a consent template's PDF bytes (to hash it
- *  when copying it for a patient, or to stamp a signature onto it at
- *  submit time), never exposed to a browser directly. */
-export async function downloadClinicalPhotoAdmin(path: string): Promise<Buffer> {
+/** Downloads a file's bytes server-side — used to read a consent
+ *  template's PDF bytes (to hash it when copying it for a patient, or
+ *  to stamp a signature onto it at submit time), never exposed to a
+ *  browser directly. */
+export async function downloadClinicalPhotoAdmin(path: string, provider: StorageProvider = "supabase"): Promise<Buffer> {
+  if (provider === "minio") {
+    const { downloadObject } = await import("@/lib/storage/object-storage");
+    return downloadObject(BUCKET, path);
+  }
   const { data, error } = await supabaseAdmin().storage.from(BUCKET).download(path);
   if (error || !data) throw new Error(error?.message ?? "Failed to download file");
   const arrayBuffer = await data.arrayBuffer();
   return Buffer.from(arrayBuffer);
 }
 
-/** Copies a file within the bucket via the service-role client — used
- *  to snapshot a consent_templates PDF into a per-document path so a
- *  later template edit/deletion can't affect an already-sent document. */
-export async function copyClinicalPhotoAdmin(fromPath: string, toPath: string): Promise<void> {
+/** Copies a file within the bucket server-side — used to snapshot a
+ *  consent_templates PDF into a per-document path so a later template
+ *  edit/deletion can't affect an already-sent document. The copy's
+ *  destination is written under the SAME backend as the source —
+ *  `provider` describes the source, and the caller must persist that
+ *  same value for the destination row. */
+export async function copyClinicalPhotoAdmin(
+  fromPath: string,
+  toPath: string,
+  provider: StorageProvider = "supabase",
+): Promise<void> {
+  if (provider === "minio") {
+    const { copyObject } = await import("@/lib/storage/object-storage");
+    return copyObject(BUCKET, fromPath, toPath);
+  }
   const { error } = await supabaseAdmin().storage.from(BUCKET).copy(fromPath, toPath);
   if (error) throw new Error(error.message);
 }

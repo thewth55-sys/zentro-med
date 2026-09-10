@@ -2,8 +2,9 @@ import { NextResponse } from "next/server";
 import { renderToBuffer } from "@react-pdf/renderer";
 
 import { requireRole, toErrorResponse } from "@/lib/auth/account";
-import { supabaseAdmin } from "@/lib/billing-platform/admin-client";
+import { uploadObject, getObjectUrl } from "@/lib/storage/object-storage";
 import { InvoicePdfDocument, type InvoicePdfLineItem } from "@/lib/billing/invoice-pdf-document";
+import { fetchAttendedBy, resolveToothNumbers } from "@/lib/billing/pdf-data";
 
 const BUCKET = "chat-media";
 
@@ -34,15 +35,21 @@ export async function POST(
 
     const { data: itemRows } = await supabase
       .from("invoice_items")
-      .select("description, quantity, unit_price, line_total")
+      .select("description, quantity, unit_price, line_total, odontogram_tooth_id")
       .eq("invoice_id", id)
       .order("position", { ascending: true });
+
+    const [attendedBy, toothNumbers] = await Promise.all([
+      fetchAttendedBy(supabase, invoice.appointment_id ?? null),
+      resolveToothNumbers(supabase, itemRows ?? []),
+    ]);
 
     const items: InvoicePdfLineItem[] = (itemRows ?? []).map((row) => ({
       description: row.description,
       quantity: row.quantity,
       unitPrice: row.unit_price,
       lineTotal: row.line_total,
+      toothNumber: row.odontogram_tooth_id ? (toothNumbers.get(row.odontogram_tooth_id) ?? null) : null,
     }));
 
     const buffer = await renderToBuffer(
@@ -59,6 +66,7 @@ export async function POST(
         dueDate={invoice.due_date ?? null}
         contactName={invoice.contact?.name || invoice.contact?.phone || "—"}
         contactPhone={invoice.contact?.phone ?? ""}
+        attendedBy={attendedBy}
         items={items}
         subtotal={invoice.subtotal}
         taxTotal={invoice.tax_total}
@@ -72,13 +80,9 @@ export async function POST(
     );
 
     const path = `account-${accountId}/invoice-${invoice.invoice_number}-${Date.now()}.pdf`;
-    const admin = supabaseAdmin();
-    const { error: uploadErr } = await admin.storage.from(BUCKET).upload(path, buffer, {
-      contentType: "application/pdf",
-      upsert: true,
-    });
-
-    if (uploadErr) {
+    try {
+      await uploadObject(BUCKET, path, buffer, "application/pdf");
+    } catch (uploadErr) {
       console.error("[POST /api/billing/invoices/[id]/pdf] upload error:", uploadErr);
       return NextResponse.json({ error: "Failed to generate PDF" }, { status: 500 });
     }
@@ -91,16 +95,10 @@ export async function POST(
     // anyone who ever sees that message would otherwise have permanent,
     // unauthenticated access to it. 48h covers immediate download plus
     // Meta's WhatsApp media fetch with room to spare.
-    const { data: signed, error: signErr } = await admin.storage
-      .from(BUCKET)
-      .createSignedUrl(path, 60 * 60 * 48);
-    if (signErr || !signed) {
-      console.error("[POST /api/billing/invoices/[id]/pdf] sign error:", signErr);
-      return NextResponse.json({ error: "Failed to generate PDF" }, { status: 500 });
-    }
+    const url = await getObjectUrl(BUCKET, path, { public: false, expiresInSeconds: 60 * 60 * 48 });
 
     return NextResponse.json({
-      url: signed.signedUrl,
+      url,
       filename: `Factura-${invoice.invoice_number}.pdf`,
     });
   } catch (err) {

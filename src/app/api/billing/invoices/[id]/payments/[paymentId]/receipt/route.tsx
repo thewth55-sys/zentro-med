@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { renderToBuffer } from "@react-pdf/renderer";
 
 import { requireRole, toErrorResponse } from "@/lib/auth/account";
-import { supabaseAdmin } from "@/lib/billing-platform/admin-client";
+import { uploadObject, getObjectUrl } from "@/lib/storage/object-storage";
 import { ReceiptPdfDocument } from "@/lib/billing/receipt-pdf-document";
 
 const BUCKET = "chat-media";
@@ -73,29 +73,19 @@ export async function POST(
     );
 
     const path = `account-${accountId}/receipt-${invoice.invoice_number}-${payment.id}.pdf`;
-    const admin = supabaseAdmin();
-    const { error: uploadErr } = await admin.storage.from(BUCKET).upload(path, buffer, {
-      contentType: "application/pdf",
-      upsert: true,
-    });
-
-    if (uploadErr) {
+    try {
+      await uploadObject(BUCKET, path, buffer, "application/pdf");
+    } catch (uploadErr) {
       console.error("[POST /payments/[paymentId]/receipt] upload error:", uploadErr);
       return NextResponse.json({ error: "Failed to generate receipt" }, { status: 500 });
     }
 
     // Signed, not public — same rationale as the invoice/quote PDF
     // routes (identical BUCKET, same financial-document exposure).
-    const { data: signed, error: signErr } = await admin.storage
-      .from(BUCKET)
-      .createSignedUrl(path, 60 * 60 * 48);
-    if (signErr || !signed) {
-      console.error("[POST /payments/[paymentId]/receipt] sign error:", signErr);
-      return NextResponse.json({ error: "Failed to generate receipt" }, { status: 500 });
-    }
+    const url = await getObjectUrl(BUCKET, path, { public: false, expiresInSeconds: 60 * 60 * 48 });
 
     return NextResponse.json({
-      url: signed.signedUrl,
+      url,
       filename: `Recibo-${invoice.invoice_number}.pdf`,
     });
   } catch (err) {
