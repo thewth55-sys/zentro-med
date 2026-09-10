@@ -6,24 +6,26 @@ import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 // supabase.ts already being independently implemented here), so it
 // only needs the one function it actually calls: uploading inbound
 // media it just downloaded from WhatsApp.
+//
+// Uses MINIO_PUBLIC_URL, not an internal endpoint — Easypanel's
+// internal service hostname for this deployment (services_minio) has
+// an underscore, which MinIO's own Host-header validation rejects as
+// an invalid hostname ("InvalidRequest: Invalid Request (invalid
+// hostname)"), even for plain server-to-server calls. See the
+// monolith's object-storage.ts for the full explanation.
 
 let client: S3Client | null = null;
 
 function getS3Client(): S3Client {
   if (client) return client;
   client = new S3Client({
-    endpoint: process.env.MINIO_ENDPOINT,
+    endpoint: process.env.MINIO_PUBLIC_URL,
     region: process.env.MINIO_REGION || 'us-east-1',
     forcePathStyle: true,
     credentials: {
       accessKeyId: process.env.MINIO_ACCESS_KEY!,
       secretAccessKey: process.env.MINIO_SECRET_KEY!,
     },
-    // See the monolith's src/lib/storage/object-storage.ts for why —
-    // the SDK's default checksum behavior sends aws-chunked bodies
-    // that MinIO rejects with "InvalidRequest".
-    requestChecksumCalculation: 'WHEN_REQUIRED',
-    responseChecksumValidation: 'WHEN_REQUIRED',
   });
   return client;
 }
