@@ -58,19 +58,22 @@ export async function POST(
 
     let doctorLicense: string | null = null;
     let doctorLicenseInstitution: string | null = null;
-    let signatureImageUrl: string | null = null;
     if (doctor?.user_id) {
       const { data: doctorProfile } = await supabase
         .from("profiles")
-        .select("license_number, license_institution, signature_url")
+        .select("license_number, license_institution")
         .eq("user_id", doctor.user_id)
         .maybeSingle();
       doctorLicense = doctorProfile?.license_number ?? null;
       doctorLicenseInstitution = doctorProfile?.license_institution ?? null;
-      if (doctorProfile?.signature_url) {
-        signatureImageUrl = await getClinicalPhotoUrlAdmin(doctorProfile.signature_url, "minio");
-      }
     }
+
+    // The signature is captured fresh per prescription (see
+    // 134_prescription_signature.sql) — resolved from the
+    // prescription's own row, never from a reusable per-doctor image.
+    const signatureImageUrl = prescription.signature_storage_path
+      ? await getClinicalPhotoUrlAdmin(prescription.signature_storage_path, "minio")
+      : null;
 
     const contact = patientProfile
       ? (await supabase.from("contacts").select("*").eq("id", patientProfile.contact_id).maybeSingle()).data
@@ -109,6 +112,7 @@ export async function POST(
         doctorLicense={doctorLicense}
         doctorLicenseInstitution={doctorLicenseInstitution}
         signatureImageUrl={signatureImageUrl}
+        verificationToken={prescription.verification_token ?? null}
         folio={prescription.folio}
         issuedAt={new Date(prescription.signed_at).toLocaleDateString("es-MX", {
           day: "numeric",

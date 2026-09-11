@@ -841,9 +841,9 @@
         "valid": "VALID",
         "incomplete": "INCOMPLETE",
         "reqDoctor": "Prescribing doctor selected",
-        "reqSignature": "Doctor's autograph signature on file",
-        "setUpSignature": "Set up signature",
-        "signatureOnlySelf": "Only the doctor themselves can capture their signature — they must sign in with their own account.",
+        "signatureEveryTimeNote": "You'll be asked to draw your signature when issuing — for security, a fresh signature is required every time, never stored or reused.",
+        "signDialogTitle": "Sign this prescription",
+        "signDialogDescription": "Draw your signature to issue the document. A unique verification code is generated for this prescription.",
         "reqMedication": "At least one medication added",
         "reqDosage": "Dose, route, frequency, and duration complete",
         "reqIndications": "Instructions for the patient",
@@ -3143,7 +3143,9 @@
       "specialty": "Specialty",
       "specialtyPlaceholder": "Cardiology, Pediatrics...",
       "licenseNumber": "Professional license number",
-      "licenseNumberPlaceholder": "12345678"
+      "licenseNumberPlaceholder": "12345678",
+      "licenseInstitution": "Institution that issued your license/degree",
+      "licenseInstitutionPlaceholder": "e.g. National Autonomous University of Mexico"
     },
     "appearance": {
       "title": "Appearance",

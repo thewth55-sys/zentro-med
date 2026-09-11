@@ -841,9 +841,9 @@
         "valid": "VÁLIDA",
         "incomplete": "INCOMPLETA",
         "reqDoctor": "Médico prescriptor seleccionado",
-        "reqSignature": "Firma autógrafa del médico configurada",
-        "setUpSignature": "Configurar firma",
-        "signatureOnlySelf": "Solo el propio médico puede capturar su firma — debe iniciar sesión con su usuario.",
+        "signatureEveryTimeNote": "Se te pedirá dibujar tu firma al emitir — por seguridad, se solicita una firma nueva cada vez, nunca se guarda ni se reutiliza.",
+        "signDialogTitle": "Firma esta receta",
+        "signDialogDescription": "Dibuja tu firma para emitir el documento. Se genera un código de verificación único para esta receta.",
         "reqMedication": "Al menos un medicamento agregado",
         "reqDosage": "Dosis, vía, frecuencia y duración completos",
         "reqIndications": "Indicaciones para el paciente",
@@ -3143,7 +3143,9 @@
       "specialty": "Especialidad",
       "specialtyPlaceholder": "Cardiología, Pediatría...",
       "licenseNumber": "Cédula profesional / matrícula",
-      "licenseNumberPlaceholder": "12345678"
+      "licenseNumberPlaceholder": "12345678",
+      "licenseInstitution": "Institución que expidió tu cédula/título",
+      "licenseInstitutionPlaceholder": "ej. Universidad Nacional Autónoma de México"
     },
     "appearance": {
       "title": "Apariencia",

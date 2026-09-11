@@ -319,7 +319,9 @@ export function ClinicalHistoryTab({ patientProfileId }: ClinicalHistoryTabProps
                   <Label className="text-xs text-muted-foreground">{t("signingDoctor")}</Label>
                   <Select value={signingDoctorId} onValueChange={(v) => v && setSigningDoctorId(v)}>
                     <SelectTrigger className="h-9 text-sm">
-                      <SelectValue placeholder={t("selectDoctor")} />
+                      <SelectValue placeholder={t("selectDoctor")}>
+                        {(value: string | null) => doctors.find((d) => d.id === value)?.name ?? t("selectDoctor")}
+                      </SelectValue>
                     </SelectTrigger>
                     <SelectContent>
                       {doctors.map((d) => (

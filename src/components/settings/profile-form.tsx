@@ -44,6 +44,7 @@ export function ProfileForm() {
   const [title, setTitle] = useState('');
   const [specialty, setSpecialty] = useState('');
   const [licenseNumber, setLicenseNumber] = useState('');
+  const [licenseInstitution, setLicenseInstitution] = useState('');
   const [pendingAvatar, setPendingAvatar] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [removeAvatar, setRemoveAvatar] = useState(false);
@@ -58,6 +59,7 @@ export function ProfileForm() {
     setTitle(profile.title ?? '');
     setSpecialty(profile.specialty ?? '');
     setLicenseNumber(profile.license_number ?? '');
+    setLicenseInstitution(profile.license_institution ?? '');
   }, [profile]);
 
   // Cleanup object URLs to avoid leaks.
@@ -164,6 +166,7 @@ export function ProfileForm() {
           title: title.trim() || null,
           specialty: specialty.trim() || null,
           license_number: licenseNumber.trim() || null,
+          license_institution: licenseInstitution.trim() || null,
         })
         .eq('user_id', user.id);
       if (updateError) {
@@ -217,6 +220,7 @@ export function ProfileForm() {
       title.trim() !== (profile.title ?? '') ||
       specialty.trim() !== (profile.specialty ?? '') ||
       licenseNumber.trim() !== (profile.license_number ?? '') ||
+      licenseInstitution.trim() !== (profile.license_institution ?? '') ||
       pendingAvatar !== null ||
       removeAvatar);
 
@@ -337,6 +341,19 @@ export function ProfileForm() {
                 onChange={(e) => setLicenseNumber(e.target.value)}
                 placeholder={t('licenseNumberPlaceholder')}
                 maxLength={50}
+                disabled={saving}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="profile-license-institution" className="text-foreground">
+                {t('licenseInstitution')}
+              </Label>
+              <Input
+                id="profile-license-institution"
+                value={licenseInstitution}
+                onChange={(e) => setLicenseInstitution(e.target.value)}
+                placeholder={t('licenseInstitutionPlaceholder')}
+                maxLength={200}
                 disabled={saving}
               />
             </div>

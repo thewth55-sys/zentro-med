@@ -37,8 +37,10 @@ export interface PrescriptionPdfProps {
   doctorName: string;
   doctorLicense: string | null;
   doctorLicenseInstitution: string | null;
-  /** Signed URL to the doctor's captured autograph (133_doctor_signature.sql) — falls back to a placeholder line when not yet set up. */
+  /** Signed URL to the signature captured for THIS prescription (134_prescription_signature.sql) — always set in practice (signing is mandatory to issue); the placeholder line below is purely defensive. */
   signatureImageUrl: string | null;
+  /** Unique per-signing verification code (134_prescription_signature.sql) — proof this exact document was individually signed, not a reused image. */
+  verificationToken: string | null;
   folio: string;
   issuedAt: string;
   countryAtIssue: AccountCountry;
@@ -164,6 +166,9 @@ export function PrescriptionPdfDocument(props: PrescriptionPdfProps) {
           <Text style={rxStyles.signatureMeta}>
             {[props.doctorLicense, props.doctorLicenseInstitution].filter(Boolean).join(" · ")}
           </Text>
+          {props.verificationToken ? (
+            <Text style={rxStyles.signatureMeta}>Verificación: {props.verificationToken}</Text>
+          ) : null}
         </View>
 
         <PdfFooter

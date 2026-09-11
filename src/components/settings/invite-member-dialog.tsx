@@ -433,7 +433,13 @@ export function InviteMemberDialog({
                     onValueChange={(v) => setCustomRoleId(v === NO_PROFILE ? null : v)}
                   >
                     <SelectTrigger className="w-full bg-muted border-border text-foreground">
-                      <SelectValue />
+                      <SelectValue>
+                        {(value: string | null) =>
+                          value && value !== NO_PROFILE
+                            ? (matchingProfiles.find((p) => p.id === value)?.name ?? t('noProfile'))
+                            : t('noProfile')
+                        }
+                      </SelectValue>
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value={NO_PROFILE}>{t('noProfile')}</SelectItem>

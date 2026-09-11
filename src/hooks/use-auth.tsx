@@ -52,6 +52,8 @@ interface Profile {
   specialty: string | null;
   /** Cédula profesional / matrícula. */
   license_number: string | null;
+  /** Institución que expidió la cédula/título — migration 133, used on prescription PDFs. */
+  license_institution: string | null;
   /** Assigned tenant "profile" (account_roles.id), if any — migration 126. */
   custom_role_id: string | null;
 }
@@ -183,7 +185,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const { data, error } = await supabase
         .from("profiles")
         .select(
-          "id, full_name, email, avatar_url, role, beta_features, account_id, account_role, nav_order, title, specialty, license_number, custom_role_id",
+          "id, full_name, email, avatar_url, role, beta_features, account_id, account_role, nav_order, title, specialty, license_number, license_institution, custom_role_id",
         )
         .eq("user_id", userId)
         .maybeSingle();
@@ -276,6 +278,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           title: data.title ?? null,
           specialty: data.specialty ?? null,
           license_number: data.license_number ?? null,
+          license_institution: data.license_institution ?? null,
           custom_role_id: data.custom_role_id ?? null,
         });
         setAccount(accountRow);

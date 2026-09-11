@@ -44,13 +44,6 @@ interface PrescriptionTabProps {
   patientProfileId: string | null;
 }
 
-interface DoctorProfile {
-  user_id: string;
-  license_number: string | null;
-  license_institution: string | null;
-  signature_url: string | null;
-}
-
 interface ItemDraft {
   generic_name: string;
   concentration: string;
@@ -78,7 +71,7 @@ const EMPTY_ITEM: ItemDraft = {
 export function PrescriptionTab({ contactId, patientProfileId }: PrescriptionTabProps) {
   const t = useTranslations("Contacts.detailView.prescriptionTab");
   const supabase = createClient();
-  const { accountId, account, user } = useAuth();
+  const { accountId, account } = useAuth();
   const country = (account?.country as AccountCountry) || "mx";
   const types = getPrescriptionTypes(country);
 
@@ -96,7 +89,6 @@ export function PrescriptionTab({ contactId, patientProfileId }: PrescriptionTab
   const [items, setItems] = useState<ItemDraft[]>([{ ...EMPTY_ITEM }]);
   const [indications, setIndications] = useState("");
   const [signing, setSigning] = useState(false);
-  const [selectedDoctorProfile, setSelectedDoctorProfile] = useState<DoctorProfile | null>(null);
   const [signatureDialogOpen, setSignatureDialogOpen] = useState(false);
 
   const load = useCallback(
@@ -148,30 +140,6 @@ export function PrescriptionTab({ contactId, patientProfileId }: PrescriptionTab
     void load(patientProfileId);
   }, [patientProfileId, load]);
 
-  // Resolve the selected doctor's signature/license data — needed to
-  // gate "Firmar y emitir receta" on having a signature on file (see
-  // signAndIssue) and to know whether the logged-in user IS that
-  // doctor (only they can capture it, right here, in one step).
-  useEffect(() => {
-    const doctor = doctors.find((d) => d.id === doctorId);
-    if (!doctor?.user_id) {
-      setSelectedDoctorProfile(null);
-      return;
-    }
-    let cancelled = false;
-    (async () => {
-      const { data } = await supabase
-        .from("profiles")
-        .select("user_id, license_number, license_institution, signature_url")
-        .eq("user_id", doctor.user_id)
-        .maybeSingle();
-      if (!cancelled) setSelectedDoctorProfile((data as DoctorProfile) ?? null);
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [doctorId, doctors, supabase]);
-
   function updateItem(index: number, patch: Partial<ItemDraft>) {
     setItems((prev) => prev.map((it, i) => (i === index ? { ...it, ...patch } : it)));
   }
@@ -185,15 +153,8 @@ export function PrescriptionTab({ contactId, patientProfileId }: PrescriptionTab
   }
 
   const filledItems = items.filter((it) => it.generic_name.trim());
-  const selectedDoctor = doctors.find((d) => d.id === doctorId) ?? null;
-  const isSelectedDoctorSelf = !!selectedDoctor?.user_id && selectedDoctor.user_id === user?.id;
   const requisitos = [
     { key: "doctor", label: t("reqDoctor"), ok: !!doctorId },
-    {
-      key: "signature",
-      label: t("reqSignature"),
-      ok: !!doctorId && (!selectedDoctor?.user_id || !!selectedDoctorProfile?.signature_url),
-    },
     { key: "medication", label: t("reqMedication"), ok: filledItems.length > 0 },
     {
       key: "dosage",
@@ -204,10 +165,34 @@ export function PrescriptionTab({ contactId, patientProfileId }: PrescriptionTab
   ];
   const canSign = requisitos.every((r) => r.ok);
 
-  async function signAndIssue() {
-    if (!patientProfileId || !accountId || !canSign) return;
+  // "Firmar y emitir receta" only opens the signature dialog — the
+  // actual creation happens in handleSignatureConfirm below, once a
+  // fresh signature is drawn. A stale/reused signature is exactly
+  // what this two-step split is meant to prevent (see
+  // 134_prescription_signature.sql).
+  function handleSignClick() {
+    if (!canSign) return;
     setSigning(true);
+    setSignatureDialogOpen(true);
+  }
+
+  async function handleSignatureConfirm(signatureDataUrl: string) {
+    if (!patientProfileId || !accountId) return;
+    // Client-generated, unique per signing event — never reused, and
+    // never derived from anything about the doctor or account, so it
+    // can't be predicted or replayed for a different document.
+    const token = crypto.randomUUID();
     try {
+      const uploadRes = await fetch("/api/clinical/prescriptions/signature", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ signatureDataUrl, token }),
+      });
+      const uploadData = await uploadRes.json().catch(() => ({}));
+      if (!uploadRes.ok || !uploadData.path) {
+        throw new Error(uploadData?.error ?? "upload failed");
+      }
+
       const { data: folio, error: folioError } = await supabase.rpc("next_billing_number", {
         p_account_id: accountId,
         p_doc_type: prescriptionDocType(country),
@@ -228,6 +213,8 @@ export function PrescriptionTab({ contactId, patientProfileId }: PrescriptionTab
           folio,
           country_at_issue: country,
           indications: indications.trim() || null,
+          signature_storage_path: uploadData.path,
+          verification_token: token,
           created_by: session?.user?.id ?? null,
         })
         .select("*")
@@ -261,6 +248,7 @@ export function PrescriptionTab({ contactId, patientProfileId }: PrescriptionTab
     } catch (err) {
       console.error("Issue prescription error:", err);
       toast.error(t("issueFailed"));
+      throw err; // keep the signature dialog open so the drawn signature isn't lost
     } finally {
       setSigning(false);
     }
@@ -561,23 +549,9 @@ export function PrescriptionTab({ contactId, patientProfileId }: PrescriptionTab
                 <div key={r.key} className="flex items-center gap-2 text-xs">
                   <CheckCircle2 className={`size-3.5 shrink-0 ${r.ok ? "text-emerald-600" : "text-muted-foreground/40"}`} />
                   <span className={r.ok ? "text-foreground" : "text-muted-foreground"}>{r.label}</span>
-                  {r.key === "signature" && !r.ok && !!doctorId && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        if (isSelectedDoctorSelf) {
-                          setSignatureDialogOpen(true);
-                        } else {
-                          toast.error(t("signatureOnlySelf"));
-                        }
-                      }}
-                      className="ml-auto shrink-0 text-xs font-medium text-primary hover:text-primary/80"
-                    >
-                      {t("setUpSignature")}
-                    </button>
-                  )}
                 </div>
               ))}
+              <p className="text-[11px] text-muted-foreground">{t("signatureEveryTimeNote")}</p>
             </div>
           </CardContent>
         </Card>
@@ -589,7 +563,9 @@ export function PrescriptionTab({ contactId, patientProfileId }: PrescriptionTab
               <Label className="text-xs text-muted-foreground">{t("prescribingDoctor")}</Label>
               <Select value={doctorId} onValueChange={(v) => v && setDoctorId(v)}>
                 <SelectTrigger className="h-9 text-sm">
-                  <SelectValue placeholder={t("selectDoctor")} />
+                  <SelectValue placeholder={t("selectDoctor")}>
+                    {(value: string | null) => doctors.find((d) => d.id === value)?.name ?? t("selectDoctor")}
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
                   {doctors.map((d) => (
@@ -599,7 +575,7 @@ export function PrescriptionTab({ contactId, patientProfileId }: PrescriptionTab
                   ))}
                 </SelectContent>
               </Select>
-              <Button className="mt-2" onClick={signAndIssue} disabled={signing || !canSign}>
+              <Button className="mt-2" onClick={handleSignClick} disabled={signing || !canSign}>
                 {signing && <Loader2 className="mr-1.5 size-4 animate-spin" />}
                 {t("signAndIssue")}
               </Button>
@@ -610,18 +586,14 @@ export function PrescriptionTab({ contactId, patientProfileId }: PrescriptionTab
 
       <SignatureCaptureDialog
         open={signatureDialogOpen}
-        onOpenChange={setSignatureDialogOpen}
-        initialLicenseInstitution={selectedDoctorProfile?.license_institution}
-        onSaved={() => {
-          if (selectedDoctor?.user_id) {
-            void supabase
-              .from("profiles")
-              .select("user_id, license_number, license_institution, signature_url")
-              .eq("user_id", selectedDoctor.user_id)
-              .maybeSingle()
-              .then(({ data }) => setSelectedDoctorProfile((data as DoctorProfile) ?? null));
-          }
+        onOpenChange={(next) => {
+          setSignatureDialogOpen(next);
+          if (!next) setSigning(false);
         }}
+        title={t("signDialogTitle")}
+        description={t("signDialogDescription")}
+        confirmLabel={t("signAndIssue")}
+        onConfirm={handleSignatureConfirm}
       />
     </div>
   );
