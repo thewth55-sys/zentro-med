@@ -46,26 +46,32 @@ export function SignatureCaptureDialog({
   confirmLabel = "Firmar",
   onConfirm,
 }: SignatureCaptureDialogProps) {
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  // A callback ref, not a plain object ref read from a `useEffect`
+  // keyed on `open`: Base UI's Dialog mounts the Popup's children
+  // (including this canvas) on a LATER render pass than the one where
+  // `open` first flips to true, so an effect keyed on `open` sees
+  // `canvasRef.current === null` and silently no-ops — the dialog
+  // renders correctly, but no SignaturePad ever gets attached, so
+  // nothing responds to clicks. A callback ref fires exactly when
+  // React actually attaches (or detaches) the DOM node, no matter how
+  // many renders that takes.
+  const [canvasEl, setCanvasEl] = useState<HTMLCanvasElement | null>(null);
   const padRef = useRef<SignaturePad | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
-  // Robust against the canvas mounting inside a Dialog portal/enter
-  // transition, where `offsetWidth`/`offsetHeight` can still read 0
-  // on the very first effect tick (this bit us: the canvas looked
-  // right but never responded to clicks because SignaturePad had
-  // bound to a 0×0 backing store). Retry with a ResizeObserver
-  // instead of assuming layout is ready the instant `open` flips.
   useEffect(() => {
-    if (!open) return;
-    const canvas = canvasRef.current;
-    if (!canvas) return;
+    if (!open || !canvasEl) return;
+    const canvas = canvasEl;
 
     let initialized = false;
     function init() {
-      if (initialized || !canvas) return;
+      if (initialized) return;
       const width = canvas.offsetWidth;
       const height = canvas.offsetHeight;
+      // Belt-and-suspenders: the canvas is now definitely mounted
+      // (this only runs once canvasEl is set), but its enter
+      // transition could still be mid-flight on the very first tick,
+      // so a ResizeObserver catches the moment it has real layout size.
       if (width === 0 || height === 0) return;
       const ratio = Math.max(window.devicePixelRatio || 1, 1);
       canvas.width = width * ratio;
@@ -84,7 +90,7 @@ export function SignatureCaptureDialog({
       padRef.current?.off();
       padRef.current = null;
     };
-  }, [open]);
+  }, [open, canvasEl]);
 
   async function handleConfirm() {
     if (!padRef.current || padRef.current.isEmpty()) {
@@ -114,7 +120,7 @@ export function SignatureCaptureDialog({
         </DialogHeader>
 
         <div className="space-y-2">
-          <canvas ref={canvasRef} className="h-40 w-full touch-none rounded-md border border-border bg-white" />
+          <canvas ref={setCanvasEl} className="h-40 w-full touch-none rounded-md border border-border bg-white" />
           <button
             type="button"
             onClick={() => padRef.current?.clear()}
