@@ -472,9 +472,9 @@ export const LANDING_BODY_HTML = `
         <div class="plan-note">1 usuario · sin tarjeta</div>
         <div class="plan-divider"></div>
         <div class="plan-features">
-          <div class="pf"><div class="pf-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>Agenda y página de citas</div>
-          <div class="pf"><div class="pf-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>Seguimiento de pacientes</div>
-          <div class="pf"><div class="pf-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>Presupuestos y cobros</div>
+          <div class="pf"><div class="pf-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>Agenda y página de reserva personalizable</div>
+          <div class="pf"><div class="pf-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>Hasta 10 pacientes activos</div>
+          <div class="pf"><div class="pf-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>Presupuestos, cobros y anticipo al reservar</div>
           <div class="pf"><div class="pf-check pf-check-ai"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div><span>WhatsApp y Zen <span class="pf-ai-num">con tope de cortesía</span> <span class="pf-ai-pill">IA</span></span></div>
           <div class="pf"><div class="pf-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>Tus datos se conservan al terminar</div>
         </div>
@@ -540,7 +540,7 @@ export const LANDING_BODY_HTML = `
 
     </div>
     <div style="max-width:680px;margin:28px auto 0;text-align:center;">
-      <p style="font-size:13px;color:var(--zm-muted);line-height:1.7;"><strong>La prueba sí incluye Zen:</strong> 100 mensajes de WhatsApp y 50 respuestas de Zen, de cortesía — para que veas funcionar lo que promete esta página antes de pagar. Al terminar los 30 días eliges plan; si no eliges, tu cuenta pasa a solo lectura y conservas tus datos. Nunca cobramos sin que actives un plan.</p>
+      <p style="font-size:13px;color:var(--zm-muted);line-height:1.7;"><strong>La prueba sí incluye Zen:</strong> WhatsApp sin límite de mensajes y 30 respuestas de Zen al mes, de cortesía — para que veas funcionar lo que promete esta página antes de pagar. También incluye tu página de reserva personalizable, cobro de anticipo al reservar y hasta 10 pacientes activos. Al terminar los 30 días eliges plan; si no eliges, tu cuenta pasa a solo lectura y conservas tus datos. Nunca cobramos sin que actives un plan.</p>
     </div>
   </div>
 </section>
@@ -687,7 +687,7 @@ export const LANDING_BODY_HTML = `
         <div class="faq-q">¿Qué incluye exactamente la prueba de 30 días?
           <svg class="faq-chevron" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
         </div>
-        <div class="faq-a"><div class="faq-a-inner">Agenda, página pública de citas, seguimiento de pacientes, presupuestos y cobros, más un tope de cortesía de 100 mensajes de WhatsApp y 50 respuestas de Zen. La idea es que puedas ver funcionar la confirmación automática antes de pagar. No pedimos tarjeta y no cobramos nada de forma automática.</div></div>
+        <div class="faq-a"><div class="faq-a-inner">Agenda, página de reserva personalizable, seguimiento de hasta 10 pacientes activos, presupuestos, cobros y anticipo al reservar, más WhatsApp sin límite de mensajes y un tope de cortesía de 30 respuestas de Zen al mes. La idea es que puedas ver funcionar la confirmación automática antes de pagar. No pedimos tarjeta y no cobramos nada de forma automática.</div></div>
       </div>
       <div class="faq-item" onclick="zmToggleFaq(this)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();zmToggleFaq(this);}" role="button" tabindex="0" aria-expanded="false">
         <div class="faq-q">¿Qué hace Zen y qué no hace?
