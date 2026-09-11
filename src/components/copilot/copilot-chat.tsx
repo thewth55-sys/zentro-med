@@ -150,17 +150,35 @@ export function CopilotChat() {
   }
 
   // Saludo de presentación tras el onboarding: dice qué puede hacer y
-  // reproduce su voz (el click de "Empezar" habilita el audio del navegador).
-  function seedGreeting(profile: CopilotProfileData | null) {
+  // reproduce su voz (el click de "Empezar" habilita el audio del
+  // navegador). El texto lo redacta el propio modelo del copiloto con
+  // los datos del onboarding (ver /api/ai/copilot/welcome-message);
+  // si esa llamada falla, cae a una plantilla fija para no dejar el
+  // onboarding sin saludo.
+  function fallbackGreeting(profile: CopilotProfileData | null): string {
     const saludo = profile?.addressAs ? `Hola, ${profile.addressAs}.` : "¡Hola!";
     const esp = profile?.specialty ? ` Veo que tu área es ${profile.specialty}.` : "";
-    const text =
+    return (
       `${saludo} Soy ${COPILOT_NAME}, tu asistente.${esp}\n\n` +
       "Puedo ayudarte a:\n" +
       "• Consultar tu día: citas, conversaciones sin responder y expedientes.\n" +
       "• Registrar pacientes, agendar/confirmar/cancelar citas, enviar WhatsApp y anotar notas de evolución — siempre con tu confirmación.\n" +
       "• Recordar tus preferencias para las próximas sesiones.\n\n" +
-      "Dime qué necesitas, por texto o por voz 🎤. Y puedes escuchar mis respuestas con 🔊.";
+      "Dime qué necesitas, por texto o por voz 🎤. Y puedes escuchar mis respuestas con 🔊."
+    );
+  }
+
+  async function seedGreeting(profile: CopilotProfileData | null) {
+    let text = fallbackGreeting(profile);
+    try {
+      const res = await fetch("/api/ai/copilot/welcome-message", { method: "POST" });
+      const body = await res.json().catch(() => null);
+      if (res.ok && typeof body?.text === "string" && body.text.trim()) {
+        text = body.text.trim();
+      }
+    } catch {
+      /* sin conexión u otro fallo: se queda la plantilla fija */
+    }
     setTurns([{ role: "assistant", content: text }]);
     void speak(text, 0, true);
   }
