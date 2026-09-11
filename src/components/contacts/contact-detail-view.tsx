@@ -19,6 +19,9 @@ import { TreatmentPlanPanel } from '@/components/contacts/treatment-plan-panel';
 import { ClinicalSummaryPanel } from '@/components/contacts/clinical-summary-panel';
 import { ClinicalHistoryPanel } from '@/components/contacts/clinical-history-panel';
 import { MedicalTab } from '@/components/contacts/medical-tab';
+import { ClinicalHistoryTab } from '@/components/contacts/clinical-history-tab';
+import { SoapNotesTab } from '@/components/contacts/soap-notes-tab';
+import { PrescriptionTab } from '@/components/contacts/prescription-tab';
 import { IntakeTab } from '@/components/contacts/intake-tab';
 import { GuardiansTab } from '@/components/contacts/guardians-tab';
 import { ConsentFormsTab } from '@/components/contacts/consent-forms-tab';
@@ -65,6 +68,9 @@ import {
   Receipt,
   Settings2,
   Handshake,
+  FileHeart,
+  NotebookPen,
+  Pill,
 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { showsOdontogram } from '@/lib/specialties';
@@ -98,6 +104,9 @@ const TAB_GROUPS = [
     // no lo reemplaza.
     children: [
       { key: 'medical', labelKey: 'tabs.medical', icon: Stethoscope, requiresOdontogram: false },
+      { key: 'clinicalHistory', labelKey: 'tabs.clinicalHistory', icon: FileHeart, requiresOdontogram: false },
+      { key: 'evolutionNotes', labelKey: 'tabs.evolutionNotes', icon: NotebookPen, requiresOdontogram: false },
+      { key: 'prescription', labelKey: 'tabs.prescription', icon: Pill, requiresOdontogram: false },
       { key: 'appointments', labelKey: 'tabs.appointments', icon: CalendarClock, requiresOdontogram: false },
       { key: 'notes', labelKey: 'tabs.notes', icon: StickyNote, requiresOdontogram: false },
       { key: 'guardians', labelKey: 'tabs.guardians', icon: Users, requiresOdontogram: false },
@@ -922,6 +931,19 @@ export function ContactDetailView({ contactId }: ContactDetailViewProps) {
                         <>
                           <TabsContent value="medical">
                             {contactId && <MedicalTab contactId={contactId} />}
+                          </TabsContent>
+                          <TabsContent value="clinicalHistory">
+                            {contactId && (
+                              <ClinicalHistoryTab contactId={contactId} patientProfileId={patientProfileId} />
+                            )}
+                          </TabsContent>
+                          <TabsContent value="evolutionNotes">
+                            {contactId && (
+                              <SoapNotesTab contactId={contactId} patientProfileId={patientProfileId} />
+                            )}
+                          </TabsContent>
+                          <TabsContent value="prescription">
+                            {contactId && <PrescriptionTab patientProfileId={patientProfileId} />}
                           </TabsContent>
                           <TabsContent value="appointments">
                             {contactId && <AppointmentsTab contactId={contactId} />}

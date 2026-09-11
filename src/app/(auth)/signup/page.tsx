@@ -20,6 +20,7 @@ import { CheckCircle, Eye, EyeOff, UsersRound } from "lucide-react";
 import { getPasswordStrengthError } from "@/lib/password-strength";
 import { ACCOUNT_SPECIALTIES, SPECIALTY_LABELS, DENTAL_SPECIALTY, type AccountSpecialty } from "@/lib/specialties";
 import { COUNTRY_DIAL_CODES, DEFAULT_COUNTRY_DIAL_CODE } from "@/lib/country-dial-codes";
+import { ACCOUNT_COUNTRIES, COUNTRY_LABELS, accountCountryFromDialIso, type AccountCountry } from "@/lib/country";
 
 // Plans a visitor can land here wanting to buy directly from
 // /pricing (the trial itself isn't in this list — that's the no-param
@@ -76,6 +77,18 @@ function SignupPageInner() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [countryCode, setCountryCode] = useState(DEFAULT_COUNTRY_DIAL_CODE);
+  // Account operating country (129_account_country.sql) — drives which
+  // legal framework/fields the clinical-record & prescription features
+  // show later (Mexico vs Colombia). Pre-suggested from the phone dial
+  // code above, but the user must confirm/can override it, so once they
+  // touch this selector directly we stop overwriting it from the phone
+  // field.
+  const [country, setCountry] = useState<AccountCountry>(() =>
+    accountCountryFromDialIso(
+      COUNTRY_DIAL_CODES.find((c) => c.dialCode === DEFAULT_COUNTRY_DIAL_CODE)?.iso,
+    ),
+  );
+  const [countryManuallySet, setCountryManuallySet] = useState(false);
   const [phoneNumber, setPhoneNumber] = useState("");
   const [addressLine, setAddressLine] = useState("");
   const [addressCity, setAddressCity] = useState("");
@@ -176,6 +189,10 @@ function SignupPageInner() {
           // seed accounts.specialty — controls whether the Odontograma
           // tab shows on a contact (see src/lib/specialties.ts).
           specialty: inviteToken ? undefined : specialty,
+          // Read by the same trigger (129_account_country.sql) to seed
+          // accounts.country — drives which legal framework/fields the
+          // clinical-record & prescription features show (MX vs CO).
+          country: inviteToken ? undefined : country,
           // Read by the same trigger (085_account_phone_signup.sql) to
           // seed accounts.phone/address — an invited member joins an
           // existing account, so these don't apply to them.
@@ -370,7 +387,14 @@ function SignupPageInner() {
                   <select
                     id="countryCode"
                     value={countryCode}
-                    onChange={(e) => setCountryCode(e.target.value)}
+                    onChange={(e) => {
+                      const nextDialCode = e.target.value;
+                      setCountryCode(nextDialCode);
+                      if (!countryManuallySet) {
+                        const iso = COUNTRY_DIAL_CODES.find((c) => c.dialCode === nextDialCode)?.iso;
+                        setCountry(accountCountryFromDialIso(iso));
+                      }
+                    }}
                     aria-label={t("countryCodeLabel")}
                     className="h-10 w-28 shrink-0 rounded-md border border-border bg-muted px-2 text-sm text-foreground focus-visible:border-primary focus-visible:outline-none"
                   >
@@ -390,6 +414,30 @@ function SignupPageInner() {
                     className="border-border bg-muted text-foreground placeholder:text-muted-foreground focus-visible:border-primary focus-visible:ring-primary/20"
                   />
                 </div>
+              </div>
+            )}
+
+            {!inviteToken && (
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="accountCountry" className="text-muted-foreground">
+                  {t("countryLabel")}
+                </Label>
+                <select
+                  id="accountCountry"
+                  value={country}
+                  onChange={(e) => {
+                    setCountry(e.target.value as AccountCountry);
+                    setCountryManuallySet(true);
+                  }}
+                  className="h-10 rounded-md border border-border bg-muted px-3 text-sm text-foreground focus-visible:border-primary focus-visible:outline-none"
+                >
+                  {ACCOUNT_COUNTRIES.map((value) => (
+                    <option key={value} value={value}>
+                      {COUNTRY_LABELS[value]}
+                    </option>
+                  ))}
+                </select>
+                <p className="text-xs text-muted-foreground">{t("countryHint")}</p>
               </div>
             )}
 

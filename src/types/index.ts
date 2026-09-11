@@ -632,14 +632,85 @@ export interface ClinicalNote {
   appointment_id: string | null;
   chief_complaint: string;
   findings_and_plan: string;
+  /** SOAP fields (migration 131) — null on any note written before it. */
+  subjective?: string | null;
+  objective?: string | null;
+  assessment?: string | null;
   /** Generated column — SHA-256 of chief_complaint + findings_and_plan
-   *  (migration 073), snapshotted at patient-signing time. */
+   *  (migration 073), snapshotted at patient-signing time. Does NOT
+   *  cover subjective/objective/assessment — see 131's header comment. */
   content_hash?: string;
   signed_at: string;
   created_by?: string | null;
   created_at: string;
   doctor?: Doctor;
   addenda?: ClinicalNoteAddendum[];
+}
+
+// ============================================================
+// Historia clínica (migration 130) — one structured intake document
+// per patient, draft while `signed_at` is null, permanently locked
+// once signed (see src/lib/clinical/history-sections.ts for the
+// section/field definitions that fill `sections`).
+// ============================================================
+
+export interface ClinicalHistoryRecord {
+  id: string;
+  account_id: string;
+  patient_profile_id: string;
+  country_at_signing: string | null;
+  sections: Record<string, Record<string, string>>;
+  signed_at: string | null;
+  signed_by_doctor_id: string | null;
+  content_hash?: string;
+  created_by?: string | null;
+  created_at: string;
+  updated_at?: string;
+  signed_by_doctor?: Doctor;
+}
+
+// ============================================================
+// Receta / prescriptions (migration 132) — signed at creation
+// (no draft state), immutable from that point on, same lifecycle as
+// ClinicalNote. `country_at_issue` drives which legal citation the
+// PDF shows (see src/lib/clinical/prescription-types.ts).
+// ============================================================
+
+export interface PrescriptionItem {
+  id: string;
+  account_id: string;
+  prescription_id: string;
+  position: number;
+  generic_name: string;
+  concentration?: string | null;
+  brand_name?: string | null;
+  presentation?: string | null;
+  dose?: string | null;
+  route?: string | null;
+  frequency?: string | null;
+  duration?: string | null;
+  quantity_to_dispense?: string | null;
+  notes?: string | null;
+  created_at: string;
+}
+
+export interface Prescription {
+  id: string;
+  account_id: string;
+  patient_profile_id: string;
+  doctor_id: string | null;
+  appointment_id: string | null;
+  clinical_note_id: string | null;
+  prescription_type: string;
+  folio: string;
+  country_at_issue: string;
+  indications: string | null;
+  follow_up: Record<string, string>;
+  signed_at: string;
+  created_by?: string | null;
+  created_at: string;
+  doctor?: Doctor;
+  items?: PrescriptionItem[];
 }
 
 // ============================================================

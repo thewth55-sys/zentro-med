@@ -25,6 +25,7 @@ import {
   RATE_LIMITS,
 } from "@/lib/rate-limit";
 import { ACCOUNT_SPECIALTIES } from "@/lib/specialties";
+import { ACCOUNT_COUNTRIES } from "@/lib/country";
 
 export async function GET() {
   try {
@@ -67,6 +68,7 @@ export async function PATCH(request: Request) {
           address?: unknown;
           tax_id?: unknown;
           specialty?: unknown;
+          country?: unknown;
         }
       | null;
 
@@ -173,6 +175,16 @@ export async function PATCH(request: Request) {
       update.specialty = body.specialty;
     }
 
+    if (body.country !== undefined) {
+      if (typeof body.country !== "string" || !ACCOUNT_COUNTRIES.includes(body.country as (typeof ACCOUNT_COUNTRIES)[number])) {
+        return NextResponse.json(
+          { error: `'country' must be one of: ${ACCOUNT_COUNTRIES.join(", ")}` },
+          { status: 400 },
+        );
+      }
+      update.country = body.country;
+    }
+
     if (Object.keys(update).length === 0) {
       return NextResponse.json({ error: "No fields to update" }, { status: 400 });
     }
@@ -184,7 +196,7 @@ export async function PATCH(request: Request) {
       .from("accounts")
       .update(update)
       .eq("id", ctx.accountId)
-      .select("id, name, logo_url, quote_terms, quote_accent_color, address, tax_id, specialty")
+      .select("id, name, logo_url, quote_terms, quote_accent_color, address, tax_id, specialty, country")
       .single();
 
     if (error) {

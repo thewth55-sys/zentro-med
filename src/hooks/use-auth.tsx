@@ -77,6 +77,8 @@ interface AccountSummary {
   tax_id: string | null;
   /** Gates the Odontograma tab (see src/lib/specialties.ts) — migration 076. */
   specialty: string;
+  /** Drives clinical-record/prescription legal framework (see src/lib/country.ts) — migration 129. */
+  country: string;
   /** Platform-admin per-feature force on/off — see 057_account_feature_overrides.sql. */
   feature_overrides: FeatureOverrides;
 }
@@ -215,7 +217,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             // default_currency added in migration 021; narrowed to the
             // USD fallback below for older schemas where it reads null.
             .select(
-              "id, name, default_currency, plan, subscription_status, trial_ends_at, included_seats, stripe_customer_id, logo_url, quote_terms, quote_accent_color, address, tax_id, specialty, feature_overrides",
+              "id, name, default_currency, plan, subscription_status, trial_ends_at, included_seats, stripe_customer_id, logo_url, quote_terms, quote_accent_color, address, tax_id, specialty, country, feature_overrides",
             )
             .eq("id", data.account_id)
             .maybeSingle();
@@ -242,6 +244,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               address: account.address,
               tax_id: account.tax_id,
               specialty: account.specialty ?? DENTAL_SPECIALTY,
+              country: account.country ?? "mx",
               feature_overrides: (account.feature_overrides as FeatureOverrides | null) ?? {},
             };
           }

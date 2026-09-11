@@ -21,6 +21,8 @@ import { AccountLogoUploader } from './account-logo-uploader';
 import { InlineFieldEditor } from './inline-field-editor';
 import { SpecialtyEditor } from './specialty-editor';
 import { DENTAL_SPECIALTY, type AccountSpecialty } from '@/lib/specialties';
+import { CountryEditor } from './country-editor';
+import type { AccountCountry } from '@/lib/country';
 
 interface OverviewCounts {
   members: number | null;
@@ -48,6 +50,7 @@ export function SettingsOverview({
   const [address, setAddress] = useState<string | null | undefined>(undefined);
   const [taxId, setTaxId] = useState<string | null | undefined>(undefined);
   const [specialty, setSpecialty] = useState<AccountSpecialty | undefined>(undefined);
+  const [country, setCountry] = useState<AccountCountry | undefined>(undefined);
   const { mode, theme } = useTheme();
   const t = useTranslations('Settings.overview');
   const tRoles = useTranslations('roles');
@@ -344,6 +347,21 @@ export function SettingsOverview({
                   editable={canManageMembers}
                   onSaved={(v) => {
                     setSpecialty(v);
+                    refreshProfile();
+                  }}
+                />
+              </div>
+            </div>
+            <div className="min-w-0">
+              <div className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
+                País de operación
+              </div>
+              <div className="mt-1">
+                <CountryEditor
+                  value={(country ?? (account.country as AccountCountry)) || 'mx'}
+                  editable={canManageMembers}
+                  onSaved={(v) => {
+                    setCountry(v);
                     refreshProfile();
                   }}
                 />
