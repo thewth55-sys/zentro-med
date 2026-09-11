@@ -106,7 +106,6 @@ const TAB_GROUPS = [
       { key: 'medical', labelKey: 'tabs.medical', icon: Stethoscope, requiresOdontogram: false },
       { key: 'clinicalHistory', labelKey: 'tabs.clinicalHistory', icon: FileHeart, requiresOdontogram: false },
       { key: 'evolutionNotes', labelKey: 'tabs.evolutionNotes', icon: NotebookPen, requiresOdontogram: false },
-      { key: 'prescription', labelKey: 'tabs.prescription', icon: Pill, requiresOdontogram: false },
       { key: 'appointments', labelKey: 'tabs.appointments', icon: CalendarClock, requiresOdontogram: false },
       { key: 'notes', labelKey: 'tabs.notes', icon: StickyNote, requiresOdontogram: false },
       { key: 'guardians', labelKey: 'tabs.guardians', icon: Users, requiresOdontogram: false },
@@ -130,6 +129,16 @@ const TAB_GROUPS = [
       { key: 'files', labelKey: 'tabs.files', icon: FileSignature, requiresOdontogram: false },
       { key: 'custom', labelKey: 'tabs.custom', icon: Settings2, requiresOdontogram: false },
     ],
+  },
+  {
+    // Grupo propio en vez de sub-pestaña de Clínico — acceso directo
+    // desde el menú superior, junto a Documentos, según pidió el
+    // usuario (emitir una receta es una acción independiente, no algo
+    // que deba competir por espacio con Historia clínica/Notas).
+    key: 'receta',
+    labelKey: 'groupReceta',
+    icon: Pill,
+    children: [{ key: 'prescription', labelKey: 'tabs.prescription', icon: Pill, requiresOdontogram: false }],
   },
 ] as const;
 
@@ -913,18 +922,24 @@ export function ContactDetailView({ contactId }: ContactDetailViewProps) {
                       </div>
                     )}
                     <Tabs defaultValue={groupInitialChild}>
-                      <TabsList className="group-data-horizontal/tabs:h-auto mb-3 w-fit flex-wrap gap-1">
-                        {visibleChildren.map((child) => (
-                          <TabsTrigger
-                            key={child.key}
-                            value={child.key}
-                            className="h-auto shrink-0 gap-1.5 px-2.5 py-1.5 text-xs text-muted-foreground data-active:text-foreground"
-                          >
-                            <child.icon className="size-3.5" />
-                            {t(child.labelKey)}
-                          </TabsTrigger>
-                        ))}
-                      </TabsList>
+                      {/* Un solo hijo (ej. Receta) → no tiene sentido una
+                          barra de sub-pestañas con un único botón ya
+                          activo; el grupo de nivel superior ya cumple
+                          ese rol. */}
+                      {visibleChildren.length > 1 && (
+                        <TabsList className="group-data-horizontal/tabs:h-auto mb-3 w-fit flex-wrap gap-1">
+                          {visibleChildren.map((child) => (
+                            <TabsTrigger
+                              key={child.key}
+                              value={child.key}
+                              className="h-auto shrink-0 gap-1.5 px-2.5 py-1.5 text-xs text-muted-foreground data-active:text-foreground"
+                            >
+                              <child.icon className="size-3.5" />
+                              {t(child.labelKey)}
+                            </TabsTrigger>
+                          ))}
+                        </TabsList>
+                      )}
 
                       {/* Clínico */}
                       {group.key === 'clinico' && (
@@ -941,9 +956,6 @@ export function ContactDetailView({ contactId }: ContactDetailViewProps) {
                             {contactId && (
                               <SoapNotesTab contactId={contactId} patientProfileId={patientProfileId} />
                             )}
-                          </TabsContent>
-                          <TabsContent value="prescription">
-                            {contactId && <PrescriptionTab patientProfileId={patientProfileId} />}
                           </TabsContent>
                           <TabsContent value="appointments">
                             {contactId && <AppointmentsTab contactId={contactId} />}
@@ -1146,6 +1158,15 @@ export function ContactDetailView({ contactId }: ContactDetailViewProps) {
                             )}
                           </TabsContent>
                         </>
+                      )}
+
+                      {/* Receta */}
+                      {group.key === 'receta' && (
+                        <TabsContent value="prescription">
+                          {contactId && (
+                            <PrescriptionTab contactId={contactId} patientProfileId={patientProfileId} />
+                          )}
+                        </TabsContent>
                       )}
                     </Tabs>
                   </TabsContent>

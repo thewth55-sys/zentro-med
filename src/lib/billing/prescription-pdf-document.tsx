@@ -8,7 +8,7 @@
 // retroactively changes its legal framework.
 // ============================================================
 
-import { Document, Page, View, Text, StyleSheet } from "@react-pdf/renderer";
+import { Document, Page, View, Text, StyleSheet, Image, Svg, Path } from "@react-pdf/renderer";
 import { createPdfStyles, ZENTRO_GREEN } from "./pdf-theme";
 import { PdfGradientHeader, PdfInfoGrid, PdfFooter } from "./pdf-components";
 import {
@@ -36,6 +36,9 @@ export interface PrescriptionPdfProps {
   address: string | null;
   doctorName: string;
   doctorLicense: string | null;
+  doctorLicenseInstitution: string | null;
+  /** Signed URL to the doctor's captured autograph (133_doctor_signature.sql) — falls back to a placeholder line when not yet set up. */
+  signatureImageUrl: string | null;
   folio: string;
   issuedAt: string;
   countryAtIssue: AccountCountry;
@@ -64,6 +67,16 @@ export function PrescriptionPdfDocument(props: PrescriptionPdfProps) {
       backgroundColor: "#FCEDEA",
     },
     bannerText: { fontSize: 9, color: "#B3382C" },
+    signatureBlock: {
+      marginTop: 18,
+      alignItems: "center",
+      borderTopWidth: 1,
+      borderTopColor: "#E6EBE8",
+      paddingTop: 10,
+    },
+    signatureImage: { height: 34, objectFit: "contain" },
+    signatureName: { fontSize: 10, fontWeight: 700, marginTop: 4 },
+    signatureMeta: { fontSize: 8, color: "#5B6B62", marginTop: 2 },
   });
 
   return (
@@ -92,7 +105,9 @@ export function PrescriptionPdfDocument(props: PrescriptionPdfProps) {
             {
               label: "Prescriptor",
               name: props.doctorName,
-              detail: [props.doctorLicense].filter((v): v is string => Boolean(v)),
+              detail: [props.doctorLicense, props.doctorLicenseInstitution].filter(
+                (v): v is string => Boolean(v),
+              ),
             },
           ]}
         />
@@ -130,6 +145,26 @@ export function PrescriptionPdfDocument(props: PrescriptionPdfProps) {
             <Text style={styles.value}>{props.indications}</Text>
           </View>
         ) : null}
+
+        <View style={rxStyles.signatureBlock}>
+          {props.signatureImageUrl ? (
+            // eslint-disable-next-line jsx-a11y/alt-text -- @react-pdf/renderer's Image, not an HTML <img>; has no alt prop
+            <Image src={props.signatureImageUrl} style={rxStyles.signatureImage} />
+          ) : (
+            <Svg width={160} height={34} viewBox="0 0 160 34">
+              <Path
+                d="M6 24c9-12 13 4 20-4s9 7 16-2 10 6 17-4 10 6 16-2 12 6 20-4"
+                stroke="#0C1B14"
+                strokeWidth={1.4}
+                fill="none"
+              />
+            </Svg>
+          )}
+          <Text style={rxStyles.signatureName}>{props.doctorName}</Text>
+          <Text style={rxStyles.signatureMeta}>
+            {[props.doctorLicense, props.doctorLicenseInstitution].filter(Boolean).join(" · ")}
+          </Text>
+        </View>
 
         <PdfFooter
           styles={styles}

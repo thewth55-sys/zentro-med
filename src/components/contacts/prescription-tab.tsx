@@ -10,7 +10,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
-import { AlertTriangle, CheckCircle2, Loader2, Plus, Trash2 } from "lucide-react";
+import { AlertTriangle, CheckCircle2, Loader2, Mail, MessageCircle, Plus, Trash2 } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 import { createClient } from "@/lib/supabase/client";
@@ -28,6 +28,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { SignatureCaptureDialog } from "@/components/clinical/signature-capture-dialog";
 import type { AccountCountry } from "@/lib/country";
 import {
   checkAllergyConflict,
@@ -39,7 +40,15 @@ import {
 import type { Doctor, Prescription } from "@/types";
 
 interface PrescriptionTabProps {
+  contactId: string;
   patientProfileId: string | null;
+}
+
+interface DoctorProfile {
+  user_id: string;
+  license_number: string | null;
+  license_institution: string | null;
+  signature_url: string | null;
 }
 
 interface ItemDraft {
@@ -66,10 +75,10 @@ const EMPTY_ITEM: ItemDraft = {
   quantity_to_dispense: "",
 };
 
-export function PrescriptionTab({ patientProfileId }: PrescriptionTabProps) {
+export function PrescriptionTab({ contactId, patientProfileId }: PrescriptionTabProps) {
   const t = useTranslations("Contacts.detailView.prescriptionTab");
   const supabase = createClient();
-  const { accountId, account } = useAuth();
+  const { accountId, account, user } = useAuth();
   const country = (account?.country as AccountCountry) || "mx";
   const types = getPrescriptionTypes(country);
 
@@ -78,12 +87,17 @@ export function PrescriptionTab({ patientProfileId }: PrescriptionTabProps) {
   const [doctors, setDoctors] = useState<Doctor[]>([]);
   const [prescriptions, setPrescriptions] = useState<Prescription[]>([]);
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
+  const [sendingWhatsappId, setSendingWhatsappId] = useState<string | null>(null);
+  const [sendingEmailId, setSendingEmailId] = useState<string | null>(null);
+  const [patientEmail, setPatientEmail] = useState<string | null>(null);
 
   const [prescriptionType, setPrescriptionType] = useState(types[0]?.value ?? "simple");
   const [doctorId, setDoctorId] = useState("");
   const [items, setItems] = useState<ItemDraft[]>([{ ...EMPTY_ITEM }]);
   const [indications, setIndications] = useState("");
   const [signing, setSigning] = useState(false);
+  const [selectedDoctorProfile, setSelectedDoctorProfile] = useState<DoctorProfile | null>(null);
+  const [signatureDialogOpen, setSignatureDialogOpen] = useState(false);
 
   const load = useCallback(
     async (id: string) => {
@@ -93,8 +107,9 @@ export function PrescriptionTab({ patientProfileId }: PrescriptionTabProps) {
       // (migration 132) whose FKs can hit PostgREST's schema-cache
       // staleness (PGRST200) right after a migration, same reasoning
       // documented on `getCurrentAccount`/`AuthProvider.fetchProfile`.
-      const [{ data: profile }, { data: docs }, { data: rx }] = await Promise.all([
+      const [{ data: profile }, { data: contact }, { data: docs }, { data: rx }] = await Promise.all([
         supabase.from("patient_profiles").select("allergies").eq("id", id).maybeSingle(),
+        supabase.from("contacts").select("email").eq("id", contactId).maybeSingle(),
         supabase.from("doctors").select("*").eq("is_active", true).order("name"),
         supabase
           .from("prescriptions")
@@ -103,6 +118,7 @@ export function PrescriptionTab({ patientProfileId }: PrescriptionTabProps) {
           .order("created_at", { ascending: false }),
       ]);
       setAllergiesText(profile?.allergies ?? null);
+      setPatientEmail(contact?.email ?? null);
       setDoctors((docs ?? []) as Doctor[]);
 
       const rxRows = (rx ?? []) as Prescription[];
@@ -121,7 +137,7 @@ export function PrescriptionTab({ patientProfileId }: PrescriptionTabProps) {
       setPrescriptions(rxRows);
       setLoading(false);
     },
-    [supabase],
+    [supabase, contactId],
   );
 
   useEffect(() => {
@@ -131,6 +147,30 @@ export function PrescriptionTab({ patientProfileId }: PrescriptionTabProps) {
     }
     void load(patientProfileId);
   }, [patientProfileId, load]);
+
+  // Resolve the selected doctor's signature/license data — needed to
+  // gate "Firmar y emitir receta" on having a signature on file (see
+  // signAndIssue) and to know whether the logged-in user IS that
+  // doctor (only they can capture it, right here, in one step).
+  useEffect(() => {
+    const doctor = doctors.find((d) => d.id === doctorId);
+    if (!doctor?.user_id) {
+      setSelectedDoctorProfile(null);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("user_id, license_number, license_institution, signature_url")
+        .eq("user_id", doctor.user_id)
+        .maybeSingle();
+      if (!cancelled) setSelectedDoctorProfile((data as DoctorProfile) ?? null);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [doctorId, doctors, supabase]);
 
   function updateItem(index: number, patch: Partial<ItemDraft>) {
     setItems((prev) => prev.map((it, i) => (i === index ? { ...it, ...patch } : it)));
@@ -145,14 +185,22 @@ export function PrescriptionTab({ patientProfileId }: PrescriptionTabProps) {
   }
 
   const filledItems = items.filter((it) => it.generic_name.trim());
+  const selectedDoctor = doctors.find((d) => d.id === doctorId) ?? null;
+  const isSelectedDoctorSelf = !!selectedDoctor?.user_id && selectedDoctor.user_id === user?.id;
   const requisitos = [
-    { label: t("reqDoctor"), ok: !!doctorId },
-    { label: t("reqMedication"), ok: filledItems.length > 0 },
+    { key: "doctor", label: t("reqDoctor"), ok: !!doctorId },
     {
+      key: "signature",
+      label: t("reqSignature"),
+      ok: !!doctorId && (!selectedDoctor?.user_id || !!selectedDoctorProfile?.signature_url),
+    },
+    { key: "medication", label: t("reqMedication"), ok: filledItems.length > 0 },
+    {
+      key: "dosage",
       label: t("reqDosage"),
       ok: filledItems.every((it) => it.dose.trim() && it.route.trim() && it.frequency.trim() && it.duration.trim()),
     },
-    { label: t("reqIndications"), ok: !!indications.trim() },
+    { key: "indications", label: t("reqIndications"), ok: !!indications.trim() },
   ];
   const canSign = requisitos.every((r) => r.ok);
 
@@ -218,18 +266,64 @@ export function PrescriptionTab({ patientProfileId }: PrescriptionTabProps) {
     }
   }
 
+  async function generatePrescriptionPdf(prescriptionId: string): Promise<{ url: string; filename: string } | null> {
+    const res = await fetch(`/api/clinical/prescriptions/${prescriptionId}/pdf`, { method: "POST" });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data.url) {
+      toast.error(data?.error ?? t("pdfFailed"));
+      return null;
+    }
+    return { url: data.url, filename: data.filename };
+  }
+
   async function downloadPdf(prescriptionId: string) {
     setDownloadingId(prescriptionId);
     try {
-      const res = await fetch(`/api/clinical/prescriptions/${prescriptionId}/pdf`, { method: "POST" });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok || !data.url) throw new Error(data?.error ?? "failed");
-      window.open(data.url, "_blank");
-    } catch (err) {
-      console.error("Download prescription PDF error:", err);
-      toast.error(t("pdfFailed"));
+      const result = await generatePrescriptionPdf(prescriptionId);
+      if (result) window.open(result.url, "_blank");
     } finally {
       setDownloadingId(null);
+    }
+  }
+
+  async function sendWhatsapp(prescriptionId: string) {
+    setSendingWhatsappId(prescriptionId);
+    try {
+      const result = await generatePrescriptionPdf(prescriptionId);
+      if (!result) return;
+      const res = await fetch("/api/whatsapp/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contact_id: contactId,
+          message_type: "document",
+          media_url: result.url,
+          filename: result.filename,
+        }),
+      });
+      const body = await res.json().catch(() => null);
+      if (!res.ok) {
+        toast.error(body?.error ?? t("whatsappSendFailed"));
+        return;
+      }
+      toast.success(t("whatsappSendSuccess"));
+    } finally {
+      setSendingWhatsappId(null);
+    }
+  }
+
+  async function sendEmail(prescriptionId: string) {
+    setSendingEmailId(prescriptionId);
+    try {
+      const res = await fetch(`/api/clinical/prescriptions/${prescriptionId}/send-email`, { method: "POST" });
+      const body = await res.json().catch(() => null);
+      if (!res.ok) {
+        toast.error(body?.error ?? t("emailSendFailed"));
+        return;
+      }
+      toast.success(t("emailSendSuccess"));
+    } finally {
+      setSendingEmailId(null);
     }
   }
 
@@ -406,16 +500,46 @@ export function PrescriptionTab({ patientProfileId }: PrescriptionTabProps) {
                         {(rx.items ?? []).map((it) => it.generic_name).join(", ")}
                       </p>
                     </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="ml-auto shrink-0"
-                      onClick={() => downloadPdf(rx.id)}
-                      disabled={downloadingId === rx.id}
-                    >
-                      {downloadingId === rx.id && <Loader2 className="mr-1.5 size-3.5 animate-spin" />}
-                      {t("downloadPdf")}
-                    </Button>
+                    <div className="ml-auto flex shrink-0 gap-1.5">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => downloadPdf(rx.id)}
+                        disabled={downloadingId === rx.id}
+                      >
+                        {downloadingId === rx.id ? (
+                          <Loader2 className="size-3.5 animate-spin" />
+                        ) : (
+                          t("downloadPdf")
+                        )}
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        title={t("sendWhatsapp")}
+                        onClick={() => sendWhatsapp(rx.id)}
+                        disabled={sendingWhatsappId === rx.id}
+                      >
+                        {sendingWhatsappId === rx.id ? (
+                          <Loader2 className="size-3.5 animate-spin" />
+                        ) : (
+                          <MessageCircle className="size-3.5" />
+                        )}
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        title={t("sendEmail")}
+                        onClick={() => sendEmail(rx.id)}
+                        disabled={sendingEmailId === rx.id || !patientEmail}
+                      >
+                        {sendingEmailId === rx.id ? (
+                          <Loader2 className="size-3.5 animate-spin" />
+                        ) : (
+                          <Mail className="size-3.5" />
+                        )}
+                      </Button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -434,9 +558,24 @@ export function PrescriptionTab({ patientProfileId }: PrescriptionTabProps) {
             <p className="text-xs text-muted-foreground">{prescriptionDocTitle(country)}</p>
             <div className="mt-3 flex flex-col gap-2">
               {requisitos.map((r) => (
-                <div key={r.label} className="flex items-center gap-2 text-xs">
+                <div key={r.key} className="flex items-center gap-2 text-xs">
                   <CheckCircle2 className={`size-3.5 shrink-0 ${r.ok ? "text-emerald-600" : "text-muted-foreground/40"}`} />
                   <span className={r.ok ? "text-foreground" : "text-muted-foreground"}>{r.label}</span>
+                  {r.key === "signature" && !r.ok && !!doctorId && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (isSelectedDoctorSelf) {
+                          setSignatureDialogOpen(true);
+                        } else {
+                          toast.error(t("signatureOnlySelf"));
+                        }
+                      }}
+                      className="ml-auto shrink-0 text-xs font-medium text-primary hover:text-primary/80"
+                    >
+                      {t("setUpSignature")}
+                    </button>
+                  )}
                 </div>
               ))}
             </div>
@@ -468,6 +607,22 @@ export function PrescriptionTab({ patientProfileId }: PrescriptionTabProps) {
           </CardContent>
         </Card>
       </div>
+
+      <SignatureCaptureDialog
+        open={signatureDialogOpen}
+        onOpenChange={setSignatureDialogOpen}
+        initialLicenseInstitution={selectedDoctorProfile?.license_institution}
+        onSaved={() => {
+          if (selectedDoctor?.user_id) {
+            void supabase
+              .from("profiles")
+              .select("user_id, license_number, license_institution, signature_url")
+              .eq("user_id", selectedDoctor.user_id)
+              .maybeSingle()
+              .then(({ data }) => setSelectedDoctorProfile((data as DoctorProfile) ?? null));
+          }
+        }}
+      />
     </div>
   );
 }

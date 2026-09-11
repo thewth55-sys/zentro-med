@@ -2,20 +2,20 @@ import { NextResponse } from "next/server";
 import { renderToBuffer } from "@react-pdf/renderer";
 
 import { requireRole, toErrorResponse } from "@/lib/auth/account";
-import { uploadObject, getObjectUrl } from "@/lib/storage/object-storage";
 import { getClinicalPhotoUrlAdmin } from "@/lib/storage/clinical-photos";
 import { PrescriptionPdfDocument } from "@/lib/billing/prescription-pdf-document";
 import { checkAllergyConflict } from "@/lib/clinical/prescription-types";
+import { sendEmail } from "@/lib/email/resend-client";
+import { renderBrandedEmail, escapeHtml } from "@/lib/email/branded-template";
 import type { AccountCountry } from "@/lib/country";
 
-const BUCKET = "chat-media";
-
 /**
- * POST /api/clinical/prescriptions/[prescriptionId]/pdf — same
- * branded-PDF-to-signed-URL pattern as
- * /api/billing/invoices/[id]/pdf (see that route's header comment
- * for why this returns `{ url, filename }` JSON rather than a raw
- * PDF stream — private, time-limited link, not a public one).
+ * POST /api/clinical/prescriptions/[prescriptionId]/send-email — same
+ * PDF render as the .../pdf route (kept separate rather than sharing
+ * a helper, same "each route owns its own render" precedent as the
+ * billing PDF/send-email routes already follow), attached directly to
+ * a Resend email instead of uploaded for a WhatsApp media_url.
+ * Requires the patient to have an email on file.
  */
 export async function POST(
   _request: Request,
@@ -25,14 +25,6 @@ export async function POST(
     const { supabase, accountId, account } = await requireRole("agent");
     const { prescriptionId } = await params;
 
-    // Plain point lookups by id rather than embedded FK joins for
-    // `prescriptions`/`prescription_items` — brand-new tables/FKs
-    // (migration 132) can hit PostgREST's schema-cache staleness
-    // (PGRST200) right after a migration, the same failure mode
-    // documented for `getCurrentAccount`/`AuthProvider.fetchProfile`.
-    // `doctors`/`patient_profiles`/`contacts` are long-established
-    // tables, safe to embed elsewhere, but kept flat here too for
-    // consistency in one query chain.
     const { data: prescription, error: rxErr } = await supabase
       .from("prescriptions")
       .select("*")
@@ -56,6 +48,14 @@ export async function POST(
         .order("position", { ascending: true }),
     ]);
 
+    const contact = patientProfile
+      ? (await supabase.from("contacts").select("*").eq("id", patientProfile.contact_id).maybeSingle()).data
+      : null;
+
+    if (!contact?.email) {
+      return NextResponse.json({ error: "This patient has no email on file" }, { status: 400 });
+    }
+
     let doctorLicense: string | null = null;
     let doctorLicenseInstitution: string | null = null;
     let signatureImageUrl: string | null = null;
@@ -72,9 +72,6 @@ export async function POST(
       }
     }
 
-    const contact = patientProfile
-      ? (await supabase.from("contacts").select("*").eq("id", patientProfile.contact_id).maybeSingle()).data
-      : null;
     const patientName = contact?.name || contact?.phone || "—";
     const patientDocument = patientProfile?.document_number
       ? `${patientProfile.document_type ? patientProfile.document_type.toUpperCase() + " " : ""}${patientProfile.document_number}`
@@ -129,24 +126,24 @@ export async function POST(
       />,
     );
 
-    const path = `account-${accountId}/prescription-${prescription.folio}-${Date.now()}.pdf`;
-    try {
-      await uploadObject(BUCKET, path, buffer, "application/pdf");
-    } catch (uploadErr) {
-      console.error("[POST /api/clinical/prescriptions/[prescriptionId]/pdf] upload error:", uploadErr);
-      return NextResponse.json({ error: "Failed to generate PDF" }, { status: 500 });
-    }
-
-    // Private, time-limited — same reasoning as the invoice PDF route:
-    // this document carries the patient's name and health data, so a
-    // permanent public URL is never appropriate even though it may be
-    // shared with the patient directly.
-    const url = await getObjectUrl(BUCKET, path, { public: false, expiresInSeconds: 60 * 60 * 48 });
-
-    return NextResponse.json({
-      url,
-      filename: `Receta-${prescription.folio}.pdf`,
+    const html = renderBrandedEmail({
+      heading: `Receta ${prescription.folio}`,
+      bodyHtml: `<p>Hola ${escapeHtml(patientName)},</p><p>Adjuntamos tu receta emitida por ${escapeHtml(doctor?.name ?? account.name)}.</p>`,
+      brandName: account.name,
+      logoUrl: account.logoUrl,
+      accentColor: account.quoteAccentColor,
+      footerNote: `Enviado por ${account.name}.`,
     });
+
+    await sendEmail({
+      to: contact.email,
+      subject: `Receta ${prescription.folio} — ${account.name}`,
+      html,
+      fromName: account.name,
+      attachments: [{ filename: `Receta-${prescription.folio}.pdf`, content: buffer }],
+    });
+
+    return NextResponse.json({ ok: true });
   } catch (err) {
     return toErrorResponse(err);
   }
