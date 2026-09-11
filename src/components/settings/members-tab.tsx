@@ -25,6 +25,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import {
   AlertTriangle,
+  KeyRound,
   Loader2,
   Mail,
   MailX,
@@ -66,7 +67,7 @@ import { useTranslations } from 'next-intl';
 import { RequireRole } from '@/components/auth/require-role';
 import { useAuth } from '@/hooks/use-auth';
 import { usePresence } from '@/hooks/use-presence';
-import type { AccountRole } from '@/lib/auth/roles';
+import { roleRank, type AccountRole } from '@/lib/auth/roles';
 import { presenceLabel, summarize } from '@/lib/presence';
 import {
   PRESENCE_DOT_CLASS,
@@ -132,7 +133,7 @@ function fmtExpiresIn(iso: string, t: (key: string, values?: Record<string, stri
 export function MembersTab() {
   const t = useTranslations('Settings.members');
   const tRoles = useTranslations('Settings.roles');
-  const { user, account, canManageMembers } = useAuth();
+  const { user, account, accountRole, canManageMembers } = useAuth();
   const { getPresence, getRow, now } = usePresence();
 
   const [members, setMembers] = useState<Member[]>([]);
@@ -144,6 +145,7 @@ export function MembersTab() {
   const [pendingMemberAction, setPendingMemberAction] = useState<string | null>(
     null,
   );
+  const [resettingPasswordFor, setResettingPasswordFor] = useState<string | null>(null);
 
   const loadEverything = useCallback(async () => {
     try {
@@ -256,6 +258,26 @@ export function MembersTab() {
       toast.error('Could not reach the server');
     } finally {
       setPendingMemberAction(null);
+    }
+  }
+
+  async function handleResetPassword(member: Member) {
+    setResettingPasswordFor(member.user_id);
+    try {
+      const res = await fetch(`/api/account/members/${member.user_id}/reset-password`, {
+        method: 'POST',
+      });
+      const payload = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        toast.error(payload.error || t('resetPasswordFailed'));
+        return;
+      }
+      toast.success(t('resetPasswordSuccess', { name: member.full_name || t('unnamed') }));
+    } catch (err) {
+      console.error('[MembersTab] reset password error:', err);
+      toast.error('Could not reach the server');
+    } finally {
+      setResettingPasswordFor(null);
     }
   }
 
@@ -450,6 +472,27 @@ export function MembersTab() {
                         <RoleIcon className="size-3.5" />
                         {tRoles(member.role)}
                       </span>
+                    )}
+
+                    {/* Reset password — only when the viewer outranks
+                        this member (owner can target admins; admin
+                        can target agent/viewer; never a peer or
+                        higher, self-target excluded automatically
+                        since a role never outranks itself). */}
+                    {canManageMembers && accountRole && roleRank(member.role) < roleRank(accountRole) && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleResetPassword(member)}
+                        disabled={resettingPasswordFor === member.user_id}
+                        title={t('resetPassword')}
+                      >
+                        {resettingPasswordFor === member.user_id ? (
+                          <Loader2 className="size-4 animate-spin" />
+                        ) : (
+                          <KeyRound className="size-4" />
+                        )}
+                      </Button>
                     )}
 
                     {/* Remove. Admin+ only; never on the owner row;

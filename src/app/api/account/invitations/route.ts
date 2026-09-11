@@ -193,6 +193,24 @@ export async function POST(request: Request) {
       );
     }
 
+    if (role === "admin") {
+      // Fail fast at invite-creation time rather than at redeem time
+      // — the real backstop is the DB trigger (migration 125), but
+      // surfacing the error to the inviting admin immediately (not
+      // to a confused invitee days later) is worth the extra query.
+      const { count: adminCount } = await ctx.supabase
+        .from("profiles")
+        .select("user_id", { count: "exact", head: true })
+        .eq("account_id", ctx.accountId)
+        .eq("account_role", "admin");
+      if ((adminCount ?? 0) >= 2) {
+        return NextResponse.json(
+          { error: "This account already has 2 admins — the maximum allowed" },
+          { status: 400 },
+        );
+      }
+    }
+
     const expiresInDaysRaw = body?.expiresInDays;
     // `clampExpiryDays` tolerates undefined / NaN / negatives by
     // collapsing to the safe default, so we just pass the raw
