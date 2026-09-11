@@ -168,6 +168,36 @@
     "menuHelp": "Help",
     "menuSignOut": "Sign out"
   },
+  "Help": {
+    "title": "Help center",
+    "subtitle": "Tell us what happened and we'll help, or search the knowledge base.",
+    "kbButton": "Knowledge base ↗",
+    "tabs": {
+      "ask": "Get help",
+      "myTickets": "My tickets"
+    },
+    "form": {
+      "subject": "Subject",
+      "subjectPlaceholder": "Summarize your issue in a few words",
+      "description": "Describe your issue",
+      "descriptionPlaceholder": "Tell us what happened, what you expected instead, and which screen you were on...",
+      "submit": "Send ticket",
+      "success": "Ticket #{number} created — we'll get back to you soon.",
+      "error": "Couldn't create the ticket",
+      "required": "Fill in the subject and description"
+    },
+    "tickets": {
+      "empty": "You haven't filed any tickets yet.",
+      "loadError": "Couldn't load your tickets",
+      "number": "Ticket #{number}"
+    },
+    "status": {
+      "Open": "Open",
+      "On Hold": "On hold",
+      "Closed": "Closed",
+      "Escalated": "Escalated"
+    }
+  },
   "Marketing": {
     "summary": {
       "title": "Marketing summary",

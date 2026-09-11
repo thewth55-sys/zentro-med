@@ -168,6 +168,36 @@
     "menuHelp": "Ayuda",
     "menuSignOut": "Cerrar sesión"
   },
+  "Help": {
+    "title": "Centro de ayuda",
+    "subtitle": "Cuéntanos qué pasó y te ayudamos, o busca en la base de conocimientos.",
+    "kbButton": "Base de conocimientos ↗",
+    "tabs": {
+      "ask": "Pedir ayuda",
+      "myTickets": "Mis tickets"
+    },
+    "form": {
+      "subject": "Asunto",
+      "subjectPlaceholder": "Resume tu problema en pocas palabras",
+      "description": "Describe tu problema",
+      "descriptionPlaceholder": "Cuéntanos qué pasó, qué esperabas que pasara y en qué pantalla estabas...",
+      "submit": "Enviar ticket",
+      "success": "Ticket #{number} creado — te contestaremos pronto.",
+      "error": "No se pudo crear el ticket",
+      "required": "Completa el asunto y la descripción"
+    },
+    "tickets": {
+      "empty": "Aún no has creado ningún ticket.",
+      "loadError": "No se pudieron cargar tus tickets",
+      "number": "Ticket #{number}"
+    },
+    "status": {
+      "Open": "Abierto",
+      "On Hold": "En espera",
+      "Closed": "Cerrado",
+      "Escalated": "Escalado"
+    }
+  },
   "Marketing": {
     "summary": {
       "title": "Resumen de marketing",

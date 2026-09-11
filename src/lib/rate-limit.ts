@@ -235,6 +235,11 @@ export const RATE_LIMITS = {
   /** Signature submit (per IP). A real signer submits once; tight
    *  because success is the actual legal signing event. */
   signatureSubmit: { limit: 5, windowMs: 60_000 },
+  /** Support-ticket creation from the in-app "Centro de ayuda" screen,
+   *  per user. Each call is a real Zoho Desk API write (and, on first
+   *  use, a contact creation too); tight because a real person files a
+   *  ticket rarely, not because Zoho's own limits are close. */
+  helpTicketCreate: { limit: 5, windowMs: 60_000 },
 } as const;
 
 /** Test-only helper. Clears the in-memory state so unit tests don't
