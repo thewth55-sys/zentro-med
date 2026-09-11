@@ -493,7 +493,9 @@ export const LANDING_BODY_HTML = `
           <div class="pf"><div class="pf-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>Bandeja de WhatsApp Cloud API</div>
           <div class="pf"><div class="pf-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>Recordatorio automático 24h antes</div>
           <div class="pf"><div class="pf-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>Hasta 1,000 pacientes activos</div>
-          <div class="pf"><div class="pf-check pf-check-ai"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div><span><span class="pf-ai-num">Zen redacta y tú apruebas</span> · 300 al mes <span class="pf-ai-pill">IA</span></span></div>
+          <div class="pf"><div class="pf-check pf-check-ai"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div><span><span class="pf-ai-num">Zen contestando solo</span> · 300 respuestas/mes <span class="pf-ai-pill">IA</span></span></div>
+          <div class="pf"><div class="pf-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>Página de reserva personalizable y horarios por consultorio</div>
+          <div class="pf"><div class="pf-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>Cobro de anticipo y formulario de admisión de pacientes</div>
           <div class="pf"><div class="pf-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>Recibos y presupuestos en PDF</div>
         </div>
         <a href="/signup?plan=esencial" class="plan-btn btn-plan-crm" onclick="if(typeof fbq!=='undefined')fbq('track','InitiateCheckout');if(typeof gtag!=='undefined')gtag('event','generate_lead',{event_category:'plan',event_label:'crm_esencial'});">Elegir Esencial →</a>
@@ -851,6 +853,38 @@ function zmSetCurr(code) {
   );
 }
 
+// Auto-selects the visitor's local currency on first paint, best-effort —
+// ipwho.is (free, no API key, already approved for this exact purpose on
+// the old /pricing page's local-currency estimate) resolves IP -> country.
+// Only acts when that country maps to one of the currencies this switcher
+// already supports; anything else (unmapped country, blocked/slow/failed
+// request) is a silent no-op and the page just stays on USD, which is
+// already the default. Never overrides a currency the visitor already
+// picked by hand this session.
+var ZM_GEO_CURRENCY = { MX: 'MXN', CO: 'COP', AR: 'ARS', GT: 'GTQ' };
+var ZM_GEO_CACHE_KEY = 'zentro_geo_currency_v1';
+function zmAutoDetectCurrency() {
+  try {
+    var cached = sessionStorage.getItem(ZM_GEO_CACHE_KEY);
+    if (cached) {
+      if (ZM_CURR[cached] && cached !== 'USD') zmSetCurr(cached);
+      return;
+    }
+  } catch (e) { /* sessionStorage unavailable — just skip the cache */ }
+
+  var controller = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+  var timeout = controller ? setTimeout(function () { controller.abort(); }, 2500) : null;
+  fetch('https://ipwho.is/', controller ? { signal: controller.signal } : {})
+    .then(function (res) { return res.json(); })
+    .then(function (geo) {
+      if (timeout) clearTimeout(timeout);
+      var currency = geo && geo.success !== false ? ZM_GEO_CURRENCY[geo.country_code] : null;
+      try { sessionStorage.setItem(ZM_GEO_CACHE_KEY, currency || 'USD'); } catch (e) {}
+      if (currency) zmSetCurr(currency);
+    })
+    .catch(function () { /* best-effort: stays on USD */ });
+}
+
 /* ── ROI CALCULATOR ──
    Each [data-roi] block owns two inputs (citas perdidas, valor de la
    consulta) and a fixed data-roi-ratio — the fraction of "lo perdido"
@@ -875,7 +909,7 @@ function zmRoiUpdate(root) {
     if (recuperaEl) recuperaEl.textContent = '$' + recupera.toLocaleString('en-US');
   });
 }
-document.addEventListener('DOMContentLoaded', function() { zmRoiUpdate(); });
+document.addEventListener('DOMContentLoaded', function() { zmRoiUpdate(); zmAutoDetectCurrency(); });
 
 /* ── ESPECIALIDAD SWITCHER (nav dropdown on /especialidad/[slug]) ── */
 function zmToggleEspSwitch(e) {

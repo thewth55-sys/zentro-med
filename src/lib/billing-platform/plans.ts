@@ -57,11 +57,10 @@ export interface PlanDefinition {
    */
   aiResponseLimitMonthly: number | null;
   /**
-   * On Esencial the AI only drafts a reply for a human to review/send
-   * (never sends autonomously); Profesional and Clinica reply and
-   * book appointments on their own, 24/7. Purely descriptive — the
-   * actual behavior switch lives wherever auto-reply is dispatched,
-   * this just drives the landing page / settings copy.
+   * All three paid plans reply and book appointments on their own,
+   * 24/7 (see features.ts's `ai_autoreply` gate). Purely descriptive
+   * — the actual behavior switch lives wherever auto-reply is
+   * dispatched, this just drives the landing page / settings copy.
    */
   aiAutonomous: boolean;
   /** Stripe Price IDs — undefined until the corresponding env var is set. */
@@ -85,8 +84,8 @@ export const PLAN_CONFIG: Record<Plan, PlanDefinition> = {
     // Courtesy cap so a trial account can actually try Zen (the AI
     // copilot) — see features.ts's `ai_copilot`/`ai_draft` gates for
     // WHERE that budget can be spent: copilot only, never WhatsApp
-    // inbox AI-drafting or autonomous auto-reply (those stay
-    // Esencial+/Profesional+ regardless of remaining quota).
+    // inbox AI-drafting or autonomous auto-reply (those start at
+    // Esencial+ regardless of remaining quota).
     aiResponseLimitMonthly: 30,
     aiAutonomous: false,
     purchasable: false,
@@ -97,8 +96,12 @@ export const PLAN_CONFIG: Record<Plan, PlanDefinition> = {
     seatPriceUsd: 25,
     includedSeats: 1,
     patientLimit: 1000,
+    // Shared by three consumers now: WhatsApp inbox AI-drafting
+    // (ai_draft), autonomous WhatsApp auto-reply (ai_autoreply), and
+    // the Zen copilot (ai_copilot) — all gated to esencial+ in
+    // features.ts, all spending from this same monthly count.
     aiResponseLimitMonthly: 300,
-    aiAutonomous: false,
+    aiAutonomous: true,
     stripeBasePriceId: process.env.STRIPE_PRICE_ESENCIAL_BASE,
     stripeSeatPriceId: process.env.STRIPE_PRICE_SEAT_ADDON,
     purchasable: true,

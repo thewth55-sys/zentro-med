@@ -107,10 +107,12 @@ const SECURITY_HEADERS = [
       // once NEXT_PUBLIC_SENTRY_DSN is set, but allowlisted
       // unconditionally so turning it on later doesn't also require
       // remembering to touch the CSP.
-      // ipwho.is / open.er-api.com back the /pricing page's
-      // local-currency estimate (src/lib/currency/geo-estimate.ts) —
-      // client-side, best-effort, display-only (billing always stays
-      // USD via Stripe).
+      // ipwho.is resolves the landing page visitor's IP to a country,
+      // to auto-select their local currency in the pill-style currency
+      // switcher (zmAutoDetectCurrency in landing-content.ts) — client-
+      // side, best-effort, display-only (billing always stays USD via
+      // Stripe). Same provider already approved for this exact purpose
+      // on the old /pricing page's local-currency estimate.
       // *.posthog.com / *.i.posthog.com are where the product-
       // analytics SDK (src/instrumentation-client.ts) sends capture/
       // identify/decide requests — only active once
@@ -121,7 +123,7 @@ const SECURITY_HEADERS = [
       // src/lib/storage/object-storage.ts) — the browser PUTs/GETs
       // directly against it via presigned URLs, so it needs to be
       // reachable from connect-src same as Supabase's own storage host.
-      "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://services-minio.b4jshi.easypanel.host https://www.googletagmanager.com https://www.google.com https://googleads.g.doubleclick.net https://challenges.cloudflare.com https://*.zoho.com wss://*.zoho.com https://*.zohopublic.com wss://*.zohopublic.com https://*.zohocdn.com https://*.sentry.io https://*.ingest.sentry.io https://*.ingest.us.sentry.io https://*.ingest.de.sentry.io https://connect.facebook.net https://www.facebook.com https://graph.facebook.com https://ipwho.is https://open.er-api.com https://*.posthog.com https://*.i.posthog.com",
+      "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://services-minio.b4jshi.easypanel.host https://www.googletagmanager.com https://www.google.com https://googleads.g.doubleclick.net https://challenges.cloudflare.com https://*.zoho.com wss://*.zoho.com https://*.zohopublic.com wss://*.zohopublic.com https://*.zohocdn.com https://*.sentry.io https://*.ingest.sentry.io https://*.ingest.us.sentry.io https://*.ingest.de.sentry.io https://connect.facebook.net https://www.facebook.com https://graph.facebook.com https://ipwho.is https://*.posthog.com https://*.i.posthog.com",
       // Turnstile renders its interactive challenge inside an iframe
       // from this origin when it can't pass invisibly; Zoho Desk's
       // chat panel is also an iframe; WhatsApp Embedded Signup opens

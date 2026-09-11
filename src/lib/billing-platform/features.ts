@@ -70,11 +70,11 @@ const FEATURE_MIN_PLAN: Record<GatedFeature, Plan[]> = {
   // Profesional ("Automatizaciones personalizables" is a Profesional
   // pf-new line item).
   automations: ["profesional", "clinica"],
-  // Esencial's AI is draft-only (a human reviews/sends every reply —
-  // see PLAN_CONFIG.esencial.aiAutonomous) which isn't really
-  // "auto-reply" at all; autonomous 24/7 AI with handoff is the
-  // Profesional/Clinica line item this gate actually protects.
-  ai_autoreply: ["profesional", "clinica"],
+  // Autonomous 24/7 WhatsApp AI with handoff — labeled "WhatsApp IA"
+  // on the landing page. Esencial included explicitly (upgraded from
+  // draft-only) so all three paid plans get real auto-reply, drawing
+  // from their own aiResponseLimitMonthly.
+  ai_autoreply: ["esencial", "profesional", "clinica"],
   // Esencial's whole AI pitch is "Zen redacta y tú apruebas" — the
   // human-reviewed suggest-a-reply button in the WhatsApp composer
   // (POST /api/ai/draft). Trial explicitly does NOT get this even
@@ -99,33 +99,34 @@ const FEATURE_MIN_PLAN: Record<GatedFeature, Plan[]> = {
   conversation_reminders: ["profesional", "clinica"],
   // Horarios de servicio por consultorio + multi-ubicación. La reserva
   // pública de Esencial sigue funcionando con los bloques del médico; esto
-  // añade el horario de clínica por consultorio y varias ubicaciones. Premium.
-  clinic_hours: ["profesional", "clinica"],
+  // añade el horario de clínica por consultorio y varias ubicaciones.
+  // Esencial+.
+  clinic_hours: ["esencial", "profesional", "clinica"],
   // Personalización link-in-bio de la página pública de reserva (colores,
   // portada, bio, botones de contacto/redes). La reserva básica sigue para
-  // todos; la marca/personalización es premium. Profesional+. La prueba
-  // gratuita también la incluye (pedido explícito, para que el médico
-  // pueda dejar su página de reserva lista desde el día uno).
-  booking_page: ["trial", "profesional", "clinica"],
+  // todos; la marca/personalización es Esencial+. La prueba gratuita
+  // también la incluye (pedido explícito, para que el médico pueda dejar
+  // su página de reserva lista desde el día uno).
+  booking_page: ["trial", "esencial", "profesional", "clinica"],
   // Copiloto de IA hacia el personal de la clínica (chat con acceso a los
-  // datos de la cuenta + acciones con confirmación). Función premium que
-  // consume tokens del proveedor de la cuenta → Profesional+. La prueba
-  // gratuita también lo tiene, pero con un tope de cortesía muy chico
-  // (PLAN_CONFIG.trial.aiResponseLimitMonthly) — es la única forma en que
-  // un plan Prueba puede gastar ese presupuesto de IA (ver ai_draft).
-  ai_copilot: ["trial", "profesional", "clinica"],
+  // datos de la cuenta + acciones con confirmación). Consume el mismo
+  // presupuesto mensual de respuestas que ai_draft/ai_autoreply → Esencial+.
+  // La prueba gratuita también lo tiene, pero con un tope de cortesía muy
+  // chico (PLAN_CONFIG.trial.aiResponseLimitMonthly) — es la única forma
+  // en que un plan Prueba puede gastar ese presupuesto de IA (ver ai_draft).
+  ai_copilot: ["trial", "esencial", "profesional", "clinica"],
   // Cobro de anticipo al reservar en línea (Stripe / Mercado Pago /
   // Clip, según lo que traiga la cuenta). La reserva pública básica
-  // sigue gratis para todos; cobrar por adelantado es premium →
-  // Profesional+. La prueba gratuita también la incluye (pedido
-  // explícito) — la pasarela es la cuenta PROPIA de la clínica en el
-  // proveedor de pagos, no la suscripción de la clínica con Zentro Med.
-  payment_gateway: ["trial", "profesional", "clinica"],
+  // sigue gratis para todos; cobrar por adelantado es Esencial+. La
+  // prueba gratuita también la incluye (pedido explícito) — la pasarela
+  // es la cuenta PROPIA de la clínica en el proveedor de pagos, no la
+  // suscripción de la clínica con Zentro Med.
+  payment_gateway: ["trial", "esencial", "profesional", "clinica"],
   // Formulario de admisión / historia clínica por médico, embebido en el
   // asistente de reserva pública. Igual que booking_page/clinic_hours: la
   // reserva básica sigue funcionando para todos, personalizar el cuestionario
-  // de admisión es premium → Profesional+.
-  intake_forms: ["profesional", "clinica"],
+  // de admisión es Esencial+.
+  intake_forms: ["esencial", "profesional", "clinica"],
 };
 
 export function planHasFeature(plan: Plan, feature: GatedFeature): boolean {
