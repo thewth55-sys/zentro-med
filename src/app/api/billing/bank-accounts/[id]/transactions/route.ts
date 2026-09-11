@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 
-import { requireRole, toErrorResponse } from '@/lib/auth/account';
+import { toErrorResponse } from '@/lib/auth/account';
+import { requireSectionAccess } from '@/lib/auth/section-access';
 import type { BankTransactionCategory, BankTransactionDirection } from '@/types';
 
 const DIRECTIONS: BankTransactionDirection[] = ['in', 'out'];
@@ -17,11 +18,11 @@ const CATEGORIES: BankTransactionCategory[] = [
  * POST /api/billing/bank-accounts/[id]/transactions — record one.
  */
 export async function GET(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { supabase, accountId } = await requireRole('viewer');
+    const { supabase, accountId } = await requireSectionAccess('viewer', "banking", request);
     const { id } = await params;
 
     const { data, error } = await supabase
@@ -47,7 +48,7 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { supabase, accountId, userId } = await requireRole('agent');
+    const { supabase, accountId, userId } = await requireSectionAccess('agent', "banking", request);
     const { id } = await params;
     const body = await request.json().catch(() => ({}));
 

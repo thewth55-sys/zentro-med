@@ -20,6 +20,7 @@ import { QuickRepliesManager } from '@/components/settings/quick-replies-manager
 import { FieldsAndTagsPanel } from '@/components/settings/fields-and-tags-panel';
 import { DealsSettings } from '@/components/settings/deals-settings';
 import { MembersTab } from '@/components/settings/members-tab';
+import { ProfilesTab } from '@/components/settings/profiles-tab';
 import { ApiKeysSettings } from '@/components/settings/api-keys-settings';
 import { ConversionTrackingConfig } from '@/components/settings/conversion-tracking-config';
 import { SchedulingPanel } from '@/components/settings/scheduling-panel';
@@ -74,6 +75,7 @@ export default function SettingsPage() {
     fields: <FieldsAndTagsPanel />,
     deals: <DealsSettings />,
     members: <MembersTab />,
+    profiles: <ProfilesTab />,
     api: <ApiKeysSettings />,
     conversions: <ConversionTrackingConfig />,
     scheduling: <SchedulingPanel />,

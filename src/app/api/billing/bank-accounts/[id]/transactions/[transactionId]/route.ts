@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 
-import { requireRole, toErrorResponse } from '@/lib/auth/account';
+import { toErrorResponse } from '@/lib/auth/account';
+import { requireSectionAccess } from '@/lib/auth/section-access';
 import type { BankTransactionCategory, BankTransactionDirection } from '@/types';
 
 const PATCHABLE_FIELDS = ['direction', 'category', 'description', 'amount', 'transaction_date', 'invoice_id'] as const;
@@ -16,7 +17,7 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string; transactionId: string }> }
 ) {
   try {
-    const { supabase, accountId } = await requireRole('agent');
+    const { supabase, accountId } = await requireSectionAccess('agent', "banking", request);
     const { id, transactionId } = await params;
     const body = await request.json();
 
@@ -64,11 +65,11 @@ export async function PATCH(
 
 /** Agent-level, matching `bank_transactions_delete` RLS. */
 export async function DELETE(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ id: string; transactionId: string }> }
 ) {
   try {
-    const { supabase, accountId } = await requireRole('agent');
+    const { supabase, accountId } = await requireSectionAccess('agent', "banking", request);
     const { id, transactionId } = await params;
 
     const { error } = await supabase

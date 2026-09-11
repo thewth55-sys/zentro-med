@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 
-import { requireRole, toErrorResponse } from '@/lib/auth/account';
+import { toErrorResponse } from '@/lib/auth/account';
+import { requireSectionAccess } from '@/lib/auth/section-access';
 import type { ExpenseCategory, PaymentMethod } from '@/types';
 
 const EXPENSE_CATEGORIES: ExpenseCategory[] = [
@@ -14,7 +15,7 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { supabase, accountId } = await requireRole('agent');
+    const { supabase, accountId } = await requireSectionAccess('agent', "billing", request);
     const { id } = await params;
     const body = await request.json().catch(() => ({}));
 
@@ -59,11 +60,11 @@ export async function PATCH(
  *  sensitivity class as invoices (a financial record shouldn't
  *  quietly disappear from a P&L report). */
 export async function DELETE(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { supabase, accountId } = await requireRole('admin');
+    const { supabase, accountId } = await requireSectionAccess('admin', "billing", request);
     const { id } = await params;
 
     const { error } = await supabase.from('expenses').delete().eq('id', id).eq('account_id', accountId);

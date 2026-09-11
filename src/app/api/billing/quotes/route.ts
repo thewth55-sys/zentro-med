@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 
-import { requireRole, toErrorResponse } from '@/lib/auth/account';
+import { toErrorResponse } from '@/lib/auth/account';
+import { requireSectionAccess } from '@/lib/auth/section-access';
 import { resolveBillingLines } from '@/lib/billing/resolve-items';
 import { resolveQuotePhases } from '@/lib/billing/resolve-phases';
 
@@ -15,7 +16,7 @@ import { resolveQuotePhases } from '@/lib/billing/resolve-phases';
  */
 export async function GET(request: Request) {
   try {
-    const { supabase, accountId } = await requireRole('viewer');
+    const { supabase, accountId } = await requireSectionAccess('viewer', "billing", request);
     const url = new URL(request.url);
     const contactId = url.searchParams.get('contact_id');
     const dealId = url.searchParams.get('deal_id');
@@ -45,7 +46,7 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    const { supabase, accountId, userId } = await requireRole('agent');
+    const { supabase, accountId, userId } = await requireSectionAccess('agent', "billing", request);
     const body = await request.json().catch(() => ({}));
 
     if (!body.contact_id) {

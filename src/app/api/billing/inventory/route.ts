@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 
-import { requireRole, toErrorResponse } from '@/lib/auth/account';
+import { toErrorResponse } from '@/lib/auth/account';
+import { requireSectionAccess } from '@/lib/auth/section-access';
 import type { InventoryCategory, InventoryItem } from '@/types';
 
 const CATEGORIES: InventoryCategory[] = ['supplies', 'materials', 'instruments', 'equipment', 'other'];
@@ -13,9 +14,9 @@ const CATEGORIES: InventoryCategory[] = ['supplies', 'materials', 'instruments',
  *      most, not thousands.
  * POST /api/billing/inventory — register a new inventory item.
  */
-export async function GET() {
+export async function GET(request: Request) {
   try {
-    const { supabase, accountId } = await requireRole('viewer');
+    const { supabase, accountId } = await requireSectionAccess('viewer', "inventory", request);
 
     const { data: items, error } = await supabase
       .from('inventory_items')
@@ -52,7 +53,7 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
-    const { supabase, accountId, userId } = await requireRole('agent');
+    const { supabase, accountId, userId } = await requireSectionAccess('agent', "inventory", request);
     const body = await request.json().catch(() => ({}));
 
     const name = typeof body?.name === 'string' ? body.name.trim() : '';

@@ -23,6 +23,7 @@ import {
 import type { AccountRole } from "@/lib/auth/roles";
 import { navItems, applyNavOrder, NAV_GROUP_ORDER, type NavItem } from "@/lib/nav-items";
 import { useNavFeatureAccess } from "@/hooks/use-nav-feature-access";
+import { resolveSectionPermission } from "@/lib/auth/sections";
 
 // Per-role chip metadata used in the sidebar's account strip + the
 // Members tab roster. Keeping this near both consumers in a single
@@ -94,9 +95,12 @@ export function Sidebar({ open = false, onClose, totalUnread }: SidebarProps) {
   const t = useTranslations("Sidebar");
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const { profile, profileLoading, account, accountRole, signOut } = useAuth();
+  const { profile, profileLoading, account, accountRole, signOut, sectionOverrides } = useAuth();
   const { isPlatformAdmin } = usePlatformAdmin();
-  const orderedNavItems = applyNavOrder(navItems, profile?.nav_order);
+  const visibleNavItems = navItems.filter(
+    (item) => !item.sectionKey || resolveSectionPermission(sectionOverrides, item.sectionKey) !== "hidden",
+  );
+  const orderedNavItems = applyNavOrder(visibleNavItems, profile?.nav_order);
   // Panel + Zen are pinned above every group (see NavItem.group in
   // nav-items.ts) — Zen additionally gets its own elevated-card render
   // below instead of the plain-row treatment every other item gets.

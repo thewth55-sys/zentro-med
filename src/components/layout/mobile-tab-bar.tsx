@@ -9,7 +9,9 @@ import { Lock, MoreHorizontal, Settings, ShieldCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { usePlatformAdmin } from "@/hooks/use-platform-admin";
 import { useNavFeatureAccess } from "@/hooks/use-nav-feature-access";
+import { useAuth } from "@/hooks/use-auth";
 import { navItems, NAV_GROUP_ORDER } from "@/lib/nav-items";
+import { resolveSectionPermission } from "@/lib/auth/sections";
 import {
   Sheet,
   SheetContent,
@@ -35,15 +37,19 @@ export function MobileTabBar({ totalUnread }: MobileTabBarProps) {
   const t = useTranslations("Sidebar");
   const pathname = usePathname();
   const { isPlatformAdmin } = usePlatformAdmin();
+  const { sectionOverrides } = useAuth();
   const featureAccess = useNavFeatureAccess();
   const [moreOpen, setMoreOpen] = useState(false);
 
-  const pinnedItems = PINNED_HREFS.map((href) => navItems.find((item) => item.href === href)).filter(
+  const visibleNavItems = navItems.filter(
+    (item) => !item.sectionKey || resolveSectionPermission(sectionOverrides, item.sectionKey) !== "hidden",
+  );
+  const pinnedItems = PINNED_HREFS.map((href) => visibleNavItems.find((item) => item.href === href)).filter(
     (item): item is NonNullable<typeof item> => !!item,
   );
   const moreGroups = NAV_GROUP_ORDER.map((group) => ({
     group,
-    items: navItems.filter((item) => item.group === group && !PINNED_HREFS.includes(item.href)),
+    items: visibleNavItems.filter((item) => item.group === group && !PINNED_HREFS.includes(item.href)),
   }));
 
   function isActive(href: string) {

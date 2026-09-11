@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 
-import { requireRole, toErrorResponse } from '@/lib/auth/account';
+import { toErrorResponse } from '@/lib/auth/account';
+import { requireSectionAccess } from '@/lib/auth/section-access';
 import type { BankAccount } from '@/types';
 
 /**
@@ -11,9 +12,9 @@ import type { BankAccount } from '@/types';
  *      accounts at most, not hundreds.
  * POST /api/billing/bank-accounts — register a new bank account.
  */
-export async function GET() {
+export async function GET(request: Request) {
   try {
-    const { supabase, accountId } = await requireRole('viewer');
+    const { supabase, accountId } = await requireSectionAccess('viewer', "banking", request);
 
     const { data: accounts, error } = await supabase
       .from('bank_accounts')
@@ -56,7 +57,7 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
-    const { supabase, accountId, userId } = await requireRole('agent');
+    const { supabase, accountId, userId } = await requireSectionAccess('agent', "banking", request);
     const body = await request.json().catch(() => ({}));
 
     const name = typeof body?.name === 'string' ? body.name.trim() : '';

@@ -1,16 +1,16 @@
 import { NextResponse } from 'next/server';
 
-import { requireRole, toErrorResponse } from '@/lib/auth/account';
-
+import { toErrorResponse } from '@/lib/auth/account';
+import { requireSectionAccess } from "@/lib/auth/section-access";
 /** Agent-level, matching `inventory_movements_delete` RLS — same as
  *  payments/bank_transactions, there's no UPDATE policy: correcting
  *  an entry is delete-and-recreate. */
 export async function DELETE(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ id: string; movementId: string }> }
 ) {
   try {
-    const { supabase, accountId } = await requireRole('agent');
+    const { supabase, accountId } = await requireSectionAccess('agent', "inventory", request);
     const { id, movementId } = await params;
 
     const { error } = await supabase

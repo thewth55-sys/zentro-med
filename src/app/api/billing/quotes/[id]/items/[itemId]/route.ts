@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 
-import { requireRole, toErrorResponse } from '@/lib/auth/account';
+import { toErrorResponse } from '@/lib/auth/account';
+import { requireSectionAccess } from '@/lib/auth/section-access';
 
 /**
  * PATCH /api/billing/quotes/[id]/items/[itemId] — toggles ONLY
@@ -14,7 +15,7 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string; itemId: string }> },
 ) {
   try {
-    const { supabase, accountId } = await requireRole('agent');
+    const { supabase, accountId } = await requireSectionAccess('agent', "billing", request);
     const { id, itemId } = await params;
     const body = await request.json().catch(() => ({}));
 

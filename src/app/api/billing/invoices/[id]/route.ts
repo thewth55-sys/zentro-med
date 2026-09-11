@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 
-import { requireRole, toErrorResponse } from '@/lib/auth/account';
+import { toErrorResponse } from '@/lib/auth/account';
+import { requireSectionAccess } from '@/lib/auth/section-access';
 import { resolveBillingLines } from '@/lib/billing/resolve-items';
 
 const HEADER_PATCHABLE_FIELDS = ['status', 'notes', 'due_date', 'deal_id'] as const;
@@ -11,7 +12,7 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { supabase, accountId } = await requireRole('viewer');
+    const { supabase, accountId } = await requireSectionAccess('viewer', "billing", request);
     const { id } = await params;
 
     const { data: invoice, error } = await supabase
@@ -72,7 +73,7 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { supabase, accountId } = await requireRole('agent');
+    const { supabase, accountId } = await requireSectionAccess('agent', "billing", request);
     const { id } = await params;
     const body = await request.json().catch(() => ({}));
 
@@ -160,11 +161,11 @@ export async function PATCH(
 
 /** Admin-only, matching the RLS `invoices_delete` policy exactly. */
 export async function DELETE(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { supabase, accountId } = await requireRole('admin');
+    const { supabase, accountId } = await requireSectionAccess('admin', "billing", request);
     const { id } = await params;
 
     const { error } = await supabase.from('invoices').delete().eq('id', id).eq('account_id', accountId);

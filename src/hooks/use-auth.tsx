@@ -26,6 +26,7 @@ import {
   isAccountRole,
   type AccountRole,
 } from "@/lib/auth/roles";
+import { parseSectionOverrides, type SectionOverrides } from "@/lib/auth/sections";
 
 interface Profile {
   id: string;
@@ -51,6 +52,8 @@ interface Profile {
   specialty: string | null;
   /** Cédula profesional / matrícula. */
   license_number: string | null;
+  /** Assigned tenant "profile" (account_roles.id), if any — migration 126. */
+  custom_role_id: string | null;
 }
 
 interface AccountSummary {
@@ -135,6 +138,12 @@ interface AuthContextValue {
   canEditSettings: boolean;
   /** True if the caller can send messages and edit operational data (agent+). */
   canSendMessages: boolean;
+  /**
+   * Section overrides from the caller's assigned tenant "profile"
+   * (account_roles.section_overrides), or `{}` if none is assigned.
+   * See `@/lib/auth/sections` — `resolveSectionPermission(sectionOverrides, key)`.
+   */
+  sectionOverrides: SectionOverrides;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -148,6 +157,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [account, setAccount] = useState<AccountSummary | null>(null);
+  const [sectionOverrides, setSectionOverrides] = useState<SectionOverrides>({});
   const [loading, setLoading] = useState(true);
   // Tracked separately from `loading`. The session settles fast (one
   // local cookie read); the profile fetch crosses the network and
@@ -171,7 +181,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const { data, error } = await supabase
         .from("profiles")
         .select(
-          "id, full_name, email, avatar_url, role, beta_features, account_id, account_role, nav_order, title, specialty, license_number",
+          "id, full_name, email, avatar_url, role, beta_features, account_id, account_role, nav_order, title, specialty, license_number, custom_role_id",
         )
         .eq("user_id", userId)
         .maybeSingle();
@@ -263,8 +273,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           title: data.title ?? null,
           specialty: data.specialty ?? null,
           license_number: data.license_number ?? null,
+          custom_role_id: data.custom_role_id ?? null,
         });
         setAccount(accountRow);
+
+        // Separate lookup rather than an embedded FK join — same
+        // PGRST200-schema-cache-staleness reasoning as the account
+        // lookup above. Most users have no assigned profile, so this
+        // only fires for the minority actually using the feature.
+        if (data.custom_role_id) {
+          const { data: roleRow, error: roleErr } = await supabase
+            .from("account_roles")
+            .select("section_overrides")
+            .eq("id", data.custom_role_id)
+            .maybeSingle();
+          if (roleErr) {
+            console.error("[AuthProvider] fetchProfile role lookup error:", roleErr);
+            setSectionOverrides({});
+          } else {
+            setSectionOverrides(parseSectionOverrides(roleRow?.section_overrides));
+          }
+        } else {
+          setSectionOverrides({});
+        }
       } else {
         lastFetchedUserIdRef.current = null;
       }
@@ -353,6 +384,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         lastFetchedUserIdRef.current = null;
         setProfile(null);
         setAccount(null);
+        setSectionOverrides({});
         setProfileLoading(false);
       }
 
@@ -377,6 +409,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
     setProfile(null);
     setAccount(null);
+    setSectionOverrides({});
     window.location.href = "/login";
   }, []);
 
@@ -415,6 +448,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         refreshProfile,
         account,
         defaultCurrency: account?.default_currency ?? DEFAULT_CURRENCY,
+        sectionOverrides,
         ...derived,
       }}
     >
@@ -454,6 +488,7 @@ export function useAuth(): AuthContextValue {
       canManageMembers: false,
       canEditSettings: false,
       canSendMessages: false,
+      sectionOverrides: {},
     };
   }
   return ctx;

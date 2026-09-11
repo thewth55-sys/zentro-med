@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 
-import { requireRole, toErrorResponse } from '@/lib/auth/account';
+import { toErrorResponse } from '@/lib/auth/account';
+import { requireSectionAccess } from '@/lib/auth/section-access';
 
 const PATCHABLE_FIELDS = ['name', 'bank_name', 'account_number_last4', 'is_active'] as const;
 
@@ -9,7 +10,7 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { supabase, accountId } = await requireRole('agent');
+    const { supabase, accountId } = await requireSectionAccess('agent', "banking", request);
     const { id } = await params;
     const body = await request.json().catch(() => ({}));
 
@@ -44,11 +45,11 @@ export async function PATCH(
  *  bank account disappearing (and every payment/expense attributed
  *  to it losing that link) should be a deliberate admin action. */
 export async function DELETE(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { supabase, accountId } = await requireRole('admin');
+    const { supabase, accountId } = await requireSectionAccess('admin', "banking", request);
     const { id } = await params;
 
     const { error } = await supabase.from('bank_accounts').delete().eq('id', id).eq('account_id', accountId);

@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { renderToBuffer } from "@react-pdf/renderer";
 
-import { requireRole, toErrorResponse } from "@/lib/auth/account";
+import { toErrorResponse } from "@/lib/auth/account";
+import { requireSectionAccess } from "@/lib/auth/section-access";
 import { uploadObject, getObjectUrl } from "@/lib/storage/object-storage";
 import { QuotePdfDocument, type QuotePdfLineItem } from "@/lib/billing/quote-pdf-document";
 import { fetchAttendedBy, resolveToothNumbers } from "@/lib/billing/pdf-data";
@@ -27,7 +28,7 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const { supabase, accountId, account } = await requireRole("viewer");
+    const { supabase, accountId, account } = await requireSectionAccess("viewer", "billing", request);
     const { id } = await params;
 
     const { data: quote, error: quoteErr } = await supabase

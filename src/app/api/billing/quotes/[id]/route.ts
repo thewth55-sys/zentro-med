@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 
-import { requireRole, toErrorResponse } from '@/lib/auth/account';
+import { toErrorResponse } from '@/lib/auth/account';
+import { requireSectionAccess } from '@/lib/auth/section-access';
 import { resolveBillingLines } from '@/lib/billing/resolve-items';
 import { resolveQuotePhases } from '@/lib/billing/resolve-phases';
 
@@ -11,7 +12,7 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { supabase, accountId } = await requireRole('viewer');
+    const { supabase, accountId } = await requireSectionAccess('viewer', "billing", request);
     const { id } = await params;
 
     const { data: quote, error } = await supabase
@@ -62,7 +63,7 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { supabase, accountId } = await requireRole('agent');
+    const { supabase, accountId } = await requireSectionAccess('agent', "billing", request);
     const { id } = await params;
     const body = await request.json().catch(() => ({}));
 
@@ -167,11 +168,11 @@ export async function PATCH(
 }
 
 export async function DELETE(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { supabase, accountId } = await requireRole('agent');
+    const { supabase, accountId } = await requireSectionAccess('agent', "billing", request);
     const { id } = await params;
 
     const { error } = await supabase.from('quotes').delete().eq('id', id).eq('account_id', accountId);

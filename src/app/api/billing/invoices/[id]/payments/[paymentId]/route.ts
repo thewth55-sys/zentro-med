@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 
-import { requireRole, toErrorResponse } from '@/lib/auth/account';
+import { toErrorResponse } from '@/lib/auth/account';
+import { requireSectionAccess } from '@/lib/auth/section-access';
 
 /**
  * DELETE /api/billing/invoices/[id]/payments/[paymentId] — correcting
@@ -9,11 +10,11 @@ import { requireRole, toErrorResponse } from '@/lib/auth/account';
  * delete and adjusts invoices.amount_paid/status automatically.
  */
 export async function DELETE(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ id: string; paymentId: string }> }
 ) {
   try {
-    const { supabase, accountId } = await requireRole('agent');
+    const { supabase, accountId } = await requireSectionAccess('agent', "billing", request);
     const { id, paymentId } = await params;
 
     const { error } = await supabase

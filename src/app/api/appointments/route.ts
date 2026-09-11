@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 
-import { requireRole, toErrorResponse } from '@/lib/auth/account';
+import { toErrorResponse } from '@/lib/auth/account';
+import { requireSectionAccess } from "@/lib/auth/section-access";
 import { syncAppointmentToGoogle } from '@/lib/scheduling/google-calendar-sync';
 
 /**
@@ -15,7 +16,7 @@ import { syncAppointmentToGoogle } from '@/lib/scheduling/google-calendar-sync';
  */
 export async function GET(request: Request) {
   try {
-    const { supabase, accountId } = await requireRole('viewer');
+    const { supabase, accountId } = await requireSectionAccess('viewer', "agenda", request);
     const url = new URL(request.url);
     const dealId = url.searchParams.get('deal_id');
     const contactId = url.searchParams.get('contact_id');
@@ -53,7 +54,7 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    const { supabase, accountId, userId } = await requireRole('agent');
+    const { supabase, accountId, userId } = await requireSectionAccess('agent', "agenda", request);
     const body = await request.json().catch(() => ({}));
 
     if (!body.start_at || !body.end_at) {

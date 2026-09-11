@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { renderToBuffer } from "@react-pdf/renderer";
 
-import { requireRole, toErrorResponse } from "@/lib/auth/account";
+import { toErrorResponse } from "@/lib/auth/account";
+import { requireSectionAccess } from "@/lib/auth/section-access";
 import { InvoicePdfDocument, type InvoicePdfLineItem } from "@/lib/billing/invoice-pdf-document";
 import { fetchAttendedBy, resolveToothNumbers } from "@/lib/billing/pdf-data";
 import { fmtMoney } from "@/lib/billing/pdf-theme";
@@ -17,11 +18,11 @@ import { renderBrandedEmail, escapeHtml } from "@/lib/email/branded-template";
  * media_url. Requires the contact to have an email on file.
  */
 export async function POST(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const { supabase, accountId, account } = await requireRole("viewer");
+    const { supabase, accountId, account } = await requireSectionAccess("viewer", "billing", request);
     const { id } = await params;
 
     const { data: invoice, error: invoiceErr } = await supabase

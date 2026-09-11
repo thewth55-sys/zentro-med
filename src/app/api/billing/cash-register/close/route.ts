@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
-import { requireRole, toErrorResponse } from "@/lib/auth/account";
+import { toErrorResponse } from "@/lib/auth/account";
+import { requireSectionAccess } from "@/lib/auth/section-access";
 
 /**
  * POST /api/billing/cash-register/close — closes the account's
@@ -8,9 +9,9 @@ import { requireRole, toErrorResponse } from "@/lib/auth/account";
  * 118_cash_registers_and_reconciliation.sql's comment on why this is
  * a snapshot rather than always-recomputed).
  */
-export async function POST() {
+export async function POST(request: Request) {
   try {
-    const { supabase, accountId, userId } = await requireRole("agent");
+    const { supabase, accountId, userId } = await requireSectionAccess("agent", "billing", request);
 
     const { data: register, error: fetchError } = await supabase
       .from("cash_registers")

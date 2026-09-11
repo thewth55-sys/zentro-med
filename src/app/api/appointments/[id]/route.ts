@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 
-import { requireRole, toErrorResponse } from '@/lib/auth/account';
+import { toErrorResponse } from '@/lib/auth/account';
+import { requireSectionAccess } from "@/lib/auth/section-access";
 import { syncAppointmentToGoogle, removeAppointmentFromGoogle } from '@/lib/scheduling/google-calendar-sync';
 
 const PATCHABLE_FIELDS = [
@@ -26,7 +27,7 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { supabase, accountId } = await requireRole('agent');
+    const { supabase, accountId } = await requireSectionAccess('agent', "agenda", request);
     const { id } = await params;
     const body = await request.json().catch(() => ({}));
 
@@ -88,11 +89,11 @@ export async function PATCH(
 }
 
 export async function DELETE(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { supabase, accountId } = await requireRole('agent');
+    const { supabase, accountId } = await requireSectionAccess('agent', "agenda", request);
     const { id } = await params;
 
     // Read Google links BEFORE deleting — appointment_google_events

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 
-import { requireRole, toErrorResponse } from '@/lib/auth/account';
+import { toErrorResponse } from '@/lib/auth/account';
+import { requireSectionAccess } from '@/lib/auth/section-access';
 
 /**
  * POST /api/billing/quotes/[id]/convert — create an invoice from an
@@ -10,11 +11,11 @@ import { requireRole, toErrorResponse } from '@/lib/auth/account';
  * be converted again or edited further.
  */
 export async function POST(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { supabase, accountId, userId } = await requireRole('agent');
+    const { supabase, accountId, userId } = await requireSectionAccess('agent', "billing", request);
     const { id } = await params;
 
     const { data: quote, error: quoteError } = await supabase

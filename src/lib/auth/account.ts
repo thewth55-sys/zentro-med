@@ -100,6 +100,8 @@ export interface AccountContext {
   accountId: string;
   /** Caller's role within their account. */
   role: AccountRole;
+  /** Caller's assigned profile (`account_roles.id`), if any — see `@/lib/auth/section-access`. */
+  customRoleId: string | null;
   /** Lightweight account meta — id + name + subscription state. */
   account: {
     id: string;
@@ -146,7 +148,7 @@ export async function getCurrentAccount(options?: { allowSuspended?: boolean }):
 
   const { data, error } = await supabase
     .from("profiles")
-    .select("account_id, account_role")
+    .select("account_id, account_role, custom_role_id")
     .eq("user_id", user.id)
     .maybeSingle();
 
@@ -217,6 +219,7 @@ export async function getCurrentAccount(options?: { allowSuspended?: boolean }):
     userId: user.id,
     accountId: data.account_id,
     role: data.account_role,
+    customRoleId: data.custom_role_id ?? null,
     account: {
       id: account.id,
       name: account.name,

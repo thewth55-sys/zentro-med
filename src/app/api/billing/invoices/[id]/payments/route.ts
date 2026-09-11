@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 
-import { requireRole, toErrorResponse } from '@/lib/auth/account';
+import { toErrorResponse } from '@/lib/auth/account';
+import { requireSectionAccess } from '@/lib/auth/section-access';
 import { notifyAccountTeam } from '@/lib/email/notify-team';
 import { escapeHtml } from '@/lib/email/branded-template';
 import { fmtMoney } from '@/lib/billing/pdf-theme';
@@ -15,11 +16,11 @@ const VALID_METHODS = ['cash', 'card', 'transfer', 'other'] as const;
  *      never touches those columns.
  */
 export async function GET(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { supabase, accountId } = await requireRole('viewer');
+    const { supabase, accountId } = await requireSectionAccess('viewer', "billing", request);
     const { id } = await params;
 
     const { data, error } = await supabase
@@ -45,7 +46,7 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { supabase, accountId, userId } = await requireRole('agent');
+    const { supabase, accountId, userId } = await requireSectionAccess('agent', "billing", request);
     const { id } = await params;
     const body = await request.json().catch(() => ({}));
 

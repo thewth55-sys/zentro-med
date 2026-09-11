@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 
-import { requireRole, toErrorResponse } from '@/lib/auth/account';
+import { toErrorResponse } from '@/lib/auth/account';
+import { requireSectionAccess } from "@/lib/auth/section-access";
 import type { InventoryCategory } from '@/types';
 
 const CATEGORIES: InventoryCategory[] = ['supplies', 'materials', 'instruments', 'equipment', 'other'];
@@ -11,7 +12,7 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { supabase, accountId } = await requireRole('agent');
+    const { supabase, accountId } = await requireSectionAccess('agent', "inventory", request);
     const { id } = await params;
     const body = await request.json().catch(() => ({}));
 
@@ -50,11 +51,11 @@ export async function PATCH(
  *  removing an item type entirely (and its movement history via
  *  cascade) should be a deliberate admin action. */
 export async function DELETE(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { supabase, accountId } = await requireRole('admin');
+    const { supabase, accountId } = await requireSectionAccess('admin', "inventory", request);
     const { id } = await params;
 
     const { error } = await supabase.from('inventory_items').delete().eq('id', id).eq('account_id', accountId);

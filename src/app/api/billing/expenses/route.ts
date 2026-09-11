@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 
-import { requireRole, toErrorResponse } from '@/lib/auth/account';
+import { toErrorResponse } from '@/lib/auth/account';
+import { requireSectionAccess } from '@/lib/auth/section-access';
 import type { ExpenseCategory, PaymentMethod } from '@/types';
 
 const EXPENSE_CATEGORIES: ExpenseCategory[] = [
@@ -14,7 +15,7 @@ const PAYMENT_METHODS: PaymentMethod[] = ['cash', 'card', 'transfer', 'other'];
  */
 export async function GET(request: Request) {
   try {
-    const { supabase, accountId } = await requireRole('viewer');
+    const { supabase, accountId } = await requireSectionAccess('viewer', "billing", request);
     const url = new URL(request.url);
     const category = url.searchParams.get('category');
     const from = url.searchParams.get('from');
@@ -44,7 +45,7 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    const { supabase, accountId, userId } = await requireRole('agent');
+    const { supabase, accountId, userId } = await requireSectionAccess('agent', "billing", request);
     const body = await request.json().catch(() => ({}));
 
     const description = typeof body?.description === 'string' ? body.description.trim() : '';

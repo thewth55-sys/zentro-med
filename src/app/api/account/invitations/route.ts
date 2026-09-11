@@ -179,7 +179,7 @@ export async function POST(request: Request) {
     if (!limit.success) return rateLimitResponse(limit);
 
     const body = (await request.json().catch(() => null)) as
-      | { role?: unknown; expiresInDays?: unknown; label?: unknown }
+      | { role?: unknown; customRoleId?: unknown; expiresInDays?: unknown; label?: unknown }
       | null;
 
     const role = body?.role;
@@ -191,6 +191,25 @@ export async function POST(request: Request) {
         { error: "'role' must be one of admin, agent, viewer" },
         { status: 400 },
       );
+    }
+
+    let customRoleId: string | null = null;
+    if (typeof body?.customRoleId === "string") {
+      const { data: profileRow } = await ctx.supabase
+        .from("account_roles")
+        .select("account_id, base_role")
+        .eq("id", body.customRoleId)
+        .maybeSingle();
+      if (!profileRow || profileRow.account_id !== ctx.accountId) {
+        return NextResponse.json({ error: "Profile not found" }, { status: 400 });
+      }
+      if (profileRow.base_role !== role) {
+        return NextResponse.json(
+          { error: "Profile's base role does not match the invited role" },
+          { status: 400 },
+        );
+      }
+      customRoleId = body.customRoleId;
     }
 
     if (role === "admin") {
@@ -240,6 +259,7 @@ export async function POST(request: Request) {
         account_id: ctx.accountId,
         token_hash: hash,
         role,
+        custom_role_id: customRoleId,
         created_by_user_id: ctx.userId,
         label,
         expires_at: expiresAt.toISOString(),

@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { renderToBuffer } from "@react-pdf/renderer";
 
-import { requireRole, toErrorResponse } from "@/lib/auth/account";
+import { toErrorResponse } from "@/lib/auth/account";
+import { requireSectionAccess } from "@/lib/auth/section-access";
 import { uploadObject, getObjectUrl } from "@/lib/storage/object-storage";
 import { ReceiptPdfDocument } from "@/lib/billing/receipt-pdf-document";
 
@@ -17,11 +18,11 @@ const BUCKET = "chat-media";
  * own numbers because a later, unrelated payment was recorded.
  */
 export async function POST(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ id: string; paymentId: string }> },
 ) {
   try {
-    const { supabase, accountId, account } = await requireRole("viewer");
+    const { supabase, accountId, account } = await requireSectionAccess("viewer", "billing", request);
     const { id, paymentId } = await params;
 
     const { data: invoice, error: invoiceErr } = await supabase

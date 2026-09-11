@@ -33,6 +33,7 @@ import {
 } from "lucide-react";
 import type { ComponentType, SVGProps } from "react";
 import type { GatedFeature } from "@/lib/billing-platform/features";
+import type { SectionKey } from "@/lib/auth/sections";
 
 /** Fixed section a nav item belongs to — drives both the sidebar's group
  *  headers and how far `applyNavOrder` lets a saved order move an item
@@ -72,6 +73,13 @@ export interface NavItem {
    * to upsell into with <PlanGate>, unlike a plan-gated feature.
    */
   comingSoon?: boolean;
+  /**
+   * One of the 4 sections a tenant-defined "profile" can restrict
+   * (see `@/lib/auth/sections`). When the current user's profile
+   * marks this section `hidden`, the item is dropped from the nav —
+   * see `useIsSectionHidden` in sidebar.tsx / mobile-tab-bar.tsx.
+   */
+  sectionKey?: SectionKey;
 }
 
 export const navItems: NavItem[] = [
@@ -86,19 +94,19 @@ export const navItems: NavItem[] = [
   // en cualquier pantalla) la reemplaza; tenerla dos veces era
   // redundante.
   { href: "/contacts", labelKey: "contacts", icon: Users, group: "atencion" },
-  { href: "/agenda", labelKey: "agenda", icon: Calendar, group: "atencion" },
+  { href: "/agenda", labelKey: "agenda", icon: Calendar, group: "atencion", sectionKey: "agenda" },
   { href: "/inbox", labelKey: "inbox", icon: MessageCircle, feature: "whatsapp_inbox", group: "atencion" },
   { href: "/pipelines", labelKey: "pipelines", icon: Share2, group: "atencion" },
 
   // OPERACIÓN — administración del negocio, no del sillón.
-  { href: "/billing", labelKey: "billing", icon: CreditCard, group: "operacion" },
+  { href: "/billing", labelKey: "billing", icon: CreditCard, group: "operacion", sectionKey: "billing" },
   // Antes era una pestaña dentro de Finanzas — se independiza para que
   // caja/bancos/conciliación tengan su propio espacio en vez de
   // competir por lugar en la barra de pestañas de Facturas/Cotizaciones.
-  { href: "/banking", labelKey: "banking", icon: Landmark, group: "operacion" },
+  { href: "/banking", labelKey: "banking", icon: Landmark, group: "operacion", sectionKey: "banking" },
   // Mismo razonamiento que Banco y caja — insumos/stock no compite ya
   // por espacio en la barra de pestañas de Finanzas.
-  { href: "/inventory", labelKey: "inventory", icon: Boxes, group: "operacion" },
+  { href: "/inventory", labelKey: "inventory", icon: Boxes, group: "operacion", sectionKey: "inventory" },
   { href: "/broadcasts", labelKey: "broadcasts", icon: Radio, feature: "broadcasts", group: "operacion" },
   { href: "/automations", labelKey: "automations", icon: Zap, feature: "automations", group: "operacion" },
   { href: "/flows", labelKey: "flows", icon: Workflow, beta: true, feature: "automations", group: "operacion" },

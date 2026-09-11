@@ -14,7 +14,7 @@
 // shouts this in copy.
 // ============================================================
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { Copy, CreditCard, Loader2, MessageCircle, Sparkles, UserPlus } from 'lucide-react';
 
@@ -40,6 +40,16 @@ import { useTranslations } from 'next-intl';
 import { useAuth } from '@/hooks/use-auth';
 
 type InviteRole = 'admin' | 'agent' | 'viewer';
+
+interface AccountRoleOption {
+  id: string;
+  name: string;
+  base_role: 'agent' | 'viewer';
+}
+
+// A "None" sentinel for the profile Select — Radix/Base UI Select
+// items can't have an empty-string value.
+const NO_PROFILE = '__none__';
 
 interface InviteMemberDialogProps {
   open: boolean;
@@ -97,6 +107,8 @@ export function InviteMemberDialog({
   const tRoles = useTranslations('Settings.roles');
   const { account } = useAuth();
   const [role, setRole] = useState<InviteRole>('agent');
+  const [customRoleId, setCustomRoleId] = useState<string | null>(null);
+  const [accountRoles, setAccountRoles] = useState<AccountRoleOption[]>([]);
   const [expiry, setExpiry] = useState<string>('7');
   const [label, setLabel] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -109,6 +121,7 @@ export function InviteMemberDialog({
 
   function reset() {
     setRole('agent');
+    setCustomRoleId(null);
     setExpiry('7');
     setLabel('');
     setResult(null);
@@ -116,6 +129,38 @@ export function InviteMemberDialog({
     setSeatConfirmed(!atSeatLimit);
     setAddingSeat(false);
   }
+
+  // Load the account's profiles once the dialog opens — cheap GET,
+  // any member can read (RLS scopes to is_account_member). Skipped
+  // entirely if the account hasn't created any profiles yet, in
+  // which case the picker below just doesn't render.
+  useEffect(() => {
+    if (!open) return;
+    let cancelled = false;
+    fetch('/api/account/roles', { cache: 'no-store' })
+      .then((res) => (res.ok ? res.json() : { roles: [] }))
+      .then((data) => {
+        if (!cancelled) setAccountRoles(data.roles ?? []);
+      })
+      .catch(() => {
+        if (!cancelled) setAccountRoles([]);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [open]);
+
+  function handleRoleChange(next: InviteRole) {
+    setRole(next);
+    // A profile's base_role is fixed — switching to Admin, or to the
+    // other base role, invalidates whatever profile was picked.
+    setCustomRoleId(null);
+  }
+
+  const matchingProfiles =
+    role === 'agent' || role === 'viewer'
+      ? accountRoles.filter((r) => r.base_role === role)
+      : [];
 
   async function handleAddSeat() {
     setAddingSeat(true);
@@ -155,6 +200,7 @@ export function InviteMemberDialog({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           role,
+          customRoleId,
           expiresInDays: Number(expiry),
           label: trimmedLabel || undefined,
         }),
@@ -363,7 +409,7 @@ export function InviteMemberDialog({
                 <Label className="text-muted-foreground">{t('roleLabel')}</Label>
                 <Select
                   value={role}
-                  onValueChange={(v) => v && setRole(v as InviteRole)}
+                  onValueChange={(v) => v && handleRoleChange(v as InviteRole)}
                 >
                   <SelectTrigger className="w-full bg-muted border-border text-foreground">
                     <SelectValue />
@@ -378,6 +424,29 @@ export function InviteMemberDialog({
                   {tRoles(`${role}Hint` as 'adminHint' | 'agentHint' | 'viewerHint')}
                 </p>
               </div>
+
+              {matchingProfiles.length > 0 && (
+                <div className="space-y-2">
+                  <Label className="text-muted-foreground">{t('profileLabel')}</Label>
+                  <Select
+                    value={customRoleId ?? NO_PROFILE}
+                    onValueChange={(v) => setCustomRoleId(v === NO_PROFILE ? null : v)}
+                  >
+                    <SelectTrigger className="w-full bg-muted border-border text-foreground">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value={NO_PROFILE}>{t('noProfile')}</SelectItem>
+                      {matchingProfiles.map((p) => (
+                        <SelectItem key={p.id} value={p.id}>
+                          {p.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground">{t('profileHint')}</p>
+                </div>
+              )}
 
               <div className="space-y-2">
                 <Label className="text-muted-foreground">{t('validForLabel')}</Label>

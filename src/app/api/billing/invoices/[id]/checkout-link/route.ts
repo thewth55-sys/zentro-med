@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
-import { requireRole, toErrorResponse } from "@/lib/auth/account";
+import { toErrorResponse } from "@/lib/auth/account";
+import { requireSectionAccess } from "@/lib/auth/section-access";
 import { loadActivePaymentGatewayConfig } from "@/lib/payments/config";
 import { getPaymentAdapter } from "@/lib/payments/gateway";
 
@@ -16,7 +17,7 @@ import { getPaymentAdapter } from "@/lib/payments/gateway";
  */
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const { supabase, accountId, userId } = await requireRole("agent");
+    const { supabase, accountId, userId } = await requireSectionAccess("agent", "billing", request);
     const { id } = await params;
 
     const { data: invoice, error: invoiceError } = await supabase

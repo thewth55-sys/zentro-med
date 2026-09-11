@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
-import { requireRole, toErrorResponse } from "@/lib/auth/account";
+import { toErrorResponse } from "@/lib/auth/account";
+import { requireSectionAccess } from "@/lib/auth/section-access";
 import type { BankAccount, PaymentMethod } from "@/types";
 
 const METHOD_LABELS: Record<PaymentMethod, string> = {
@@ -48,7 +49,7 @@ interface Bucket {
  */
 export async function GET(request: Request) {
   try {
-    const { supabase, accountId } = await requireRole("viewer");
+    const { supabase, accountId } = await requireSectionAccess("viewer", "banking", request);
     const url = new URL(request.url);
 
     const now = new Date();

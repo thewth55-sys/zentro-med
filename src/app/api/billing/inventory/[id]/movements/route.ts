@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 
-import { requireRole, toErrorResponse } from '@/lib/auth/account';
+import { toErrorResponse } from '@/lib/auth/account';
+import { requireSectionAccess } from "@/lib/auth/section-access";
 import type { InventoryMovementDirection, InventoryMovementReason } from '@/types';
 
 const DIRECTIONS: InventoryMovementDirection[] = ['in', 'out'];
@@ -14,11 +15,11 @@ const REASONS: InventoryMovementReason[] = ['purchase', 'consumption', 'waste', 
  *      can be 'in' too).
  */
 export async function GET(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { supabase, accountId } = await requireRole('viewer');
+    const { supabase, accountId } = await requireSectionAccess('viewer', "inventory", request);
     const { id } = await params;
 
     const { data, error } = await supabase
@@ -44,7 +45,7 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { supabase, accountId, userId } = await requireRole('agent');
+    const { supabase, accountId, userId } = await requireSectionAccess('agent', "inventory", request);
     const { id } = await params;
     const body = await request.json().catch(() => ({}));
 

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 
-import { requireRole, toErrorResponse } from '@/lib/auth/account';
+import { toErrorResponse } from '@/lib/auth/account';
+import { requireSectionAccess } from '@/lib/auth/section-access';
 import { supabaseAdmin } from '@/lib/billing-platform/admin-client';
 import { sendOneReminder } from '@/lib/billing/payment-reminders';
 
@@ -19,9 +20,9 @@ import { sendOneReminder } from '@/lib/billing/payment-reminders';
  * configured/active, every send is skipped with a clear reason instead
  * of the button silently doing nothing.
  */
-export async function POST() {
+export async function POST(request: Request) {
   try {
-    const { accountId } = await requireRole('agent');
+    const { accountId } = await requireSectionAccess('agent', "billing", request);
     const admin = supabaseAdmin();
 
     const { data: cfg } = await admin

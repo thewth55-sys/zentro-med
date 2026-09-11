@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 
-import { requireRole, toErrorResponse } from '@/lib/auth/account';
+import { toErrorResponse } from '@/lib/auth/account';
+import { requireSectionAccess } from '@/lib/auth/section-access';
 
 /**
  * GET /api/billing/quotes/pickable-items?contact_id=X — treatment-plan
@@ -15,7 +16,7 @@ import { requireRole, toErrorResponse } from '@/lib/auth/account';
  */
 export async function GET(request: Request) {
   try {
-    const { supabase, accountId } = await requireRole('viewer');
+    const { supabase, accountId } = await requireSectionAccess('viewer', "billing", request);
     const url = new URL(request.url);
     const contactId = url.searchParams.get('contact_id');
     if (!contactId) {

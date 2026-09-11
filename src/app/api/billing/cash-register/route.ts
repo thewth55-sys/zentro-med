@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
-import { requireRole, toErrorResponse } from "@/lib/auth/account";
+import { toErrorResponse } from "@/lib/auth/account";
+import { requireSectionAccess } from "@/lib/auth/section-access";
 
 /**
  * GET  /api/billing/cash-register — the account's currently open shift
@@ -12,9 +13,9 @@ import { requireRole, toErrorResponse } from "@/lib/auth/account";
  *      level too — this just gives a clean error instead of a raw
  *      constraint violation).
  */
-export async function GET() {
+export async function GET(request: Request) {
   try {
-    const { supabase, accountId } = await requireRole("viewer");
+    const { supabase, accountId } = await requireSectionAccess("viewer", "billing", request);
 
     const { data: register, error } = await supabase
       .from("cash_registers")
@@ -65,7 +66,7 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
-    const { supabase, accountId, userId } = await requireRole("agent");
+    const { supabase, accountId, userId } = await requireSectionAccess("agent", "billing", request);
     const body = await request.json().catch(() => ({}));
 
     const openingBalance = body?.opening_balance !== undefined ? Number(body.opening_balance) : 0;
