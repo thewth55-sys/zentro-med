@@ -15,6 +15,9 @@ export function useNavFeatureAccess(): Record<GatedFeature, boolean> {
   return {
     automations: useHasFeature("automations"),
     ai_autoreply: useHasFeature("ai_autoreply"),
+    // Sin ítem de nav propio (vive como botón dentro del composer de
+    // WhatsApp), mismo motivo que conversation_reminders más abajo.
+    ai_draft: useHasFeature("ai_draft"),
     whatsapp_inbox: useHasFeature("whatsapp_inbox"),
     broadcasts: useHasFeature("broadcasts"),
     // Sin ítem de nav propio desde que /landing dejó de tener entrada en

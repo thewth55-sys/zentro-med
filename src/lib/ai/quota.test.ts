@@ -95,6 +95,6 @@ describe('getAiResponseQuotaStatus', () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any
     const status = await getAiResponseQuotaStatus(db, 'acct-1')
-    expect(status.limit).toBe(0)
+    expect(status.limit).toBe(30)
   })
 })

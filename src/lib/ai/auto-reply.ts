@@ -12,6 +12,8 @@ import { latestUserMessage } from './query'
 import { AGENDA_TOOLS, createAgendaToolExecutor } from './tools/agenda'
 import { engineSendText } from '@/lib/flows/meta-send'
 import { checkRateLimit, RATE_LIMITS } from '@/lib/rate-limit'
+import { resolveFeatureAccess, type FeatureOverrides } from '@/lib/billing-platform/features'
+import type { Plan } from '@/lib/billing-platform/plans'
 
 interface DispatchArgs {
   /** Tenancy key — drives config, contact, and whatsapp_config lookups. */
@@ -52,6 +54,21 @@ export async function dispatchInboundToAiReply(
 
     const config = await loadAiConfig(db, accountId)
     if (!config || !config.autoReplyEnabled) return
+
+    // `ai_autoreply` used to be enforced only in the settings-page nav
+    // (see features.ts) — nothing here stopped a plan without it (e.g.
+    // Esencial, which is meant to be draft-only per PLAN_CONFIG's own
+    // comment) from actually getting autonomous replies if
+    // `auto_reply_enabled` was ever set on its `ai_configs` row. Check
+    // it for real at the one place that actually sends a message.
+    const { data: account } = await db
+      .from('accounts')
+      .select('plan, feature_overrides')
+      .eq('id', accountId)
+      .maybeSingle<{ plan: Plan; feature_overrides: FeatureOverrides | null }>()
+    if (!account || !resolveFeatureAccess(account.plan, 'ai_autoreply', account.feature_overrides)) {
+      return
+    }
 
     const quota = await getAiResponseQuotaStatus(db, accountId)
     if (quota.blocked) {

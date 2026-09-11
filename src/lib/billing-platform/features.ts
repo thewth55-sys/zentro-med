@@ -20,6 +20,7 @@ import type { Plan } from "./plans";
 export type GatedFeature =
   | "automations"
   | "ai_autoreply"
+  | "ai_draft"
   | "whatsapp_inbox"
   | "broadcasts"
   | "landing_builder"
@@ -33,6 +34,7 @@ export type GatedFeature =
 export const GATED_FEATURES: GatedFeature[] = [
   "automations",
   "ai_autoreply",
+  "ai_draft",
   "whatsapp_inbox",
   "broadcasts",
   "landing_builder",
@@ -47,6 +49,7 @@ export const GATED_FEATURES: GatedFeature[] = [
 export const FEATURE_LABEL: Record<GatedFeature, string> = {
   automations: "Automatizaciones y Flows",
   ai_autoreply: "WhatsApp IA",
+  ai_draft: "Sugerencia de respuesta con IA (bandeja de WhatsApp)",
   whatsapp_inbox: "Bandeja de WhatsApp",
   broadcasts: "Difusiones",
   landing_builder: "Constructor de landing",
@@ -72,10 +75,17 @@ const FEATURE_MIN_PLAN: Record<GatedFeature, Plan[]> = {
   // "auto-reply" at all; autonomous 24/7 AI with handoff is the
   // Profesional/Clinica line item this gate actually protects.
   ai_autoreply: ["profesional", "clinica"],
-  // Esencial's own card lists "Bandeja de WhatsApp (Cloud API)" as
-  // included — all three paid plans get the WhatsApp channel itself,
-  // only the automation/broadcast/AI layers on top of it are tiered.
-  whatsapp_inbox: ["esencial", "profesional", "clinica"],
+  // Esencial's whole AI pitch is "Zen redacta y tú apruebas" — the
+  // human-reviewed suggest-a-reply button in the WhatsApp composer
+  // (POST /api/ai/draft). Trial explicitly does NOT get this even
+  // though it now has a small AI response budget (courtesy cap is for
+  // the copilot only, see ai_copilot below) — otherwise raising that
+  // budget above 0 would silently unlock WhatsApp AI drafting too.
+  ai_draft: ["esencial", "profesional", "clinica"],
+  // The free trial gets the WhatsApp channel itself too (courtesy —
+  // see the landing page's trial card), just not the AI/automation
+  // layers on top of it.
+  whatsapp_inbox: ["trial", "esencial", "profesional", "clinica"],
   // Same X'd-out line as automations on the Esencial card —
   // "Campañas de difusión por WhatsApp" is a Profesional pf-new item.
   broadcasts: ["profesional", "clinica"],
@@ -93,17 +103,24 @@ const FEATURE_MIN_PLAN: Record<GatedFeature, Plan[]> = {
   clinic_hours: ["profesional", "clinica"],
   // Personalización link-in-bio de la página pública de reserva (colores,
   // portada, bio, botones de contacto/redes). La reserva básica sigue para
-  // todos; la marca/personalización es premium. Profesional+.
-  booking_page: ["profesional", "clinica"],
+  // todos; la marca/personalización es premium. Profesional+. La prueba
+  // gratuita también la incluye (pedido explícito, para que el médico
+  // pueda dejar su página de reserva lista desde el día uno).
+  booking_page: ["trial", "profesional", "clinica"],
   // Copiloto de IA hacia el personal de la clínica (chat con acceso a los
   // datos de la cuenta + acciones con confirmación). Función premium que
-  // consume tokens del proveedor de la cuenta → Profesional+.
-  ai_copilot: ["profesional", "clinica"],
+  // consume tokens del proveedor de la cuenta → Profesional+. La prueba
+  // gratuita también lo tiene, pero con un tope de cortesía muy chico
+  // (PLAN_CONFIG.trial.aiResponseLimitMonthly) — es la única forma en que
+  // un plan Prueba puede gastar ese presupuesto de IA (ver ai_draft).
+  ai_copilot: ["trial", "profesional", "clinica"],
   // Cobro de anticipo al reservar en línea (Stripe / Mercado Pago /
   // Clip, según lo que traiga la cuenta). La reserva pública básica
   // sigue gratis para todos; cobrar por adelantado es premium →
-  // Profesional+.
-  payment_gateway: ["profesional", "clinica"],
+  // Profesional+. La prueba gratuita también la incluye (pedido
+  // explícito) — la pasarela es la cuenta PROPIA de la clínica en el
+  // proveedor de pagos, no la suscripción de la clínica con Zentro Med.
+  payment_gateway: ["trial", "profesional", "clinica"],
   // Formulario de admisión / historia clínica por médico, embebido en el
   // asistente de reserva pública. Igual que booking_page/clinic_hours: la
   // reserva básica sigue funcionando para todos, personalizar el cuestionario

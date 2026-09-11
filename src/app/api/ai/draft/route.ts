@@ -11,6 +11,8 @@ import { logAiUsage } from '@/lib/ai/usage'
 import { getAiResponseQuotaStatus } from '@/lib/ai/quota'
 import { supabaseAdmin } from '@/lib/ai/admin-client'
 import { AiError } from '@/lib/ai/types'
+import { resolveFeatureAccess, type FeatureOverrides } from '@/lib/billing-platform/features'
+import type { Plan } from '@/lib/billing-platform/plans'
 
 /**
  * POST /api/ai/draft  (agent+)
@@ -24,6 +26,18 @@ import { AiError } from '@/lib/ai/types'
 export async function POST(request: Request) {
   try {
     const { supabase, accountId, userId } = await requireRole('agent')
+
+    const { data: account } = await supabase
+      .from('accounts')
+      .select('plan, feature_overrides')
+      .eq('id', accountId)
+      .maybeSingle<{ plan: Plan; feature_overrides: FeatureOverrides | null }>()
+    if (!account || !resolveFeatureAccess(account.plan, 'ai_draft', account.feature_overrides)) {
+      return NextResponse.json(
+        { error: 'AI-drafted replies are available on paid plans.', code: 'feature_not_available' },
+        { status: 403 },
+      )
+    }
 
     const userLimit = checkRateLimit(`ai-draft:${userId}`, RATE_LIMITS.aiDraft)
     if (!userLimit.success) return rateLimitResponse(userLimit)

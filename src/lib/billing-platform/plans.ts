@@ -77,13 +77,17 @@ export const PLAN_CONFIG: Record<Plan, PlanDefinition> = {
     basePriceUsd: 0,
     seatPriceUsd: null,
     includedSeats: 1,
-    // Not capped by patient count — the 30-day window is the real
-    // constraint on a free trial, not volume. The free trial also has
-    // no WhatsApp/AI at all per the landing page, so this number is
-    // moot in practice (nothing calls the AI provider pre-upgrade),
-    // kept only as a defensive ceiling.
-    patientLimit: null,
-    aiResponseLimitMonthly: 0,
+    // Small cap so a trial account can try the patient-record flow for
+    // real without becoming a way to run an actual clinic for free —
+    // the 30-day window is the primary constraint, this is a backstop.
+    // Enforced by enforce_patient_limit() — see migration 123.
+    patientLimit: 10,
+    // Courtesy cap so a trial account can actually try Zen (the AI
+    // copilot) — see features.ts's `ai_copilot`/`ai_draft` gates for
+    // WHERE that budget can be spent: copilot only, never WhatsApp
+    // inbox AI-drafting or autonomous auto-reply (those stay
+    // Esencial+/Profesional+ regardless of remaining quota).
+    aiResponseLimitMonthly: 30,
     aiAutonomous: false,
     purchasable: false,
   },
