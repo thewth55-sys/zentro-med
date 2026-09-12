@@ -222,7 +222,7 @@ export const MARKETING_BODY_HTML = `
       <h2 class="section-title">Elige según cuánto quieres crecer</h2>
       <p class="section-sub" style="max-width:640px;margin:12px auto 0;">Los tres planes incluyen el sistema de gestión del consultorio, sin costo aparte. Sin permanencia: cancelas con 30 días de aviso.</p>
     </div>
-    <div class="plans-grid reveal-group" style="max-width:1040px;">
+    <div class="reveal-group marketing-plans-grid">
 
       <!-- MED STARTER -->
       <div class="plan-card">
