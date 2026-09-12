@@ -34,7 +34,12 @@ export function CopilotIntroCard({ showReset, onReset, onEditPreferences }: Prop
         style={{ background: "radial-gradient(circle, rgba(74,222,90,.35), transparent 70%)" }}
       />
 
-      <div className="relative flex items-start justify-between gap-3">
+      {/* flex-wrap lets the action-button group (Nueva / Preferencias)
+          drop to its own line on narrow screens instead of being
+          clipped past the viewport edge — the title+badges group on
+          the left has no room to shrink (nowrap pill badges), so
+          without wrapping, total row width exceeds a ~390px phone. */}
+      <div className="relative flex flex-wrap items-start justify-between gap-3">
         <div className="flex items-center gap-3">
           <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-white/10">
             <Sparkles className="size-5" />

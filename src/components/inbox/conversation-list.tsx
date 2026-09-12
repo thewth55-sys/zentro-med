@@ -499,13 +499,18 @@ function ConversationItem({
       {/* Content */}
       <div className="min-w-0 flex-1">
         <div className="flex items-center justify-between gap-2">
-          <span className="truncate text-sm font-medium text-foreground">
+          <span className="min-w-0 truncate text-sm font-medium text-foreground">
             {displayName}
           </span>
           <span className="shrink-0 text-[10px] text-muted-foreground">{timeAgo}</span>
         </div>
         <div className="mt-0.5 flex items-center justify-between gap-2">
-          <p className="truncate text-xs text-muted-foreground">
+          {/* min-w-0 is required here — a flex item's default min-width
+              is `auto`, which for nowrap text (part of `truncate`)
+              resolves to its full single-line content width, so
+              `truncate` never actually engages without it and the text
+              gets clipped by the screen edge instead of its own box. */}
+          <p className="min-w-0 truncate text-xs text-muted-foreground">
             {conversation.last_message_text || t("noMessagesYet")}
           </p>
           <div className="flex shrink-0 items-center gap-1.5">

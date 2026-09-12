@@ -890,10 +890,16 @@ export function ContactDetailView({ contactId }: ContactDetailViewProps) {
                 sub-componente se reescribe, solo cambia cómo se navega a
                 ellos (mismo principio que el sidebar agrupado). */}
             <Tabs defaultValue={initialGroup} className="flex flex-col">
-              <div className="mx-4 mt-3">
+              <div className="mx-4 mt-3 overflow-x-auto">
                 {/* Pastilla segmentada (mockup) en vez del estilo de
                     subrayado usado por las sub-pestañas de cada grupo —
-                    el variant "default" de Tabs ya es exactamente esto. */}
+                    el variant "default" de Tabs ya es exactamente esto.
+                    overflow-x-auto arriba scopea el scroll horizontal a
+                    esta tira sola — sin esto, el ancho intrínseco de
+                    w-fit + whitespace-nowrap se filtraba al <main> del
+                    dashboard shell y hacía scrollear la página entera
+                    (tarjeta del paciente incluida) en vez de solo las
+                    pestañas. */}
                 <TabsList className="group-data-horizontal/tabs:h-auto w-fit gap-1">
                   {TAB_GROUPS.map((group) => (
                     <TabsTrigger

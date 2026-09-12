@@ -98,7 +98,15 @@ function DashboardShellInner({ children }: { children: React.ReactNode }) {
           {/* Thinner horizontal padding on mobile so cards have room to
               breathe; extra bottom padding on mobile so content doesn't
               end up hidden behind the fixed MobileTabBar. */}
-          <main className="flex-1 overflow-y-auto p-4 pb-20 sm:p-6 lg:pb-6 [scrollbar-width:thin] [scrollbar-color:var(--border)_transparent] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-border">
+          {/* overflow-x-hidden is defense-in-depth: with only overflow-y
+              set, CSS resolves the other axis to `auto`, so any
+              descendant that's ever too wide (a non-wrapping tab strip,
+              a wide table, ...) turns this into a page-wide horizontal
+              scroll container instead of just clipping. A component
+              that genuinely needs horizontal scroll should scope its
+              own overflow-x-auto internally (see contact-detail-view's
+              tab strip) rather than relying on this leaking through. */}
+          <main className="flex-1 overflow-x-hidden overflow-y-auto p-4 pb-20 sm:p-6 lg:pb-6 [scrollbar-width:thin] [scrollbar-color:var(--border)_transparent] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-border">
             {children}
           </main>
         </div>
