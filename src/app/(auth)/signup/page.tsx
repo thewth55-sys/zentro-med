@@ -16,7 +16,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { CheckCircle, Eye, EyeOff, UsersRound } from "lucide-react";
+import { ArrowRight, Check, CheckCircle, Eye, EyeOff, ShieldCheck, UsersRound } from "lucide-react";
 import { getPasswordStrengthError } from "@/lib/password-strength";
 import { ACCOUNT_SPECIALTIES, SPECIALTY_LABELS, DENTAL_SPECIALTY, type AccountSpecialty } from "@/lib/specialties";
 import { COUNTRY_DIAL_CODES, DEFAULT_COUNTRY_DIAL_CODE } from "@/lib/country-dial-codes";
@@ -103,6 +103,38 @@ function SignupPageInner() {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const supabase = createClient();
+
+  // 2-step wizard (visual redesign matching the "Autenticación Zentro
+  // Med" mockup's paso1/paso2) — only for the plain signup path. The
+  // invited-member path (fewer fields, no clinic data) keeps its
+  // original single centered card, unchanged.
+  const [step, setStep] = useState<1 | 2>(1);
+
+  function handleContinue(e: React.FormEvent) {
+    e.preventDefault();
+    setError(null);
+
+    if (!fullName.trim()) return;
+    if (!licenseNumber.trim()) {
+      setError(t("licenseNumberRequired"));
+      return;
+    }
+    const strengthError = getPasswordStrengthError(password);
+    if (strengthError) {
+      setError(t(`passwordRule_${strengthError}` as Parameters<typeof t>[0]));
+      return;
+    }
+    if (password !== confirmPassword) {
+      setError(t("passwordMismatch"));
+      return;
+    }
+    const digitsOnlyPhone = phoneNumber.replace(/\D/g, "");
+    if (!digitsOnlyPhone) {
+      setError(t("phoneRequired"));
+      return;
+    }
+    setStep(2);
+  }
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -280,384 +312,662 @@ function SignupPageInner() {
     );
   }
 
-  return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4">
-      <Card className="w-full max-w-md border-border bg-card">
-        <CardHeader className="items-center text-center">
-          <div className="mb-2 flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10">
-            {inviteToken ? (
+  // ------------------------------------------------------------
+  // Invited-member path — unchanged single centered card (fewer
+  // fields, no clinic data since they're joining an existing account).
+  // ------------------------------------------------------------
+  if (inviteToken) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background px-4">
+        <Card className="w-full max-w-md border-border bg-card">
+          <CardHeader className="items-center text-center">
+            <div className="mb-2 flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10">
               <UsersRound className="h-6 w-6 text-primary" />
-            ) : (
-              // eslint-disable-next-line @next/next/no-img-element -- static brand asset
-              <img src="/zentro-isotipo.png" alt="" className="h-7 w-7" />
-            )}
+            </div>
+            <CardTitle className="text-xl text-foreground">{t("titleInvite")}</CardTitle>
+            <CardDescription className="text-muted-foreground">{t("descInvite")}</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSignup} className="flex flex-col gap-4">
+              {error && (
+                <div className="rounded-lg border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-400">
+                  {error}
+                </div>
+              )}
+
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="fullName" className="text-muted-foreground">
+                  {t("fullNameLabel")}
+                </Label>
+                <Input
+                  id="fullName"
+                  type="text"
+                  placeholder={t("fullNamePlaceholder")}
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  required
+                  className="border-border bg-muted text-foreground placeholder:text-muted-foreground focus-visible:border-primary focus-visible:ring-primary/20"
+                />
+              </div>
+
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="licenseNumber" className="text-muted-foreground">
+                  {t("licenseNumberLabel")}
+                </Label>
+                <Input
+                  id="licenseNumber"
+                  type="text"
+                  placeholder={t("licenseNumberPlaceholder")}
+                  value={licenseNumber}
+                  onChange={(e) => setLicenseNumber(e.target.value)}
+                  required
+                  className="border-border bg-muted text-foreground placeholder:text-muted-foreground focus-visible:border-primary focus-visible:ring-primary/20"
+                />
+                <p className="text-xs text-muted-foreground">{t("licenseNumberHint")}</p>
+              </div>
+
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="email" className="text-muted-foreground">
+                  {t("emailLabel")}
+                </Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder={t("emailPlaceholder")}
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  className="border-border bg-muted text-foreground placeholder:text-muted-foreground focus-visible:border-primary focus-visible:ring-primary/20"
+                />
+              </div>
+
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="password" className="text-muted-foreground">
+                  {t("passwordLabel")}
+                </Label>
+                <div className="relative">
+                  <Input
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    placeholder={t("passwordPlaceholder")}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    className="border-border bg-muted text-foreground placeholder:text-muted-foreground focus-visible:border-primary focus-visible:ring-primary/20 pr-10"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((v) => !v)}
+                    aria-label={showPassword ? t("hidePassword") : t("showPassword")}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                  </button>
+                </div>
+                <p className="text-xs text-muted-foreground">{t("passwordHint")}</p>
+              </div>
+
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="confirmPassword" className="text-muted-foreground">
+                  {t("confirmPasswordLabel")}
+                </Label>
+                <div className="relative">
+                  <Input
+                    id="confirmPassword"
+                    type={showConfirmPassword ? "text" : "password"}
+                    placeholder={t("confirmPasswordPlaceholder")}
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    required
+                    className="border-border bg-muted text-foreground placeholder:text-muted-foreground focus-visible:border-primary focus-visible:ring-primary/20 pr-10"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword((v) => !v)}
+                    aria-label={showConfirmPassword ? t("hidePassword") : t("showPassword")}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    {showConfirmPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-2">
+                <div className="flex items-center gap-2">
+                  <Checkbox
+                    id="acceptedTerms"
+                    checked={acceptedTerms}
+                    onCheckedChange={(checked) => setAcceptedTerms(checked === true)}
+                  />
+                  <Label htmlFor="acceptedTerms" className="text-sm font-normal text-muted-foreground">
+                    {t.rich("acceptTermsOnly", {
+                      terms: (chunks: React.ReactNode) => (
+                        <a href="/terminos" target="_blank" rel="noreferrer" className="text-primary hover:text-primary/80 underline">
+                          {chunks}
+                        </a>
+                      ),
+                    })}
+                  </Label>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Checkbox
+                    id="acceptedPrivacy"
+                    checked={acceptedPrivacy}
+                    onCheckedChange={(checked) => setAcceptedPrivacy(checked === true)}
+                  />
+                  <Label htmlFor="acceptedPrivacy" className="text-sm font-normal text-muted-foreground">
+                    {t.rich("acceptPrivacyOnly", {
+                      privacy: (chunks: React.ReactNode) => (
+                        <a href="https://zentrolabs.com/privacidad.html" target="_blank" rel="noreferrer" className="text-primary hover:text-primary/80 underline">
+                          {chunks}
+                        </a>
+                      ),
+                    })}
+                  </Label>
+                </div>
+              </div>
+
+              <Button
+                type="submit"
+                disabled={loading}
+                className="mt-2 h-10 w-full bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+              >
+                {loading ? t("creatingAccount") : t("createAccount")}
+              </Button>
+            </form>
+
+            <p className="mt-6 text-center text-sm text-muted-foreground">
+              {t("haveAccount")}{" "}
+              <Link href={`/login?invite=${encodeURIComponent(inviteToken)}`} className="text-primary hover:text-primary/80">
+                {t("signIn")}
+              </Link>
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // ------------------------------------------------------------
+  // Plain signup — 2-step wizard, split panel (matches the
+  // "Autenticación Zentro Med" mockup's paso1/paso2). Fixed brand
+  // palette (not the app's selectable theme tokens) — same choice
+  // already made for /terminos and the marketing pages, since this
+  // is a pre-auth brand surface, not an in-app screen.
+  // ------------------------------------------------------------
+  const asideCopy =
+    step === 1
+      ? {
+          kicker: t("asideKicker1"),
+          title: t("asideTitle1"),
+          text: t("asideText1"),
+          bullets: [t("asideBullet1_1"), t("asideBullet1_2"), t("asideBullet1_3")],
+        }
+      : {
+          kicker: t("asideKicker2"),
+          title: t("asideTitle2"),
+          text: t("asideText2"),
+          bullets: [t("asideBullet2_1"), t("asideBullet2_2"), t("asideBullet2_3")],
+        };
+
+  const fieldClass =
+    "h-[50px] rounded-[13px] border border-[#D6DEDA] bg-white px-4 text-[15px] text-[#0C1B14] outline-none placeholder:text-[#8A9A92] focus-visible:border-[#0E7C4A] focus-visible:ring-4 focus-visible:ring-[#0E7C4A]/10";
+  const selectClass =
+    "h-[50px] rounded-[13px] border border-[#D6DEDA] bg-white px-4 text-[15px] text-[#0C1B14] outline-none focus-visible:border-[#0E7C4A]";
+  const labelClass = "text-[13px] font-semibold text-[#26382E]";
+
+  return (
+    <div className="flex min-h-screen bg-[#F7F9F8]">
+      {/* PANEL IZQUIERDO */}
+      <aside className="relative hidden w-[420px] shrink-0 flex-col overflow-hidden bg-[#0B2A1E] p-10 lg:flex xl:w-[440px]">
+        <div
+          className="pointer-events-none absolute -bottom-56 -left-36 h-[600px] w-[600px] rounded-full"
+          style={{ background: "radial-gradient(ellipse at center, rgba(34,169,108,0.34) 0%, transparent 66%)" }}
+        />
+        <div className="relative flex shrink-0 items-center gap-2.5">
+          {/* eslint-disable-next-line @next/next/no-img-element -- static brand asset */}
+          <img src="/zentro-isotipo.png" alt="" className="h-7 w-7" />
+          <span className="text-[17px] font-semibold tracking-tight text-white">Zentro Med</span>
+        </div>
+
+        <div className="relative mt-auto pt-8">
+          <div className="font-mono text-[11px] font-semibold tracking-[0.09em] text-[#7BE3A8]">{asideCopy.kicker}</div>
+          <h2 className="mt-3.5 mb-3 text-[28px] font-semibold leading-[1.12] tracking-tight text-white text-balance">
+            {asideCopy.title}
+          </h2>
+          <p className="text-[15px] leading-relaxed text-[#A8CDBA] text-balance">{asideCopy.text}</p>
+
+          <div className="mt-6 flex flex-col gap-px overflow-hidden rounded-2xl border border-white/10 bg-white/10">
+            {asideCopy.bullets.map((bullet) => (
+              <div key={bullet} className="flex items-start gap-3 bg-white/[0.04] px-4 py-3.5">
+                <Check className="mt-0.5 size-3.5 shrink-0 text-[#7BE3A8]" strokeWidth={3} />
+                <span className="text-sm leading-snug text-[#D9EDE2]">{bullet}</span>
+              </div>
+            ))}
           </div>
-          <CardTitle className="text-xl text-foreground">
-            {inviteToken ? t("titleInvite") : t("title")}
-          </CardTitle>
-          <CardDescription className="text-muted-foreground">
-            {inviteToken ? t("descInvite") : t("desc")}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSignup} className="flex flex-col gap-4">
+        </div>
+
+        <div className="relative mt-auto shrink-0 pt-7">
+          <div className="flex items-start gap-2.5 border-t border-white/10 pt-5">
+            <ShieldCheck className="mt-0.5 size-4 shrink-0 text-[#7BE3A8]" />
+            <span className="text-xs leading-relaxed text-[#7FA893]">{t("asideLegal")}</span>
+          </div>
+        </div>
+      </aside>
+
+      {/* PANEL DERECHO */}
+      <main className="relative flex flex-1 flex-col overflow-hidden">
+        <div className="flex h-[68px] shrink-0 items-center gap-3.5 px-6 sm:px-10">
+          <span className="text-[13.5px] text-[#5B6B62]">{t("haveAccount")}</span>
+          <Link
+            href="/login"
+            className="rounded-full border border-[#D6DEDA] bg-white px-4 py-2 text-[13.5px] font-semibold text-[#0C1B14] hover:border-[#0E7C4A] hover:text-[#0A5C37]"
+          >
+            {t("signIn")}
+          </Link>
+        </div>
+
+        <div className="relative flex flex-1 flex-col overflow-auto px-6 pb-10 sm:px-10">
+          <div className="mx-auto w-full max-w-[600px]">
+            {/* Stepper */}
+            <div className="mb-6 flex items-center gap-2.5">
+              {[
+                { n: 1, label: t("stepIdentityLabel") },
+                { n: 2, label: t("stepClinicLabel") },
+              ].map((s, i) => {
+                const done = s.n < step;
+                const now = s.n === step;
+                return (
+                  <div key={s.n} className="flex items-center gap-2.5">
+                    <span
+                      className={`flex size-[25px] shrink-0 items-center justify-center rounded-full border-[1.5px] font-mono text-[11.5px] font-semibold ${
+                        done
+                          ? "border-[#0E7C4A] bg-[#0E7C4A] text-white"
+                          : now
+                            ? "border-[#0E7C4A] bg-[#F4FAF6] text-[#0A5C37]"
+                            : "border-[#DCE4E0] bg-transparent text-[#8A9A92]"
+                      }`}
+                    >
+                      {done ? "✓" : s.n}
+                    </span>
+                    <span
+                      className={`whitespace-nowrap text-[13px] ${now ? "font-semibold text-[#0C1B14]" : done ? "font-medium text-[#0A5C37]" : "font-medium text-[#8A9A92]"}`}
+                    >
+                      {s.label}
+                    </span>
+                    {i === 0 && <span className="h-[1.5px] w-[18px] bg-[#DCE4E0]" />}
+                  </div>
+                );
+              })}
+            </div>
+
             {error && (
-              <div className="rounded-lg border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-400">
+              <div className="mb-4 rounded-lg border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-600">
                 {error}
               </div>
             )}
 
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="fullName" className="text-muted-foreground">
-                {t("fullNameLabel")}
-              </Label>
-              <Input
-                id="fullName"
-                type="text"
-                placeholder={t("fullNamePlaceholder")}
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-                required
-                className="border-border bg-muted text-foreground placeholder:text-muted-foreground focus-visible:border-primary focus-visible:ring-primary/20"
-              />
-            </div>
+            {/* PASO 1 · IDENTIDAD PROFESIONAL */}
+            {step === 1 && (
+              <form onSubmit={handleContinue} className="flex flex-col gap-4">
+                <div>
+                  <h1 className="mb-2.5 text-[34px] font-semibold leading-tight tracking-tight text-[#0C1B14]">
+                    {t("step1Title")}
+                  </h1>
+                  <p className="mb-1 text-[16px] leading-snug text-[#5B6B62] text-balance">{t("step1Desc")}</p>
+                </div>
 
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="licenseNumber" className="text-muted-foreground">
-                {t("licenseNumberLabel")}
-              </Label>
-              <Input
-                id="licenseNumber"
-                type="text"
-                placeholder={t("licenseNumberPlaceholder")}
-                value={licenseNumber}
-                onChange={(e) => setLicenseNumber(e.target.value)}
-                required
-                className="border-border bg-muted text-foreground placeholder:text-muted-foreground focus-visible:border-primary focus-visible:ring-primary/20"
-              />
-              <p className="text-xs text-muted-foreground">{t("licenseNumberHint")}</p>
-            </div>
+                <div className="flex flex-col gap-2">
+                  <Label htmlFor="fullName" className={labelClass}>
+                    {t("fullNameLabel")}
+                  </Label>
+                  <Input
+                    id="fullName"
+                    type="text"
+                    placeholder={t("fullNamePlaceholder")}
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    required
+                    className={fieldClass}
+                  />
+                </div>
 
-            {!inviteToken && (
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="brandName" className="text-muted-foreground">
-                  {t("brandNameLabel")}{" "}
-                  <span className="text-xs font-normal text-muted-foreground/70">
-                    {t("optional")}
+                {/* Tarjeta de registro profesional — estilo del mockup,
+                    sin ninguna validación en vivo (no hay integración con
+                    RNPE/ReTHUS): es solo tratamiento visual. */}
+                <div className="rounded-2xl border border-[#0E7C4A] bg-white p-5 shadow-[0_0_0_3px_rgba(14,124,74,0.08)]">
+                  <span className="font-mono text-[11px] font-semibold tracking-[0.07em] text-[#0A5C37]">
+                    {t("licenseCardKicker")}
                   </span>
-                </Label>
-                <Input
-                  id="brandName"
-                  type="text"
-                  placeholder={t("brandNamePlaceholder")}
-                  value={brandName}
-                  onChange={(e) => setBrandName(e.target.value)}
-                  className="border-border bg-muted text-foreground placeholder:text-muted-foreground focus-visible:border-primary focus-visible:ring-primary/20"
-                />
-                <p className="text-xs text-muted-foreground">{t("brandNameHint")}</p>
-              </div>
-            )}
+                  <div className="mt-3.5 grid grid-cols-2 gap-3.5">
+                    <div className="flex flex-col gap-1.5">
+                      <Label htmlFor="accountCountry" className={labelClass}>
+                        {t("countryLabel")}
+                      </Label>
+                      <select
+                        id="accountCountry"
+                        value={country}
+                        onChange={(e) => {
+                          setCountry(e.target.value as AccountCountry);
+                          setCountryManuallySet(true);
+                        }}
+                        className={selectClass}
+                      >
+                        {ACCOUNT_COUNTRIES.map((value) => (
+                          <option key={value} value={value}>
+                            {COUNTRY_LABELS[value]}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="flex flex-col gap-1.5">
+                      <Label htmlFor="specialty" className={labelClass}>
+                        {t("specialtyLabel")}
+                      </Label>
+                      <select
+                        id="specialty"
+                        value={specialty}
+                        onChange={(e) => setSpecialty(e.target.value as AccountSpecialty)}
+                        className={selectClass}
+                      >
+                        {ACCOUNT_SPECIALTIES.map((value) => (
+                          <option key={value} value={value}>
+                            {SPECIALTY_LABELS[value]}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                  <div className="mt-3.5 flex flex-col gap-1.5">
+                    <Label htmlFor="licenseNumber" className={labelClass}>
+                      {t("licenseNumberLabel")}
+                    </Label>
+                    <Input
+                      id="licenseNumber"
+                      type="text"
+                      placeholder={t("licenseNumberPlaceholder")}
+                      value={licenseNumber}
+                      onChange={(e) => setLicenseNumber(e.target.value)}
+                      required
+                      className={`${fieldClass} font-mono font-semibold tracking-wide`}
+                    />
+                    <p className="text-xs text-[#5B6B62]">{t("licenseNumberHint")}</p>
+                  </div>
+                </div>
 
-            {!inviteToken && (
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="specialty" className="text-muted-foreground">
-                  {t("specialtyLabel")}
-                </Label>
-                <select
-                  id="specialty"
-                  value={specialty}
-                  onChange={(e) => setSpecialty(e.target.value as AccountSpecialty)}
-                  className="h-10 rounded-md border border-border bg-muted px-3 text-sm text-foreground focus-visible:border-primary focus-visible:outline-none"
+                <div className="flex flex-col gap-2">
+                  <Label htmlFor="email" className={labelClass}>
+                    {t("emailLabel")}
+                  </Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder={t("emailPlaceholder")}
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    className={fieldClass}
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-3.5">
+                  <div className="flex flex-col gap-2">
+                    <Label htmlFor="password" className={labelClass}>
+                      {t("passwordLabel")}
+                    </Label>
+                    <div className="relative">
+                      <Input
+                        id="password"
+                        type={showPassword ? "text" : "password"}
+                        placeholder={t("passwordPlaceholder")}
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        required
+                        className={`${fieldClass} pr-10`}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword((v) => !v)}
+                        aria-label={showPassword ? t("hidePassword") : t("showPassword")}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 text-[#5B6B62] hover:text-[#0C1B14]"
+                      >
+                        {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                      </button>
+                    </div>
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <Label htmlFor="confirmPassword" className={labelClass}>
+                      {t("confirmPasswordLabel")}
+                    </Label>
+                    <div className="relative">
+                      <Input
+                        id="confirmPassword"
+                        type={showConfirmPassword ? "text" : "password"}
+                        placeholder={t("confirmPasswordPlaceholder")}
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        required
+                        className={`${fieldClass} pr-10`}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowConfirmPassword((v) => !v)}
+                        aria-label={showConfirmPassword ? t("hidePassword") : t("showPassword")}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 text-[#5B6B62] hover:text-[#0C1B14]"
+                      >
+                        {showConfirmPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-2">
+                  <Label htmlFor="phoneNumber" className={labelClass}>
+                    {t("phoneLabel")}
+                  </Label>
+                  <div className="flex gap-2">
+                    <select
+                      id="countryCode"
+                      value={countryCode}
+                      onChange={(e) => {
+                        const nextDialCode = e.target.value;
+                        setCountryCode(nextDialCode);
+                        if (!countryManuallySet) {
+                          const iso = COUNTRY_DIAL_CODES.find((c) => c.dialCode === nextDialCode)?.iso;
+                          setCountry(accountCountryFromDialIso(iso));
+                        }
+                      }}
+                      aria-label={t("countryCodeLabel")}
+                      className={`${selectClass} w-32 shrink-0 px-2`}
+                    >
+                      {COUNTRY_DIAL_CODES.map((c) => (
+                        <option key={c.iso} value={c.dialCode}>
+                          {c.name} {c.dialCode}
+                        </option>
+                      ))}
+                    </select>
+                    <Input
+                      id="phoneNumber"
+                      type="tel"
+                      placeholder={t("phonePlaceholder")}
+                      value={phoneNumber}
+                      onChange={(e) => setPhoneNumber(e.target.value)}
+                      required
+                      className={`${fieldClass} flex-1`}
+                    />
+                  </div>
+                  <p className="text-xs leading-relaxed text-[#5B6B62]">{t("passwordHint")}</p>
+                </div>
+
+                <Button
+                  type="submit"
+                  className="mt-1 flex h-[54px] w-full items-center justify-center gap-2.5 rounded-full bg-[#0E7C4A] text-base font-semibold text-white hover:bg-[#0A5C37]"
                 >
-                  {ACCOUNT_SPECIALTIES.map((value) => (
-                    <option key={value} value={value}>
-                      {SPECIALTY_LABELS[value]}
-                    </option>
-                  ))}
-                </select>
-              </div>
+                  {t("continueButton")}
+                  <ArrowRight className="size-4" />
+                </Button>
+              </form>
             )}
 
-            {!inviteToken && (
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="phoneNumber" className="text-muted-foreground">
-                  {t("phoneLabel")}
-                </Label>
-                <div className="flex gap-2">
-                  <select
-                    id="countryCode"
-                    value={countryCode}
-                    onChange={(e) => {
-                      const nextDialCode = e.target.value;
-                      setCountryCode(nextDialCode);
-                      if (!countryManuallySet) {
-                        const iso = COUNTRY_DIAL_CODES.find((c) => c.dialCode === nextDialCode)?.iso;
-                        setCountry(accountCountryFromDialIso(iso));
-                      }
-                    }}
-                    aria-label={t("countryCodeLabel")}
-                    className="h-10 w-28 shrink-0 rounded-md border border-border bg-muted px-2 text-sm text-foreground focus-visible:border-primary focus-visible:outline-none"
+            {/* PASO 2 · DATOS DEL CONSULTORIO */}
+            {step === 2 && (
+              <form onSubmit={handleSignup} className="flex flex-col gap-4">
+                <div>
+                  <button
+                    type="button"
+                    onClick={() => setStep(1)}
+                    className="mb-3 text-[13px] font-semibold text-[#5B6B62] hover:text-[#0A5C37]"
                   >
-                    {COUNTRY_DIAL_CODES.map((c) => (
-                      <option key={c.iso} value={c.dialCode}>
-                        {c.name} {c.dialCode}
-                      </option>
-                    ))}
-                  </select>
+                    ← {t("backButton")}
+                  </button>
+                  <h1 className="mb-2.5 text-[34px] font-semibold leading-tight tracking-tight text-[#0C1B14]">
+                    {t("step2Title")}
+                  </h1>
+                  <p className="mb-1 text-[16px] leading-snug text-[#5B6B62] text-balance">{t("step2Desc")}</p>
+                </div>
+
+                <div className="flex flex-col gap-2">
+                  <Label htmlFor="brandName" className={labelClass}>
+                    {t("brandNameLabel")} <span className="text-xs font-normal text-[#8A9A92]">{t("optional")}</span>
+                  </Label>
                   <Input
-                    id="phoneNumber"
-                    type="tel"
-                    placeholder={t("phonePlaceholder")}
-                    value={phoneNumber}
-                    onChange={(e) => setPhoneNumber(e.target.value)}
+                    id="brandName"
+                    type="text"
+                    placeholder={t("brandNamePlaceholder")}
+                    value={brandName}
+                    onChange={(e) => setBrandName(e.target.value)}
+                    className={fieldClass}
+                  />
+                  <p className="text-xs text-[#5B6B62]">{t("brandNameHint")}</p>
+                </div>
+
+                <div className="flex flex-col gap-2">
+                  <Label className={labelClass}>{t("addressLabel")}</Label>
+                  <Input
+                    id="addressLine"
+                    type="text"
+                    placeholder={t("addressLinePlaceholder")}
+                    value={addressLine}
+                    onChange={(e) => setAddressLine(e.target.value)}
                     required
-                    className="border-border bg-muted text-foreground placeholder:text-muted-foreground focus-visible:border-primary focus-visible:ring-primary/20"
+                    className={fieldClass}
+                  />
+                  <div className="grid grid-cols-2 gap-2">
+                    <Input
+                      id="addressCity"
+                      type="text"
+                      placeholder={t("addressCityPlaceholder")}
+                      value={addressCity}
+                      onChange={(e) => setAddressCity(e.target.value)}
+                      required
+                      className={fieldClass}
+                    />
+                    <Input
+                      id="addressState"
+                      type="text"
+                      placeholder={t("addressStatePlaceholder")}
+                      value={addressState}
+                      onChange={(e) => setAddressState(e.target.value)}
+                      required
+                      className={fieldClass}
+                    />
+                  </div>
+                  <Input
+                    id="addressPostalCode"
+                    type="text"
+                    placeholder={t("addressPostalCodePlaceholder")}
+                    value={addressPostalCode}
+                    onChange={(e) => setAddressPostalCode(e.target.value)}
+                    required
+                    className={`${fieldClass} w-1/2 font-mono`}
                   />
                 </div>
-              </div>
-            )}
 
-            {!inviteToken && (
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="accountCountry" className="text-muted-foreground">
-                  {t("countryLabel")}
-                </Label>
-                <select
-                  id="accountCountry"
-                  value={country}
-                  onChange={(e) => {
-                    setCountry(e.target.value as AccountCountry);
-                    setCountryManuallySet(true);
-                  }}
-                  className="h-10 rounded-md border border-border bg-muted px-3 text-sm text-foreground focus-visible:border-primary focus-visible:outline-none"
-                >
-                  {ACCOUNT_COUNTRIES.map((value) => (
-                    <option key={value} value={value}>
-                      {COUNTRY_LABELS[value]}
-                    </option>
-                  ))}
-                </select>
-                <p className="text-xs text-muted-foreground">{t("countryHint")}</p>
-              </div>
-            )}
-
-            {!inviteToken && (
-              <div className="flex flex-col gap-2">
-                <Label className="text-muted-foreground">{t("addressLabel")}</Label>
-                <Input
-                  id="addressLine"
-                  type="text"
-                  placeholder={t("addressLinePlaceholder")}
-                  value={addressLine}
-                  onChange={(e) => setAddressLine(e.target.value)}
-                  required
-                  className="border-border bg-muted text-foreground placeholder:text-muted-foreground focus-visible:border-primary focus-visible:ring-primary/20"
-                />
-                <div className="grid grid-cols-2 gap-2">
-                  <Input
-                    id="addressCity"
-                    type="text"
-                    placeholder={t("addressCityPlaceholder")}
-                    value={addressCity}
-                    onChange={(e) => setAddressCity(e.target.value)}
-                    required
-                    className="border-border bg-muted text-foreground placeholder:text-muted-foreground focus-visible:border-primary focus-visible:ring-primary/20"
-                  />
-                  <Input
-                    id="addressState"
-                    type="text"
-                    placeholder={t("addressStatePlaceholder")}
-                    value={addressState}
-                    onChange={(e) => setAddressState(e.target.value)}
-                    required
-                    className="border-border bg-muted text-foreground placeholder:text-muted-foreground focus-visible:border-primary focus-visible:ring-primary/20"
-                  />
+                <div className="rounded-2xl border border-[#E1E7E3] bg-[#FBFCFB] p-4.5">
+                  <div className="mb-3.5 flex items-center gap-2">
+                    <span className="font-mono text-[11px] font-semibold tracking-[0.07em] text-[#5B6B62]">
+                      {t("websiteLabel").toUpperCase()}
+                    </span>
+                    <span className="text-xs text-[#8A9A92]">{t("optional")}</span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="flex flex-col gap-1.5">
+                      <Label htmlFor="website" className={labelClass}>
+                        {t("websiteLabel")}
+                      </Label>
+                      <Input
+                        id="website"
+                        type="url"
+                        placeholder={t("websitePlaceholder")}
+                        value={website}
+                        onChange={(e) => setWebsite(e.target.value)}
+                        className={fieldClass}
+                      />
+                    </div>
+                    <div className="flex flex-col gap-1.5">
+                      <Label htmlFor="socialLinks" className={labelClass}>
+                        {t("socialLinksLabel")}
+                      </Label>
+                      <Input
+                        id="socialLinks"
+                        type="text"
+                        placeholder={t("socialLinksPlaceholder")}
+                        value={socialLinks}
+                        onChange={(e) => setSocialLinks(e.target.value)}
+                        className={fieldClass}
+                      />
+                    </div>
+                  </div>
                 </div>
-                <Input
-                  id="addressPostalCode"
-                  type="text"
-                  placeholder={t("addressPostalCodePlaceholder")}
-                  value={addressPostalCode}
-                  onChange={(e) => setAddressPostalCode(e.target.value)}
-                  required
-                  className="border-border bg-muted text-foreground placeholder:text-muted-foreground focus-visible:border-primary focus-visible:ring-primary/20 w-1/2"
-                />
-              </div>
-            )}
 
-            {!inviteToken && (
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="website" className="text-muted-foreground">
-                  {t("websiteLabel")}{" "}
-                  <span className="text-xs font-normal text-muted-foreground/70">
-                    {t("optional")}
-                  </span>
-                </Label>
-                <Input
-                  id="website"
-                  type="url"
-                  placeholder={t("websitePlaceholder")}
-                  value={website}
-                  onChange={(e) => setWebsite(e.target.value)}
-                  className="border-border bg-muted text-foreground placeholder:text-muted-foreground focus-visible:border-primary focus-visible:ring-primary/20"
-                />
-              </div>
-            )}
+                <div className="flex flex-col gap-2">
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      id="acceptedTerms"
+                      checked={acceptedTerms}
+                      onCheckedChange={(checked) => setAcceptedTerms(checked === true)}
+                    />
+                    <Label htmlFor="acceptedTerms" className="text-sm font-normal text-[#26382E]">
+                      {t.rich("acceptTermsOnly", {
+                        terms: (chunks: React.ReactNode) => (
+                          <a href="/terminos" target="_blank" rel="noreferrer" className="text-[#0E7C4A] underline hover:text-[#0A5C37]">
+                            {chunks}
+                          </a>
+                        ),
+                      })}
+                    </Label>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      id="acceptedPrivacy"
+                      checked={acceptedPrivacy}
+                      onCheckedChange={(checked) => setAcceptedPrivacy(checked === true)}
+                    />
+                    <Label htmlFor="acceptedPrivacy" className="text-sm font-normal text-[#26382E]">
+                      {t.rich("acceptPrivacyOnly", {
+                        privacy: (chunks: React.ReactNode) => (
+                          <a href="https://zentrolabs.com/privacidad.html" target="_blank" rel="noreferrer" className="text-[#0E7C4A] underline hover:text-[#0A5C37]">
+                            {chunks}
+                          </a>
+                        ),
+                      })}
+                    </Label>
+                  </div>
+                </div>
 
-            {!inviteToken && (
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="socialLinks" className="text-muted-foreground">
-                  {t("socialLinksLabel")}{" "}
-                  <span className="text-xs font-normal text-muted-foreground/70">
-                    {t("optional")}
-                  </span>
-                </Label>
-                <Input
-                  id="socialLinks"
-                  type="text"
-                  placeholder={t("socialLinksPlaceholder")}
-                  value={socialLinks}
-                  onChange={(e) => setSocialLinks(e.target.value)}
-                  className="border-border bg-muted text-foreground placeholder:text-muted-foreground focus-visible:border-primary focus-visible:ring-primary/20"
-                />
-              </div>
-            )}
-
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="email" className="text-muted-foreground">
-                {t("emailLabel")}
-              </Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder={t("emailPlaceholder")}
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                className="border-border bg-muted text-foreground placeholder:text-muted-foreground focus-visible:border-primary focus-visible:ring-primary/20"
-              />
-            </div>
-
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="password" className="text-muted-foreground">
-                {t("passwordLabel")}
-              </Label>
-              <div className="relative">
-                <Input
-                  id="password"
-                  type={showPassword ? "text" : "password"}
-                  placeholder={t("passwordPlaceholder")}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  className="border-border bg-muted text-foreground placeholder:text-muted-foreground focus-visible:border-primary focus-visible:ring-primary/20 pr-10"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword((v) => !v)}
-                  aria-label={showPassword ? t("hidePassword") : t("showPassword")}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                <Button
+                  type="submit"
+                  disabled={loading}
+                  className="mt-1 flex h-[54px] w-full items-center justify-center gap-2.5 rounded-full bg-[#0E7C4A] text-base font-semibold text-white hover:bg-[#0A5C37] disabled:opacity-50"
                 >
-                  {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
-                </button>
-              </div>
-              <p className="text-xs text-muted-foreground">{t("passwordHint")}</p>
-            </div>
-
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="confirmPassword" className="text-muted-foreground">
-                {t("confirmPasswordLabel")}
-              </Label>
-              <div className="relative">
-                <Input
-                  id="confirmPassword"
-                  type={showConfirmPassword ? "text" : "password"}
-                  placeholder={t("confirmPasswordPlaceholder")}
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  required
-                  className="border-border bg-muted text-foreground placeholder:text-muted-foreground focus-visible:border-primary focus-visible:ring-primary/20 pr-10"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowConfirmPassword((v) => !v)}
-                  aria-label={showConfirmPassword ? t("hidePassword") : t("showPassword")}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  {showConfirmPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
-                </button>
-              </div>
-            </div>
-
-            <div className="flex flex-col gap-2">
-              <div className="flex items-center gap-2">
-                <Checkbox
-                  id="acceptedTerms"
-                  checked={acceptedTerms}
-                  onCheckedChange={(checked) => setAcceptedTerms(checked === true)}
-                />
-                <Label htmlFor="acceptedTerms" className="text-sm font-normal text-muted-foreground">
-                  {t.rich("acceptTermsOnly", {
-                    terms: (chunks: React.ReactNode) => (
-                      <a
-                        href="/terminos"
-                        target="_blank"
-                        rel="noreferrer"
-                        className="text-primary hover:text-primary/80 underline"
-                      >
-                        {chunks}
-                      </a>
-                    ),
-                  })}
-                </Label>
-              </div>
-              <div className="flex items-center gap-2">
-                <Checkbox
-                  id="acceptedPrivacy"
-                  checked={acceptedPrivacy}
-                  onCheckedChange={(checked) => setAcceptedPrivacy(checked === true)}
-                />
-                <Label htmlFor="acceptedPrivacy" className="text-sm font-normal text-muted-foreground">
-                  {t.rich("acceptPrivacyOnly", {
-                    privacy: (chunks: React.ReactNode) => (
-                      <a
-                        href="https://zentrolabs.com/privacidad.html"
-                        target="_blank"
-                        rel="noreferrer"
-                        className="text-primary hover:text-primary/80 underline"
-                      >
-                        {chunks}
-                      </a>
-                    ),
-                  })}
-                </Label>
-              </div>
-            </div>
-
-            <Button
-              type="submit"
-              disabled={loading}
-              className="mt-2 h-10 w-full bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
-            >
-              {loading ? t("creatingAccount") : t("createAccount")}
-            </Button>
-          </form>
-
-          <p className="mt-6 text-center text-sm text-muted-foreground">
-            {t("haveAccount")}{" "}
-            <Link
-              href={
-                inviteToken
-                  ? `/login?invite=${encodeURIComponent(inviteToken)}`
-                  : "/login"
-              }
-              className="text-primary hover:text-primary/80"
-            >
-              {t("signIn")}
-            </Link>
-          </p>
-        </CardContent>
-      </Card>
+                  {loading ? t("creatingAccount") : t("createAccount")}
+                  {!loading && <ArrowRight className="size-4" />}
+                </Button>
+              </form>
+            )}
+          </div>
+        </div>
+      </main>
     </div>
   );
 }
