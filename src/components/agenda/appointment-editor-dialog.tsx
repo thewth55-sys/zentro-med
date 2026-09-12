@@ -15,6 +15,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import type { Appointment, AppointmentStatus, Contact, Doctor, Room, ServiceType } from "@/types";
@@ -63,6 +64,7 @@ export function AppointmentEditorDialog({
   const [durationMinutes, setDurationMinutes] = useState(30);
   const [status, setStatus] = useState<AppointmentStatus>("pending");
   const [notes, setNotes] = useState("");
+  const [syncToCalendar, setSyncToCalendar] = useState(true);
   const [conflictWarning, setConflictWarning] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -88,6 +90,7 @@ export function AppointmentEditorDialog({
       );
       setStatus(appt.status);
       setNotes(appt.notes ?? "");
+      setSyncToCalendar(appt.sync_to_calendar);
       setContact(appt.contact ?? null);
     } else {
       setServiceTypeId("");
@@ -99,6 +102,7 @@ export function AppointmentEditorDialog({
       );
       setStatus("pending");
       setNotes("");
+      setSyncToCalendar(true);
       setContact(null);
       if (draft.contactId) {
         void supabase
@@ -212,6 +216,7 @@ export function AppointmentEditorDialog({
             end_at: end.toISOString(),
             status,
             notes: notes || null,
+            sync_to_calendar: syncToCalendar,
           }),
         });
         if (!res.ok) throw new Error("update failed");
@@ -228,6 +233,7 @@ export function AppointmentEditorDialog({
             start_at: start.toISOString(),
             end_at: end.toISOString(),
             notes: notes || null,
+            sync_to_calendar: syncToCalendar,
           }),
         });
         if (!res.ok) throw new Error("create failed");
@@ -466,6 +472,18 @@ export function AppointmentEditorDialog({
               onChange={(e) => setNotes(e.target.value)}
               className="h-8 border-border bg-muted text-xs text-foreground disabled:opacity-60"
             />
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Checkbox
+              id="syncToCalendar"
+              checked={syncToCalendar}
+              disabled={!canEdit}
+              onCheckedChange={(checked) => setSyncToCalendar(checked === true)}
+            />
+            <Label htmlFor="syncToCalendar" className="text-xs font-normal text-muted-foreground">
+              {tAppt("syncToCalendar")}
+            </Label>
           </div>
 
           {conflictWarning && (

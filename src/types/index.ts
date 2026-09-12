@@ -548,6 +548,7 @@ export interface Appointment {
   source: AppointmentSource;
   cal_com_booking_uid?: string | null;
   google_calendar_event_id?: string | null;
+  sync_to_calendar: boolean;
   notes?: string | null;
   created_by?: string | null;
   created_at: string;

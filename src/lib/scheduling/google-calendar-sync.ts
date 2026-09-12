@@ -33,6 +33,7 @@ interface SyncableAppointment {
   end_at: string;
   status: string;
   notes: string | null;
+  sync_to_calendar: boolean;
 }
 
 interface ConnectedProfile {
@@ -66,6 +67,15 @@ export async function syncAppointmentToGoogle(
   appointment: SyncableAppointment,
 ): Promise<void> {
   try {
+    // Per-appointment opt-out (136_appointment_calendar_sync_toggle.sql):
+    // clean up any events already synced before this was turned off,
+    // so re-enabling later starts fresh instead of trying to update an
+    // event that no longer exists.
+    if (!appointment.sync_to_calendar) {
+      await removeAppointmentFromGoogle(supabase, accountId, appointment.id);
+      return;
+    }
+
     const connected = await getConnectedProfiles(supabase, accountId);
     if (connected.length === 0) return;
 
@@ -159,7 +169,7 @@ export async function removeAppointmentFromGoogle(
   try {
     const { data: links } = await supabase
       .from("appointment_google_events")
-      .select("user_id, google_event_id")
+      .select("id, user_id, google_event_id")
       .eq("appointment_id", appointmentId);
     if (!links || links.length === 0) return;
 
@@ -168,17 +178,25 @@ export async function removeAppointmentFromGoogle(
 
     for (const link of links) {
       const profile = byUserId.get(link.user_id);
-      if (!profile) continue;
-      try {
-        const accessToken = await refreshAccessToken(decrypt(profile.google_refresh_token));
-        const calendarId = profile.google_calendar_id || "primary";
-        await deleteCalendarEvent(accessToken, calendarId, link.google_event_id);
-      } catch (err) {
-        console.error(
-          `[removeAppointmentFromGoogle] failed for user ${link.user_id}:`,
-          err,
-        );
+      if (profile) {
+        try {
+          const accessToken = await refreshAccessToken(decrypt(profile.google_refresh_token));
+          const calendarId = profile.google_calendar_id || "primary";
+          await deleteCalendarEvent(accessToken, calendarId, link.google_event_id);
+        } catch (err) {
+          console.error(
+            `[removeAppointmentFromGoogle] failed for user ${link.user_id}:`,
+            err,
+          );
+        }
       }
+      // Always drop the link row, even on a failed remote delete or a
+      // disconnected profile — a stale row otherwise makes a future
+      // re-sync try to update an event that's gone (called both when
+      // the appointment itself is about to be hard-deleted, where this
+      // is redundant with the cascade, and when sync is toggled off on
+      // a still-live appointment, where it's required).
+      await supabase.from("appointment_google_events").delete().eq("id", link.id);
     }
   } catch (err) {
     console.error("[removeAppointmentFromGoogle] failed (never throws):", err);

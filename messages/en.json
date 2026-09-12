@@ -1254,7 +1254,8 @@
       "updated": "Appointment updated",
       "cancelled": "Appointment cancelled",
       "saveFailed": "Failed to save appointment",
-      "conflictGoogleCalendar": "The doctor already has a Google Calendar event at that time."
+      "conflictGoogleCalendar": "The doctor already has a Google Calendar event at that time.",
+      "syncToCalendar": "Sync with Google Calendar"
     }
   },
   "Agenda": {

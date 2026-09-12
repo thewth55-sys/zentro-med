@@ -12,6 +12,7 @@ const PATCHABLE_FIELDS = [
   'end_at',
   'status',
   'notes',
+  'sync_to_calendar',
 ] as const;
 
 /**
@@ -80,6 +81,7 @@ export async function PATCH(
       end_at: data.end_at,
       status: data.status,
       notes: data.notes,
+      sync_to_calendar: data.sync_to_calendar,
     });
 
     return NextResponse.json({ appointment: data });

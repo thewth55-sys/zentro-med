@@ -38,6 +38,7 @@ function appointment(doctorId: string, start: string, end: string, status: Appoi
     end_at: end,
     status,
     source: "manual",
+    sync_to_calendar: true,
     created_at: "2026-01-01T00:00:00Z",
   };
 }

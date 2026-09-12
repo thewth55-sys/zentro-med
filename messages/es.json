@@ -1254,7 +1254,8 @@
       "updated": "Cita actualizada",
       "cancelled": "Cita cancelada",
       "saveFailed": "Error al guardar la cita",
-      "conflictGoogleCalendar": "El doctor ya tiene un evento en su Google Calendar a esa hora."
+      "conflictGoogleCalendar": "El doctor ya tiene un evento en su Google Calendar a esa hora.",
+      "syncToCalendar": "Sincronizar con Google Calendar"
     }
   },
   "Agenda": {

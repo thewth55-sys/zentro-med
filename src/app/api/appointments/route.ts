@@ -82,6 +82,7 @@ export async function POST(request: Request) {
         status,
         source: 'manual',
         notes: body.notes || null,
+        sync_to_calendar: body.sync_to_calendar === false ? false : true,
         created_by: userId,
       })
       .select('*, doctor:doctors(*), room:rooms(*), service_type:service_types(*)')
@@ -100,6 +101,7 @@ export async function POST(request: Request) {
       end_at: data.end_at,
       status: data.status,
       notes: data.notes,
+      sync_to_calendar: data.sync_to_calendar,
     });
 
     return NextResponse.json({ appointment: data }, { status: 201 });
