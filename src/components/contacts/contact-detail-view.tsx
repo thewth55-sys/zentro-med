@@ -104,7 +104,6 @@ const TAB_GROUPS = [
     // no lo reemplaza.
     children: [
       { key: 'medical', labelKey: 'tabs.medical', icon: Stethoscope, requiresOdontogram: false },
-      { key: 'clinicalHistory', labelKey: 'tabs.clinicalHistory', icon: FileHeart, requiresOdontogram: false },
       { key: 'evolutionNotes', labelKey: 'tabs.evolutionNotes', icon: NotebookPen, requiresOdontogram: false },
       { key: 'appointments', labelKey: 'tabs.appointments', icon: CalendarClock, requiresOdontogram: false },
       { key: 'notes', labelKey: 'tabs.notes', icon: StickyNote, requiresOdontogram: false },
@@ -129,6 +128,16 @@ const TAB_GROUPS = [
       { key: 'files', labelKey: 'tabs.files', icon: FileSignature, requiresOdontogram: false },
       { key: 'custom', labelKey: 'tabs.custom', icon: Settings2, requiresOdontogram: false },
     ],
+  },
+  {
+    // Grupo propio en vez de sub-pestaña de Clínico — mismo
+    // razonamiento que Receta (ver abajo): llenar/firmar la historia
+    // clínica es una acción independiente, no algo que deba competir
+    // por espacio con Notas/Admisión.
+    key: 'historiaClinica',
+    labelKey: 'groupHistoriaClinica',
+    icon: FileHeart,
+    children: [{ key: 'clinicalHistory', labelKey: 'tabs.clinicalHistory', icon: FileHeart, requiresOdontogram: false }],
   },
   {
     // Grupo propio en vez de sub-pestaña de Clínico — acceso directo
@@ -947,11 +956,6 @@ export function ContactDetailView({ contactId }: ContactDetailViewProps) {
                           <TabsContent value="medical">
                             {contactId && <MedicalTab contactId={contactId} />}
                           </TabsContent>
-                          <TabsContent value="clinicalHistory">
-                            {contactId && (
-                              <ClinicalHistoryTab contactId={contactId} patientProfileId={patientProfileId} />
-                            )}
-                          </TabsContent>
                           <TabsContent value="evolutionNotes">
                             {contactId && (
                               <SoapNotesTab contactId={contactId} patientProfileId={patientProfileId} />
@@ -1158,6 +1162,15 @@ export function ContactDetailView({ contactId }: ContactDetailViewProps) {
                             )}
                           </TabsContent>
                         </>
+                      )}
+
+                      {/* Historia clínica */}
+                      {group.key === 'historiaClinica' && (
+                        <TabsContent value="clinicalHistory">
+                          {contactId && (
+                            <ClinicalHistoryTab contactId={contactId} patientProfileId={patientProfileId} />
+                          )}
+                        </TabsContent>
                       )}
 
                       {/* Receta */}

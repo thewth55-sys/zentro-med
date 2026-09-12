@@ -34,6 +34,8 @@ import type { AccountCountry } from "@/lib/country";
 import {
   HISTORY_SECTIONS,
   computeCompletion,
+  computeSectionCompletion,
+  getRetentionInfo,
   fieldLabel,
   fieldRequired,
 } from "@/lib/clinical/history-sections";
@@ -183,34 +185,56 @@ export function ClinicalHistoryTab({ patientProfileId }: ClinicalHistoryTabProps
     <div className="grid gap-4 lg:grid-cols-[1fr_300px] lg:items-start">
       <div className="flex flex-col gap-4">
         <Card>
-          <CardContent className="flex items-center gap-4 p-4">
-            <div className="min-w-0">
-              <p className="text-sm font-semibold">{t("title")}</p>
-              <p className="text-xs text-muted-foreground">
-                {isSigned ? t("normaSignedTexto") : t("normaTexto")}
-              </p>
-            </div>
-            <div className="ml-auto flex items-center gap-3">
-              {isSigned ? (
-                <Badge variant="success">{t("signedBadge")}</Badge>
-              ) : (
-                <div className="text-right">
-                  <div className="text-[10px] font-semibold tracking-wide text-muted-foreground uppercase">
-                    {t("completedLabel")}
-                  </div>
-                  <div className="text-sm font-bold text-primary">{percent}%</div>
-                </div>
-              )}
+          <CardContent className="p-4">
+            <div className="flex items-center gap-4">
+              <div className="min-w-0">
+                <p className="text-sm font-semibold">{t("title")}</p>
+                <p className="text-xs text-muted-foreground">
+                  {isSigned ? t("normaSignedTexto") : t("normaTexto")}
+                </p>
+              </div>
+              <div className="ml-auto flex items-center gap-3">
+                {isSigned ? (
+                  <Badge variant="success">{t("signedBadge")}</Badge>
+                ) : (
+                  <>
+                    <div className="text-right">
+                      <div className="text-[10px] font-semibold tracking-wide text-muted-foreground uppercase">
+                        {t("completedLabel")}
+                      </div>
+                      <div className="text-sm font-bold text-primary">{percent}%</div>
+                    </div>
+                    <div className="h-1.5 w-28 overflow-hidden rounded-full bg-muted">
+                      <div
+                        className="h-full rounded-full bg-primary transition-all"
+                        style={{ width: `${percent}%` }}
+                      />
+                    </div>
+                  </>
+                )}
+              </div>
             </div>
           </CardContent>
         </Card>
 
-        {HISTORY_SECTIONS.map((section) => (
+        {HISTORY_SECTIONS.map((section, index) => {
+          const { complete: sectionComplete, missingCount } = computeSectionCompletion(section, sections, country);
+          return (
           <Card key={section.key}>
             <CardContent className="p-4">
-              <div className="mb-3">
-                <p className="text-sm font-semibold">{section.title}</p>
-                <p className="text-xs text-muted-foreground">{section.metaByCountry[country]}</p>
+              <div className="mb-3 flex items-center gap-3">
+                <span className="flex size-6 shrink-0 items-center justify-center rounded-md bg-primary/10 font-mono text-[10px] font-semibold text-primary">
+                  {String(index + 1).padStart(2, "0")}
+                </span>
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold">{section.title}</p>
+                  <p className="text-xs text-muted-foreground">{section.metaByCountry[country]}</p>
+                </div>
+                {!isSigned && (
+                  <Badge variant={sectionComplete ? "success" : "warning"} className="ml-auto shrink-0">
+                    {sectionComplete ? t("sectionComplete") : t("sectionMissing", { count: missingCount })}
+                  </Badge>
+                )}
               </div>
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
                 {section.fields.map((field) => {
@@ -264,7 +288,8 @@ export function ClinicalHistoryTab({ patientProfileId }: ClinicalHistoryTabProps
               </div>
             </CardContent>
           </Card>
-        ))}
+          );
+        })}
 
         {!isSigned && (
           <Card>
@@ -344,6 +369,20 @@ export function ClinicalHistoryTab({ patientProfileId }: ClinicalHistoryTabProps
             </Card>
           </>
         )}
+
+        <Card>
+          <CardContent className="p-4">
+            <h3 className="mb-3 text-sm font-semibold">{t("retentionTitle")}</h3>
+            <div className="flex flex-col gap-2">
+              {getRetentionInfo(country).map((row) => (
+                <div key={row.label} className="flex items-center justify-between gap-3 text-xs">
+                  <span className="text-muted-foreground">{row.label}</span>
+                  <span className="font-medium">{row.value}</span>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

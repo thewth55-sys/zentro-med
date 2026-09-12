@@ -607,6 +607,7 @@
       "groupClinico": "Clínico",
       "groupFinanciero": "Financiero",
       "groupDocumentos": "Documentos",
+      "groupHistoriaClinica": "Historia clínica",
       "groupReceta": "Receta",
       "editContactBtn": "Editar contacto",
       "deleteContactBtn": "Eliminar paciente",
@@ -719,7 +720,10 @@
         "selectDoctor": "Selecciona un médico",
         "signAndClose": "Firmar y cerrar",
         "signedSuccess": "Historia clínica firmada y cerrada",
-        "signFailed": "No se pudo firmar la historia clínica"
+        "signFailed": "No se pudo firmar la historia clínica",
+        "sectionComplete": "COMPLETA",
+        "sectionMissing": "FALTAN {count} CAMPOS",
+        "retentionTitle": "Conservación"
       },
       "treatmentPlan": {
         "title": "Plan de tratamiento",

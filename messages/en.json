@@ -607,6 +607,7 @@
       "groupClinico": "Clinical",
       "groupFinanciero": "Financial",
       "groupDocumentos": "Documents",
+      "groupHistoriaClinica": "Clinical history",
       "groupReceta": "Prescription",
       "editContactBtn": "Edit contact",
       "deleteContactBtn": "Delete patient",
@@ -719,7 +720,10 @@
         "selectDoctor": "Select a doctor",
         "signAndClose": "Sign and close",
         "signedSuccess": "Clinical history signed and closed",
-        "signFailed": "Failed to sign the clinical history"
+        "signFailed": "Failed to sign the clinical history",
+        "sectionComplete": "COMPLETE",
+        "sectionMissing": "{count} FIELDS MISSING",
+        "retentionTitle": "Retention"
       },
       "treatmentPlan": {
         "title": "Treatment plan",

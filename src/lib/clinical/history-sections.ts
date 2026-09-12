@@ -186,3 +186,33 @@ export function computeCompletion(
   const percent = Math.round(((required.length - missing.length) / required.length) * 100);
   return { percent, missing };
 }
+
+/** Per-section completion — drives the "COMPLETA" / "FALTAN N CAMPOS" pill on each section card. */
+export function computeSectionCompletion(
+  section: HistorySection,
+  sections: Record<string, Record<string, string>>,
+  country: AccountCountry,
+): { complete: boolean; missingCount: number } {
+  const requiredFields = section.fields.filter((field) => fieldRequired(field, country) && !field.derived);
+  if (requiredFields.length === 0) return { complete: true, missingCount: 0 };
+  const missingCount = requiredFields.filter((field) => {
+    const value = sections[section.key]?.[field.key];
+    return !value || value.trim() === "";
+  }).length;
+  return { complete: missingCount === 0, missingCount };
+}
+
+/** Retention requirements by country — shown in the "Conservación" panel, matches the approved mockup. */
+export function getRetentionInfo(country: AccountCountry): { label: string; value: string }[] {
+  return country === "co"
+    ? [
+        { label: "Plazo mínimo", value: "15 años" },
+        { label: "Primeros 5 años", value: "Archivo de gestión" },
+        { label: "Respaldo", value: "Cifrado, diario" },
+      ]
+    : [
+        { label: "Plazo mínimo", value: "5 años" },
+        { label: "En menores de edad", value: "Hasta los 18 + 5 años" },
+        { label: "Respaldo", value: "Cifrado, diario" },
+      ];
+}
