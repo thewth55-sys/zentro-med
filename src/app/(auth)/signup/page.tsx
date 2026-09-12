@@ -600,7 +600,7 @@ function SignupPageInner() {
                   {t.rich("acceptTermsOnly", {
                     terms: (chunks: React.ReactNode) => (
                       <a
-                        href="https://zentrolabs.com/terminos.html"
+                        href="/terminos"
                         target="_blank"
                         rel="noreferrer"
                         className="text-primary hover:text-primary/80 underline"

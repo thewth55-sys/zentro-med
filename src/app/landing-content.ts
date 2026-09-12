@@ -751,7 +751,7 @@ export const LANDING_BODY_HTML = `
   <div class="wrap">
     <div class="foot-i">
       <span style="color:var(--zm-muted2);">© 2026 Zentro Labs · <a href="https://zentrolabs.com">zentrolabs.com</a></span>
-      <span><a href="https://zentrolabs.com/privacidad.html">Privacidad</a> · <a href="https://zentrolabs.com/terminos.html">Términos</a> · <a href="mailto:hello@zentrolabs.com">hello@zentrolabs.com</a></span>
+      <span><a href="https://zentrolabs.com/privacidad.html">Privacidad</a> · <a href="/terminos">Términos</a> · <a href="mailto:hello@zentrolabs.com">hello@zentrolabs.com</a></span>
     </div>
   </div>
 </footer>
