@@ -60,6 +60,13 @@ ARG NEXT_PUBLIC_FIREBASE_PUSH_ENABLED
 # `/agendar/<slug>`. Optional: unset falls back to the old same-domain
 # link everywhere it's used (see src/middleware.ts and each call site).
 ARG NEXT_PUBLIC_BOOKING_URL
+# PostHog client key/host (src/instrumentation-client.ts) — without
+# these baked in at build time, isPostHogEnabled is false in the
+# shipped bundle even when Easypanel has them set as a runtime env
+# var, since NEXT_PUBLIC_* is inlined at `next build`, not read at
+# container start.
+ARG NEXT_PUBLIC_POSTHOG_KEY
+ARG NEXT_PUBLIC_POSTHOG_HOST
 
 ENV NEXT_PUBLIC_SUPABASE_URL=$NEXT_PUBLIC_SUPABASE_URL
 ENV NEXT_PUBLIC_SUPABASE_ANON_KEY=$NEXT_PUBLIC_SUPABASE_ANON_KEY
@@ -70,6 +77,8 @@ ENV NEXT_PUBLIC_APP_LOCALE=$NEXT_PUBLIC_APP_LOCALE
 ENV NEXT_PUBLIC_SENTRY_DSN=$NEXT_PUBLIC_SENTRY_DSN
 ENV NEXT_PUBLIC_FIREBASE_PUSH_ENABLED=$NEXT_PUBLIC_FIREBASE_PUSH_ENABLED
 ENV NEXT_PUBLIC_BOOKING_URL=$NEXT_PUBLIC_BOOKING_URL
+ENV NEXT_PUBLIC_POSTHOG_KEY=$NEXT_PUBLIC_POSTHOG_KEY
+ENV NEXT_PUBLIC_POSTHOG_HOST=$NEXT_PUBLIC_POSTHOG_HOST
 
 # Caps V8's heap during `next build`. Without this, V8 tries to grow
 # memory unbounded on a constrained host; the kernel OOM-kills the
