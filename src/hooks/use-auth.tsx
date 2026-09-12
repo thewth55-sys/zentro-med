@@ -58,6 +58,15 @@ interface Profile {
   custom_role_id: string | null;
 }
 
+/** One account the current user collaborates on externally (137_account_collaborators.sql) — see `collaborations` below. */
+export interface CollaborationSummary {
+  hostAccountId: string;
+  accountName: string;
+  logoUrl: string | null;
+  /** The admin's own reference label from invite time (e.g. the collaborator's email/phone) — display-only. */
+  label: string | null;
+}
+
 interface AccountSummary {
   id: string;
   name: string;
@@ -148,6 +157,20 @@ interface AuthContextValue {
    * See `@/lib/auth/sections` — `resolveSectionPermission(sectionOverrides, key)`.
    */
   sectionOverrides: SectionOverrides;
+
+  // ----------------------------------------------------------
+  // External collaborators (137_account_collaborators.sql) —
+  // acting inside a DIFFERENT account than the user's own.
+  // ----------------------------------------------------------
+
+  /** True when `accountId`/`account` currently reflect a host account the user collaborates on, not their own. */
+  isCollaborator: boolean;
+  /** The user's own account_id, regardless of which account is currently active. Equal to `accountId` unless `isCollaborator`. */
+  homeAccountId: string | null;
+  /** Accounts the user can switch into as an external collaborator. Empty for most users. */
+  collaborations: CollaborationSummary[];
+  /** Switch the active account: pass a host account id to act as a collaborator there, or `null` to return to the user's own account. Reloads profile/account state. */
+  switchActingAccount: (hostAccountId: string | null) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -162,6 +185,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [account, setAccount] = useState<AccountSummary | null>(null);
   const [sectionOverrides, setSectionOverrides] = useState<SectionOverrides>({});
+  const [activeAccountId, setActiveAccountId] = useState<string | null>(null);
+  const [isCollaborator, setIsCollaborator] = useState(false);
+  const [homeAccountId, setHomeAccountId] = useState<string | null>(null);
+  const [collaborations, setCollaborations] = useState<CollaborationSummary[]>([]);
   const [loading, setLoading] = useState(true);
   // Tracked separately from `loading`. The session settles fast (one
   // local cookie read); the profile fetch crosses the network and
@@ -214,6 +241,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // account name lookup itself can't.
         let accountRow: AccountSummary | null = null;
         if (data.account_id) {
+          // Which account is actually ACTIVE — the user's own, or a
+          // host account they're currently collaborating on
+          // (137_account_collaborators.sql). The acting-account cookie
+          // is httpOnly, so this is the only way the browser learns
+          // it; falls back to the profile's own account_id on any
+          // failure, same as before this feature existed.
+          let resolvedAccountId = data.account_id;
+          try {
+            const actingRes = await fetch("/api/account/acting");
+            if (actingRes.ok) {
+              const actingData = await actingRes.json();
+              resolvedAccountId = actingData.accountId ?? data.account_id;
+              setIsCollaborator(Boolean(actingData.isCollaborator));
+              setHomeAccountId(actingData.homeAccountId ?? data.account_id);
+            } else {
+              setIsCollaborator(false);
+              setHomeAccountId(data.account_id);
+            }
+          } catch {
+            setIsCollaborator(false);
+            setHomeAccountId(data.account_id);
+          }
+          setActiveAccountId(resolvedAccountId);
+
           const { data: account, error: accountErr } = await supabase
             .from("accounts")
             // default_currency added in migration 021; narrowed to the
@@ -221,7 +272,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             .select(
               "id, name, default_currency, plan, subscription_status, trial_ends_at, included_seats, stripe_customer_id, logo_url, quote_terms, quote_accent_color, address, tax_id, specialty, country, feature_overrides",
             )
-            .eq("id", data.account_id)
+            .eq("id", resolvedAccountId)
             .maybeSingle();
           if (accountErr) {
             console.error("[AuthProvider] fetchAccount error:", {
@@ -301,6 +352,39 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           }
         } else {
           setSectionOverrides({});
+        }
+
+        // Accounts this user can act as an external collaborator on
+        // (137_account_collaborators.sql) — drives the account
+        // switcher. Most users have none; RLS scopes this to the
+        // caller's own rows (`collaborator_user_id = auth.uid()`).
+        const { data: grants, error: grantsErr } = await supabase
+          .from("account_collaborators")
+          .select("host_account_id, label")
+          .eq("collaborator_user_id", userId)
+          .eq("status", "active");
+        if (grantsErr) {
+          console.error("[AuthProvider] fetchProfile collaborations error:", grantsErr);
+          setCollaborations([]);
+        } else if (grants && grants.length > 0) {
+          const hostIds = grants.map((g) => g.host_account_id);
+          const { data: hostAccounts } = await supabase
+            .from("accounts")
+            .select("id, name, logo_url")
+            .in("id", hostIds);
+          const byId = new Map((hostAccounts ?? []).map((a) => [a.id, a]));
+          setCollaborations(
+            grants
+              .map((g) => {
+                const acc = byId.get(g.host_account_id);
+                return acc
+                  ? { hostAccountId: g.host_account_id, accountName: acc.name, logoUrl: acc.logo_url, label: g.label ?? null }
+                  : null;
+              })
+              .filter((c): c is CollaborationSummary => c !== null),
+          );
+        } else {
+          setCollaborations([]);
         }
       } else {
         lastFetchedUserIdRef.current = null;
@@ -391,6 +475,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setProfile(null);
         setAccount(null);
         setSectionOverrides({});
+        setActiveAccountId(null);
+        setIsCollaborator(false);
+        setHomeAccountId(null);
+        setCollaborations([]);
         setProfileLoading(false);
       }
 
@@ -416,6 +504,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setProfile(null);
     setAccount(null);
     setSectionOverrides({});
+    setActiveAccountId(null);
+    setIsCollaborator(false);
+    setHomeAccountId(null);
+    setCollaborations([]);
     window.location.href = "/login";
   }, []);
 
@@ -424,15 +516,40 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await fetchProfile(user.id);
   }, [user?.id, fetchProfile]);
 
+  /**
+   * Switch the active account (see `AuthContextValue.isCollaborator`
+   * doc). Sets the server-side acting-account cookie via
+   * `POST /api/account/acting`, then reloads the whole profile so
+   * `account`/`accountId`/`accountRole`/nav-gating all pick up the new
+   * context in one pass, exactly like a normal `refreshProfile()`.
+   */
+  const switchActingAccount = useCallback(
+    async (hostAccountId: string | null) => {
+      const res = await fetch("/api/account/acting", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ hostAccountId }),
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body?.error || "Failed to switch account");
+      }
+      if (user?.id) await fetchProfile(user.id);
+    },
+    [user?.id, fetchProfile],
+  );
+
   // Derive the role booleans once per profile change rather than on
   // every consumer render. Cheap regardless, but the memo also gives
   // each derived value a stable identity for React.memo / useEffect
   // dependencies downstream.
   const derived = useMemo(() => {
-    const role = profile?.account_role ?? null;
+    // While isCollaborator, role is always fixed 'agent' for the
+    // active (host) account — never the collaborator's own home role.
+    const role = isCollaborator ? "agent" : profile?.account_role ?? null;
     return {
       accountRole: role,
-      accountId: profile?.account_id ?? null,
+      accountId: activeAccountId ?? profile?.account_id ?? null,
       isOwner: role === "owner",
       isAdmin: role === "admin",
       isAgent: role === "agent",
@@ -441,7 +558,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       canEditSettings: role ? canEditSettingsFor(role) : false,
       canSendMessages: role ? canSendMessagesFor(role) : false,
     };
-  }, [profile?.account_role, profile?.account_id]);
+  }, [profile?.account_role, profile?.account_id, activeAccountId, isCollaborator]);
 
   return (
     <AuthContext.Provider
@@ -455,6 +572,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         account,
         defaultCurrency: account?.default_currency ?? DEFAULT_CURRENCY,
         sectionOverrides,
+        isCollaborator,
+        homeAccountId,
+        collaborations,
+        switchActingAccount,
         ...derived,
       }}
     >
@@ -495,6 +616,10 @@ export function useAuth(): AuthContextValue {
       canEditSettings: false,
       canSendMessages: false,
       sectionOverrides: {},
+      isCollaborator: false,
+      homeAccountId: null,
+      collaborations: [],
+      switchActingAccount: async () => {},
     };
   }
   return ctx;

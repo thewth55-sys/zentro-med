@@ -95,11 +95,19 @@ export function Sidebar({ open = false, onClose, totalUnread }: SidebarProps) {
   const t = useTranslations("Sidebar");
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const { profile, profileLoading, account, accountRole, signOut, sectionOverrides } = useAuth();
+  const { profile, profileLoading, account, accountRole, signOut, sectionOverrides, isCollaborator } = useAuth();
   const { isPlatformAdmin } = usePlatformAdmin();
-  const visibleNavItems = navItems.filter(
-    (item) => !item.sectionKey || resolveSectionPermission(sectionOverrides, item.sectionKey) !== "hidden",
-  );
+  // External collaborators (137_account_collaborators.sql) never get
+  // Billing/Banking/Inventory — mirrors the server-side forbid in
+  // requireSectionAccess, kept in sync here so the nav never even
+  // shows a link the API would 403 on.
+  const visibleNavItems = navItems.filter((item) => {
+    if (item.sectionKey && resolveSectionPermission(sectionOverrides, item.sectionKey) === "hidden") return false;
+    if (isCollaborator && (item.sectionKey === "billing" || item.sectionKey === "banking" || item.sectionKey === "inventory")) {
+      return false;
+    }
+    return true;
+  });
   const orderedNavItems = applyNavOrder(visibleNavItems, profile?.nav_order);
   // Panel + Zen are pinned above every group (see NavItem.group in
   // nav-items.ts) — Zen additionally gets its own elevated-card render
@@ -324,7 +332,7 @@ export function Sidebar({ open = false, onClose, totalUnread }: SidebarProps) {
           <div className="my-4 border-t border-border" />
 
           <ul className="flex flex-col gap-1">
-            {bottomNavItems.map((item) => {
+            {(isCollaborator ? [] : bottomNavItems).map((item) => {
               const isActive = pathname.startsWith(item.href);
               return (
                 <li key={item.href}>
@@ -448,18 +456,20 @@ export function Sidebar({ open = false, onClose, totalUnread }: SidebarProps) {
                 <CalendarClock className="size-4" />
                 {t("menuMyAvailability")}
               </DropdownMenuItem>
-              <DropdownMenuItem
-                render={
-                  <Link
-                    href="/settings?tab=whatsapp"
-                    onClick={onClose}
-                    className="text-popover-foreground focus:bg-accent focus:text-accent-foreground"
-                  />
-                }
-              >
-                <Settings className="size-4" />
-                {t("menuSettings")}
-              </DropdownMenuItem>
+              {!isCollaborator && (
+                <DropdownMenuItem
+                  render={
+                    <Link
+                      href="/settings?tab=whatsapp"
+                      onClick={onClose}
+                      className="text-popover-foreground focus:bg-accent focus:text-accent-foreground"
+                    />
+                  }
+                >
+                  <Settings className="size-4" />
+                  {t("menuSettings")}
+                </DropdownMenuItem>
+              )}
               <DropdownMenuSeparator className="bg-border" />
               <DropdownMenuItem
                 onClick={signOut}

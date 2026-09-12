@@ -30,6 +30,8 @@ import {
   type SectionKey,
 } from "./sections";
 
+const COLLABORATOR_FORBIDDEN_SECTIONS: readonly SectionKey[] = ["billing", "banking", "inventory"];
+
 export async function requireSectionAccess(
   min: AccountRole,
   section: SectionKey,
@@ -37,6 +39,19 @@ export async function requireSectionAccess(
   options?: { allowSuspended?: boolean },
 ): Promise<AccountContext> {
   const ctx = await requireRole(min, options);
+
+  // External collaborators (137_account_collaborators.sql) never get
+  // Billing/Banking/Inventory, full stop — RLS already denies them
+  // access to those tables outright (no is_account_collaborator()
+  // branch was added to those policies), but that would otherwise
+  // surface as a confusing empty result or a generic query error.
+  // This turns it into an explicit, clean 403. "agenda" isn't listed
+  // here — collaborators are meant to use it, and they never have a
+  // customRoleId to be narrowed by below anyway.
+  if (ctx.isCollaborator && COLLABORATOR_FORBIDDEN_SECTIONS.includes(section)) {
+    throw new ForbiddenError("Collaborators don't have access to this section");
+  }
+
   if (!ctx.customRoleId) return ctx;
 
   const { data, error } = await ctx.supabase

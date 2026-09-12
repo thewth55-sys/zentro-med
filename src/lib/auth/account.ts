@@ -26,11 +26,23 @@
 // ============================================================
 
 import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 import { createClient } from "@/lib/supabase/server";
 import type { Plan, SubscriptionStatus } from "@/lib/billing-platform/plans";
 import { hasMinRole, isAccountRole, type AccountRole } from "./roles";
+
+/**
+ * Cookie naming "which account am I currently acting as" for an
+ * external collaborator (137_account_collaborators.sql) — set by
+ * `POST /api/account/acting`. Its value is NEVER trusted on its own;
+ * `getCurrentAccount` re-validates it against `account_collaborators`
+ * on every request. A stale/revoked/forged value silently falls back
+ * to the caller's own account rather than erroring, so a revoked
+ * collaborator just resumes seeing their own account next request.
+ */
+export const ACTING_ACCOUNT_COOKIE = "zm_acting_account";
 
 // ------------------------------------------------------------
 // Errors
@@ -96,12 +108,16 @@ export interface AccountContext {
   supabase: SupabaseClient;
   /** `auth.uid()` for the caller. Always defined when this resolves. */
   userId: string;
-  /** Caller's account_id from their profile row. */
+  /** Currently active account_id — the caller's own, unless acting as an external collaborator (see `isCollaborator`). */
   accountId: string;
-  /** Caller's role within their account. */
+  /** Role within the currently active account. Always 'agent' when `isCollaborator` is true. */
   role: AccountRole;
-  /** Caller's assigned profile (`account_roles.id`), if any — see `@/lib/auth/section-access`. */
+  /** Caller's assigned profile (`account_roles.id`), if any — see `@/lib/auth/section-access`. Never set while `isCollaborator` — Perfiles is an internal-member concept. */
   customRoleId: string | null;
+  /** True when `accountId` is a host account the caller collaborates on (137_account_collaborators.sql), not their own. */
+  isCollaborator: boolean;
+  /** The caller's own account_id, regardless of which account is currently active. Equal to `accountId` unless `isCollaborator`. */
+  homeAccountId: string;
   /** Lightweight account meta — id + name + subscription state. */
   account: {
     id: string;
@@ -171,6 +187,34 @@ export async function getCurrentAccount(options?: { allowSuspended?: boolean }):
     throw new ForbiddenError(`Unknown account role: ${data.account_role}`);
   }
 
+  const homeAccountId = data.account_id;
+  let resolvedAccountId = homeAccountId;
+  let resolvedRole: AccountRole = data.account_role;
+  let resolvedCustomRoleId = data.custom_role_id ?? null;
+  let isCollaborator = false;
+
+  // Acting-as-collaborator override (137_account_collaborators.sql).
+  // The cookie only ever NAMES a target account — it's re-verified
+  // against account_collaborators here on every request, so a stale
+  // cookie from before a revoke (or a tampered one) just falls back
+  // to the caller's own account instead of granting anything.
+  const actingAccountId = (await cookies()).get(ACTING_ACCOUNT_COOKIE)?.value;
+  if (actingAccountId && actingAccountId !== homeAccountId) {
+    const { data: grant } = await supabase
+      .from("account_collaborators")
+      .select("host_account_id")
+      .eq("host_account_id", actingAccountId)
+      .eq("collaborator_user_id", user.id)
+      .eq("status", "active")
+      .maybeSingle();
+    if (grant) {
+      resolvedAccountId = actingAccountId;
+      resolvedRole = "agent";
+      resolvedCustomRoleId = null; // Perfiles overrides don't apply to collaborators.
+      isCollaborator = true;
+    }
+  }
+
   // Load the account with a plain point lookup by id rather than an
   // embedded FK join (`account:accounts!inner(...)`). The embed forces
   // PostgREST to resolve the profiles.account_id → accounts.id
@@ -186,7 +230,7 @@ export async function getCurrentAccount(options?: { allowSuspended?: boolean }):
     .select(
       "id, name, plan, subscription_status, trial_ends_at, included_seats, stripe_customer_id, logo_url, quote_terms, quote_accent_color, address, tax_id, country",
     )
-    .eq("id", data.account_id)
+    .eq("id", resolvedAccountId)
     .maybeSingle();
 
   if (accountErr) {
@@ -219,9 +263,11 @@ export async function getCurrentAccount(options?: { allowSuspended?: boolean }):
   return {
     supabase,
     userId: user.id,
-    accountId: data.account_id,
-    role: data.account_role,
-    customRoleId: data.custom_role_id ?? null,
+    accountId: resolvedAccountId,
+    role: resolvedRole,
+    customRoleId: resolvedCustomRoleId,
+    isCollaborator,
+    homeAccountId,
     account: {
       id: account.id,
       name: account.name,

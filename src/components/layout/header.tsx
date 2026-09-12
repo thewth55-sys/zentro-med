@@ -3,10 +3,11 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { toast } from "sonner";
 import { useAuth } from "@/hooks/use-auth";
 import { useCan } from "@/hooks/use-can";
 import { createClient } from "@/lib/supabase/client";
-import { Bell, LogOut, Menu, Plus, Settings as SettingsIcon, User } from "lucide-react";
+import { Bell, Building2, Check, LogOut, Menu, Plus, Settings as SettingsIcon, User } from "lucide-react";
 import {
   Avatar,
   AvatarFallback,
@@ -43,8 +44,21 @@ export function Header({ onOpenSidebar, unreadNotifications = 0 }: HeaderProps) 
   const tNav = useTranslations("Sidebar");
   const locale = useLocale();
   const pathname = usePathname();
-  const { profile, signOut } = useAuth();
+  const { profile, signOut, account, isCollaborator, collaborations, switchActingAccount } = useAuth();
   const canCreateAppointment = useCan("send-messages");
+  const [switchingTo, setSwitchingTo] = useState<string | null>(null);
+
+  async function handleSwitchAccount(hostAccountId: string | null) {
+    setSwitchingTo(hostAccountId ?? "home");
+    try {
+      await switchActingAccount(hostAccountId);
+    } catch (err) {
+      console.error("Switch account error:", err);
+      toast.error(t("switchAccountFailed"));
+    } finally {
+      setSwitchingTo(null);
+    }
+  }
 
   // Scheduling resources for the "Nueva cita" quick-create — fetched
   // lazily on first click rather than on every page load, since the
@@ -118,9 +132,23 @@ export function Header({ onOpenSidebar, unreadNotifications = 0 }: HeaderProps) 
           <Menu className="h-5 w-5" />
         </button>
         <div className="min-w-0">
-          <h1 className="truncate text-base font-semibold text-foreground sm:text-lg">
-            {title}
-          </h1>
+          <div className="flex items-center gap-2">
+            <h1 className="truncate text-base font-semibold text-foreground sm:text-lg">
+              {title}
+            </h1>
+            {/* The identifier the client asked for — always visible while
+                acting as an external collaborator, so it's never mistaken
+                for the user's own account (137_account_collaborators.sql). */}
+            {isCollaborator && account?.name && (
+              <span
+                className="hidden shrink-0 items-center gap-1 rounded-full border border-primary/40 bg-primary/10 px-2 py-0.5 text-[11px] font-medium text-primary sm:inline-flex"
+                title={t("collaboratingInFull", { account: account.name })}
+              >
+                <Building2 className="size-3" />
+                {t("collaboratingIn", { account: account.name })}
+              </span>
+            )}
+          </div>
           <p className="hidden truncate text-xs text-muted-foreground sm:block">{todayLabel}</p>
         </div>
       </div>
@@ -192,17 +220,53 @@ export function Header({ onOpenSidebar, unreadNotifications = 0 }: HeaderProps) 
             <User className="size-4" />
             {t("menuProfile")}
           </DropdownMenuItem>
-          <DropdownMenuItem
-            render={
-              <Link
-                href="/settings?tab=whatsapp"
+          {/* Account settings don't apply to a host account the caller
+              only collaborates on — Facturación/Banca/Inventario/Ajustes
+              are excluded by design (see requireSectionAccess). */}
+          {!isCollaborator && (
+            <DropdownMenuItem
+              render={
+                <Link
+                  href="/settings?tab=whatsapp"
+                  className="text-popover-foreground focus:bg-accent focus:text-accent-foreground"
+                />
+              }
+            >
+              <SettingsIcon className="size-4" />
+              {t("menuSettings")}
+            </DropdownMenuItem>
+          )}
+          {(isCollaborator || collaborations.length > 0) && (
+            <>
+              <DropdownMenuSeparator className="bg-border" />
+              <div className="px-2 py-1 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+                {t("menuAccounts")}
+              </div>
+              <DropdownMenuItem
+                disabled={switchingTo !== null}
+                onClick={() => handleSwitchAccount(null)}
                 className="text-popover-foreground focus:bg-accent focus:text-accent-foreground"
-              />
-            }
-          >
-            <SettingsIcon className="size-4" />
-            {t("menuSettings")}
-          </DropdownMenuItem>
+              >
+                <User className="size-4" />
+                <span className="flex-1">{t("menuOwnAccount")}</span>
+                {!isCollaborator && <Check className="size-3.5 text-primary" />}
+              </DropdownMenuItem>
+              {collaborations.map((c) => (
+                <DropdownMenuItem
+                  key={c.hostAccountId}
+                  disabled={switchingTo !== null}
+                  onClick={() => handleSwitchAccount(c.hostAccountId)}
+                  className="text-popover-foreground focus:bg-accent focus:text-accent-foreground"
+                >
+                  <Building2 className="size-4" />
+                  <span className="flex-1 truncate">{c.accountName}</span>
+                  {isCollaborator && account?.id === c.hostAccountId && (
+                    <Check className="size-3.5 text-primary" />
+                  )}
+                </DropdownMenuItem>
+              ))}
+            </>
+          )}
           <DropdownMenuSeparator className="bg-border" />
           <DropdownMenuItem
             onClick={signOut}

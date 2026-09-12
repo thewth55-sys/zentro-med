@@ -66,6 +66,14 @@ vi.mock("@/lib/supabase/server", () => ({
   createClient: () => createClient(),
 }));
 
+// getCurrentAccount reads an acting-account cookie (137_account_
+// collaborators.sql) to support external collaborators. None of the
+// existing tests here exercise that path, so mock `cookies()` to
+// report "no cookie set" — same as a normal, non-collaborator request.
+vi.mock("next/headers", () => ({
+  cookies: () => Promise.resolve({ get: () => undefined }),
+}));
+
 const { getCurrentAccount, UnauthorizedError, ForbiddenError } = await import(
   "./account"
 );

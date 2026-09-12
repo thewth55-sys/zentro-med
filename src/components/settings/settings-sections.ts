@@ -1,5 +1,6 @@
 import {
   BellRing,
+  Building2,
   CalendarClock,
   Coins,
   CreditCard,
@@ -40,6 +41,7 @@ export const SETTINGS_SECTIONS = [
   'deals',
   'members',
   'profiles',
+  'collaborators',
   'api',
   'conversions',
   'scheduling',
@@ -73,6 +75,7 @@ export const SECTION_META: Record<SettingsSection, SectionMeta> = {
   deals: { id: 'deals', label: 'Deals & currency', icon: Coins, group: 'workspace' },
   members: { id: 'members', label: 'Team members', icon: UsersRound, group: 'workspace' },
   profiles: { id: 'profiles', label: 'Profiles', icon: ShieldCheck, group: 'workspace' },
+  collaborators: { id: 'collaborators', label: 'External collaborators', icon: Building2, group: 'workspace' },
   api: { id: 'api', label: 'API keys', icon: KeyRound, group: 'workspace' },
   conversions: { id: 'conversions', label: 'Conversions', icon: Target, group: 'workspace' },
   scheduling: { id: 'scheduling', label: 'Scheduling', icon: CalendarClock, group: 'workspace' },
