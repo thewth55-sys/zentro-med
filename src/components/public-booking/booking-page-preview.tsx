@@ -8,6 +8,7 @@ import {
   type BookingPageConfig,
   type PublicBookingConfig,
 } from "@/lib/scheduling/public-booking";
+import { DEFAULT_CURRENCY } from "@/lib/currency";
 
 const DEFAULT_ACCENT = "#4ade5a";
 
@@ -47,7 +48,7 @@ export function BookingPagePreview({
   address,
   serviceTypes,
   businessHours,
-  currency = "USD",
+  currency = DEFAULT_CURRENCY,
   interactive,
   slug,
   bookingConfig,

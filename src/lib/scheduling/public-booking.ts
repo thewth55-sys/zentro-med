@@ -7,6 +7,7 @@ import { resolveFeatureAccess, type FeatureOverrides } from "@/lib/billing-platf
 import type { Plan } from "@/lib/billing-platform/plans";
 import { loadPublicDepositInfo, type PublicDepositInfo } from "@/lib/payments/config";
 import { hasIntakeFormContent, type IntakeFormConfig } from "@/lib/intake-forms/types";
+import { DEFAULT_CURRENCY } from "@/lib/currency";
 
 /**
  * Server-only slot computation for the public booking widget
@@ -190,6 +191,8 @@ export interface PublicBookingConfig {
   accountId: string;
   accountName: string;
   accountLogoUrl: string | null;
+  /** For formatting serviceTypes[].price — the account's own currency, never a hardcoded default. */
+  currency: string;
   address: string | null;
   page: BookingPageConfig;
   /** `hasIntakeForm` is always false when the account lacks the
@@ -229,7 +232,7 @@ export async function getPublicBookingConfig(
 ): Promise<PublicBookingConfig | null> {
   const { data: account } = await admin
     .from("accounts")
-    .select("id, name, public_booking_enabled, plan, feature_overrides, logo_url, address, booking_page")
+    .select("id, name, public_booking_enabled, plan, feature_overrides, logo_url, address, booking_page, default_currency")
     .eq("public_booking_slug", slug)
     .maybeSingle();
 
@@ -269,6 +272,7 @@ export async function getPublicBookingConfig(
     accountId: account.id,
     accountName: account.name,
     accountLogoUrl: account.logo_url ?? null,
+    currency: account.default_currency ?? DEFAULT_CURRENCY,
     address: account.address ?? null,
     // La personalización solo se aplica si la cuenta tiene la feature premium;
     // si no, la página usa los valores por defecto (nombre + acento de marca).

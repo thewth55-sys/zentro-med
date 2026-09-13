@@ -274,7 +274,9 @@ export function ProfilesTab() {
                 onValueChange={(value) => setForm((prev) => ({ ...prev, baseRole: value as 'agent' | 'viewer' }))}
               >
                 <SelectTrigger>
-                  <SelectValue />
+                  <SelectValue>
+                    {(value: string | null) => (value === 'viewer' ? t('baseRoleViewer') : t('baseRoleAgent'))}
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="agent">{t('baseRoleAgent')}</SelectItem>
@@ -296,7 +298,13 @@ export function ProfilesTab() {
                         onValueChange={(value) => setSectionValue(section, value as PickerValue)}
                       >
                         <SelectTrigger className="w-[150px]">
-                          <SelectValue />
+                          <SelectValue>
+                            {(value: string | null) => {
+                              if (value === 'view_only') return t('permissionViewOnly');
+                              if (value === 'hidden') return t('permissionHidden');
+                              return t('permissionVisible');
+                            }}
+                          </SelectValue>
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="visible">{t('permissionVisible')}</SelectItem>

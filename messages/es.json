@@ -780,6 +780,8 @@
           "nit": "NIT",
           "curp": "CURP",
           "rfc": "RFC",
+          "ine": "INE",
+          "nss": "NSS (IMSS)",
           "otro": "Otro"
         },
         "documentNumber": "Número de documento",

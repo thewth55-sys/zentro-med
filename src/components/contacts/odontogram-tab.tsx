@@ -342,7 +342,7 @@ export function OdontogramTab({ contactId }: OdontogramTabProps) {
                   <Label className="text-xs text-muted-foreground">{t("condition")}</Label>
                   <Select value={draftCondition} onValueChange={(v) => v && setDraftCondition(v as ToothCondition)}>
                     <SelectTrigger className="h-8 text-sm">
-                      <SelectValue />
+                      <SelectValue>{(value: string | null) => (value ? t(`conditions.${value}`) : "")}</SelectValue>
                     </SelectTrigger>
                     <SelectContent>
                       {CONDITIONS.map((c) => (

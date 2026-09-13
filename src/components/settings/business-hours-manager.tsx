@@ -208,7 +208,7 @@ export function BusinessHoursManager() {
                 >
                   {(TIMEZONES.includes(timezone) ? TIMEZONES : [timezone, ...TIMEZONES]).map((tz) => (
                     <option key={tz} value={tz}>
-                      {tz.replace('America/', '')}
+                      {tz.replace('America/', '').replace(/_/g, ' ')}
                     </option>
                   ))}
                 </select>

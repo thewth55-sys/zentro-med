@@ -32,11 +32,21 @@ export function DealsSettings() {
   const supabase = createClient();
   const {
     accountId,
+    account,
     defaultCurrency,
     canEditSettings,
     profileLoading,
     refreshProfile,
   } = useAuth();
+
+  // Float the account's local currency to the top of a 35-entry list
+  // instead of always listing USD first — a Mexican/Colombian account
+  // shouldn't have to scroll past a third of the list to find MXN/COP.
+  const localCurrencyCode = account?.country === "co" ? "COP" : "MXN";
+  const orderedCurrencies = [
+    ...CURRENCIES.filter((c) => c.code === localCurrencyCode),
+    ...CURRENCIES.filter((c) => c.code !== localCurrencyCode),
+  ];
 
   const [selected, setSelected] = useState(defaultCurrency);
   const [saving, setSaving] = useState(false);
@@ -94,7 +104,7 @@ export function DealsSettings() {
               disabled={!canEditSettings || profileLoading}
               className="h-9 w-full rounded-lg border border-border bg-muted px-2.5 text-sm text-foreground outline-none focus:border-primary focus:ring-1 focus:ring-primary disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {CURRENCIES.map((c) => (
+              {orderedCurrencies.map((c) => (
                 <option key={c.code} value={c.code}>
                   {c.code} — {c.label}
                 </option>

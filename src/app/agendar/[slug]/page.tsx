@@ -54,6 +54,7 @@ export default async function PublicBookingPage({
           accountName={config.accountName}
           accountLogoUrl={config.accountLogoUrl}
           address={config.address}
+          currency={config.currency}
           serviceTypes={config.serviceTypes}
           businessHours={config.businessHours}
           interactive

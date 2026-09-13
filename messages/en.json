@@ -780,6 +780,8 @@
           "nit": "Tax ID (NIT)",
           "curp": "CURP",
           "rfc": "RFC",
+          "ine": "INE (voter ID)",
+          "nss": "NSS (IMSS)",
           "otro": "Other"
         },
         "documentNumber": "Document number",

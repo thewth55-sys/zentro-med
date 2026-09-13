@@ -27,7 +27,8 @@ interface MedicalTabProps {
 export function MedicalTab({ contactId }: MedicalTabProps) {
   const t = useTranslations("Contacts.detailView.medicalTab");
   const supabase = createClient();
-  const { accountId } = useAuth();
+  const { accountId, account } = useAuth();
+  const isMexico = account?.country !== "co";
 
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<PatientProfile | null>(null);
@@ -197,13 +198,31 @@ export function MedicalTab({ contactId }: MedicalTabProps) {
               className="h-8 w-full rounded-md border border-border bg-card px-2 text-sm text-foreground outline-none focus:border-primary"
             >
               <option value="">{t("selectDocumentType")}</option>
-              <option value="cedula_ciudadania">{t("documentTypes.cedulaCiudadania")}</option>
-              <option value="cedula_extranjeria">{t("documentTypes.cedulaExtranjeria")}</option>
-              <option value="tarjeta_identidad">{t("documentTypes.tarjetaIdentidad")}</option>
-              <option value="pasaporte">{t("documentTypes.pasaporte")}</option>
-              <option value="nit">{t("documentTypes.nit")}</option>
-              <option value="curp">{t("documentTypes.curp")}</option>
-              <option value="rfc">{t("documentTypes.rfc")}</option>
+              {isMexico ? (
+                <>
+                  <option value="curp">{t("documentTypes.curp")}</option>
+                  <option value="rfc">{t("documentTypes.rfc")}</option>
+                  <option value="ine">{t("documentTypes.ine")}</option>
+                  <option value="nss">{t("documentTypes.nss")}</option>
+                  <option value="pasaporte">{t("documentTypes.pasaporte")}</option>
+                  <option value="cedula_ciudadania">{t("documentTypes.cedulaCiudadania")}</option>
+                  <option value="cedula_extranjeria">{t("documentTypes.cedulaExtranjeria")}</option>
+                  <option value="tarjeta_identidad">{t("documentTypes.tarjetaIdentidad")}</option>
+                  <option value="nit">{t("documentTypes.nit")}</option>
+                </>
+              ) : (
+                <>
+                  <option value="cedula_ciudadania">{t("documentTypes.cedulaCiudadania")}</option>
+                  <option value="cedula_extranjeria">{t("documentTypes.cedulaExtranjeria")}</option>
+                  <option value="tarjeta_identidad">{t("documentTypes.tarjetaIdentidad")}</option>
+                  <option value="nit">{t("documentTypes.nit")}</option>
+                  <option value="pasaporte">{t("documentTypes.pasaporte")}</option>
+                  <option value="curp">{t("documentTypes.curp")}</option>
+                  <option value="rfc">{t("documentTypes.rfc")}</option>
+                  <option value="ine">{t("documentTypes.ine")}</option>
+                  <option value="nss">{t("documentTypes.nss")}</option>
+                </>
+              )}
               <option value="otro">{t("documentTypes.otro")}</option>
             </select>
           </div>

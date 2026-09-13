@@ -103,6 +103,9 @@ function isSection(value: string | null): value is SettingsSection {
  */
 export function resolveSection(raw: string | null): SettingsSection {
   if (raw === 'tags' || raw === 'custom-fields') return 'fields';
+  // Pre-restructure flat tab names that used to live directly under
+  // Settings, before Finance/pricing moved into its own `billing` section.
+  if (raw === 'invoices' || raw === 'quotes' || raw === 'products' || raw === 'taxes') return 'billing';
   if (isSection(raw)) return raw;
   return DEFAULT_SECTION;
 }

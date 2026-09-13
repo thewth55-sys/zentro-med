@@ -222,7 +222,7 @@ function SortableBlockRow({
  */
 export function BookingPageEditor() {
   const canEdit = useCan('edit-settings');
-  const { accountId } = useAuth();
+  const { accountId, defaultCurrency } = useAuth();
   const supabase = createClient();
 
   const [loading, setLoading] = useState(true);
@@ -643,6 +643,7 @@ export function BookingPageEditor() {
               accountName={accountName}
               accountLogoUrl={accountLogoUrl}
               address={address}
+              currency={defaultCurrency}
               serviceTypes={serviceTypes}
               businessHours={businessHours}
               interactive={false}
