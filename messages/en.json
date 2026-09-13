@@ -155,6 +155,7 @@
     "billing": "Finance",
     "banking": "Bank & cash",
     "inventory": "Inventory",
+    "patients": "Patients",
     "broadcasts": "Broadcasts",
     "automations": "Automations",
     "flows": "Flows",

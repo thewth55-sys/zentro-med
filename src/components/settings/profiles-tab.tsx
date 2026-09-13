@@ -40,6 +40,7 @@ import {
 } from '@/components/ui/select';
 import { RequireRole } from '@/components/auth/require-role';
 import {
+  HIDDEN_ONLY_SECTIONS,
   SECTION_KEYS,
   type SectionKey,
   type SectionOverrides,
@@ -290,6 +291,7 @@ export function ProfilesTab() {
               <div className="space-y-2">
                 {SECTION_KEYS.map((section) => {
                   const current: PickerValue = form.overrides[section] ?? 'visible';
+                  const supportsViewOnly = !HIDDEN_ONLY_SECTIONS.includes(section);
                   return (
                     <div key={section} className="flex items-center justify-between gap-3">
                       <span className="text-sm text-foreground">{sectionLabel(section)}</span>
@@ -308,7 +310,9 @@ export function ProfilesTab() {
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="visible">{t('permissionVisible')}</SelectItem>
-                          <SelectItem value="view_only">{t('permissionViewOnly')}</SelectItem>
+                          {supportsViewOnly && (
+                            <SelectItem value="view_only">{t('permissionViewOnly')}</SelectItem>
+                          )}
                           <SelectItem value="hidden">{t('permissionHidden')}</SelectItem>
                         </SelectContent>
                       </Select>

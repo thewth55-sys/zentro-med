@@ -74,10 +74,11 @@ export interface NavItem {
    */
   comingSoon?: boolean;
   /**
-   * One of the 4 sections a tenant-defined "profile" can restrict
-   * (see `@/lib/auth/sections`). When the current user's profile
-   * marks this section `hidden`, the item is dropped from the nav —
-   * see `useIsSectionHidden` in sidebar.tsx / mobile-tab-bar.tsx.
+   * A section a tenant-defined "profile" can restrict (see
+   * `@/lib/auth/sections`). When the current user's profile marks
+   * this section `hidden`, the item is dropped from the nav — see
+   * `resolveSectionPermission(sectionOverrides, item.sectionKey)` in
+   * sidebar.tsx / mobile-tab-bar.tsx.
    */
   sectionKey?: SectionKey;
 }
@@ -93,7 +94,7 @@ export const navItems: NavItem[] = [
   // "Notificaciones" ya no vive aquí — la campana del header (visible
   // en cualquier pantalla) la reemplaza; tenerla dos veces era
   // redundante.
-  { href: "/contacts", labelKey: "contacts", icon: Users, group: "atencion" },
+  { href: "/contacts", labelKey: "contacts", icon: Users, group: "atencion", sectionKey: "patients" },
   { href: "/agenda", labelKey: "agenda", icon: Calendar, group: "atencion", sectionKey: "agenda" },
   { href: "/inbox", labelKey: "inbox", icon: MessageCircle, feature: "whatsapp_inbox", group: "atencion" },
   { href: "/pipelines", labelKey: "pipelines", icon: Share2, group: "atencion" },
