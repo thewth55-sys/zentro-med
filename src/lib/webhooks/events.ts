@@ -11,6 +11,16 @@ export const WEBHOOK_EVENTS = [
   'message.received', // an inbound WhatsApp message landed
   'message.status_updated', // a sent message advanced (sent/delivered/read)
   'conversation.created', // a new conversation was opened for a contact
+  // Lifecycle-marketing triggers (src/app/api/campaign-triggers/cron/route.ts)
+  // — fired at the ACCOUNT level (the clinic itself), for an external
+  // tool like Zoho Campaigns/Flow to pick up and send the matching
+  // email. Not related to contact/patient-facing messaging above.
+  'campaign_trigger.dormant_login_7d', // no one on the account has logged in for 7+ days
+  'campaign_trigger.dormant_login_75d', // still dormant 75+ days in — last automated nudge
+  'campaign_trigger.stalled_quotes_14d', // quotes sent 14+ days ago with no status change
+  'campaign_trigger.zen_off_manual_replies', // WhatsApp connected, AI auto-reply off, meaningful manual reply volume
+  'campaign_trigger.cash_payments_weekly', // 3+ cash payments recorded this week
+  'campaign_trigger.first_month_milestone', // account just crossed 30 days old
 ] as const;
 
 export type WebhookEvent = (typeof WEBHOOK_EVENTS)[number];
@@ -21,6 +31,13 @@ export const WEBHOOK_EVENT_DESCRIPTIONS: Record<WebhookEvent, string> = {
   'message.status_updated':
     'A message you sent changed delivery status (sent/delivered/read/failed)',
   'conversation.created': 'A new conversation was opened',
+  'campaign_trigger.dormant_login_7d': 'No one on the account has logged in for 7+ days',
+  'campaign_trigger.dormant_login_75d': 'Still dormant 75+ days in',
+  'campaign_trigger.stalled_quotes_14d': 'One or more quotes have sat unanswered for 14+ days',
+  'campaign_trigger.zen_off_manual_replies':
+    'WhatsApp is connected but AI auto-reply is off, with meaningful manual reply volume this week',
+  'campaign_trigger.cash_payments_weekly': '3 or more cash payments were recorded this week',
+  'campaign_trigger.first_month_milestone': 'The account just crossed its 30-day usage milestone',
 };
 
 /** Type-narrow an unknown value into a valid `WebhookEvent`. */
