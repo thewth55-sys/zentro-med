@@ -7,6 +7,7 @@ import { toast } from 'sonner';
 import type { Contact, Tag, ContactTag } from '@/types';
 import {
   findExistingContact,
+  findExistingContactByName,
   isExactMatch,
   isUniqueViolation,
   type ExistingContact,
@@ -58,6 +59,7 @@ export function ContactForm({
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
   const [company, setCompany] = useState('');
+  const [address, setAddress] = useState('');
   const [saving, setSaving] = useState(false);
 
   // Duplicate-phone detection for NEW contacts. `exact` (same digits)
@@ -69,6 +71,12 @@ export function ContactForm({
   >(null);
   const [checkingDup, setCheckingDup] = useState(false);
 
+  // Duplicate-NAME detection (phone dedup above misses same-name,
+  // different-number re-registrations — a real QA finding). Warning
+  // only, never blocks — plenty of legitimate reasons two people share
+  // a name.
+  const [nameDupMatch, setNameDupMatch] = useState<ExistingContact | null>(null);
+
   const [tags, setTags] = useState<Tag[]>([]);
   const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
   const [loadingTags, setLoadingTags] = useState(false);
@@ -79,8 +87,10 @@ export function ContactForm({
       setPhone(contact?.phone ?? '');
       setEmail(contact?.email ?? '');
       setCompany(contact?.company ?? '');
+      setAddress(contact?.address ?? '');
       setSelectedTagIds(contactTags.map((ct) => ct.tag_id));
       setDupMatch(null);
+      setNameDupMatch(null);
       fetchTags();
     }
   }, [open, contact]);
@@ -107,6 +117,20 @@ export function ContactForm({
     }
   }
 
+  // Warn (never block) when another contact in the account already has
+  // this exact name — the phone-based checks above never catch this
+  // (different number = no match there). Runs on blur, new contacts only.
+  async function checkNameDuplicate() {
+    if (isEdit || !accountId) return;
+    const value = name.trim();
+    if (!value) {
+      setNameDupMatch(null);
+      return;
+    }
+    const existing = await findExistingContactByName(supabase, accountId, value);
+    setNameDupMatch(existing);
+  }
+
   async function fetchTags() {
     setLoadingTags(true);
     const { data } = await supabase
@@ -128,8 +152,14 @@ export function ContactForm({
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
 
-    if (!phone.trim()) {
-      toast.error(t('phoneRequired'));
+    // Name is the one hard requirement now — phone is optional (a
+    // minor with no phone of their own is a real case; forcing a
+    // guardian's number into the child's own record was the bug).
+    // The DB column stays NOT NULL, but an empty string satisfies
+    // that and the dedup index already ignores empty phones
+    // (022_contact_phone_dedup.sql), so no schema change is needed.
+    if (!name.trim()) {
+      toast.error(t('nameRequired'));
       return;
     }
 
@@ -160,6 +190,7 @@ export function ContactForm({
             phone: phone.trim(),
             email: email.trim() || null,
             company: company.trim() || null,
+            address: address.trim() || null,
             updated_at: new Date().toISOString(),
           })
           .eq('id', contactId);
@@ -174,6 +205,7 @@ export function ContactForm({
             phone: phone.trim(),
             email: email.trim() || null,
             company: company.trim() || null,
+            address: address.trim() || null,
           })
           .select('id')
           .single();
@@ -245,20 +277,41 @@ export function ContactForm({
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="cf-name" className="text-muted-foreground">
-              {t('nameLabel')}
+              {t('nameLabel')} <span className="text-red-400">*</span>
             </Label>
             <Input
               id="cf-name"
               value={name}
-              onChange={(e) => setName(e.target.value)}
+              onChange={(e) => {
+                setName(e.target.value);
+                if (nameDupMatch) setNameDupMatch(null);
+              }}
+              onBlur={checkNameDuplicate}
               placeholder={t('namePlaceholder')}
               className="bg-muted border-border text-foreground placeholder:text-muted-foreground"
             />
+            {nameDupMatch && (
+              <div className="flex items-start gap-2 rounded-md border border-amber-500/40 bg-amber-500/10 px-2.5 py-2 text-xs text-amber-300">
+                <AlertTriangle className="mt-0.5 size-3.5 shrink-0" />
+                <div className="space-y-1">
+                  <p>{t('dupNameWarning')}</p>
+                  {onViewExisting && (
+                    <button
+                      type="button"
+                      onClick={() => onViewExisting(nameDupMatch.id)}
+                      className="font-medium underline underline-offset-2 hover:no-underline"
+                    >
+                      {t('viewExisting', { name: nameDupMatch.name || nameDupMatch.phone })}
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="cf-phone" className="text-muted-foreground">
-              {t('phoneLabel')} <span className="text-red-400">*</span>
+              {t('phoneLabel')}
             </Label>
             <PhoneInput
               id="cf-phone"
@@ -298,9 +351,22 @@ export function ContactForm({
               </div>
             ) : (
               <p className="text-xs text-muted-foreground">
-                {t('phoneHint')}
+                {t('phoneOptionalHint')}
               </p>
             )}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="cf-address" className="text-muted-foreground">
+              {t('addressLabel')}
+            </Label>
+            <Input
+              id="cf-address"
+              value={address}
+              onChange={(e) => setAddress(e.target.value)}
+              placeholder={t('addressPlaceholder')}
+              className="bg-muted border-border text-foreground placeholder:text-muted-foreground"
+            />
           </div>
 
           <div className="space-y-2">

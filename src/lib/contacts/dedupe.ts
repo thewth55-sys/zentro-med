@@ -83,6 +83,34 @@ export async function findExistingContactByEmail(
 }
 
 /**
+ * Find an existing contact in `accountId` by exact (case-insensitive,
+ * trimmed) name match — a softer, name-only lookup for the "possible
+ * duplicate" warning when two contacts share a name but different
+ * phone numbers (the phone-based checks above miss this entirely — a
+ * real QA finding: four "Oswaldo García" rows with different numbers,
+ * none flagged). Never blocks submission on its own, only warns —
+ * plenty of legitimate reasons two different people share a name.
+ */
+export async function findExistingContactByName(
+  db: SupabaseClient,
+  accountId: string,
+  name: string,
+): Promise<ExistingContact | null> {
+  const normalized = name.trim();
+  if (!normalized) return null;
+
+  const { data } = await db
+    .from("contacts")
+    .select("*")
+    .eq("account_id", accountId)
+    .ilike("name", normalized)
+    .limit(1)
+    .maybeSingle();
+
+  return (data as ExistingContact | null) ?? null;
+}
+
+/**
  * True when an existing contact is an *exact* normalized match for
  * `phone` (vs only a fuzzy trunk-variant match). The form hard-blocks
  * exact matches but only warns on fuzzy ones.

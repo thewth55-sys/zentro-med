@@ -599,9 +599,14 @@
       "viewExisting": "View {name}",
       "dupExact": "A patient with this phone number already exists.",
       "dupSimilar": "A patient with a very similar number already exists.",
+      "dupNameWarning": "A patient with this name already exists (different number). Confirm this isn't a duplicate before saving.",
       "loadingTags": "Loading tags...",
       "noTagsAvailable": "No tags available. Create tags in Settings.",
-      "phoneRequired": "Phone number is required"
+      "phoneRequired": "Phone number is required",
+      "nameRequired": "Name is required",
+      "phoneOptionalHint": "Optional if the patient has no phone of their own (e.g. a minor) — without one they can't receive direct WhatsApp messages.",
+      "addressLabel": "Address",
+      "addressPlaceholder": "Street, number, neighborhood"
     },
     "detailView": {
       "tabs": {
@@ -653,6 +658,7 @@
       "nextAppointmentLabel": "Next appointment",
       "noNextAppointment": "No upcoming appointment",
       "unnamed": "Unknown",
+      "ageYears": "{age} years old",
       "contactDetailsDesc": "Patient details",
       "name": "Name",
       "firstName": "First name",
@@ -963,6 +969,7 @@
       "odontogramTab": {
         "noProfile": "This contact isn't a converted patient yet — create their medical profile in the Medical tab to enable the odontogram.",
         "title": "Odontogram",
+        "ageYears": "{age} years old",
         "hint": "Tap a tooth to see and record findings",
         "noFindings": "No findings recorded",
         "noTreatmentSelected": "None",
@@ -992,6 +999,7 @@
         "toothSaveFailed": "Failed to update tooth",
         "suggestedTreatment": "Suggested treatment",
         "selectTreatment": "Pick a product or service",
+        "treatmentDescriptionPlaceholder": "Treatment description (e.g. Filling, Extraction)",
         "costPlaceholder": "Cost",
         "addToQuote": "Add to quote",
         "invalidCost": "Cost must be a valid number",

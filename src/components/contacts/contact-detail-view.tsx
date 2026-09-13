@@ -74,6 +74,7 @@ import {
 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { showsOdontogram } from '@/lib/specialties';
+import { computeAge } from '@/lib/patients/age';
 
 interface ContactDetailViewProps {
   contactId: string;
@@ -242,6 +243,11 @@ export function ContactDetailView({ contactId }: ContactDetailViewProps) {
   const [patientProfileId, setPatientProfileId] = useState<string | null>(null);
   const [patientChronicConditions, setPatientChronicConditions] = useState<string | null>(null);
   const [patientMedications, setPatientMedications] = useState<string | null>(null);
+  // Age never showed up anywhere in the clinical context despite
+  // birth_date already being captured (QA finding) — surfaced here
+  // next to the patient's name, reusing the same computeAge() the
+  // patients list already has.
+  const [patientBirthDate, setPatientBirthDate] = useState<string | null>(null);
   const [balanceOwed, setBalanceOwed] = useState<number | null>(null);
   const [balanceLoading, setBalanceLoading] = useState(true);
   const [nextAppointment, setNextAppointment] = useState<NextAppointmentSummary | null>(null);
@@ -353,13 +359,14 @@ export function ContactDetailView({ contactId }: ContactDetailViewProps) {
     if (!contactId) return;
     const { data } = await supabase
       .from('patient_profiles')
-      .select('id, allergies, chronic_conditions, current_medications')
+      .select('id, allergies, chronic_conditions, current_medications, birth_date')
       .eq('contact_id', contactId)
       .maybeSingle();
     setPatientProfileId(data?.id ?? null);
     setPatientAllergies(data?.allergies ?? null);
     setPatientChronicConditions(data?.chronic_conditions ?? null);
     setPatientMedications(data?.current_medications ?? null);
+    setPatientBirthDate(data?.birth_date ?? null);
   }, [contactId, supabase]);
 
   // Saldo — reutiliza /api/billing/invoices (la misma ruta que ya usa
@@ -716,6 +723,11 @@ export function ContactDetailView({ contactId }: ContactDetailViewProps) {
                     <h1 className="text-lg font-semibold text-popover-foreground truncate">
                       {contact.name || t('unnamed')}
                     </h1>
+                    {computeAge(patientBirthDate) !== null && (
+                      <span className="shrink-0 text-sm text-muted-foreground">
+                        {t('ageYears', { age: computeAge(patientBirthDate)! })}
+                      </span>
+                    )}
                     <button
                       type="button"
                       onClick={() => setEditContactOpen(true)}
@@ -923,7 +935,16 @@ export function ContactDetailView({ contactId }: ContactDetailViewProps) {
                     {group.key === 'clinico' && contactId && (
                       <div className="mb-5 grid grid-cols-1 gap-4 lg:grid-cols-3">
                         <div className="space-y-4 lg:col-span-2">
-                          {showOdontogram && <OdontogramTab contactId={contactId} />}
+                          {showOdontogram && (
+                            // key forces a remount (and re-fetch) right
+                            // when patientProfileId flips from null to a
+                            // real id — OdontogramTab does its own
+                            // independent patient_profiles lookup and
+                            // has no other way to learn a profile was
+                            // just created (see MedicalTab's
+                            // onProfileCreated below).
+                            <OdontogramTab key={patientProfileId ?? "no-profile"} contactId={contactId} />
+                          )}
                           <TreatmentPlanPanel contactId={contactId} currency={defaultCurrency} />
                         </div>
                         <div className="space-y-4">
@@ -960,7 +981,9 @@ export function ContactDetailView({ contactId }: ContactDetailViewProps) {
                       {group.key === 'clinico' && (
                         <>
                           <TabsContent value="medical">
-                            {contactId && <MedicalTab contactId={contactId} />}
+                            {contactId && (
+                              <MedicalTab contactId={contactId} onProfileCreated={fetchClinicalProfile} />
+                            )}
                           </TabsContent>
                           <TabsContent value="evolutionNotes">
                             {contactId && (

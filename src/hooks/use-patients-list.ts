@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { createClient } from '@/lib/supabase/client';
+import { computeAge } from '@/lib/patients/age';
 import type { Contact } from '@/types';
 
 /** Una cita "reciente" para efectos de este listado — ver ACTIVITY_WINDOW_DAYS. */
@@ -43,17 +44,6 @@ export interface PatientRow {
 // infiere de la actividad de citas reciente. Documentado y confirmado con
 // el usuario (no es un dato fabricado, es una regla de negocio explícita).
 const ACTIVITY_WINDOW_DAYS = 180;
-
-function computeAge(birthDate?: string | null): number | null {
-  if (!birthDate) return null;
-  const b = new Date(birthDate);
-  if (Number.isNaN(b.getTime())) return null;
-  const now = new Date();
-  let age = now.getFullYear() - b.getFullYear();
-  const m = now.getMonth() - b.getMonth();
-  if (m < 0 || (m === 0 && now.getDate() < b.getDate())) age--;
-  return age;
-}
 
 /**
  * Carga todos los pacientes (contactos con `patient_profiles`) de la cuenta

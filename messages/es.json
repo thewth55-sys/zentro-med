@@ -599,9 +599,14 @@
       "viewExisting": "Ver {name}",
       "dupExact": "Ya existe un paciente con este número de teléfono.",
       "dupSimilar": "Ya existe un paciente con un número muy similar.",
+      "dupNameWarning": "Ya existe un paciente con este nombre (número distinto). Confirma que no sea un duplicado antes de guardar.",
       "loadingTags": "Cargando etiquetas...",
       "noTagsAvailable": "No hay etiquetas disponibles. Créalas en Ajustes.",
-      "phoneRequired": "El número de teléfono es obligatorio"
+      "phoneRequired": "El número de teléfono es obligatorio",
+      "nameRequired": "El nombre es obligatorio",
+      "phoneOptionalHint": "Opcional si el paciente no tiene teléfono propio (ej. un menor) — sin él no podrá recibir mensajes de WhatsApp directos.",
+      "addressLabel": "Domicilio",
+      "addressPlaceholder": "Calle, número, colonia"
     },
     "detailView": {
       "tabs": {
@@ -653,6 +658,7 @@
       "nextAppointmentLabel": "Próxima cita",
       "noNextAppointment": "Sin próxima cita",
       "unnamed": "Desconocido",
+      "ageYears": "{age} años",
       "contactDetailsDesc": "Detalles del paciente",
       "name": "Nombre",
       "firstName": "Nombres",
@@ -963,6 +969,7 @@
       "odontogramTab": {
         "noProfile": "Este contacto aún no es un paciente convertido — crea su perfil médico en la pestaña Médico para habilitar el odontograma.",
         "title": "Odontograma",
+        "ageYears": "{age} años",
         "hint": "Toca un diente para ver y registrar hallazgos",
         "noFindings": "Sin hallazgos registrados",
         "noTreatmentSelected": "Ninguno",
@@ -992,6 +999,7 @@
         "toothSaveFailed": "Error al actualizar el diente",
         "suggestedTreatment": "Tratamiento sugerido",
         "selectTreatment": "Elige un producto o servicio",
+        "treatmentDescriptionPlaceholder": "Descripción del tratamiento (ej. Resina, Extracción)",
         "costPlaceholder": "Costo",
         "addToQuote": "Agregar a presupuesto",
         "invalidCost": "El costo debe ser un número válido",

@@ -14,6 +14,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
+import { computeAge } from "@/lib/patients/age";
 import type { OdontogramTooth, PatientProfile, Product, ToothCondition } from "@/types";
 
 interface OdontogramTabProps {
@@ -138,6 +139,10 @@ export function OdontogramTab({ contactId }: OdontogramTabProps) {
   const [products, setProducts] = useState<Product[]>([]);
   const [draftProductId, setDraftProductId] = useState("");
   const [draftUnitPrice, setDraftUnitPrice] = useState("");
+  // Free-text fallback when there's no Inventory catalog to pick from
+  // — resolveBillingLines() already accepts a quote line with no
+  // product_id, this was purely a UI restriction stricter than the API.
+  const [draftDescription, setDraftDescription] = useState("");
   const [addingToQuote, setAddingToQuote] = useState(false);
 
   const fetchTeeth = useCallback(
@@ -182,6 +187,7 @@ export function OdontogramTab({ contactId }: OdontogramTabProps) {
     setDraftNotes(existing?.notes ?? "");
     setDraftProductId("");
     setDraftUnitPrice("");
+    setDraftDescription("");
     setOpenTooth((current) => (current === toothNumber ? null : toothNumber));
   }
 
@@ -225,13 +231,22 @@ export function OdontogramTab({ contactId }: OdontogramTabProps) {
   async function addToothToQuote() {
     const tooth = openTooth !== null ? teeth[openTooth] : undefined;
     const product = products.find((p) => p.id === draftProductId);
-    if (!tooth?.id || !product) return;
+    if (!tooth?.id) return;
+    if (!product && !draftDescription.trim()) return;
 
     const unitPrice = Number(draftUnitPrice);
     if (!Number.isFinite(unitPrice) || unitPrice < 0) {
       toast.error(t("invalidCost"));
       return;
     }
+
+    const description = product
+      ? t("quoteLineDescription", {
+          tooth: tooth.tooth_number,
+          condition: t(`conditions.${tooth.condition}`),
+          product: product.name,
+        })
+      : draftDescription.trim();
 
     setAddingToQuote(true);
     try {
@@ -242,12 +257,8 @@ export function OdontogramTab({ contactId }: OdontogramTabProps) {
           contact_id: contactId,
           items: [
             {
-              product_id: product.id,
-              description: t("quoteLineDescription", {
-                tooth: tooth.tooth_number,
-                condition: t(`conditions.${tooth.condition}`),
-                product: product.name,
-              }),
+              product_id: product?.id ?? null,
+              description,
               quantity: 1,
               unit_price: unitPrice,
               odontogram_tooth_id: tooth.id,
@@ -291,7 +302,14 @@ export function OdontogramTab({ contactId }: OdontogramTabProps) {
     <div className="space-y-3">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h3 className="text-sm font-semibold text-foreground">{t("title")}</h3>
+          <div className="flex items-center gap-2">
+            <h3 className="text-sm font-semibold text-foreground">{t("title")}</h3>
+            {computeAge(profile?.birth_date) !== null && (
+              <span className="text-xs text-muted-foreground">
+                {t("ageYears", { age: computeAge(profile?.birth_date)! })}
+              </span>
+            )}
+          </div>
           <p className="text-xs text-muted-foreground">{t("hint")}</p>
         </div>
         <div className="flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-muted-foreground">
@@ -386,28 +404,37 @@ export function OdontogramTab({ contactId }: OdontogramTabProps) {
                   {" · "}
                   {draftUnitPrice || "—"}
                 </p>
-                <Select
-                  value={draftProductId}
-                  onValueChange={(v) => {
-                    if (!v) return;
-                    setDraftProductId(v);
-                    const product = products.find((p) => p.id === v);
-                    if (product) setDraftUnitPrice(String(product.unit_price));
-                  }}
-                >
-                  <SelectTrigger className="h-8 text-sm">
-                    <SelectValue placeholder={t("selectTreatment")}>
-                      {(value: string) => products.find((p) => p.id === value)?.name ?? t("selectTreatment")}
-                    </SelectValue>
-                  </SelectTrigger>
-                  <SelectContent>
-                    {products.map((p) => (
-                      <SelectItem key={p.id} value={p.id}>
-                        {p.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                {products.length > 0 ? (
+                  <Select
+                    value={draftProductId}
+                    onValueChange={(v) => {
+                      if (!v) return;
+                      setDraftProductId(v);
+                      const product = products.find((p) => p.id === v);
+                      if (product) setDraftUnitPrice(String(product.unit_price));
+                    }}
+                  >
+                    <SelectTrigger className="h-8 text-sm">
+                      <SelectValue placeholder={t("selectTreatment")}>
+                        {(value: string) => products.find((p) => p.id === value)?.name ?? t("selectTreatment")}
+                      </SelectValue>
+                    </SelectTrigger>
+                    <SelectContent>
+                      {products.map((p) => (
+                        <SelectItem key={p.id} value={p.id}>
+                          {p.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                ) : (
+                  <Input
+                    value={draftDescription}
+                    onChange={(e) => setDraftDescription(e.target.value)}
+                    placeholder={t("treatmentDescriptionPlaceholder")}
+                    className="h-8 text-sm"
+                  />
+                )}
                 <Input
                   type="number"
                   min={0}
@@ -421,7 +448,7 @@ export function OdontogramTab({ contactId }: OdontogramTabProps) {
                   size="sm"
                   variant="outline"
                   onClick={addToothToQuote}
-                  disabled={addingToQuote || !draftProductId}
+                  disabled={addingToQuote || (!draftProductId && !draftDescription.trim())}
                   className="w-full"
                 >
                   {addingToQuote ? <Loader2 className="size-3.5 animate-spin" /> : <Receipt className="size-3.5" />}

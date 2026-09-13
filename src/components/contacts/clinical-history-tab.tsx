@@ -48,7 +48,7 @@ interface ClinicalHistoryTabProps {
 
 type Sections = Record<string, Record<string, string>>;
 
-export function ClinicalHistoryTab({ patientProfileId }: ClinicalHistoryTabProps) {
+export function ClinicalHistoryTab({ contactId, patientProfileId }: ClinicalHistoryTabProps) {
   const t = useTranslations("Contacts.detailView.clinicalHistoryTab");
   const supabase = createClient();
   const { accountId, account } = useAuth();
@@ -79,18 +79,56 @@ export function ClinicalHistoryTab({ patientProfileId }: ClinicalHistoryTabProps
         setRecord(row);
         setSections((row.sections as Sections) ?? {});
       } else if (accountId) {
-        // Lazily create the (empty) draft the first time this tab is
-        // opened for a patient — mirrors the mockup's assumption that
-        // a "historia clínica de primera vez" is always in progress
-        // rather than showing an extra "start" step.
+        // Lazily create the draft the first time this tab is opened for
+        // a patient — mirrors the mockup's assumption that a "historia
+        // clínica de primera vez" is always in progress rather than
+        // showing an extra "start" step. Seeded (not empty) from data
+        // the patient's own record already has — a QA finding: the
+        // form used to arrive at 0% complete demanding recapture of
+        // name/birth date/sex/etc. that contacts/patient_profiles
+        // already store. The professional can still correct anything
+        // before signing.
+        const [{ data: contactRow }, { data: profileRow }] = await Promise.all([
+          supabase.from("contacts").select("name, phone, address").eq("id", contactId).maybeSingle(),
+          supabase
+            .from("patient_profiles")
+            .select(
+              "birth_date, sex, document_type, document_number, birth_country, occupation, insurance_provider, emergency_contact_name, emergency_contact_phone",
+            )
+            .eq("id", id)
+            .maybeSingle(),
+        ]);
+
+        const identification: Record<string, string> = {};
+        if (contactRow?.name) identification.full_name = contactRow.name;
+        if (contactRow?.phone) identification.phone = contactRow.phone;
+        if (contactRow?.address) identification.address = contactRow.address;
+        if (profileRow?.birth_date) identification.birth_date = profileRow.birth_date;
+        if (profileRow?.sex) identification.sex = profileRow.sex;
+        if (profileRow?.document_number) identification.id_document = profileRow.document_number;
+        if (profileRow?.birth_country) identification.birth_place = profileRow.birth_country;
+        if (profileRow?.occupation) identification.occupation = profileRow.occupation;
+        if (profileRow?.insurance_provider) identification.coverage = profileRow.insurance_provider;
+        if (profileRow?.emergency_contact_name || profileRow?.emergency_contact_phone) {
+          identification.emergency_contact = [
+            profileRow?.emergency_contact_name,
+            profileRow?.emergency_contact_phone,
+          ]
+            .filter(Boolean)
+            .join(" · ");
+        }
+
+        const seededSections: Sections =
+          Object.keys(identification).length > 0 ? { identification } : {};
+
         const { data: created, error } = await supabase
           .from("clinical_history_records")
-          .insert({ account_id: accountId, patient_profile_id: id, sections: {} })
+          .insert({ account_id: accountId, patient_profile_id: id, sections: seededSections })
           .select("*")
           .single();
         if (!error && created) {
           setRecord(created as ClinicalHistoryRecord);
-          setSections({});
+          setSections(seededSections);
         }
       }
 
@@ -105,7 +143,7 @@ export function ClinicalHistoryTab({ patientProfileId }: ClinicalHistoryTabProps
 
       setLoading(false);
     },
-    [supabase, accountId, account?.specialty],
+    [supabase, accountId, account?.specialty, contactId],
   );
 
   useEffect(() => {

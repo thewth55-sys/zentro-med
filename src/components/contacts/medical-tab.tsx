@@ -15,6 +15,11 @@ import type { Doctor, PatientProfile } from "@/types";
 
 interface MedicalTabProps {
   contactId: string;
+  /** Called right after a new patient_profiles row is created — lets
+   *  the parent (contact-detail-view.tsx) re-run its own "is this
+   *  contact a converted patient" check, so the summary banner and the
+   *  Odontograma tab pick it up without a full page reload. */
+  onProfileCreated?: () => void;
 }
 
 /**
@@ -24,7 +29,7 @@ interface MedicalTabProps {
  * background fields (document, allergies, insurance, etc.), never the
  * note-taking timeline that used to live here.
  */
-export function MedicalTab({ contactId }: MedicalTabProps) {
+export function MedicalTab({ contactId, onProfileCreated }: MedicalTabProps) {
   const t = useTranslations("Contacts.detailView.medicalTab");
   const supabase = createClient();
   const { accountId, account } = useAuth();
@@ -49,7 +54,6 @@ export function MedicalTab({ contactId }: MedicalTabProps) {
   const [birthCountry, setBirthCountry] = useState("");
   const [hcNumber, setHcNumber] = useState("");
   const [insuranceProvider, setInsuranceProvider] = useState("");
-  const [businessLine, setBusinessLine] = useState("");
   const [patientGroup, setPatientGroup] = useState("");
   const [occupation, setOccupation] = useState("");
   const [sex, setSex] = useState("");
@@ -83,7 +87,6 @@ export function MedicalTab({ contactId }: MedicalTabProps) {
         setBirthCountry(p.birth_country ?? "");
         setHcNumber(p.hc_number ?? "");
         setInsuranceProvider(p.insurance_provider ?? "");
-        setBusinessLine(p.business_line ?? "");
         setPatientGroup(p.patient_group ?? "");
         setOccupation(p.occupation ?? "");
         setSex(p.sex ?? "");
@@ -108,6 +111,7 @@ export function MedicalTab({ contactId }: MedicalTabProps) {
       if (error) throw error;
       setProfile(data as PatientProfile);
       toast.success(t("profileCreated"));
+      onProfileCreated?.();
     } catch (err) {
       // Migration 064: converting a contact into a patient is what the
       // plan's patient-limit trigger now checks (moved off `contacts`
@@ -146,7 +150,6 @@ export function MedicalTab({ contactId }: MedicalTabProps) {
           birth_country: birthCountry.trim() || null,
           hc_number: hcNumber.trim() || null,
           insurance_provider: insuranceProvider.trim() || null,
-          business_line: businessLine.trim() || null,
           patient_group: patientGroup.trim() || null,
           occupation: occupation.trim() || null,
           sex: sex || null,
@@ -269,15 +272,9 @@ export function MedicalTab({ contactId }: MedicalTabProps) {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-2">
-          <div className="space-y-1.5">
-            <Label className="text-xs text-muted-foreground">{t("businessLine")}</Label>
-            <Input value={businessLine} onChange={(e) => setBusinessLine(e.target.value)} className="h-8 bg-card text-sm" />
-          </div>
-          <div className="space-y-1.5">
-            <Label className="text-xs text-muted-foreground">{t("patientGroup")}</Label>
-            <Input value={patientGroup} onChange={(e) => setPatientGroup(e.target.value)} className="h-8 bg-card text-sm" />
-          </div>
+        <div className="space-y-1.5">
+          <Label className="text-xs text-muted-foreground">{t("patientGroup")}</Label>
+          <Input value={patientGroup} onChange={(e) => setPatientGroup(e.target.value)} className="h-8 bg-card text-sm" />
         </div>
 
         <div className="grid grid-cols-2 gap-2">
