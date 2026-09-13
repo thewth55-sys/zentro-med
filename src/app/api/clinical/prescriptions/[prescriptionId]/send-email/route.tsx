@@ -6,7 +6,7 @@ import { getClinicalPhotoUrlAdmin } from "@/lib/storage/clinical-photos";
 import { PrescriptionPdfDocument } from "@/lib/billing/prescription-pdf-document";
 import { checkAllergyConflict } from "@/lib/clinical/prescription-types";
 import { sendEmail } from "@/lib/email/resend-client";
-import { renderBrandedEmail, escapeHtml } from "@/lib/email/branded-template";
+import { renderShellEmail, pacienteShell, escapeHtml, pSaludo, pText, pAdjunto, pRecuadro, pNota } from "@/lib/email/branded-template";
 import type { AccountCountry } from "@/lib/country";
 
 /**
@@ -130,13 +130,23 @@ export async function POST(
       />,
     );
 
-    const html = renderBrandedEmail({
+    const indicationsText =
+      prescription.indications ||
+      pdfItems
+        .map((it) => [it.genericName, it.concentration, "·", it.dose, it.frequency, it.duration].filter(Boolean).join(" "))
+        .join(". ") ||
+      null;
+
+    const html = renderShellEmail({
+      shell: pacienteShell(account.name, { logoUrl: account.logoUrl, accentColor: account.quoteAccentColor }),
       heading: `Receta ${prescription.folio}`,
-      bodyHtml: `<p>Hola ${escapeHtml(patientName)},</p><p>Adjuntamos tu receta emitida por ${escapeHtml(doctor?.name ?? account.name)}.</p>`,
-      brandName: account.name,
-      logoUrl: account.logoUrl,
-      accentColor: account.quoteAccentColor,
-      footerNote: `Enviado por ${account.name}.`,
+      blocks: [
+        pSaludo(`Hola ${escapeHtml(patientName)},`),
+        pText(`Adjuntamos tu receta emitida por ${escapeHtml(doctor?.name ?? account.name)} tras tu consulta de hoy.`),
+        pAdjunto(`Receta-${prescription.folio}.pdf`),
+        ...(indicationsText ? [pRecuadro("INDICACIONES", escapeHtml(indicationsText))] : []),
+        pNota("Presenta el PDF en la farmacia. Si tienes alguna reacción, comunícate con el consultorio."),
+      ],
     });
 
     await sendEmail({

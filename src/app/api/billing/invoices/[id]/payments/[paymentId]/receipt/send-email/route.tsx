@@ -6,7 +6,7 @@ import { requireSectionAccess } from "@/lib/auth/section-access";
 import { ReceiptPdfDocument } from "@/lib/billing/receipt-pdf-document";
 import { fmtMoney } from "@/lib/billing/pdf-theme";
 import { sendEmail } from "@/lib/email/resend-client";
-import { renderBrandedEmail, escapeHtml } from "@/lib/email/branded-template";
+import { renderShellEmail, pacienteShell, escapeHtml, pSaludo, pText, pDestacado, pAdjunto, pNota } from "@/lib/email/branded-template";
 
 /**
  * POST /api/billing/invoices/[id]/payments/[paymentId]/receipt/send-email
@@ -73,13 +73,18 @@ export async function POST(
       />,
     );
 
-    const html = renderBrandedEmail({
-      heading: `Recibo de pago — Factura ${invoice.invoice_number}`,
-      bodyHtml: `<p>Hola ${escapeHtml(invoice.contact.name || "")},</p><p>Adjuntamos tu recibo por un pago de <strong>${fmtMoney(payment.amount, invoice.currency)}</strong>.</p>`,
-      brandName: account.name,
-      logoUrl: account.logoUrl,
-      accentColor: account.quoteAccentColor,
-      footerNote: `Enviado por ${account.name}.`,
+    const paidAtLabel = new Intl.DateTimeFormat("es-MX", { day: "numeric", month: "long" }).format(new Date(payment.paid_at));
+
+    const html = renderShellEmail({
+      shell: pacienteShell(account.name, { logoUrl: account.logoUrl, accentColor: account.quoteAccentColor, chip: "PAGADA" }),
+      heading: "Recibo de pago",
+      blocks: [
+        pSaludo(`Hola ${escapeHtml(invoice.contact.name || "")},`),
+        pText("Recibimos tu pago. Adjuntamos el recibo correspondiente."),
+        pDestacado("PAGADO", fmtMoney(payment.amount, invoice.currency), paidAtLabel, "verde"),
+        pAdjunto(`Recibo-${invoice.invoice_number}.pdf`),
+        pNota("Conserva este recibo como comprobante de tu pago."),
+      ],
     });
 
     await sendEmail({

@@ -32,6 +32,14 @@ import {
   rateLimitResponse,
   RATE_LIMITS,
 } from "@/lib/rate-limit";
+import { sendEmail } from "@/lib/email/resend-client";
+import { renderShellEmail, zenShell, escapeHtml, pText, pTabla, pBoton, pNota } from "@/lib/email/branded-template";
+
+const ROLE_LABEL_ES: Record<string, string> = {
+  admin: "Administrador",
+  agent: "Agente",
+  viewer: "Solo lectura",
+};
 
 // Resolve the base URL we publish invite links under.
 //
@@ -179,7 +187,7 @@ export async function POST(request: Request) {
     if (!limit.success) return rateLimitResponse(limit);
 
     const body = (await request.json().catch(() => null)) as
-      | { role?: unknown; customRoleId?: unknown; expiresInDays?: unknown; label?: unknown }
+      | { role?: unknown; customRoleId?: unknown; expiresInDays?: unknown; label?: unknown; inviteeEmail?: unknown }
       | null;
 
     const role = body?.role;
@@ -275,12 +283,51 @@ export async function POST(request: Request) {
       );
     }
 
+    const url = inviteUrl(token, getBaseUrl(request));
+
+    // Emailing the invite is an optional extra channel — the admin can
+    // still copy the link / share it via WhatsApp regardless. A send
+    // failure here must never fail invitation creation itself.
+    const inviteeEmail = typeof body?.inviteeEmail === "string" ? body.inviteeEmail.trim() : "";
+    if (inviteeEmail) {
+      try {
+        const { data: inviterProfile } = await ctx.supabase
+          .from("profiles")
+          .select("full_name")
+          .eq("user_id", ctx.userId)
+          .maybeSingle();
+
+        await sendEmail({
+          to: inviteeEmail,
+          subject: `${inviterProfile?.full_name ?? "Un administrador"} te invitó a ${ctx.account.name}`,
+          html: renderShellEmail({
+            shell: zenShell(),
+            heading: "Te invitaron a un consultorio",
+            blocks: [
+              pText(
+                `${escapeHtml(inviterProfile?.full_name ?? "Un administrador")} te invitó a trabajar en ${escapeHtml(ctx.account.name)} dentro de Zentro Med. Al aceptar creas tu cuenta y entras directo a la agenda y la bandeja del equipo.`,
+              ),
+              pTabla([
+                { k: "Consultorio", v: escapeHtml(ctx.account.name) },
+                { k: "Te invitó", v: escapeHtml(inviterProfile?.full_name ?? "—") },
+                { k: "Tu rol", v: ROLE_LABEL_ES[role] ?? role },
+              ]),
+              pBoton("Aceptar invitación", url),
+              pNota(`La invitación caduca en ${expiryDays} días. Si no reconoces este consultorio, ignora este correo.`),
+            ],
+          }),
+        });
+      } catch (emailErr) {
+        console.error("[POST /api/account/invitations] invite email send failed:", emailErr);
+      }
+    }
+
     return NextResponse.json(
       {
         invitation: data,
         // Plaintext payload — visible to the admin exactly once.
         token,
-        url: inviteUrl(token, getBaseUrl(request)),
+        url,
         expiresInDays: expiryDays,
       },
       { status: 201 },

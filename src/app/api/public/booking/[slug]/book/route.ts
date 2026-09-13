@@ -6,7 +6,7 @@ import { computeAvailableSlots } from "@/lib/scheduling/public-booking";
 import { resolveFeatureAccess, type FeatureOverrides } from "@/lib/billing-platform/features";
 import type { Plan } from "@/lib/billing-platform/plans";
 import { notifyAccountTeam } from "@/lib/email/notify-team";
-import { escapeHtml } from "@/lib/email/branded-template";
+import { escapeHtml, pDestacado, pTabla, pEnlace } from "@/lib/email/branded-template";
 import { checkRateLimit, getClientIp, rateLimitResponse, RATE_LIMITS } from "@/lib/rate-limit";
 import { loadActivePaymentGatewayConfig } from "@/lib/payments/config";
 import { getPaymentAdapter } from "@/lib/payments/gateway";
@@ -96,10 +96,11 @@ export async function POST(
   // feature premium; si no, se ignora y la cita queda sin consultorio (igual
   // que antes). Debe pertenecer a la cuenta y estar activo.
   let roomId: string | null = null;
+  let roomName: string | null = null;
   if (clinicHoursEnabled && body.room_id) {
     const { data: room } = await admin
       .from("rooms")
-      .select("id")
+      .select("id, name")
       .eq("id", body.room_id)
       .eq("account_id", account.id)
       .eq("is_active", true)
@@ -108,6 +109,7 @@ export async function POST(
       return NextResponse.json({ error: "Room not found" }, { status: 404 });
     }
     roomId = room.id;
+    roomName = room.name;
   }
 
   const [{ data: doctor }, { data: serviceType }] = await Promise.all([
@@ -293,7 +295,17 @@ export async function POST(
     accountId: account.id,
     subject: `Nueva cita agendada — ${patientName}`,
     heading: "Nueva cita agendada en línea",
-    bodyHtml: `<p><strong>${escapeHtml(patientName)}</strong> agendó una cita para <strong>${escapeHtml(startLabel)}</strong> con ${escapeHtml(doctor.name)} (${escapeHtml(serviceType.name)}).</p><p>Teléfono: ${escapeHtml(body.phone)}</p>`,
+    sub: "Aviso de agenda",
+    blocks: [
+      pDestacado("AGENDADA PARA", escapeHtml(startLabel), roomName ? escapeHtml(roomName) : escapeHtml(doctor.name), "verde"),
+      pTabla([
+        { k: "Paciente", v: escapeHtml(patientName) },
+        { k: "Teléfono", v: escapeHtml(body.phone) },
+        { k: "Doctor", v: escapeHtml(doctor.name) },
+        { k: "Servicio", v: escapeHtml(serviceType.name) },
+      ]),
+      pEnlace("Ver la cita en la agenda →", "https://med.zentrolabs.com/agenda"),
+    ],
   });
 
   // Anticipo (premium, opcional): la cita ya quedó creada arriba

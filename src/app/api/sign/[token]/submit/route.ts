@@ -23,7 +23,17 @@ import {
 import { uploadObject } from "@/lib/storage/object-storage";
 import { stampSignatureOntoPdf } from "@/lib/pdf/stamp-signature";
 import { sendEmail } from "@/lib/email/resend-client";
-import { renderBrandedEmail, escapeHtml } from "@/lib/email/branded-template";
+import {
+  renderShellEmail,
+  pacienteShell,
+  escapeHtml,
+  pSaludo,
+  pText,
+  pTabla,
+  pAdjunto,
+  pRecuadro,
+  pNota,
+} from "@/lib/email/branded-template";
 import type { StampField } from "@/types";
 
 export async function POST(
@@ -161,21 +171,43 @@ export async function POST(
         .maybeSingle();
       const brandName = account?.name ?? "Zentro Med";
 
+      const signedAtLabel = new Intl.DateTimeFormat("es-MX", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+        hour: "numeric",
+        minute: "2-digit",
+        hour12: true,
+      }).format(new Date());
+
       let subject: string;
-      let bodyHtml: string;
+      let blocks: string[];
       let attachments: { filename: string; content: Buffer }[] | undefined;
 
       if (consentDoc) {
         subject = `Copia de tu documento firmado — ${consentDoc.title}`;
+        const tabla = pTabla([
+          { k: "Documento", v: escapeHtml(consentDoc.title) },
+          { k: "Firmado", v: signedAtLabel },
+          { k: "Verificación", v: "Código enviado a este correo" },
+        ]);
         if (stampedPdfBytes) {
-          bodyHtml = `<p>Hola ${escapeHtml(signerName)},</p><p>Adjunto encontrarás una copia del documento que acabas de firmar con ${escapeHtml(brandName)}.</p>`;
+          blocks = [
+            pSaludo(`Hola ${escapeHtml(signerName)},`),
+            pText(`Adjunto encontrarás una copia del documento que acabas de firmar con ${escapeHtml(brandName)}.`),
+            tabla,
+            pAdjunto(`${consentDoc.title}.pdf`, "PDF sellado"),
+            pNota("Guarda esta copia. El consultorio conserva el original en tu expediente."),
+          ];
           attachments = [{ filename: `${consentDoc.title}.pdf`, content: Buffer.from(stampedPdfBytes) }];
         } else {
-          bodyHtml = `
-            <p>Hola ${escapeHtml(signerName)},</p>
-            <p>Esta es una copia del documento que acabas de firmar con ${escapeHtml(brandName)}.</p>
-            <div style="white-space:pre-wrap;border:1px solid #e5e5e5;border-radius:8px;padding:16px;margin-top:16px;">${escapeHtml(consentDoc.content ?? "")}</div>
-          `;
+          blocks = [
+            pSaludo(`Hola ${escapeHtml(signerName)},`),
+            pText(`Esta es una copia del documento que acabas de firmar con ${escapeHtml(brandName)}.`),
+            tabla,
+            pRecuadro("DOCUMENTO", escapeHtml(consentDoc.content ?? "")),
+            pNota("Guarda esta copia. El consultorio conserva el original en tu expediente."),
+          ];
         }
       } else {
         const { data: note } = await admin
@@ -184,24 +216,28 @@ export async function POST(
           .eq("id", req.clinical_note_id)
           .maybeSingle();
         subject = `Copia de tu nota de evolución firmada`;
-        bodyHtml = `
-          <p>Hola ${escapeHtml(signerName)},</p>
-          <p>Esta es una copia de la nota de evolución que acabas de firmar con ${escapeHtml(brandName)}.</p>
-          <p><strong>Motivo de consulta:</strong><br/>${escapeHtml(note?.chief_complaint ?? "")}</p>
-          <p><strong>Hallazgos y plan:</strong><br/>${escapeHtml(note?.findings_and_plan ?? "")}</p>
-        `;
+        blocks = [
+          pSaludo(`Hola ${escapeHtml(signerName)},`),
+          pText(`Esta es una copia de la nota de evolución que acabas de firmar con ${escapeHtml(brandName)}.`),
+          pTabla([
+            { k: "Documento", v: "Nota de evolución" },
+            { k: "Firmado", v: signedAtLabel },
+            { k: "Verificación", v: "Código enviado a este correo" },
+          ]),
+          pRecuadro("MOTIVO DE CONSULTA", escapeHtml(note?.chief_complaint ?? "")),
+          pRecuadro("HALLAZGOS Y PLAN", escapeHtml(note?.findings_and_plan ?? "")),
+          pNota("Guarda esta copia. El consultorio conserva el original en tu expediente."),
+        ];
       }
 
       await sendEmail({
         to: req.delivered_to_email,
         subject,
-        html: renderBrandedEmail({
+        html: renderShellEmail({
+          shell: pacienteShell(brandName, { logoUrl: account?.logo_url, accentColor: account?.quote_accent_color, chip: "FIRMADO" }),
           heading: "Documento firmado",
-          bodyHtml,
-          brandName,
-          logoUrl: account?.logo_url,
-          accentColor: account?.quote_accent_color,
           footerNote: `Enviado por ${brandName} a través de Zentro Med.`,
+          blocks,
         }),
         attachments,
       });

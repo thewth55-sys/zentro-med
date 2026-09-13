@@ -14,7 +14,7 @@ import { NextResponse } from "next/server";
 import { requireRole, toErrorResponse } from "@/lib/auth/account";
 import { generateSignatureToken, signatureRequestExpiry, signatureUrl } from "@/lib/signatures/tokens";
 import { sendEmail } from "@/lib/email/resend-client";
-import { renderBrandedEmail, escapeHtml } from "@/lib/email/branded-template";
+import { renderShellEmail, pacienteShell, escapeHtml, pSaludo, pText, pBoton, pNota } from "@/lib/email/branded-template";
 
 function getBaseUrl(request: Request): string {
   const explicit = process.env.NEXT_PUBLIC_SITE_URL?.trim();
@@ -93,20 +93,16 @@ export async function POST(
 
     const url = signatureUrl(token, getBaseUrl(request));
     const brandName = account?.name ?? "Zentro Med";
-    const html = renderBrandedEmail({
+    const html = renderShellEmail({
+      shell: pacienteShell(brandName, { logoUrl: account?.logo_url, accentColor: account?.quote_accent_color }),
       heading: "Nota de evolución para firmar",
-      bodyHtml: `
-        <p>Hola ${escapeHtml(contact.name ?? "")},</p>
-        <p>${escapeHtml(brandName)} te envió tu nota de evolución de la consulta para tu firma de conformidad.</p>
-        <p style="margin:24px 0;">
-          <a href="${url}" style="background:#4ade5a;color:#0f2010;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:700;display:inline-block;">Revisar y firmar →</a>
-        </p>
-        <p style="font-size:13px;color:#666;">Este enlace es personal e intransferible — te pediremos un código de verificación enviado a este mismo correo antes de firmar.</p>
-      `,
-      brandName,
-      logoUrl: account?.logo_url,
-      accentColor: account?.quote_accent_color,
       footerNote: `Enviado por ${brandName} a través de Zentro Med.`,
+      blocks: [
+        pSaludo(`Hola ${escapeHtml(contact.name ?? "")},`),
+        pText(`${escapeHtml(brandName)} te envió tu nota de evolución de la consulta para tu firma de conformidad.`),
+        pBoton("Revisar y firmar", url),
+        pNota("Este enlace es personal e intransferible — te pediremos un código de verificación enviado a este mismo correo antes de firmar."),
+      ],
     });
 
     try {

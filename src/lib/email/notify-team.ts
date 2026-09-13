@@ -1,6 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { sendEmail } from "./resend-client";
-import { renderBrandedEmail } from "./branded-template";
+import { renderShellEmail, internoShell } from "./branded-template";
 
 /**
  * Internal team alerts (new booking, payment received) — sent to
@@ -16,14 +16,17 @@ export async function notifyAccountTeam(
   params: {
     accountId: string;
     heading: string;
-    bodyHtml: string;
+    /** Pre-rendered HTML blocks — build with the p*() helpers from branded-template.ts. */
+    blocks: string[];
     subject: string;
+    /** Small chip subtitle shown in the header, e.g. "Aviso de agenda". */
+    sub?: string;
   },
 ): Promise<void> {
   try {
     const { data: account } = await db
       .from("accounts")
-      .select("name, logo_url, quote_accent_color")
+      .select("name")
       .eq("id", params.accountId)
       .maybeSingle();
     if (!account) return;
@@ -40,13 +43,10 @@ export async function notifyAccountTeam(
       .filter((email): email is string => !!email);
     if (recipients.length === 0) return;
 
-    const html = renderBrandedEmail({
+    const html = renderShellEmail({
+      shell: internoShell(account.name, { sub: params.sub }),
       heading: params.heading,
-      bodyHtml: params.bodyHtml,
-      brandName: account.name,
-      logoUrl: account.logo_url,
-      accentColor: account.quote_accent_color,
-      footerNote: `Notificación interna de ${account.name} en Zentro Med.`,
+      blocks: params.blocks,
     });
 
     await sendEmail({ to: recipients, subject: params.subject, html });

@@ -19,7 +19,7 @@ import {
 import { checkRateLimit, getClientIp, rateLimitResponse, RATE_LIMITS } from "@/lib/rate-limit";
 import { createClient } from "@/lib/supabase/server";
 import { sendEmail } from "@/lib/email/resend-client";
-import { renderBrandedEmail } from "@/lib/email/branded-template";
+import { renderShellEmail, zenShell, pText, pCodigo, pNota } from "@/lib/email/branded-template";
 
 export async function POST(
   request: Request,
@@ -50,15 +50,15 @@ export async function POST(
     return NextResponse.json(data, { status: 200 });
   }
 
-  const html = renderBrandedEmail({
+  const html = renderShellEmail({
+    shell: zenShell(),
     heading: "Tu código de verificación",
-    bodyHtml: `
-      <p>Usa este código para confirmar tu identidad y firmar el documento:</p>
-      <p style="font-size:32px;font-weight:800;letter-spacing:.1em;margin:20px 0;">${code}</p>
-      <p style="font-size:13px;color:#666;">Vence en 10 minutos. Si no solicitaste esto, ignora este correo.</p>
-    `,
-    brandName: "Zentro Med",
     footerNote: "Código de verificación para firma de documento.",
+    blocks: [
+      pText("Usa este código para confirmar tu identidad y firmar el documento:"),
+      pCodigo(code, "Vence en 10 minutos"),
+      pNota("Si no solicitaste esto, ignora este correo y el documento no se firmará."),
+    ],
   });
 
   try {

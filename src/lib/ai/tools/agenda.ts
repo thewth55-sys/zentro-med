@@ -1,7 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { computeAvailableSlots } from '@/lib/scheduling/public-booking'
 import { notifyAccountTeam } from '@/lib/email/notify-team'
-import { escapeHtml } from '@/lib/email/branded-template'
+import { escapeHtml, pDestacado, pTabla, pText, pEnlace } from '@/lib/email/branded-template'
 import type { ToolDefinition, ToolExecutor } from '../types'
 
 // ============================================================
@@ -204,11 +204,22 @@ export function createAgendaToolExecutor(ctx: AgendaToolContext): ToolExecutor {
             dateStyle: 'medium',
             timeStyle: 'short',
           }).format(startAt)
+          const createdAtLabel = new Intl.DateTimeFormat('es-MX', { timeStyle: 'short' }).format(new Date())
           void notifyAccountTeam(db, {
             accountId,
             subject: `Nueva cita agendada por el asistente de IA`,
-            heading: 'Nueva cita agendada por el asistente de IA',
-            bodyHtml: `<p>El asistente de IA agendó una cita (pendiente de confirmar) para <strong>${escapeHtml(startLabel)}</strong> con ${escapeHtml(doctor.name)} (${escapeHtml(serviceType.name)}).</p>`,
+            heading: 'Nueva cita agendada por Zen',
+            sub: 'Aviso de agenda',
+            blocks: [
+              pDestacado('PENDIENTE DE CONFIRMAR', escapeHtml(startLabel), `Agendada a las ${escapeHtml(createdAtLabel)}`, 'ambar'),
+              pTabla([
+                { k: 'Doctor', v: escapeHtml(doctor.name) },
+                { k: 'Servicio', v: escapeHtml(serviceType.name) },
+                { k: 'Origen', v: 'WhatsApp' },
+              ]),
+              pText('Zen agendó esta cita con la disponibilidad real de tu agenda. Queda pendiente de confirmar hasta que alguien del equipo la revise.'),
+              pEnlace('Revisar la conversación →', 'https://med.zentrolabs.com/inbox'),
+            ],
           })
 
           return JSON.stringify({

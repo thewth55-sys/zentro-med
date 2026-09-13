@@ -6,6 +6,8 @@ import { supabaseAdmin } from "@/lib/billing-platform/admin-client";
 import type { SubscriptionStatus } from "@/lib/billing-platform/plans";
 import { encrypt } from "@/lib/whatsapp/encryption";
 import { AI_PROVIDER_DEFAULT_MODEL } from "@/lib/ai/defaults";
+import { sendEmail } from "@/lib/email/resend-client";
+import { renderShellEmail, internoShell, escapeHtml, pText, pDestacado, pBoton, pNota } from "@/lib/email/branded-template";
 
 /**
  * Auto-provisions `ai_configs` with a Zentro-Labs-owned OpenAI key the
@@ -61,6 +63,61 @@ async function provisionManagedAiConfig(accountId: string): Promise<void> {
  * Labs Portal that this client is now paid. Left as a comment marker
  * rather than a stub call so it's obvious nothing silently no-ops.
  */
+
+/**
+ * Notifies the account owner that their subscription charge failed.
+ * Best-effort — a failed send here must never affect the webhook's
+ * 200 response to Stripe. Card last-4 isn't included: an Invoice
+ * object doesn't carry it without an extra `payment_intent`/`charges`
+ * expansion, not worth the added Stripe API call for this notice.
+ */
+async function sendPaymentFailedEmail(
+  db: ReturnType<typeof supabaseAdmin>,
+  accountId: string,
+  accountName: string,
+  invoice: Stripe.Invoice,
+): Promise<void> {
+  const { data: owner } = await db
+    .from("profiles")
+    .select("email")
+    .eq("account_id", accountId)
+    .eq("account_role", "owner")
+    .not("email", "is", null)
+    .maybeSingle();
+  if (!owner?.email) return;
+
+  const amount = new Intl.NumberFormat("es-MX", {
+    style: "currency",
+    currency: (invoice.currency || "usd").toUpperCase(),
+  }).format(invoice.amount_due / 100);
+
+  const retryLabel = invoice.next_payment_attempt
+    ? new Intl.DateTimeFormat("es-MX", { day: "numeric", month: "long" }).format(new Date(invoice.next_payment_attempt * 1000))
+    : null;
+
+  await sendEmail({
+    to: owner.email,
+    subject: "No pudimos procesar tu pago — Zentro Med",
+    html: renderShellEmail({
+      shell: internoShell(accountName, { sub: "Tu suscripción", chip: null }),
+      heading: "No pudimos cobrar tu suscripción",
+      footerNote: "Este es un correo automático de Zentro Med, no es necesario responder.",
+      blocks: [
+        pText(`El cargo de tu plan fue rechazado por el banco. ${escapeHtml(accountName)} sigue funcionando con normalidad mientras lo resuelves.`),
+        pDestacado(
+          retryLabel ? `REINTENTAMOS EL ${retryLabel.toUpperCase()}` : "REINTENTAREMOS EL COBRO",
+          amount,
+          "Actualiza tu método de pago para evitar interrupciones",
+          "ambar",
+        ),
+        pText("Lo más común es que la tarjeta haya vencido o que el banco pida autorizar el cargo. Actualizarla toma menos de un minuto."),
+        pBoton("Actualizar mi método de pago", "https://med.zentrolabs.com/settings?tab=billing-platform"),
+        pNota("Haremos varios intentos en los próximos días. Después la cuenta pasa a solo lectura, sin que pierdas información."),
+      ],
+    }),
+  });
+}
+
 export async function POST(request: Request) {
   const signature = request.headers.get("stripe-signature");
   const secret = process.env.STRIPE_WEBHOOK_SECRET;
@@ -139,10 +196,19 @@ export async function POST(request: Request) {
 
         // No metadata on an Invoice object — resolve by the subscription
         // id we stored at checkout.session.completed instead.
-        await supabaseAdmin()
+        const db = supabaseAdmin();
+        const { data: account } = await db
           .from("accounts")
           .update({ subscription_status: "past_due" satisfies SubscriptionStatus })
-          .eq("stripe_subscription_id", subscriptionId);
+          .eq("stripe_subscription_id", subscriptionId)
+          .select("id, name")
+          .maybeSingle();
+
+        if (account) {
+          void sendPaymentFailedEmail(db, account.id, account.name, invoice).catch((err) => {
+            console.error("[stripe webhook] payment-failed email send failed:", err);
+          });
+        }
         break;
       }
 

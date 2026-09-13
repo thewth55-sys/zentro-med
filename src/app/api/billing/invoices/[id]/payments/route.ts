@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 import { toErrorResponse } from '@/lib/auth/account';
 import { requireSectionAccess } from '@/lib/auth/section-access';
 import { notifyAccountTeam } from '@/lib/email/notify-team';
-import { escapeHtml } from '@/lib/email/branded-template';
+import { escapeHtml, pDestacado, pTabla, pEnlace } from '@/lib/email/branded-template';
 import { fmtMoney } from '@/lib/billing/pdf-theme';
 
 const VALID_METHODS = ['cash', 'card', 'transfer', 'other'] as const;
@@ -58,7 +58,7 @@ export async function POST(
 
     const { data: invoice, error: invoiceError } = await supabase
       .from('invoices')
-      .select('id, status, invoice_number, currency, contact:contacts(name, phone)')
+      .select('id, status, invoice_number, currency, total, contact:contacts(name, phone)')
       .eq('id', id)
       .eq('account_id', accountId)
       .maybeSingle();
@@ -90,11 +90,31 @@ export async function POST(
     }
 
     const contact = Array.isArray(invoice.contact) ? invoice.contact[0] : invoice.contact;
+
+    const { data: updated } = await supabase
+      .from('invoices')
+      .select('status, amount_paid')
+      .eq('id', id)
+      .maybeSingle();
+    const saldo = updated?.status === 'paid'
+      ? 'Liquidada'
+      : `Pendiente ${fmtMoney(invoice.total - (updated?.amount_paid ?? amount), invoice.currency)}`;
+    const METHOD_LABELS: Record<string, string> = { cash: 'Efectivo', card: 'Tarjeta', transfer: 'Transferencia', other: 'Otro' };
+
     void notifyAccountTeam(supabase, {
       accountId,
       subject: `Pago recibido — Factura ${invoice.invoice_number}`,
       heading: 'Pago recibido',
-      bodyHtml: `<p>Se registró un pago de <strong>${fmtMoney(amount, invoice.currency)}</strong> en la factura <strong>${escapeHtml(invoice.invoice_number)}</strong>${contact?.name ? ` de ${escapeHtml(contact.name)}` : ''}.</p>`,
+      sub: 'Aviso de cobranza',
+      blocks: [
+        pDestacado('MONTO REGISTRADO', fmtMoney(amount, invoice.currency), METHOD_LABELS[method] ?? 'Otro', 'verde'),
+        pTabla([
+          { k: 'Factura', v: escapeHtml(invoice.invoice_number) },
+          ...(contact?.name ? [{ k: 'Paciente', v: escapeHtml(contact.name) }] : []),
+          { k: 'Saldo', v: saldo },
+        ]),
+        pEnlace('Ver la factura →', 'https://med.zentrolabs.com/billing'),
+      ],
     });
 
     return NextResponse.json({ payment }, { status: 201 });

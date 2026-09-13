@@ -7,7 +7,7 @@ import { InvoicePdfDocument, type InvoicePdfLineItem } from "@/lib/billing/invoi
 import { fetchAttendedBy, resolveToothNumbers } from "@/lib/billing/pdf-data";
 import { fmtMoney } from "@/lib/billing/pdf-theme";
 import { sendEmail } from "@/lib/email/resend-client";
-import { renderBrandedEmail, escapeHtml } from "@/lib/email/branded-template";
+import { renderShellEmail, pacienteShell, escapeHtml, pSaludo, pText, pDestacado, pAdjunto, pNota } from "@/lib/email/branded-template";
 
 /**
  * POST /api/billing/invoices/[id]/send-email — same PDF render as
@@ -86,17 +86,27 @@ export async function POST(
     );
 
     const balanceDue = Math.max(0, invoice.total - invoice.amount_paid);
-    const balanceLine = balanceDue > 0
-      ? `<p>Saldo pendiente: <strong>${fmtMoney(balanceDue, invoice.currency)}</strong></p>`
-      : `<p>Esta factura ya está pagada en su totalidad. ¡Gracias!</p>`;
+    const dueDateLabel = invoice.due_date
+      ? new Intl.DateTimeFormat("es-MX", { day: "numeric", month: "long" }).format(new Date(invoice.due_date))
+      : null;
+    const destacado = balanceDue > 0
+      ? pDestacado("TOTAL", fmtMoney(invoice.total, invoice.currency), dueDateLabel ? `Vence el ${dueDateLabel}` : "Saldo pendiente", "ambar")
+      : pDestacado("TOTAL", fmtMoney(invoice.total, invoice.currency), "Pagada en su totalidad", "verde");
 
-    const html = renderBrandedEmail({
+    const html = renderShellEmail({
+      shell: pacienteShell(account.name, { logoUrl: account.logoUrl, accentColor: account.quoteAccentColor }),
       heading: `Factura ${invoice.invoice_number}`,
-      bodyHtml: `<p>Hola ${escapeHtml(invoice.contact.name || "")},</p><p>Adjuntamos tu factura por un total de <strong>${fmtMoney(invoice.total, invoice.currency)}</strong>.</p>${balanceLine}`,
-      brandName: account.name,
-      logoUrl: account.logoUrl,
-      accentColor: account.quoteAccentColor,
-      footerNote: `Enviado por ${account.name}.`,
+      blocks: [
+        pSaludo(`Hola ${escapeHtml(invoice.contact.name || "")},`),
+        pText("Adjuntamos tu factura por los tratamientos de tu última consulta."),
+        destacado,
+        pAdjunto(`Factura-${invoice.invoice_number}.pdf`),
+        pNota(
+          balanceDue > 0
+            ? "Puedes pagar en el consultorio o con el link de cobro que te enviamos por WhatsApp."
+            : "Gracias por tu pago.",
+        ),
+      ],
     });
 
     await sendEmail({

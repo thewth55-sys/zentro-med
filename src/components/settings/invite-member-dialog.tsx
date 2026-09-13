@@ -94,6 +94,8 @@ interface CreatedInvite {
   /** Snapshotted at creation time so a later account rename can't
    *  retroactively change the wa.me message text on the result step. */
   accountName: string;
+  /** Set when the admin also asked to email the invite — just for the confirmation note below. */
+  emailedTo: string | null;
 }
 
 export function InviteMemberDialog({
@@ -111,6 +113,7 @@ export function InviteMemberDialog({
   const [accountRoles, setAccountRoles] = useState<AccountRoleOption[]>([]);
   const [expiry, setExpiry] = useState<string>('7');
   const [label, setLabel] = useState('');
+  const [inviteeEmail, setInviteeEmail] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [result, setResult] = useState<CreatedInvite | null>(null);
   // Starts true whenever the dialog doesn't need the seat-purchase
@@ -124,6 +127,7 @@ export function InviteMemberDialog({
     setCustomRoleId(null);
     setExpiry('7');
     setLabel('');
+    setInviteeEmail('');
     setResult(null);
     setSubmitting(false);
     setSeatConfirmed(!atSeatLimit);
@@ -203,6 +207,7 @@ export function InviteMemberDialog({
           customRoleId,
           expiresInDays: Number(expiry),
           label: trimmedLabel || undefined,
+          inviteeEmail: inviteeEmail.trim() || undefined,
         }),
       });
 
@@ -227,6 +232,7 @@ export function InviteMemberDialog({
         // — the dialog requires admin+ which requires a loaded
         // profile — but stay safe).
         accountName: account?.name ?? 'our Zentro Med account',
+        emailedTo: inviteeEmail.trim() || null,
       });
       onCreated();
     } catch (err) {
@@ -366,6 +372,12 @@ export function InviteMemberDialog({
                 {t('saveLinkHint')}
               </div>
 
+              {result.emailedTo && (
+                <p className="text-xs text-muted-foreground">
+                  {t('emailSentNote', { email: result.emailedTo })}
+                </p>
+              )}
+
               {/* Anchor styled with `buttonVariants` rather than wrapping
                   in <Button asChild>. The wacrm Button is the Base UI
                   ButtonPrimitive — it has no Radix-style asChild slot.
@@ -487,6 +499,23 @@ export function InviteMemberDialog({
                 />
                 <p className="text-xs text-muted-foreground">
                   {t('labelHint')}
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-muted-foreground">
+                  {t('emailLabel')}{' '}
+                  <span className="text-xs text-muted-foreground">{t('optional')}</span>
+                </Label>
+                <Input
+                  type="email"
+                  placeholder={t('emailPlaceholder')}
+                  value={inviteeEmail}
+                  onChange={(e) => setInviteeEmail(e.target.value)}
+                  className="bg-muted border-border text-foreground placeholder:text-muted-foreground"
+                />
+                <p className="text-xs text-muted-foreground">
+                  {t('emailHint')}
                 </p>
               </div>
             </div>

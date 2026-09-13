@@ -7,7 +7,7 @@ import { QuotePdfDocument, type QuotePdfLineItem } from "@/lib/billing/quote-pdf
 import { fetchAttendedBy, resolveToothNumbers } from "@/lib/billing/pdf-data";
 import { fmtMoney } from "@/lib/billing/pdf-theme";
 import { sendEmail } from "@/lib/email/resend-client";
-import { renderBrandedEmail, escapeHtml } from "@/lib/email/branded-template";
+import { renderShellEmail, pacienteShell, escapeHtml, pSaludo, pText, pDestacado, pAdjunto, pNota } from "@/lib/email/branded-template";
 
 /**
  * POST /api/billing/quotes/[id]/send-email — same PDF render as the
@@ -82,15 +82,20 @@ export async function POST(
       />,
     );
 
-    const expiryLine = quote.expiry_date ? `<p>Vigente hasta el ${quote.expiry_date}.</p>` : "";
+    const expiryLabel = quote.expiry_date
+      ? new Intl.DateTimeFormat("es-MX", { day: "numeric", month: "long" }).format(new Date(quote.expiry_date))
+      : null;
 
-    const html = renderBrandedEmail({
+    const html = renderShellEmail({
+      shell: pacienteShell(account.name, { logoUrl: account.logoUrl, accentColor: account.quoteAccentColor }),
       heading: `Cotización ${quote.quote_number}`,
-      bodyHtml: `<p>Hola ${escapeHtml(quote.contact.name || "")},</p><p>Adjuntamos tu cotización por un total de <strong>${fmtMoney(quote.total, quote.currency)}</strong>.</p>${expiryLine}`,
-      brandName: account.name,
-      logoUrl: account.logoUrl,
-      accentColor: account.quoteAccentColor,
-      footerNote: `Enviado por ${account.name}.`,
+      blocks: [
+        pSaludo(`Hola ${escapeHtml(quote.contact.name || "")},`),
+        pText("Adjuntamos la cotización del plan de tratamiento que revisamos en tu consulta."),
+        pDestacado("TOTAL", fmtMoney(quote.total, quote.currency), expiryLabel ? `Vigente hasta el ${expiryLabel}` : "Sin fecha de vencimiento", "verde"),
+        pAdjunto(`Cotizacion-${quote.quote_number}.pdf`),
+        pNota("Si tienes dudas sobre algún tratamiento, respóndenos por WhatsApp y lo revisamos contigo."),
+      ],
     });
 
     await sendEmail({
