@@ -23,11 +23,25 @@ interface OdontogramTabProps {
 
 // FDI/ISO two-digit numbering, laid out the way a chart is
 // conventionally drawn (patient's right appears on the left of the
-// page) — permanent adult dentition only, 32 teeth across 4 quadrants.
+// page) — permanent adult dentition, 32 teeth across 4 quadrants.
 const UPPER_RIGHT = [18, 17, 16, 15, 14, 13, 12, 11];
 const UPPER_LEFT = [21, 22, 23, 24, 25, 26, 27, 28];
 const LOWER_RIGHT = [48, 47, 46, 45, 44, 43, 42, 41];
 const LOWER_LEFT = [31, 32, 33, 34, 35, 36, 37, 38];
+
+// Primary/deciduous dentition (FDI quadrants 5-8, 5 teeth each — no
+// premolars/third molar in this set). Shown alongside the permanent
+// chart for a patient whose age puts them in the mixed-dentition
+// range (see `showsPrimaryDentition` below), migration 141.
+const UPPER_RIGHT_PRIMARY = [55, 54, 53, 52, 51];
+const UPPER_LEFT_PRIMARY = [61, 62, 63, 64, 65];
+const LOWER_RIGHT_PRIMARY = [85, 84, 83, 82, 81];
+const LOWER_LEFT_PRIMARY = [71, 72, 73, 74, 75];
+
+/** Roughly the age range where primary teeth are still present (mixed or full deciduous dentition). */
+function showsPrimaryDentition(age: number | null): boolean {
+  return age !== null && age < 13;
+}
 
 const CONDITIONS: ToothCondition[] = [
   "healthy",
@@ -60,15 +74,26 @@ const CONDITION_STYLE: Record<ToothCondition, string> = {
 // Nomenclatura FDI estándar (posición dentro del cuadrante + cuadrante) —
 // dato de referencia universal, no clínico del paciente, así que es
 // seguro derivarlo de forma estática en vez de guardarlo por diente.
-const TOOTH_QUADRANT_KEY: Record<number, string> = { 1: "q1", 2: "q2", 3: "q3", 4: "q4" };
+// Cuadrantes 5-8 = misma nomenclatura para dentición temporal.
+const TOOTH_QUADRANT_KEY: Record<number, string> = {
+  1: "q1", 2: "q2", 3: "q3", 4: "q4",
+  5: "q5", 6: "q6", 7: "q7", 8: "q8",
+};
 const TOOTH_POSITION_KEY: Record<number, string> = {
   1: "p1", 2: "p2", 3: "p3", 4: "p4", 5: "p5", 6: "p6", 7: "p7", 8: "p8",
+};
+// La dentición temporal solo tiene 5 piezas por cuadrante y sus nombres
+// difieren de las permanentes (ej. posición 4-5 son molares temporales,
+// no premolares — el premolar no existe hasta la dentición permanente).
+const TOOTH_POSITION_KEY_PRIMARY: Record<number, string> = {
+  1: "pp1", 2: "pp2", 3: "pp3", 4: "pp4", 5: "pp5",
 };
 
 function toothAnatomicalName(fdi: number, t: (key: string) => string): string {
   const quadrant = Math.floor(fdi / 10);
   const position = fdi % 10;
-  const positionKey = TOOTH_POSITION_KEY[position];
+  const isPrimary = quadrant >= 5;
+  const positionKey = isPrimary ? TOOTH_POSITION_KEY_PRIMARY[position] : TOOTH_POSITION_KEY[position];
   const quadrantKey = TOOTH_QUADRANT_KEY[quadrant];
   if (!positionKey || !quadrantKey) return "";
   return `${t(`toothPosition.${positionKey}`)} ${t(`toothQuadrant.${quadrantKey}`)}`;
@@ -297,6 +322,8 @@ export function OdontogramTab({ contactId }: OdontogramTabProps) {
 
   const selectedTooth = openTooth !== null ? teeth[openTooth] : undefined;
   const selectedProduct = products.find((p) => p.id === draftProductId);
+  const age = computeAge(profile?.birth_date);
+  const showPrimary = showsPrimaryDentition(age);
 
   return (
     <div className="space-y-3">
@@ -304,10 +331,8 @@ export function OdontogramTab({ contactId }: OdontogramTabProps) {
         <div>
           <div className="flex items-center gap-2">
             <h3 className="text-sm font-semibold text-foreground">{t("title")}</h3>
-            {computeAge(profile?.birth_date) !== null && (
-              <span className="text-xs text-muted-foreground">
-                {t("ageYears", { age: computeAge(profile?.birth_date)! })}
-              </span>
+            {age !== null && (
+              <span className="text-xs text-muted-foreground">{t("ageYears", { age })}</span>
             )}
           </div>
           <p className="text-xs text-muted-foreground">{t("hint")}</p>
@@ -342,6 +367,27 @@ export function OdontogramTab({ contactId }: OdontogramTabProps) {
           </div>
         </div>
       </div>
+
+      {showPrimary && (
+        <div className="overflow-x-auto rounded-2xl border border-border bg-card p-4 [scrollbar-width:thin] [scrollbar-color:var(--border)_transparent] [&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-border">
+          <p className="mb-2 text-center text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+            {t("primaryDentitionLabel")}
+          </p>
+          <div className="mx-auto flex w-fit flex-col items-center gap-1.5">
+            <div className="flex gap-1">
+              {[...UPPER_RIGHT_PRIMARY, ...UPPER_LEFT_PRIMARY].map((n) => (
+                <ToothButton key={n} number={n} tooth={teeth[n]} selected={openTooth === n} onClick={() => openToothEditor(n)} />
+              ))}
+            </div>
+            <div className="h-px w-[92%] bg-border" />
+            <div className="flex gap-1">
+              {[...LOWER_RIGHT_PRIMARY, ...LOWER_LEFT_PRIMARY].map((n) => (
+                <ToothButton key={n} number={n} tooth={teeth[n]} selected={openTooth === n} onClick={() => openToothEditor(n)} />
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       {openTooth !== null && (
         <div className="rounded-lg border border-border bg-card p-3.5">

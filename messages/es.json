@@ -982,14 +982,24 @@
           "p5": "Segundo premolar",
           "p6": "Primer molar",
           "p7": "Segundo molar",
-          "p8": "Tercer molar"
+          "p8": "Tercer molar",
+          "pp1": "Incisivo central temporal",
+          "pp2": "Incisivo lateral temporal",
+          "pp3": "Canino temporal",
+          "pp4": "Primer molar temporal",
+          "pp5": "Segundo molar temporal"
         },
         "toothQuadrant": {
           "q1": "sup. derecho",
           "q2": "sup. izquierdo",
           "q3": "inf. izquierdo",
-          "q4": "inf. derecho"
+          "q4": "inf. derecho",
+          "q5": "sup. derecho (temporal)",
+          "q6": "sup. izquierdo (temporal)",
+          "q7": "inf. izquierdo (temporal)",
+          "q8": "inf. derecho (temporal)"
         },
+        "primaryDentitionLabel": "Dentición temporal",
         "toothLabel": "Diente {number}",
         "condition": "Condición",
         "icdCode": "Código CIE",

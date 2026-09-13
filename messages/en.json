@@ -982,14 +982,24 @@
           "p5": "Second premolar",
           "p6": "First molar",
           "p7": "Second molar",
-          "p8": "Third molar"
+          "p8": "Third molar",
+          "pp1": "Primary central incisor",
+          "pp2": "Primary lateral incisor",
+          "pp3": "Primary canine",
+          "pp4": "Primary first molar",
+          "pp5": "Primary second molar"
         },
         "toothQuadrant": {
           "q1": "upper right",
           "q2": "upper left",
           "q3": "lower left",
-          "q4": "lower right"
+          "q4": "lower right",
+          "q5": "upper right (primary)",
+          "q6": "upper left (primary)",
+          "q7": "lower left (primary)",
+          "q8": "lower right (primary)"
         },
+        "primaryDentitionLabel": "Primary dentition",
         "toothLabel": "Tooth {number}",
         "condition": "Condition",
         "icdCode": "ICD code",

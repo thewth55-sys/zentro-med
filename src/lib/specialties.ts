@@ -118,3 +118,20 @@ export const SPECIALTY_LABELS: Record<AccountSpecialty, string> = {
 export function showsOdontogram(specialty: string | null | undefined): boolean {
   return !specialty || specialty === DENTAL_SPECIALTY;
 }
+
+/**
+ * Curated dental sub-specialties for `doctors.specialty` — shown as a
+ * picker instead of a free `<Input>` when the account's own specialty
+ * is dental (`showsOdontogram`). `doctors.specialty` stays free text
+ * in the DB (no schema change) and is displayed verbatim everywhere
+ * (roster row, public booking page) — these are just curated label
+ * strings, not a slug/enum like `ACCOUNT_SPECIALTIES`.
+ */
+export const DENTAL_DOCTOR_SPECIALTIES = [
+  "Odontología general",
+  "Ortodoncia",
+  "Endodoncia",
+  "Odontopediatría",
+  "Periodoncia",
+  "Cirugía maxilofacial",
+] as const;

@@ -8,6 +8,7 @@ import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/hooks/use-auth';
 import { useCan } from '@/hooks/use-can';
 import { fetchAccountMembers, memberLabel } from '@/lib/account/members';
+import { DENTAL_DOCTOR_SPECIALTIES, showsOdontogram } from '@/lib/specialties';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
@@ -41,7 +42,7 @@ import type { AccountMember, Doctor } from '@/types';
 export function DoctorManager() {
   const t = useTranslations('Settings.scheduling.doctors');
   const supabase = createClient();
-  const { accountId, loading: authLoading } = useAuth();
+  const { accountId, account, loading: authLoading } = useAuth();
   const canEdit = useCan('edit-settings');
 
   const [loading, setLoading] = useState(true);
@@ -258,14 +259,30 @@ export function DoctorManager() {
                   maxLength={80}
                   className="min-w-[160px] flex-1"
                 />
-                <Input
-                  placeholder={t('specialtyPlaceholder')}
-                  value={newSpecialty}
-                  onChange={(e) => setNewSpecialty(e.target.value)}
-                  disabled={saving}
-                  maxLength={80}
-                  className="min-w-[160px] flex-1"
-                />
+                {showsOdontogram(account?.specialty) ? (
+                  <select
+                    value={newSpecialty}
+                    onChange={(e) => setNewSpecialty(e.target.value)}
+                    disabled={saving}
+                    className="min-w-[160px] flex-1 rounded-md border border-border bg-muted px-2 py-1.5 text-sm text-foreground disabled:opacity-50"
+                  >
+                    <option value="">{t('specialtyPlaceholder')}</option>
+                    {DENTAL_DOCTOR_SPECIALTIES.map((s) => (
+                      <option key={s} value={s}>
+                        {s}
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <Input
+                    placeholder={t('specialtyPlaceholder')}
+                    value={newSpecialty}
+                    onChange={(e) => setNewSpecialty(e.target.value)}
+                    disabled={saving}
+                    maxLength={80}
+                    className="min-w-[160px] flex-1"
+                  />
+                )}
                 <Button variant="outline" size="sm" onClick={handleCreate} disabled={saving || !newName.trim()}>
                   {saving ? <Loader2 className="size-4 animate-spin" /> : <Plus className="size-4" />}
                   {t('add')}
