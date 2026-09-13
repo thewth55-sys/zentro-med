@@ -173,6 +173,14 @@ export function DoctorManager() {
           {t('title')}
         </CardTitle>
         <CardDescription className="text-muted-foreground">{t('description')}</CardDescription>
+        {canEdit && (
+          <p className="text-xs text-muted-foreground">
+            {t('inviteMemberNotice')}{' '}
+            <Link href="/settings?tab=members" className="font-medium text-primary hover:underline">
+              {t('inviteMemberCta')}
+            </Link>
+          </p>
+        )}
       </CardHeader>
       <CardContent className="space-y-4">
         {loading ? (

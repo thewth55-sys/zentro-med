@@ -1320,6 +1320,10 @@
       "subtitle": "Declare the dates and times you'll be at this clinic. Staff use this to schedule patients with you.",
       "notDoctorTitle": "No doctor profile linked",
       "notDoctorBody": "Your account isn't linked to a doctor profile yet. Ask an admin to link it from Settings → Scheduling.",
+      "noDoctorsTitle": "No doctors yet",
+      "noDoctorsBody": "Register a doctor in Settings → Scheduling to declare their availability.",
+      "titleFor": "{name}'s availability",
+      "doctorSelectorLabel": "Doctor",
       "addBlock": "Add availability block",
       "startTime": "Start",
       "endTime": "End",
@@ -2745,6 +2749,8 @@
     "members": {
       "title": "Team members",
       "description": "People with access to this account. Roles control what each teammate can do.",
+      "doctorLinkNotice": "Looking to add a doctor? That's managed separately, in",
+      "doctorLinkCta": "Settings → Scheduling → Doctors",
       "inviteMember": "Invite member",
       "online": "online",
       "away": "away",
@@ -3404,12 +3410,14 @@
       "adminOnlyHint": "Only admins and owners can change this configuration."
     },
     "scheduling": {
-      "businessHours": {"title": "Hours per room", "description": "Service days and hours per room (location). Used as the base for the slots offered on the public booking page.", "timezoneLabel": "Time zone", "open": "Opens", "close": "Closes", "closed": "Closed", "save": "Save hours", "saving": "Saving...", "saved": "Hours saved", "saveFailed": "Could not save hours", "loadFailed": "Failed to load hours", "invalidRange": "Closing time must be after opening time.", "days": {"0": "Sunday", "1": "Monday", "2": "Tuesday", "3": "Wednesday", "4": "Thursday", "5": "Friday", "6": "Saturday"}, "roomLabel": "Room", "noRooms": "Create a room first in the Rooms section; hours are set per room."},
+      "businessHours": {"title": "Hours per room", "description": "Service days and hours per room (location). Used as the base for the slots offered on the public booking page.", "timezoneLabel": "Time zone", "open": "Opens", "close": "Closes", "closed": "Closed", "save": "Save hours", "saving": "Saving...", "saved": "Hours saved", "saveFailed": "Could not save hours", "loadFailed": "Failed to load hours", "invalidRange": "Closing time must be after opening time.", "days": {"0": "Sunday", "1": "Monday", "2": "Tuesday", "3": "Wednesday", "4": "Thursday", "5": "Friday", "6": "Saturday"}, "roomLabel": "Room", "noRooms": "Create a room first in the Rooms section; hours are set per room.", "addRange": "Add shift", "removeRangeAria": "Remove this shift"},
       "title": "Scheduling",
       "description": "Manage the doctors, exam rooms, and treatment types used to schedule appointments from the pipeline.",
       "doctors": {
         "title": "Doctors",
         "description": "Doctors assignable to appointments. Linking a doctor to a team member lets them log in and declare their own monthly availability.",
+        "inviteMemberNotice": "Doctor doesn't have access yet? Invite them first in",
+        "inviteMemberCta": "Settings → Members",
         "namePlaceholder": "Doctor name",
         "specialtyPlaceholder": "Specialty (optional)",
         "add": "Add",

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
-import { CalendarClock, Loader2 } from 'lucide-react';
+import { CalendarClock, Loader2, Plus, X } from 'lucide-react';
 
 import { useCan } from '@/hooks/use-can';
 import { useAuth } from '@/hooks/use-auth';
@@ -36,15 +36,20 @@ const TIMEZONES = [
   'America/Guatemala',
 ];
 
-interface DayState {
-  enabled: boolean;
+interface TimeRange {
   open: string; // "HH:MM"
   close: string; // "HH:MM"
 }
 
+interface DayState {
+  enabled: boolean;
+  // Varios rangos por día = turno partido (ej. mañana y tarde).
+  ranges: TimeRange[];
+}
+
 function emptyWeek(): Record<number, DayState> {
   const week: Record<number, DayState> = {};
-  for (const wd of WEEKDAY_ORDER) week[wd] = { enabled: false, open: '09:00', close: '18:00' };
+  for (const wd of WEEKDAY_ORDER) week[wd] = { enabled: false, ranges: [{ open: '09:00', close: '18:00' }] };
   return week;
 }
 
@@ -110,10 +115,15 @@ export function BusinessHoursManager() {
         };
         if (!active) return;
         const next = emptyWeek();
+        for (const wd of WEEKDAY_ORDER) next[wd] = { enabled: false, ranges: [] };
         for (const d of data.days) {
-          if (next[d.weekday]) {
-            next[d.weekday] = { enabled: true, open: toHM(d.open_time), close: toHM(d.close_time) };
-          }
+          if (!next[d.weekday]) continue;
+          next[d.weekday].enabled = true;
+          next[d.weekday].ranges.push({ open: toHM(d.open_time), close: toHM(d.close_time) });
+        }
+        for (const wd of WEEKDAY_ORDER) {
+          if (next[wd].ranges.length === 0) next[wd].ranges = [{ open: '09:00', close: '18:00' }];
+          else next[wd].ranges.sort((a, b) => a.open.localeCompare(b.open));
         }
         setTimezone(data.timezone || 'America/Mexico_City');
         setWeek(next);
@@ -134,19 +144,39 @@ export function BusinessHoursManager() {
     setWeek((prev) => ({ ...prev, [wd]: { ...prev[wd], ...patch } }));
   }
 
+  function setRange(wd: number, index: number, patch: Partial<TimeRange>) {
+    setWeek((prev) => {
+      const ranges = prev[wd].ranges.map((r, i) => (i === index ? { ...r, ...patch } : r));
+      return { ...prev, [wd]: { ...prev[wd], ranges } };
+    });
+  }
+
+  function addRange(wd: number) {
+    setWeek((prev) => {
+      const last = prev[wd].ranges[prev[wd].ranges.length - 1];
+      const nextOpen = last ? last.close : '09:00';
+      return { ...prev, [wd]: { ...prev[wd], ranges: [...prev[wd].ranges, { open: nextOpen, close: '18:00' }] } };
+    });
+  }
+
+  function removeRange(wd: number, index: number) {
+    setWeek((prev) => ({ ...prev, [wd]: { ...prev[wd], ranges: prev[wd].ranges.filter((_, i) => i !== index) } }));
+  }
+
   async function handleSave() {
     for (const wd of WEEKDAY_ORDER) {
       const d = week[wd];
-      if (d.enabled && d.close <= d.open) {
+      if (!d.enabled) continue;
+      if (d.ranges.length === 0 || d.ranges.some((r) => r.close <= r.open)) {
         toast.error(t('invalidRange'));
         return;
       }
     }
-    const days = WEEKDAY_ORDER.filter((wd) => week[wd].enabled).map((wd) => ({
-      weekday: wd,
-      open_time: week[wd].open,
-      close_time: week[wd].close,
-    }));
+    const days = WEEKDAY_ORDER.flatMap((wd) =>
+      week[wd].enabled
+        ? week[wd].ranges.map((r) => ({ weekday: wd, open_time: r.open, close_time: r.close }))
+        : [],
+    );
 
     try {
       setSaving(true);
@@ -227,9 +257,9 @@ export function BusinessHoursManager() {
                     return (
                       <div
                         key={wd}
-                        className="flex flex-wrap items-center gap-3 rounded-lg border border-border bg-muted/40 px-3 py-2"
+                        className="flex flex-wrap items-start gap-3 rounded-lg border border-border bg-muted/40 px-3 py-2"
                       >
-                        <div className="flex min-w-[130px] items-center gap-2">
+                        <div className="flex min-w-[130px] items-center gap-2 pt-1.5">
                           <Switch
                             checked={d.enabled}
                             onCheckedChange={(v) => setDay(wd, { enabled: v })}
@@ -238,26 +268,47 @@ export function BusinessHoursManager() {
                           <span className="text-sm text-foreground">{t(`days.${wd}`)}</span>
                         </div>
                         {d.enabled ? (
-                          <div className="flex flex-1 items-center justify-end gap-2 text-sm">
-                            <span className="text-xs text-muted-foreground">{t('open')}</span>
-                            <Input
-                              type="time"
-                              value={d.open}
-                              onChange={(e) => setDay(wd, { open: e.target.value })}
-                              disabled={!canEdit}
-                              className="w-[110px]"
-                            />
-                            <span className="text-xs text-muted-foreground">{t('close')}</span>
-                            <Input
-                              type="time"
-                              value={d.close}
-                              onChange={(e) => setDay(wd, { close: e.target.value })}
-                              disabled={!canEdit}
-                              className="w-[110px]"
-                            />
+                          <div className="flex flex-1 flex-col items-end gap-1.5">
+                            {d.ranges.map((r, i) => (
+                              <div key={i} className="flex items-center gap-2 text-sm">
+                                <span className="text-xs text-muted-foreground">{t('open')}</span>
+                                <Input
+                                  type="time"
+                                  value={r.open}
+                                  onChange={(e) => setRange(wd, i, { open: e.target.value })}
+                                  disabled={!canEdit}
+                                  className="w-[110px]"
+                                />
+                                <span className="text-xs text-muted-foreground">{t('close')}</span>
+                                <Input
+                                  type="time"
+                                  value={r.close}
+                                  onChange={(e) => setRange(wd, i, { close: e.target.value })}
+                                  disabled={!canEdit}
+                                  className="w-[110px]"
+                                />
+                                {canEdit && d.ranges.length > 1 && (
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="size-7"
+                                    aria-label={t('removeRangeAria')}
+                                    onClick={() => removeRange(wd, i)}
+                                  >
+                                    <X className="size-3.5" />
+                                  </Button>
+                                )}
+                              </div>
+                            ))}
+                            {canEdit && (
+                              <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={() => addRange(wd)}>
+                                <Plus className="mr-1 size-3.5" />
+                                {t('addRange')}
+                              </Button>
+                            )}
                           </div>
                         ) : (
-                          <span className="flex-1 text-right text-xs text-muted-foreground">
+                          <span className="flex-1 pt-1.5 text-right text-xs text-muted-foreground">
                             {t('closed')}
                           </span>
                         )}

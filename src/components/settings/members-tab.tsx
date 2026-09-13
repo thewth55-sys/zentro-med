@@ -22,6 +22,7 @@
 // ============================================================
 
 import { useCallback, useEffect, useState } from 'react';
+import Link from 'next/link';
 import { toast } from 'sonner';
 import {
   AlertTriangle,
@@ -30,6 +31,7 @@ import {
   Mail,
   MailX,
   Plus,
+  Stethoscope,
   Trash2,
   UsersRound,
 } from 'lucide-react';
@@ -321,6 +323,20 @@ export function MembersTab() {
           </RequireRole>
         }
       />
+
+      {/* Un doctor no es lo mismo que un miembro con login — se gestiona
+          en su propia sección (doctor-manager.tsx). Solo cruzamos un
+          enlace corto aquí para que quien busque "agregar doctor" en
+          Miembros lo encuentre, sin fusionar los dos conceptos. */}
+      <RequireRole min="admin">
+        <p className="flex flex-wrap items-center gap-1.5 text-sm text-muted-foreground">
+          <Stethoscope className="size-4 shrink-0 text-muted-foreground/70" />
+          {t('doctorLinkNotice')}{' '}
+          <Link href="/settings?tab=scheduling" className="font-medium text-primary hover:underline">
+            {t('doctorLinkCta')}
+          </Link>
+        </p>
+      </RequireRole>
 
       {/* Live presence summary across the roster. Updates without a
           full refresh as heartbeats and the local re-derive tick land. */}

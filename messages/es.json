@@ -1320,6 +1320,10 @@
       "subtitle": "Declara las fechas y horarios en que estarás en esta clínica. El personal usa esto para agendarte pacientes.",
       "notDoctorTitle": "Sin perfil de doctor vinculado",
       "notDoctorBody": "Tu cuenta aún no está vinculada a un perfil de doctor. Pide a un admin que lo vincule desde Ajustes → Agendamiento.",
+      "noDoctorsTitle": "Aún no hay doctores",
+      "noDoctorsBody": "Registra un doctor en Ajustes → Agendamiento para poder declarar su disponibilidad.",
+      "titleFor": "Disponibilidad de {name}",
+      "doctorSelectorLabel": "Doctor",
       "addBlock": "Agregar bloque de disponibilidad",
       "startTime": "Inicio",
       "endTime": "Fin",
@@ -2745,6 +2749,8 @@
     "members": {
       "title": "Miembros del equipo",
       "description": "Personas con acceso a esta cuenta. Los roles controlan lo que puede hacer cada compañero.",
+      "doctorLinkNotice": "¿Buscas dar de alta a un doctor? Eso se gestiona aparte, en",
+      "doctorLinkCta": "Ajustes → Agendamiento → Doctores",
       "inviteMember": "Invitar miembro",
       "online": "en línea",
       "away": "ausente",
@@ -3404,12 +3410,14 @@
       "adminOnlyHint": "Solo admins y propietarios pueden cambiar esta configuración."
     },
     "scheduling": {
-      "businessHours": {"title": "Horario por consultorio", "description": "Días y horas de servicio de cada consultorio (ubicación). Se usan como base de los horarios que ofrece la página de agendamiento en línea.", "timezoneLabel": "Zona horaria", "open": "Abre", "close": "Cierra", "closed": "Cerrado", "save": "Guardar horario", "saving": "Guardando...", "saved": "Horario guardado", "saveFailed": "No se pudo guardar el horario", "loadFailed": "Error al cargar el horario", "invalidRange": "La hora de cierre debe ser posterior a la de apertura.", "days": {"0": "Domingo", "1": "Lunes", "2": "Martes", "3": "Miércoles", "4": "Jueves", "5": "Viernes", "6": "Sábado"}, "roomLabel": "Consultorio", "noRooms": "Primero crea un consultorio en la sección de Consultorios; el horario se define por consultorio."},
+      "businessHours": {"title": "Horario por consultorio", "description": "Días y horas de servicio de cada consultorio (ubicación). Se usan como base de los horarios que ofrece la página de agendamiento en línea.", "timezoneLabel": "Zona horaria", "open": "Abre", "close": "Cierra", "closed": "Cerrado", "save": "Guardar horario", "saving": "Guardando...", "saved": "Horario guardado", "saveFailed": "No se pudo guardar el horario", "loadFailed": "Error al cargar el horario", "invalidRange": "La hora de cierre debe ser posterior a la de apertura.", "days": {"0": "Domingo", "1": "Lunes", "2": "Martes", "3": "Miércoles", "4": "Jueves", "5": "Viernes", "6": "Sábado"}, "roomLabel": "Consultorio", "noRooms": "Primero crea un consultorio en la sección de Consultorios; el horario se define por consultorio.", "addRange": "Agregar turno", "removeRangeAria": "Quitar este turno"},
       "title": "Agendamiento",
       "description": "Gestiona los doctores, consultorios y tipos de tratamiento usados para agendar citas desde el pipeline.",
       "doctors": {
         "title": "Doctores",
         "description": "Doctores asignables a citas. Vincular un doctor a un miembro del equipo le permite iniciar sesión y declarar su propia disponibilidad mensual.",
+        "inviteMemberNotice": "¿El doctor todavía no tiene acceso? Invítalo primero en",
+        "inviteMemberCta": "Ajustes → Miembros",
         "namePlaceholder": "Nombre del doctor",
         "specialtyPlaceholder": "Especialidad (opcional)",
         "add": "Agregar",

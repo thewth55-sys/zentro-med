@@ -14,11 +14,17 @@ import type { Doctor, DoctorAvailabilityBlock } from "@/types";
 
 export function MyAvailabilityView() {
   const t = useTranslations("Agenda.mine");
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading, canEditSettings } = useAuth();
   const supabase = createClient();
 
   const [loading, setLoading] = useState(true);
-  const [doctor, setDoctor] = useState<Doctor | null>(null);
+  const [ownDoctor, setOwnDoctor] = useState<Doctor | null>(null);
+  // Admin+ puede administrar la disponibilidad de cualquier doctor de la
+  // cuenta (la RLS de doctor_availability_blocks ya lo permite desde la
+  // migración 091); para todos los demás, `doctors` queda vacío y
+  // `doctor` siempre es `ownDoctor`.
+  const [doctors, setDoctors] = useState<Doctor[]>([]);
+  const [selectedDoctorId, setSelectedDoctorId] = useState<string | null>(null);
   const [blocks, setBlocks] = useState<DoctorAvailabilityBlock[]>([]);
 
   const [startAt, setStartAt] = useState("");
@@ -26,6 +32,8 @@ export function MyAvailabilityView() {
   const [notes, setNotes] = useState("");
   const [saving, setSaving] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  const doctor = doctors.find((d) => d.id === selectedDoctorId) ?? ownDoctor;
 
   useEffect(() => {
     if (authLoading || !user) return;
@@ -36,18 +44,31 @@ export function MyAvailabilityView() {
         .select("*")
         .eq("user_id", user.id)
         .maybeSingle();
-      setDoctor((doctorRow as Doctor) ?? null);
-      if (doctorRow) {
-        const { data: blockRows } = await supabase
-          .from("doctor_availability_blocks")
+      setOwnDoctor((doctorRow as Doctor) ?? null);
+      setSelectedDoctorId(doctorRow?.id ?? null);
+
+      if (canEditSettings) {
+        const { data: allDoctors } = await supabase
+          .from("doctors")
           .select("*")
-          .eq("doctor_id", doctorRow.id)
-          .order("start_at", { ascending: true });
-        setBlocks((blockRows ?? []) as DoctorAvailabilityBlock[]);
+          .eq("is_active", true)
+          .order("name");
+        const list = (allDoctors ?? []) as Doctor[];
+        setDoctors(list);
+        if (!doctorRow && list[0]) setSelectedDoctorId(list[0].id);
       }
       setLoading(false);
     })();
-  }, [authLoading, user, supabase]);
+  }, [authLoading, user, supabase, canEditSettings]);
+
+  useEffect(() => {
+    if (!selectedDoctorId) {
+      setBlocks([]);
+      return;
+    }
+    void refreshBlocks(selectedDoctorId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedDoctorId]);
 
   async function refreshBlocks(doctorId: string) {
     const { data } = await supabase
@@ -117,8 +138,12 @@ export function MyAvailabilityView() {
     return (
       <div className="mx-auto max-w-md space-y-2 rounded-lg border border-border bg-card p-6 text-center">
         <CalendarClock className="mx-auto size-8 text-muted-foreground" />
-        <h1 className="text-lg font-semibold text-foreground">{t("notDoctorTitle")}</h1>
-        <p className="text-sm text-muted-foreground">{t("notDoctorBody")}</p>
+        <h1 className="text-lg font-semibold text-foreground">
+          {canEditSettings ? t("noDoctorsTitle") : t("notDoctorTitle")}
+        </h1>
+        <p className="text-sm text-muted-foreground">
+          {canEditSettings ? t("noDoctorsBody") : t("notDoctorBody")}
+        </p>
       </div>
     );
   }
@@ -128,9 +153,26 @@ export function MyAvailabilityView() {
       <div>
         <h1 className="flex items-center gap-2 text-2xl font-bold text-foreground">
           <CalendarClock className="size-6 text-primary" />
-          {t("title")}
+          {doctor.id === ownDoctor?.id ? t("title") : t("titleFor", { name: doctor.name })}
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">{t("subtitle")}</p>
+
+        {canEditSettings && doctors.length > 1 && (
+          <div className="mt-3 flex items-center gap-2">
+            <Label className="text-xs text-muted-foreground">{t("doctorSelectorLabel")}</Label>
+            <select
+              value={selectedDoctorId ?? ""}
+              onChange={(e) => setSelectedDoctorId(e.target.value)}
+              className="rounded-md border border-border bg-muted px-2 py-1 text-sm text-foreground"
+            >
+              {doctors.map((d) => (
+                <option key={d.id} value={d.id}>
+                  {d.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
       </div>
 
       <div className="space-y-3 rounded-lg border border-border bg-card p-4">
