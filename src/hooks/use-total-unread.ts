@@ -57,8 +57,21 @@ export function useTotalUnread(): number {
     void refetch();
     const pollId = setInterval(() => void refetch(), POLL_INTERVAL_MS);
 
+    // Defensive: a fast remount (React Strict Mode in dev, or an HMR
+    // reload) can re-run this effect before the previous cleanup's
+    // async `removeChannel()` below has finished its unsubscribe
+    // handshake with the server. supabase-js reuses a channel object
+    // for a topic that hasn't finished being removed, so `.on()`
+    // would be called on an already-subscribed channel and throw
+    // ("cannot add `postgres_changes` callbacks ... after
+    // channel.subscribe()"). Drop any such stale channel first — a
+    // no-op on a normal mount.
+    const CHANNEL_NAME = "total-unread-realtime";
+    const stale = supabase.getChannels().find((c) => c.topic === `realtime:${CHANNEL_NAME}`);
+    if (stale) supabase.removeChannel(stale);
+
     const channel = supabase
-      .channel("total-unread-realtime")
+      .channel(CHANNEL_NAME)
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "conversations" },
