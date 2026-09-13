@@ -98,3 +98,22 @@ export async function sendEmailBatch(items: BatchEmailItem[], fromName?: string)
   if (!data) throw new Error("Resend returned no data");
   return { ids: data.data.map((d) => d.id) };
 }
+
+/**
+ * Verifies a Resend webhook request (Svix-based signing under the
+ * hood, handled internally by the SDK) and returns the typed event.
+ * Throws on a missing/invalid signature — callers should treat that
+ * as a 400, same posture as every other webhook verifier here
+ * (Stripe, Meta, Cal.com). Takes the standard Fetch `Headers` from
+ * the incoming request and pulls out the 3 Svix headers Resend's own
+ * (confusingly-named, unrelated to DOM Headers) verify() type wants.
+ */
+export function verifyResendWebhook(payload: string, requestHeaders: globalThis.Headers) {
+  const webhookSecret = process.env.RESEND_WEBHOOK_SECRET;
+  if (!webhookSecret) throw new Error("RESEND_WEBHOOK_SECRET is not configured");
+  const id = requestHeaders.get("svix-id");
+  const timestamp = requestHeaders.get("svix-timestamp");
+  const signature = requestHeaders.get("svix-signature");
+  if (!id || !timestamp || !signature) throw new Error("Missing Svix signature headers");
+  return resendClient().webhooks.verify({ payload, headers: { id, timestamp, signature }, webhookSecret });
+}
