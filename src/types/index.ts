@@ -133,6 +133,8 @@ export interface Contact {
   landline_phone?: string | null;
   address?: string | null;
   lead_source?: string | null;
+  /** Set via the public unsubscribe link on an email broadcast (migration 143) — excluded from every future email broadcast's audience. */
+  opted_out_email?: boolean;
   created_at: string;
   updated_at: string;
   /** Hydrated by queries that embed `contact_tags(tags(*))` (e.g. the

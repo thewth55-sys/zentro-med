@@ -48,8 +48,18 @@ interface BroadcastPayload {
   headerMediaUrl?: string;
 }
 
+interface EmailBroadcastPayload {
+  name: string;
+  subject: string;
+  /** Plain text with `{{n}}` placeholders — same merge-tag mechanism as WhatsApp templates. */
+  bodyText: string;
+  audience: AudienceConfig;
+  variables: Record<string, VariableMapping>;
+}
+
 interface UseBroadcastSendingReturn {
   createAndSendBroadcast: (payload: BroadcastPayload) => Promise<string>;
+  createAndSendEmailBroadcast: (payload: EmailBroadcastPayload) => Promise<string>;
   isProcessing: boolean;
   progress: number;
 }
@@ -75,6 +85,20 @@ interface BroadcastApiResult {
   whatsapp_message_id?: string;
   error?: string;
 }
+
+interface EmailBroadcastApiResult {
+  contactId: string;
+  status: 'sent' | 'failed';
+  resend_message_id?: string;
+  error?: string;
+}
+
+/** Resend's real per-request rate limit (~2 req/s) is stricter than
+ *  WhatsApp's — but sendEmailBatch already sends up to 100 recipients
+ *  per API call, so this chunk size is about request-body size / the
+ *  route's own per-call batch cap, not per-message pacing. */
+const EMAIL_SEND_BATCH_SIZE = 100;
+const EMAIL_SEND_BATCH_DELAY_MS = 600;
 
 /** contactId → (customFieldId → value). */
 type CustomValueIndex = Map<string, Map<string, string>>;
@@ -115,6 +139,42 @@ export function resolveVariables(
     // custom_field
     return customValues?.get(v.value) ?? '';
   });
+}
+
+/**
+ * Same resolution as `resolveVariables`, but keyed by placeholder
+ * name instead of positional array — needed to substitute `{{key}}`
+ * occurrences inside free-form email subject/body text (WhatsApp
+ * templates instead pass the positional array straight to Meta,
+ * which does its own {{n}} substitution server-side).
+ */
+export function resolveVariablesMap(
+  variables: Record<string, VariableMapping>,
+  contact: Contact,
+  customValues?: Map<string, string>,
+): Record<string, string> {
+  const result: Record<string, string> = {};
+  for (const [key, v] of Object.entries(variables)) {
+    if (v.type === 'static') {
+      result[key] = v.value;
+    } else if (v.type === 'field') {
+      const fieldMap: Record<string, string | undefined> = {
+        name: contact.name,
+        phone: contact.phone,
+        email: contact.email,
+        company: contact.company,
+      };
+      result[key] = fieldMap[v.value] ?? '';
+    } else {
+      result[key] = customValues?.get(v.value) ?? '';
+    }
+  }
+  return result;
+}
+
+/** Replaces every `{{key}}` occurrence in `text` with its resolved value. */
+export function applyVariables(text: string, values: Record<string, string>): string {
+  return text.replace(/\{\{(\w+)\}\}/g, (match, key: string) => values[key] ?? match);
 }
 
 /**
@@ -571,5 +631,178 @@ export function useBroadcastSending(): UseBroadcastSendingReturn {
     }
   }
 
-  return { createAndSendBroadcast, isProcessing, progress };
+  /**
+   * Mirrors createAndSendBroadcast's shape (resolve audience → create
+   * broadcast row → insert recipients → send in batches → update rows
+   * → finalize status), but for the email channel: audience is
+   * additionally filtered to contacts with an email who haven't
+   * opted out, and sending goes through /api/email/broadcast
+   * (Resend's batch endpoint) instead of one WhatsApp send per
+   * recipient.
+   */
+  async function createAndSendEmailBroadcast(payload: EmailBroadcastPayload): Promise<string> {
+    setIsProcessing(true);
+    setProgress(0);
+
+    const supabase = createClient();
+
+    try {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      const user = session?.user;
+      if (!user) throw new Error('You are not signed in.');
+      if (!accountId) throw new Error('Your profile is not linked to an account.');
+
+      setProgress(5);
+      const allContacts = await resolveAudience(payload.audience);
+      const contacts = allContacts.filter((c) => c.email && !c.opted_out_email);
+
+      if (contacts.length === 0) {
+        throw new Error('No contacts with an email on file (and not opted out) found for this audience.');
+      }
+
+      setProgress(10);
+      const { data: broadcast, error: broadcastError } = await supabase
+        .from('broadcasts')
+        .insert({
+          user_id: user.id,
+          account_id: accountId,
+          name: payload.name,
+          channel: 'email',
+          template_name: payload.subject,
+          template_variables: payload.variables,
+          audience_filter: {
+            type: payload.audience.type,
+            tagIds: payload.audience.tagIds,
+            customField: payload.audience.customField,
+            excludeTagIds: payload.audience.excludeTagIds,
+          },
+          status: 'sending',
+          total_recipients: contacts.length,
+          sent_count: 0,
+          delivered_count: 0,
+          read_count: 0,
+          replied_count: 0,
+          failed_count: 0,
+        })
+        .select()
+        .single();
+
+      if (broadcastError || !broadcast) {
+        throw new Error(`Failed to create broadcast: ${broadcastError?.message ?? 'unknown error'}`);
+      }
+
+      setProgress(20);
+      const recipientRows = contacts.map((contact) => ({
+        broadcast_id: broadcast.id,
+        contact_id: contact.id,
+        status: 'pending' as const,
+      }));
+      for (let i = 0; i < recipientRows.length; i += INSERT_BATCH_SIZE) {
+        const batch = recipientRows.slice(i, i + INSERT_BATCH_SIZE);
+        const { error: recipientError } = await supabase.from('broadcast_recipients').insert(batch);
+        if (recipientError) {
+          await supabase.from('broadcasts').update({ status: 'failed', failed_count: contacts.length }).eq('id', broadcast.id);
+          throw new Error(`Failed to insert recipient batch ${i / INSERT_BATCH_SIZE + 1}: ${recipientError.message}`);
+        }
+      }
+
+      setProgress(30);
+      const { data: recipients, error: recipientsFetchError } = await supabase
+        .from('broadcast_recipients')
+        .select('*, contact:contacts(*)')
+        .eq('broadcast_id', broadcast.id);
+      if (recipientsFetchError || !recipients) {
+        throw new Error('Failed to fetch broadcast recipients');
+      }
+
+      const contactIds = recipients.map((r) => r.contact?.id).filter((id): id is string => Boolean(id));
+      const customValueIndex = await fetchCustomValueIndex(supabase, contactIds);
+
+      let failedCount = 0;
+      const totalRecipients = recipients.length;
+
+      for (let i = 0; i < recipients.length; i += EMAIL_SEND_BATCH_SIZE) {
+        const batch = recipients.slice(i, i + EMAIL_SEND_BATCH_SIZE);
+
+        const apiRecipients = batch
+          .filter((r) => r.contact?.email)
+          .map((r) => {
+            const values = resolveVariablesMap(payload.variables, r.contact!, customValueIndex.get(r.contact!.id));
+            return {
+              contactId: r.contact!.id,
+              email: r.contact!.email as string,
+              subject: applyVariables(payload.subject, values),
+              bodyHtml: applyVariables(payload.bodyText, values),
+            };
+          });
+
+        if (apiRecipients.length === 0) continue;
+
+        try {
+          const res = await fetch('/api/email/broadcast', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ recipients: apiRecipients }),
+          });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error || 'Broadcast API request failed');
+
+          const resultsByContact = new Map<string, EmailBroadcastApiResult>();
+          for (const r of (data.results ?? []) as EmailBroadcastApiResult[]) {
+            resultsByContact.set(r.contactId, r);
+          }
+
+          for (const recipient of batch) {
+            const result = recipient.contact?.id ? resultsByContact.get(recipient.contact.id) : undefined;
+            if (!result) {
+              failedCount++;
+              await supabase
+                .from('broadcast_recipients')
+                .update({ status: 'failed', error_message: 'No email on contact' })
+                .eq('id', recipient.id);
+              continue;
+            }
+            if (result.status === 'sent') {
+              await supabase
+                .from('broadcast_recipients')
+                .update({ status: 'sent', sent_at: new Date().toISOString(), resend_message_id: result.resend_message_id ?? null, error_message: null })
+                .eq('id', recipient.id);
+            } else {
+              failedCount++;
+              await supabase
+                .from('broadcast_recipients')
+                .update({ status: 'failed', error_message: result.error ?? 'Unknown error' })
+                .eq('id', recipient.id);
+            }
+          }
+        } catch (err) {
+          for (const recipient of batch) {
+            failedCount++;
+            await supabase
+              .from('broadcast_recipients')
+              .update({ status: 'failed', error_message: err instanceof Error ? err.message : 'Unknown error' })
+              .eq('id', recipient.id);
+          }
+        }
+
+        setProgress(30 + Math.round(((i + batch.length) / totalRecipients) * 60));
+        if (i + EMAIL_SEND_BATCH_SIZE < recipients.length) {
+          await sleep(EMAIL_SEND_BATCH_DELAY_MS);
+        }
+      }
+
+      setProgress(95);
+      const finalStatus = failedCount === totalRecipients ? 'failed' : 'sent';
+      await supabase.from('broadcasts').update({ status: finalStatus }).eq('id', broadcast.id);
+
+      setProgress(100);
+      return broadcast.id;
+    } finally {
+      setIsProcessing(false);
+    }
+  }
+
+  return { createAndSendBroadcast, createAndSendEmailBroadcast, isProcessing, progress };
 }

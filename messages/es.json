@@ -1466,6 +1466,8 @@
     "new": {
       "title": "Nueva difusión",
       "subtitle": "Crea y envía un mensaje de difusión a tus pacientes.",
+      "channelWhatsapp": "WhatsApp",
+      "channelEmail": "Correo",
       "steps": {
         "template": "Plantilla",
         "audience": "Audiencia",
@@ -1488,6 +1490,15 @@
         "noTemplates": "No hay plantillas disponibles.",
         "createFirst": "Crea primero una plantilla en Ajustes.",
         "errorLoad": "Error al cargar las plantillas"
+      },
+      "emailCompose": {
+        "title": "Redacta el correo",
+        "subtitle": "Escribe el asunto y el cuerpo del correo que recibirán tus pacientes.",
+        "subjectLabel": "Asunto",
+        "subjectPlaceholder": "ej. Es momento de tu limpieza semestral",
+        "bodyLabel": "Cuerpo del mensaje",
+        "bodyPlaceholder": "Escribe tu mensaje aquí...",
+        "bodyHint": "Usa {{nombre}} o variables similares — las mapeas al siguiente paso. Solo texto plano por ahora."
       },
       "selectAudience": {
         "title": "Selecciona la audiencia",

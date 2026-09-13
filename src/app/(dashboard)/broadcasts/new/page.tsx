@@ -7,11 +7,13 @@ import { useAuth } from '@/hooks/use-auth';
 import { toast } from 'sonner';
 import { MessageTemplate } from '@/types';
 import { Step1ChooseTemplate } from '@/components/broadcasts/step1-choose-template';
+import { Step1EmailCompose } from '@/components/broadcasts/step1-email-compose';
 import { Step2SelectAudience } from '@/components/broadcasts/step2-select-audience';
 import { Step3Personalize } from '@/components/broadcasts/step3-personalize';
+import { Step3EmailPersonalize } from '@/components/broadcasts/step3-email-personalize';
 import { Step4ScheduleSend } from '@/components/broadcasts/step4-schedule-send';
 import { useBroadcastSending } from '@/hooks/use-broadcast-sending';
-import { Check } from 'lucide-react';
+import { Check, Mail, MessageCircle } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 
 const steps = [
@@ -21,14 +23,28 @@ const steps = [
   { label: 'send', key: 'send' },
 ] as const;
 
+type Channel = 'whatsapp' | 'email';
+type VariableMapping = { type: 'static' | 'field' | 'custom_field'; value: string };
+
 export default function NewBroadcastPage() {
   const router = useRouter();
   const t = useTranslations('Broadcasts.new');
   const { accountId } = useAuth();
-  const { createAndSendBroadcast, isProcessing, progress } = useBroadcastSending();
+  const { createAndSendBroadcast, createAndSendEmailBroadcast, isProcessing, progress } = useBroadcastSending();
 
+  const [channel, setChannel] = useState<Channel>('whatsapp');
   const [currentStep, setCurrentStep] = useState(0);
+
+  // WhatsApp channel state
   const [template, setTemplate] = useState<MessageTemplate | null>(null);
+  const [variables, setVariables] = useState<Record<string, VariableMapping>>({});
+  const [headerMediaUrl, setHeaderMediaUrl] = useState('');
+
+  // Email channel state
+  const [emailSubject, setEmailSubject] = useState('');
+  const [emailBody, setEmailBody] = useState('');
+  const [emailVariables, setEmailVariables] = useState<Record<string, VariableMapping>>({});
+
   const [audience, setAudience] = useState<{
     type: 'all' | 'tags' | 'custom_field' | 'csv';
     tagIds?: string[];
@@ -40,33 +56,31 @@ export default function NewBroadcastPage() {
     csvContacts?: { phone: string; name?: string }[];
     excludeTagIds?: string[];
   }>({ type: 'all' });
-  const [variables, setVariables] = useState<
-    Record<string, { type: 'static' | 'field' | 'custom_field'; value: string }>
-  >({});
-  const [headerMediaUrl, setHeaderMediaUrl] = useState('');
   const [name, setName] = useState('');
 
   async function handleSend() {
-    if (!template) return;
-
     try {
-      const broadcastId = await createAndSendBroadcast({
-        name,
-        template,
-        audience: {
-          type: audience.type,
-          tagIds: audience.tagIds,
-          customField: audience.customField,
-          csvContacts: audience.csvContacts,
-          excludeTagIds: audience.excludeTagIds,
-        },
-        variables,
-        headerMediaUrl,
-      });
+      let broadcastId: string;
+      if (channel === 'email') {
+        broadcastId = await createAndSendEmailBroadcast({
+          name,
+          subject: emailSubject,
+          bodyText: emailBody,
+          audience,
+          variables: emailVariables,
+        });
+      } else {
+        if (!template) return;
+        broadcastId = await createAndSendBroadcast({
+          name,
+          template,
+          audience,
+          variables,
+          headerMediaUrl,
+        });
+      }
       router.push(`/broadcasts/${broadcastId}`);
     } catch (err) {
-      // Previously swallowed with console.error — the wizard would
-      // just no-op, leaving the user confused. Surface the reason.
       const message = err instanceof Error ? err.message : 'Broadcast failed';
       console.error('Broadcast failed:', err);
       toast.error(message);
@@ -74,16 +88,14 @@ export default function NewBroadcastPage() {
   }
 
   /**
-   * Writes a draft broadcast row — no recipients, no sending. The user
-   * can revisit it via the list page to finish the flow later. We
-   * don't persist the in-progress audience/variable config here
-   * because the current schema doesn't carry it past `audience_filter`
-   * and `template_variables`; those are enough for the user to
-   * recognize the draft but not to exactly round-trip into the wizard.
-   * A full resume-draft UX is a future polish.
+   * Writes a draft broadcast row — no recipients, no sending. See
+   * createAndSendBroadcast's own comment for why the in-progress
+   * audience/variable config isn't fully round-tripped back into the
+   * wizard on resume.
    */
   async function handleSaveDraft() {
-    if (!template || !name.trim()) {
+    const contentReady = channel === 'email' ? emailSubject.trim() && emailBody.trim() : !!template;
+    if (!contentReady || !name.trim()) {
       toast.error(t('toastGiveName'));
       return;
     }
@@ -105,9 +117,10 @@ export default function NewBroadcastPage() {
       user_id: user.id,
       account_id: accountId,
       name: name.trim(),
-      template_name: template.name,
-      template_language: template.language ?? 'en_US',
-      template_variables: variables,
+      channel,
+      template_name: channel === 'email' ? emailSubject : template!.name,
+      template_language: channel === 'email' ? undefined : (template!.language ?? 'en_US'),
+      template_variables: channel === 'email' ? emailVariables : variables,
       audience_filter: {
         type: audience.type,
         tagIds: audience.tagIds,
@@ -129,6 +142,9 @@ export default function NewBroadcastPage() {
     router.push('/broadcasts');
   }
 
+  const contentName = channel === 'email' ? emailSubject : (template?.name ?? '');
+  const contentMeta = channel === 'email' ? t('channelEmail') : (template?.language ?? 'en_US');
+
   return (
     <div className="mx-auto max-w-3xl space-y-8">
       {/* Header */}
@@ -138,6 +154,36 @@ export default function NewBroadcastPage() {
           {t('subtitle')}
         </p>
       </div>
+
+      {/* Channel toggle — only changeable before content is chosen */}
+      {currentStep === 0 && (
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setChannel('whatsapp')}
+            className={`flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors ${
+              channel === 'whatsapp'
+                ? 'border-primary bg-primary/10 text-primary'
+                : 'border-border bg-card/50 text-muted-foreground hover:bg-card'
+            }`}
+          >
+            <MessageCircle className="h-3.5 w-3.5" />
+            {t('channelWhatsapp')}
+          </button>
+          <button
+            type="button"
+            onClick={() => setChannel('email')}
+            className={`flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors ${
+              channel === 'email'
+                ? 'border-primary bg-primary/10 text-primary'
+                : 'border-border bg-card/50 text-muted-foreground hover:bg-card'
+            }`}
+          >
+            <Mail className="h-3.5 w-3.5" />
+            {t('channelEmail')}
+          </button>
+        </div>
+      )}
 
       {/* Step Indicator */}
       <div className="flex items-center justify-between">
@@ -188,10 +234,20 @@ export default function NewBroadcastPage() {
             pointerEvents: isProcessing ? 'none' : 'auto',
           }}
         >
-          {currentStep === 0 && (
+          {currentStep === 0 && channel === 'whatsapp' && (
             <Step1ChooseTemplate
               selectedTemplate={template}
               onSelect={setTemplate}
+              onNext={() => setCurrentStep(1)}
+              onBack={() => router.push('/broadcasts')}
+            />
+          )}
+          {currentStep === 0 && channel === 'email' && (
+            <Step1EmailCompose
+              subject={emailSubject}
+              onSubjectChange={setEmailSubject}
+              bodyText={emailBody}
+              onBodyTextChange={setEmailBody}
               onNext={() => setCurrentStep(1)}
               onBack={() => router.push('/broadcasts')}
             />
@@ -204,7 +260,7 @@ export default function NewBroadcastPage() {
               onBack={() => setCurrentStep(0)}
             />
           )}
-          {currentStep === 2 && template && (
+          {currentStep === 2 && channel === 'whatsapp' && template && (
             <Step3Personalize
               template={template}
               variables={variables}
@@ -215,11 +271,22 @@ export default function NewBroadcastPage() {
               onBack={() => setCurrentStep(1)}
             />
           )}
-          {currentStep === 3 && template && (
+          {currentStep === 2 && channel === 'email' && (
+            <Step3EmailPersonalize
+              subject={emailSubject}
+              bodyText={emailBody}
+              variables={emailVariables}
+              onUpdate={setEmailVariables}
+              onNext={() => setCurrentStep(3)}
+              onBack={() => setCurrentStep(1)}
+            />
+          )}
+          {currentStep === 3 && (
             <Step4ScheduleSend
               name={name}
               onNameChange={setName}
-              template={template}
+              contentName={contentName}
+              contentMeta={contentMeta}
               audience={audience}
               onSend={handleSend}
               onSaveDraft={handleSaveDraft}

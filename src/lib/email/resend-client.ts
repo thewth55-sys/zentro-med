@@ -67,3 +67,34 @@ export async function sendEmail(params: SendEmailParams): Promise<{ id: string }
   if (!data) throw new Error("Resend returned no data");
   return { id: data.id };
 }
+
+export interface BatchEmailItem {
+  to: string;
+  subject: string;
+  html: string;
+}
+
+/**
+ * Sends up to 100 emails in one Resend API call (their batch-sending
+ * endpoint) — used for email broadcasts instead of one sendEmail()
+ * per recipient, since Resend's real per-request rate limit (~2
+ * req/s) is far stricter than looping one-by-one can respect at any
+ * real audience size. No attachments/scheduling support (Resend's own
+ * batch API limitation) — fine here, campaign emails don't need
+ * either. All-or-nothing per call: on success every item in `items`
+ * got a real id in the same order; on failure none of them sent —
+ * simpler and safer than partial-failure bookkeeping for this scope.
+ */
+export async function sendEmailBatch(items: BatchEmailItem[], fromName?: string): Promise<{ ids: string[] }> {
+  if (items.length === 0) return { ids: [] };
+  if (items.length > 100) throw new Error("sendEmailBatch accepts at most 100 items per call");
+  const from = resolveFrom(fromName);
+
+  const { data, error } = await resendClient().batch.send(
+    items.map((item) => ({ from, to: item.to, subject: item.subject, html: item.html })),
+  );
+
+  if (error) throw new Error(error.message);
+  if (!data) throw new Error("Resend returned no data");
+  return { ids: data.data.map((d) => d.id) };
+}
