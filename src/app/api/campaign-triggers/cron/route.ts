@@ -122,16 +122,31 @@ async function checkStalledQuotes(db: Db, accountId: string, owner: Owner): Prom
   if (!stalled || stalled.length === 0) return;
 
   const totalValue = stalled.reduce((sum, q) => sum + Number(q.total), 0);
-  const examples = stalled.slice(0, 3).map((q) => {
+  const topThree = stalled.slice(0, 3).map((q) => {
     const contact = Array.isArray(q.contact) ? q.contact[0] : q.contact;
     return {
-      contactName: contact?.name ?? null,
+      name: contact?.name ?? null,
       amount: Number(q.total),
       daysAgo: Math.floor((Date.now() - new Date(q.updated_at).getTime()) / DAY_MS),
     };
   });
 
-  await fire(db, accountId, "campaign_trigger.stalled_quotes_14d", owner, { count: stalled.length, totalValue, examples });
+  // Flat example1Name/example1Amount/example1DaysAgo/... fields instead
+  // of an array — the external tool (Zoho Flow) can only map named
+  // fields, not index into a JSON array, so a fixed 3-slot shape is
+  // what it can actually consume.
+  const exampleFields: Record<string, unknown> = {};
+  topThree.forEach((ex, i) => {
+    exampleFields[`example${i + 1}Name`] = ex.name;
+    exampleFields[`example${i + 1}Amount`] = ex.amount;
+    exampleFields[`example${i + 1}DaysAgo`] = ex.daysAgo;
+  });
+
+  await fire(db, accountId, "campaign_trigger.stalled_quotes_14d", owner, {
+    count: stalled.length,
+    totalValue,
+    ...exampleFields,
+  });
 }
 
 async function checkZenOff(db: Db, accountId: string, owner: Owner): Promise<void> {
