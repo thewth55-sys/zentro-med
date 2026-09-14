@@ -22,6 +22,7 @@ import { NextResponse } from "next/server";
 
 import { supabaseAdmin } from "@/lib/billing-platform/admin-client";
 import { timingSafeSecretEqual } from "@/lib/cron/verify-secret";
+import { dispatchPlatformWebhookEvent } from "@/lib/webhooks/deliver";
 import { sendEmail } from "@/lib/email/resend-client";
 import {
   renderShellEmail,
@@ -79,6 +80,11 @@ export async function POST(request: Request) {
 
   const planLabel = PLAN_LABEL[record.plan as string] ?? record.plan ?? "—";
   const accountName = typeof record.name === "string" ? record.name : "Cuenta nueva";
+
+  await dispatchPlatformWebhookEvent(db, record.id, "account.created", {
+    email: ownerEmail,
+    name: accountName,
+  });
 
   let sentAdminAlert = false;
   if (recipientEmails.length > 0) {

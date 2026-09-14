@@ -22,7 +22,7 @@ import { NextResponse } from "next/server";
 
 import { supabaseAdmin } from "@/lib/billing-platform/admin-client";
 import { timingSafeSecretEqual } from "@/lib/cron/verify-secret";
-import { dispatchWebhookEvent } from "@/lib/webhooks/deliver";
+import { dispatchPlatformWebhookEvent } from "@/lib/webhooks/deliver";
 import type { WebhookEvent } from "@/lib/webhooks/events";
 
 type Db = ReturnType<typeof supabaseAdmin>;
@@ -43,6 +43,7 @@ const NO_REPEAT_DAYS: Record<WebhookEvent, number | null> = {
   "campaign_trigger.zen_off_manual_replies": 30,
   "campaign_trigger.cash_payments_weekly": 7,
   "campaign_trigger.first_month_milestone": null,
+  "account.created": null, // unused here, dispatched from the new-account webhook instead
 };
 
 async function alreadyFiredRecently(db: Db, accountId: string, trigger: WebhookEvent): Promise<boolean> {
@@ -57,7 +58,7 @@ async function alreadyFiredRecently(db: Db, accountId: string, trigger: WebhookE
 
 async function fire(db: Db, accountId: string, trigger: WebhookEvent, data: unknown): Promise<void> {
   if (await alreadyFiredRecently(db, accountId, trigger)) return;
-  await dispatchWebhookEvent(db, accountId, trigger, data);
+  await dispatchPlatformWebhookEvent(db, accountId, trigger, data);
   await db.from("campaign_trigger_events").insert({ account_id: accountId, trigger_key: trigger });
 }
 

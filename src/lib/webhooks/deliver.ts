@@ -49,11 +49,44 @@ export async function dispatchWebhookEvent(
   event: WebhookEvent,
   data: unknown
 ): Promise<void> {
+  return dispatchToEndpoints(db, accountId, accountId, event, data);
+}
+
+/**
+ * Like `dispatchWebhookEvent`, but looks up subscribed endpoints under
+ * the fixed platform account (`PLATFORM_WEBHOOK_ACCOUNT_ID`) instead
+ * of `subjectAccountId`. Used for platform-level B2B lifecycle-
+ * marketing events (`campaign_trigger.*`, `account.created`) where the
+ * subscriber is Zentro Labs itself, not the clinic the event is about
+ * — `webhook_endpoints` is otherwise scoped per-tenant, so a clinic's
+ * own account_id would never match an endpoint Zentro Labs registers
+ * under its own account. The envelope's `account_id` still carries
+ * `subjectAccountId` so the receiver (e.g. Zoho Flow) knows which
+ * clinic the event concerns. No-ops if the env var isn't set.
+ */
+export async function dispatchPlatformWebhookEvent(
+  db: SupabaseClient,
+  subjectAccountId: string,
+  event: WebhookEvent,
+  data: unknown
+): Promise<void> {
+  const platformAccountId = process.env.PLATFORM_WEBHOOK_ACCOUNT_ID;
+  if (!platformAccountId) return;
+  return dispatchToEndpoints(db, platformAccountId, subjectAccountId, event, data);
+}
+
+async function dispatchToEndpoints(
+  db: SupabaseClient,
+  lookupAccountId: string,
+  payloadAccountId: string,
+  event: WebhookEvent,
+  data: unknown
+): Promise<void> {
   try {
     const { data: rows, error } = await db
       .from('webhook_endpoints')
       .select('id, url, secret')
-      .eq('account_id', accountId)
+      .eq('account_id', lookupAccountId)
       .eq('is_active', true)
       .contains('events', [event]);
 
@@ -67,7 +100,7 @@ export async function dispatchWebhookEvent(
       id: randomUUID(),
       event,
       occurred_at: new Date().toISOString(),
-      account_id: accountId,
+      account_id: payloadAccountId,
       data,
     });
     const tsSeconds = Math.floor(Date.now() / 1000);

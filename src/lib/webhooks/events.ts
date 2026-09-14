@@ -21,6 +21,7 @@ export const WEBHOOK_EVENTS = [
   'campaign_trigger.zen_off_manual_replies', // WhatsApp connected, AI auto-reply off, meaningful manual reply volume
   'campaign_trigger.cash_payments_weekly', // 3+ cash payments recorded this week
   'campaign_trigger.first_month_milestone', // account just crossed 30 days old
+  'account.created', // a new account just signed up (platform-level, see dispatchPlatformWebhookEvent)
 ] as const;
 
 export type WebhookEvent = (typeof WEBHOOK_EVENTS)[number];
@@ -38,6 +39,7 @@ export const WEBHOOK_EVENT_DESCRIPTIONS: Record<WebhookEvent, string> = {
     'WhatsApp is connected but AI auto-reply is off, with meaningful manual reply volume this week',
   'campaign_trigger.cash_payments_weekly': '3 or more cash payments were recorded this week',
   'campaign_trigger.first_month_milestone': 'The account just crossed its 30-day usage milestone',
+  'account.created': 'A new account just signed up',
 };
 
 /** Type-narrow an unknown value into a valid `WebhookEvent`. */
