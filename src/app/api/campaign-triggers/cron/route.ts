@@ -56,9 +56,24 @@ async function alreadyFiredRecently(db: Db, accountId: string, trigger: WebhookE
   return !!data;
 }
 
-async function fire(db: Db, accountId: string, trigger: WebhookEvent, data: unknown): Promise<void> {
+interface Owner {
+  email: string | null;
+  name: string | null;
+}
+
+async function fire(
+  db: Db,
+  accountId: string,
+  trigger: WebhookEvent,
+  owner: Owner,
+  data: Record<string, unknown>
+): Promise<void> {
   if (await alreadyFiredRecently(db, accountId, trigger)) return;
-  await dispatchPlatformWebhookEvent(db, accountId, trigger, data);
+  // The external tool (Zoho Flow → Zoho Campaigns) matches contacts by
+  // email, so every campaign_trigger.* payload carries the account
+  // owner's email/name alongside its own data — same shape as
+  // account.created's payload in the new-account webhook.
+  await dispatchPlatformWebhookEvent(db, accountId, trigger, { email: owner.email, name: owner.name, ...data });
   await db.from("campaign_trigger_events").insert({ account_id: accountId, trigger_key: trigger });
 }
 
@@ -68,7 +83,7 @@ async function fire(db: Db, accountId: string, trigger: WebhookEvent, data: unkn
 // self-contained makes it easy to add/remove a trigger later.
 // ------------------------------------------------------------
 
-async function checkDormantLogin(db: Db, accountId: string): Promise<void> {
+async function checkDormantLogin(db: Db, accountId: string, owner: Owner): Promise<void> {
   const { data: lastLogin } = await db
     .from("login_events")
     .select("created_at")
@@ -88,13 +103,13 @@ async function checkDormantLogin(db: Db, accountId: string): Promise<void> {
   const payload = { daysSinceLogin: daysSince, contactsCount: contactsCount ?? 0, conversationsCount: conversationsCount ?? 0 };
 
   if (daysSince >= 75) {
-    await fire(db, accountId, "campaign_trigger.dormant_login_75d", payload);
+    await fire(db, accountId, "campaign_trigger.dormant_login_75d", owner, payload);
   } else {
-    await fire(db, accountId, "campaign_trigger.dormant_login_7d", payload);
+    await fire(db, accountId, "campaign_trigger.dormant_login_7d", owner, payload);
   }
 }
 
-async function checkStalledQuotes(db: Db, accountId: string): Promise<void> {
+async function checkStalledQuotes(db: Db, accountId: string, owner: Owner): Promise<void> {
   const cutoff = new Date(Date.now() - STALLED_QUOTE_DAYS * DAY_MS).toISOString();
   const { data: stalled } = await db
     .from("quotes")
@@ -116,10 +131,10 @@ async function checkStalledQuotes(db: Db, accountId: string): Promise<void> {
     };
   });
 
-  await fire(db, accountId, "campaign_trigger.stalled_quotes_14d", { count: stalled.length, totalValue, examples });
+  await fire(db, accountId, "campaign_trigger.stalled_quotes_14d", owner, { count: stalled.length, totalValue, examples });
 }
 
-async function checkZenOff(db: Db, accountId: string): Promise<void> {
+async function checkZenOff(db: Db, accountId: string, owner: Owner): Promise<void> {
   const { data: waConfig } = await db.from("whatsapp_config").select("status").eq("account_id", accountId).maybeSingle();
   if (waConfig?.status !== "connected") return; // no point nudging to enable Zen if WhatsApp itself isn't connected
 
@@ -147,10 +162,10 @@ async function checkZenOff(db: Db, accountId: string): Promise<void> {
   // an account with 1-2 replies isn't feeling the pain this email describes.
   if (!manualReplies || manualReplies < 10) return;
 
-  await fire(db, accountId, "campaign_trigger.zen_off_manual_replies", { manualRepliesCount: manualReplies });
+  await fire(db, accountId, "campaign_trigger.zen_off_manual_replies", owner, { manualRepliesCount: manualReplies });
 }
 
-async function checkCashPayments(db: Db, accountId: string): Promise<void> {
+async function checkCashPayments(db: Db, accountId: string, owner: Owner): Promise<void> {
   const weekAgo = new Date(Date.now() - 7 * DAY_MS).toISOString();
   const { data: cashPayments } = await db
     .from("payments")
@@ -162,10 +177,15 @@ async function checkCashPayments(db: Db, accountId: string): Promise<void> {
   if (!cashPayments || cashPayments.length < CASH_PAYMENTS_THRESHOLD) return;
 
   const totalAmount = cashPayments.reduce((sum, p) => sum + Number(p.amount), 0);
-  await fire(db, accountId, "campaign_trigger.cash_payments_weekly", { count: cashPayments.length, totalAmount });
+  await fire(db, accountId, "campaign_trigger.cash_payments_weekly", owner, { count: cashPayments.length, totalAmount });
 }
 
-async function checkFirstMonthMilestone(db: Db, accountId: string, accountCreatedAt: string): Promise<void> {
+async function checkFirstMonthMilestone(
+  db: Db,
+  accountId: string,
+  accountCreatedAt: string,
+  owner: Owner
+): Promise<void> {
   const daysSinceCreated = Math.floor((Date.now() - new Date(accountCreatedAt).getTime()) / DAY_MS);
   if (daysSinceCreated < FIRST_MONTH_DAYS) return;
 
@@ -180,7 +200,11 @@ async function checkFirstMonthMilestone(db: Db, accountId: string, accountCreate
   const noShowRate = appointmentsCount > 0 ? noShowCount / appointmentsCount : 0;
   const revenueCollected = (payments ?? []).reduce((sum, p) => sum + Number(p.amount), 0);
 
-  await fire(db, accountId, "campaign_trigger.first_month_milestone", { appointmentsCount, noShowRate, revenueCollected });
+  await fire(db, accountId, "campaign_trigger.first_month_milestone", owner, {
+    appointmentsCount,
+    noShowRate,
+    revenueCollected,
+  });
 }
 
 export async function GET(request: Request) {
@@ -197,7 +221,7 @@ export async function GET(request: Request) {
 
   const { data: accounts, error } = await db
     .from("accounts")
-    .select("id, created_at")
+    .select("id, created_at, owner_user_id")
     .eq("is_demo", false)
     .in("subscription_status", ["trialing", "active", "past_due"]);
 
@@ -206,15 +230,23 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
+  // Batch-resolve every owner's email/name once — the external tool
+  // (Zoho Flow → Zoho Campaigns) matches contacts by email, so every
+  // campaign_trigger.* payload needs it (see `fire()`).
+  const ownerUserIds = [...new Set((accounts ?? []).map((a) => a.owner_user_id))];
+  const { data: owners } = await db.from("profiles").select("user_id, email, full_name").in("user_id", ownerUserIds);
+  const ownerByUserId = new Map((owners ?? []).map((o) => [o.user_id, { email: o.email, name: o.full_name }]));
+
   let checked = 0;
   for (const account of accounts ?? []) {
     checked += 1;
+    const owner = ownerByUserId.get(account.owner_user_id) ?? { email: null, name: null };
     try {
-      await checkDormantLogin(db, account.id);
-      await checkStalledQuotes(db, account.id);
-      await checkZenOff(db, account.id);
-      await checkCashPayments(db, account.id);
-      await checkFirstMonthMilestone(db, account.id, account.created_at);
+      await checkDormantLogin(db, account.id, owner);
+      await checkStalledQuotes(db, account.id, owner);
+      await checkZenOff(db, account.id, owner);
+      await checkCashPayments(db, account.id, owner);
+      await checkFirstMonthMilestone(db, account.id, account.created_at, owner);
     } catch (err) {
       console.error(`[campaign-triggers cron] failed for account ${account.id}:`, err);
     }
