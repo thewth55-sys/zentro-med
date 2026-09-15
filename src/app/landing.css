@@ -188,8 +188,16 @@
   .zm-landing .benefit-num { width: 30px; height: 30px; border-radius: 8px; background: var(--zm-g-soft);
                  color: var(--zm-g3); font-weight: 800; font-size: 13px;
                  display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-  .zm-landing .benefit-text h4 { font-size: 14px; font-weight: 700; color: var(--zm-ink); margin-bottom: 3px; }
-  .zm-landing .benefit-text p { font-size: 13px; color: var(--zm-muted); line-height: 1.55; }
+  .zm-landing .benefit-text h3 { font-size: 14px; font-weight: 700; color: var(--zm-ink); margin: 0 0 3px; }
+  .zm-landing .benefit-text p { font-size: 13px; color: var(--zm-muted); line-height: 1.55; margin: 0; }
+
+  /* #zen-preview reuses .solution on a dark panel background — override
+     the (otherwise light-section) text colors so they're legible. */
+  #zen-preview .section-title,
+  #zen-preview .benefit-text h3 { color: var(--zm-white); }
+  #zen-preview .section-sub,
+  #zen-preview .benefit-text p { color: #A8CDBA; }
+  #zen-preview .benefit-num { background: rgba(255,255,255,.1); color: var(--zm-mint,#7BE3A8); }
 
   @media(min-width:861px) { .zm-landing .solution-grid.reverse .solution-visual { order: 2; } .zm-landing .solution-grid.reverse .solution-copy { order: 1; } }
 
