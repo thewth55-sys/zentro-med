@@ -220,6 +220,55 @@
   .zm-landing .step-title { font-size: 14px; font-weight: 700; color: var(--zm-ink); margin-bottom: 6px; }
   .zm-landing .step-desc { font-size: 12.5px; color: var(--zm-muted); line-height: 1.6; }
 
+  /* 08 — App móvil + Google Calendar */
+  .zm-landing .appcal { padding: clamp(64px,9vw,100px) 0; background: var(--zm-surface); }
+  .zm-landing .appcal-header { text-align: center; margin-bottom: 48px; }
+  .zm-landing .appcal-panel { display: grid; grid-template-columns: 1.1fr 1fr; gap: 48px; align-items: center;
+                  background: var(--zm-white); border: 1px solid var(--zm-line); border-radius: 18px; padding: 48px; }
+  @media(max-width:860px) { .zm-landing .appcal-panel { grid-template-columns: 1fr; padding: 32px; } }
+  .zm-landing .appcal-soon { display: inline-block; margin-bottom: 10px; font-family: 'IBM Plex Mono', monospace;
+                 font-size: 10.5px; font-weight: 700; letter-spacing: .08em; color: var(--zm-g3);
+                 background: var(--zm-g-soft); border: 1px solid #bbf7d0; border-radius: 999px; padding: 4px 10px; }
+  .zm-landing .appcal-copy-title { margin: 0; font-size: 22px; font-weight: 800; letter-spacing: -.02em; color: var(--zm-ink); }
+  .zm-landing .appcal-badges { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 26px; }
+  .zm-landing .store-badge { display: flex; align-items: center; gap: 10px; background: var(--zm-ink); color: var(--zm-white);
+                 border-radius: 12px; padding: 10px 18px 10px 14px; opacity: .55; filter: grayscale(.3); }
+  .zm-landing .store-badge svg { width: 22px; height: 22px; flex-shrink: 0; fill: var(--zm-white); }
+  .zm-landing .store-badge .lines { display: flex; flex-direction: column; line-height: 1.15; }
+  .zm-landing .store-badge .lines span:first-child { font-size: 10px; color: rgba(255,255,255,.65); }
+  .zm-landing .store-badge .lines span:last-child { font-size: 15px; font-weight: 700; letter-spacing: -.01em; }
+  .zm-landing .calendar-chip { margin-top: 20px; display: inline-flex; align-items: center; gap: 10px;
+                   background: var(--zm-g-soft); border: 1px solid #bbf7d0; color: var(--zm-ink2);
+                   border-radius: 999px; padding: 9px 16px 9px 10px; font-size: 13.5px; font-weight: 700; }
+  .zm-landing .calendar-chip svg { width: 20px; height: 20px; flex-shrink: 0; }
+  .zm-landing .appcal-visual { background: var(--zm-dark-panel); border-radius: 16px; padding: 30px 30px 0;
+                   position: relative; overflow: hidden; min-height: 300px; display: flex; align-items: flex-end; justify-content: center; }
+  .zm-landing .appcal-phone { background: #0B1B13; border: 1px solid #1D5A3D; border-radius: 20px 20px 0 0;
+                  padding: 16px 14px 0; max-width: 210px; width: 100%; box-shadow: 0 24px 48px -18px rgba(0,0,0,.45); }
+  .zm-landing .appcal-phone .ph-label { font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: .08em; color: #7BE3A8; margin-bottom: 10px; }
+  .zm-landing .appcal-row { display: flex; justify-content: space-between; align-items: center; background: #123A28; border: 1px solid #1D5A3D; border-radius: 10px; padding: 9px 10px; margin-bottom: 8px; }
+  .zm-landing .appcal-row .n { color: var(--zm-white); font-size: 12px; font-weight: 700; }
+  .zm-landing .appcal-row .t { color: #8FC4A8; font-size: 10px; font-family: 'IBM Plex Mono', monospace; }
+  .zm-landing .appcal-cal { margin-top: 12px; background: var(--zm-white); border-radius: 10px 10px 0 0; padding: 12px 12px 34px; }
+  .zm-landing .appcal-cal .cal-top { display: flex; justify-content: space-between; align-items: center; font-size: 11px; font-weight: 700; color: var(--zm-ink); margin-bottom: 8px; }
+  .zm-landing .appcal-cal .cal-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--zm-g3); display: inline-block; margin-right: 5px; }
+  .zm-landing .appcal-cal .cal-line { font-size: 9.5px; color: var(--zm-muted); display: flex; align-items: center; margin-bottom: 6px; }
+  @media(max-width:640px) { .zm-landing .appcal-badges { gap: 8px; } .zm-landing .store-badge { padding: 9px 12px; } .zm-landing .store-badge .lines span:last-child { font-size: 13.5px; } }
+
+  /* 09 — Integraciones de pago */
+  .zm-landing .paystrip { padding: clamp(64px,9vw,100px) 0; background: var(--zm-surface); }
+  .zm-landing .paystrip-header { text-align: center; margin-bottom: 40px; }
+  .zm-landing .paystrip-header .section-sub { margin: 0 auto; }
+  .zm-landing .paystrip-row { display: flex; justify-content: center; align-items: stretch; gap: 18px; flex-wrap: wrap; }
+  .zm-landing .paystrip-card { background: var(--zm-white); border: 1px solid var(--zm-line); border-radius: 16px;
+                   padding: 26px 34px; display: flex; flex-direction: column; align-items: center; gap: 12px;
+                   min-width: 190px; transition: border-color .2s, transform .2s, box-shadow .2s; }
+  .zm-landing .paystrip-card:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(15,23,42,.07); border-color: #86efac; }
+  .zm-landing .paystrip-mark { height: 34px; display: flex; align-items: center; }
+  .zm-landing .paystrip-mark svg { height: 100%; width: auto; display: block; }
+  .zm-landing .paystrip-mark.clip svg { height: 38px; }
+  .zm-landing .paystrip-cap { font-size: 12.5px; color: var(--zm-muted); font-family: 'IBM Plex Mono', monospace; }
+
   .zm-landing .pricing { padding: clamp(72px,10vw,120px) 0; }
   .zm-landing .pricing-header { text-align: center; margin-bottom: 16px; }
   .zm-landing .pricing-sub-note { text-align: center; font-size: 13px; color: var(--zm-muted); margin-bottom: 52px;
