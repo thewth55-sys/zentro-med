@@ -77,6 +77,16 @@ export interface AccountLeadInput {
   plan?: string | null;
   specialty?: string | null;
   country?: string | null;
+  /**
+   * Optional explicit Lead_Status (e.g. 'Trial Nuevo', 'Trial Vencido').
+   * Left unset by the live new-account webhook today — used by the
+   * backfill route (src/app/api/platform-admin/zoho-crm/backfill-leads)
+   * to reflect an existing account's real state instead of always
+   * defaulting to Zoho's blank/default status. Must already exist as a
+   * picklist option in this org's Leads layout (Setup → Customization
+   * → Leads → Lead Status) or Zoho rejects the whole create.
+   */
+  leadStatus?: string | null;
 }
 
 interface CachedToken {
@@ -217,6 +227,7 @@ export async function createZohoLeadFromAccount(
   if (input.website) leadData.Website = input.website;
   const leadSource = process.env.ZOHO_CRM_LEAD_SOURCE;
   if (leadSource) leadData.Lead_Source = leadSource;
+  if (input.leadStatus) leadData.Lead_Status = input.leadStatus;
 
   const res = await fetch(`${apiDomain}/crm/v2/Leads`, {
     method: 'POST',
@@ -233,5 +244,46 @@ export async function createZohoLeadFromAccount(
   if (!res.ok || result?.status !== 'success') {
     const detail = result?.message ?? body?.message ?? `HTTP ${res.status}`;
     throw new Error(`Zoho CRM Lead creation failed: ${detail}`);
+  }
+}
+
+/**
+ * Look up an existing Lead by owner email, so a backfill (or any
+ * future retry) doesn't create a duplicate for an account that
+ * already has one — either from the live webhook or a previous
+ * backfill run. Returns the Lead's id, or null if none is found.
+ *
+ * Fails open: a search error (network hiccup, Zoho outage) logs and
+ * returns null rather than throwing, so callers proceed as if no
+ * duplicate exists. That trades a small chance of a duplicate Lead
+ * for never blocking the backfill on a transient search failure —
+ * duplicates are cheap to merge by hand in Zoho, a stuck backfill
+ * isn't. Not used by the live new-account webhook today (see
+ * AccountLeadInput.leadStatus doc) — every signup there is new by
+ * construction, so there's nothing to dedupe against.
+ */
+export async function findZohoLeadIdByEmail(email: string): Promise<string | null> {
+  if (!requiredEnv() || !email) return null;
+
+  try {
+    const { accessToken, apiDomain } = await getAccessToken();
+    const res = await fetch(
+      `${apiDomain}/crm/v2/Leads/search?email=${encodeURIComponent(email)}`,
+      {
+        headers: { Authorization: `Zoho-oauthtoken ${accessToken}` },
+        signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+      }
+    );
+    if (res.status === 204 || res.status === 404) return null;
+    const body = await res.json().catch(() => null);
+    if (!res.ok) {
+      console.error(`[findZohoLeadIdByEmail] search failed (${res.status}):`, body?.message);
+      return null;
+    }
+    const first = body?.data?.[0];
+    return typeof first?.id === 'string' ? first.id : null;
+  } catch (err) {
+    console.error('[findZohoLeadIdByEmail] search threw:', err);
+    return null;
   }
 }
