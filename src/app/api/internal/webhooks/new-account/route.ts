@@ -24,6 +24,8 @@ import { supabaseAdmin } from "@/lib/billing-platform/admin-client";
 import { timingSafeSecretEqual } from "@/lib/cron/verify-secret";
 import { dispatchPlatformWebhookEvent } from "@/lib/webhooks/deliver";
 import { sendEmail } from "@/lib/email/resend-client";
+import { createZohoLeadFromAccount } from "@/lib/crm/zoho-lead";
+import { logIntegrationError } from "@/lib/integration-errors/log";
 import {
   renderShellEmail,
   internoShell,
@@ -73,9 +75,17 @@ export async function POST(request: Request) {
   ).filter((email): email is string => !!email);
 
   let ownerEmail: string | null = null;
+  let ownerFullName: string | null = null;
   if (record.owner_user_id) {
     const { data } = await db.auth.admin.getUserById(record.owner_user_id);
     ownerEmail = data?.user?.email ?? null;
+
+    const { data: profileRow } = await db
+      .from("profiles")
+      .select("full_name")
+      .eq("user_id", record.owner_user_id)
+      .maybeSingle();
+    ownerFullName = profileRow?.full_name ?? null;
   }
 
   const planLabel = PLAN_LABEL[record.plan as string] ?? record.plan ?? "—";
@@ -85,6 +95,33 @@ export async function POST(request: Request) {
     email: ownerEmail,
     name: accountName,
   });
+
+  // Push every new signup into Zoho CRM as a Lead — the commercial
+  // funnel's only source of trials right now is this table, and this
+  // is the one place a new account is guaranteed to pass through
+  // exactly once (see file header). No-ops silently if Zoho CRM
+  // credentials aren't configured yet (see src/lib/crm/zoho-lead.ts);
+  // any other failure is logged, never allowed to fail the webhook.
+  try {
+    await createZohoLeadFromAccount({
+      accountId: record.id,
+      accountName,
+      ownerEmail,
+      ownerFullName,
+      phone: typeof record.phone === "string" ? record.phone : null,
+      website: typeof record.website === "string" ? record.website : null,
+      plan: typeof record.plan === "string" ? record.plan : null,
+      specialty: typeof record.specialty === "string" ? record.specialty : null,
+      country: typeof record.country === "string" ? record.country : null,
+    });
+  } catch (err) {
+    console.error("[POST /api/internal/webhooks/new-account] Zoho CRM lead creation failed:", err);
+    await logIntegrationError(db, {
+      accountId: record.id,
+      source: "zoho_crm_lead",
+      message: err instanceof Error ? err.message : String(err),
+    });
+  }
 
   let sentAdminAlert = false;
   if (recipientEmails.length > 0) {
