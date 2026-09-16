@@ -103,6 +103,22 @@ interface CachedToken {
 // normal use.
 let cachedToken: CachedToken | null = null;
 
+// In-flight request de-duplication: without this, N calls that land
+// while no valid cached token exists each fire their own POST to
+// Zoho's token endpoint. That happened for real during the accounts
+// backfill (src/app/api/platform-admin/zoho-crm/backfill-leads) — the
+// first refresh failed, so every subsequent account in the loop
+// retried it independently, hammering Zoho's OAuth endpoint ~7 times
+// in under a second. Zoho's abuse throttling on rapid repeated calls
+// to the SAME refresh_token is the likely reason later attempts in
+// that run came back inconsistent ('Access Denied' on most, a stray
+// 'invalid_code' on one) rather than the same clean error every time.
+// Sharing one in-flight promise means a burst of calls becomes one
+// real network request, and the backfill route additionally
+// pre-flights auth once (see ensureZohoCrmAuth) so a bad token fails
+// fast with one message instead of once per account.
+let inFlightTokenRequest: Promise<{ accessToken: string; apiDomain: string }> | null = null;
+
 function requiredEnv() {
   const clientId = process.env.ZOHO_CRM_CLIENT_ID;
   const clientSecret = process.env.ZOHO_CRM_CLIENT_SECRET;
@@ -123,46 +139,68 @@ async function getAccessToken(): Promise<{
     };
   }
 
-  const env = requiredEnv();
-  if (!env) throw new Error('Zoho CRM credentials not configured');
+  if (inFlightTokenRequest) return inFlightTokenRequest;
 
-  const accountsUrl = process.env.ZOHO_CRM_ACCOUNTS_URL || DEFAULT_ACCOUNTS_URL;
-  const params = new URLSearchParams({
-    grant_type: 'refresh_token',
-    client_id: env.clientId,
-    client_secret: env.clientSecret,
-    refresh_token: env.refreshToken,
-  });
+  inFlightTokenRequest = (async () => {
+    const env = requiredEnv();
+    if (!env) throw new Error('Zoho CRM credentials not configured');
 
-  const res = await fetch(`${accountsUrl}/oauth/v2/token`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: params.toString(),
-    signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
-  });
+    const accountsUrl = process.env.ZOHO_CRM_ACCOUNTS_URL || DEFAULT_ACCOUNTS_URL;
+    const params = new URLSearchParams({
+      grant_type: 'refresh_token',
+      client_id: env.clientId,
+      client_secret: env.clientSecret,
+      refresh_token: env.refreshToken,
+    });
 
-  const body = await res.json().catch(() => null);
-  if (!res.ok || !body?.access_token) {
-    throw new Error(
-      `Zoho OAuth token refresh failed (${res.status}): ${body?.error ?? 'unknown error'}`
-    );
+    const res = await fetch(`${accountsUrl}/oauth/v2/token`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: params.toString(),
+      signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+    });
+
+    const body = await res.json().catch(() => null);
+    if (!res.ok || !body?.access_token) {
+      throw new Error(
+        `Zoho OAuth token refresh failed (${res.status}): ${body?.error ?? 'unknown error'}`
+      );
+    }
+
+    const apiDomain =
+      typeof body.api_domain === 'string' ? body.api_domain : DEFAULT_API_DOMAIN;
+    // expires_in is seconds (Zoho access tokens last ~3600s); refresh a
+    // minute early so a slow request never straddles the real expiry.
+    const expiresInMs =
+      (typeof body.expires_in === 'number' ? body.expires_in : 3600) * 1000;
+    cachedToken = {
+      accessToken: body.access_token,
+      apiDomain,
+      expiresAt: now + expiresInMs - 60_000,
+    };
+    return {
+      accessToken: cachedToken.accessToken,
+      apiDomain: cachedToken.apiDomain,
+    };
+  })();
+
+  try {
+    return await inFlightTokenRequest;
+  } finally {
+    inFlightTokenRequest = null;
   }
+}
 
-  const apiDomain =
-    typeof body.api_domain === 'string' ? body.api_domain : DEFAULT_API_DOMAIN;
-  // expires_in is seconds (Zoho access tokens last ~3600s); refresh a
-  // minute early so a slow request never straddles the real expiry.
-  const expiresInMs =
-    (typeof body.expires_in === 'number' ? body.expires_in : 3600) * 1000;
-  cachedToken = {
-    accessToken: body.access_token,
-    apiDomain,
-    expiresAt: now + expiresInMs - 60_000,
-  };
-  return {
-    accessToken: cachedToken.accessToken,
-    apiDomain: cachedToken.apiDomain,
-  };
+/**
+ * Pre-flight auth check — fetches (and caches) a real access token, or
+ * throws the same descriptive error getAccessToken would. The backfill
+ * route calls this once before looping over accounts, so a broken or
+ * revoked ZOHO_CRM_REFRESH_TOKEN fails once, immediately, with one
+ * clear message — instead of the loop discovering it independently
+ * for every account and burying the real cause in repeated noise.
+ */
+export async function ensureZohoCrmAuth(): Promise<void> {
+  await getAccessToken();
 }
 
 /** Best-effort "First Last" split — Zoho's Leads module requires Last_Name. */

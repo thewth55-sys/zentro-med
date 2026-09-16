@@ -26,7 +26,7 @@ import { requirePlatformAdmin, logPlatformAdminAction } from "@/lib/auth/platfor
 import { toErrorResponse } from "@/lib/auth/account";
 import { supabaseAdmin } from "@/lib/billing-platform/admin-client";
 import { checkRateLimit, rateLimitResponse, RATE_LIMITS } from "@/lib/rate-limit";
-import { createZohoLeadFromAccount, findZohoLeadIdByEmail } from "@/lib/crm/zoho-lead";
+import { createZohoLeadFromAccount, findZohoLeadIdByEmail, ensureZohoCrmAuth } from "@/lib/crm/zoho-lead";
 import type { SubscriptionStatus } from "@/lib/billing-platform/plans";
 
 interface AccountRow {
@@ -85,6 +85,23 @@ export async function POST(request: Request) {
     if (!limit.success) return rateLimitResponse(limit);
 
     const dryRun = new URL(request.url).searchParams.get("dryRun") === "1";
+
+    // Fail fast on a single bad/revoked ZOHO_CRM_REFRESH_TOKEN instead
+    // of every account in the loop independently rediscovering it and
+    // hammering Zoho's OAuth endpoint once each (see ensureZohoCrmAuth
+    // doc — this is what produced the confusing burst of mostly-
+    // identical "Access Denied" errors, one per account, in the first
+    // real run of this route).
+    try {
+      await ensureZohoCrmAuth();
+    } catch (err) {
+      return NextResponse.json(
+        {
+          error: `No se pudo autenticar con Zoho CRM: ${err instanceof Error ? err.message : String(err)}`,
+        },
+        { status: 502 },
+      );
+    }
 
     const db = supabaseAdmin();
 
