@@ -95,12 +95,17 @@ export async function POST(request: Request) {
     try {
       await ensureZohoCrmAuth();
     } catch (err) {
-      return NextResponse.json(
-        {
-          error: `No se pudo autenticar con Zoho CRM: ${err instanceof Error ? err.message : String(err)}`,
-        },
-        { status: 502 },
-      );
+      const message = err instanceof Error ? err.message : String(err);
+      console.error("[POST .../zoho-crm/backfill-leads] Zoho auth pre-flight failed:", message);
+      // 500, not 502/503/504 — those "gateway" statuses are exactly
+      // the ones a reverse proxy in front of the app (EasyPanel/
+      // Traefik here) is most likely to intercept and replace with
+      // its own generic HTML error page before the client ever sees
+      // this JSON body, which is what happened the first time this
+      // shipped: the dialog just showed its generic fallback text
+      // instead of this message. A plain 500 is app-originated and
+      // passes through.
+      return NextResponse.json({ error: `No se pudo autenticar con Zoho CRM: ${message}` }, { status: 500 });
     }
 
     const db = supabaseAdmin();

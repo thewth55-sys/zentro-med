@@ -39,7 +39,17 @@ async function runBackfill(dryRun: boolean): Promise<BackfillSummary> {
     method: "POST",
   });
   const body = await res.json().catch(() => null);
-  if (!res.ok) throw new Error(body?.error ?? "No se pudo sincronizar con Zoho CRM");
+  if (!res.ok) {
+    // A null body here means the response wasn't valid JSON — most
+    // likely a reverse-proxy error page instead of the API's own
+    // response (see the backfill route's comment on why it avoids
+    // 502/503/504). Say so rather than a bare generic message, since
+    // "revisa los logs del servidor" is a materially different next
+    // step than "algo en Zoho falló".
+    throw new Error(
+      body?.error ?? `No se pudo sincronizar con Zoho CRM (HTTP ${res.status}, respuesta no reconocida — revisa los logs del servidor)`,
+    );
+  }
   return body as BackfillSummary;
 }
 
