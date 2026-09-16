@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/table";
 import { AccountActionsMenu } from "@/components/admin/account-actions-menu";
 import { CreateDemoAccountDialog } from "@/components/admin/create-demo-account-dialog";
+import { SyncZohoCrmDialog } from "@/components/admin/sync-zoho-crm-dialog";
 import type { Plan, SubscriptionStatus } from "@/lib/billing-platform/plans";
 
 interface AdminAccount {
@@ -147,6 +148,7 @@ export default function AdminAccountsPage() {
               <SelectItem value="inactive">Sin actividad reciente</SelectItem>
             </SelectContent>
           </Select>
+          <SyncZohoCrmDialog />
           <CreateDemoAccountDialog onCreated={loadAccounts} />
         </div>
       </div>
