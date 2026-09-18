@@ -458,10 +458,6 @@
   .zm-landing .proof-text    { font-size: 13px; color: rgba(255,255,255,.5); }
   .zm-landing .proof-text strong { color: rgba(255,255,255,.85); }
 
-  .zm-landing .wa-float { position: fixed; bottom: 88px; right: 20px; z-index: 9999; width: 52px; height: 52px; border-radius: 50%; background: #25D366; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 20px rgba(37,211,102,.5); transition: transform .2s, box-shadow .2s; text-decoration: none; }
-  .zm-landing .wa-float:hover { transform: translateY(-3px) scale(1.06); box-shadow: 0 8px 28px rgba(37,211,102,.55); }
-  @media(max-width:640px) { .zm-landing .wa-float { bottom: 88px; right: 16px; width: 48px; height: 48px; } }
-
   .zm-landing .plan-chip { position: absolute; top: -12px; left: 50%; transform: translateX(-50%); background: var(--zm-ink); color: var(--zm-white); font-size: 10px; font-weight: 700; font-family: 'IBM Plex Mono', monospace; letter-spacing: .05em; text-transform: uppercase; padding: 4px 14px; border-radius: 20px; white-space: nowrap; }
   .zm-landing .plan-fine { font-size: 11px; color: var(--zm-muted2); text-align: center; margin-top: 8px; font-family: 'IBM Plex Mono', monospace; }
   .zm-landing .plan-card.dark-card .plan-fine { color: rgba(255,255,255,.3); }

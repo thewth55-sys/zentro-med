@@ -857,10 +857,8 @@ export const LANDING_BODY_HTML = `
   </div>
 </footer>
 
-<!-- WHATSAPP FLOAT -->
-<a href="https://wa.me/15752137020" target="_blank" rel="noopener" class="wa-float" aria-label="Escríbenos por WhatsApp">
-  <img src="https://cdn.simpleicons.org/whatsapp/ffffff" width="26" height="26" alt="WhatsApp">
-</a>
+<!-- ZOHO SALES IQ -->
+<script>window.$zoho=window.$zoho || {};$zoho.salesiq=$zoho.salesiq||{ready:function(){}}</script><script id="zsiqscript" src="https://salesiq.zohopublic.com/widget?wc=siq095599e56261c52d8b320752d1a1226917c754ddd852bd872511517297602428" defer></script>
 
 <!-- MOBILE STICKY CTA -->
 <div class="mob-cta">
