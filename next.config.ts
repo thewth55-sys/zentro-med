@@ -135,7 +135,11 @@ const SECURITY_HEADERS = [
       // signed URL of an already-uploaded consent PDF, shown both to
       // staff (consent-forms-tab.tsx) and to the patient mid-signing
       // (/firmar/[token] — see migration 074's module comment).
-      "frame-src 'self' blob: https://*.supabase.co https://challenges.cloudflare.com https://*.zoho.com https://*.zohopublic.com https://www.facebook.com https://web.facebook.com",
+      // drive.google.com is the /file/d/{id}/preview embed for
+      // marketing_content_pieces.drive_url (marketing-content-detail.tsx)
+      // — without it the iframe is silently blocked (no console error,
+      // just the browser's own broken-frame placeholder).
+      "frame-src 'self' blob: https://*.supabase.co https://challenges.cloudflare.com https://*.zoho.com https://*.zohopublic.com https://www.facebook.com https://web.facebook.com https://drive.google.com",
       // Zoho Desk's SDK spins up a background Web Worker from a
       // blob: URL (its "visitor container") — without an explicit
       // worker-src, browsers fall back to script-src, which doesn't

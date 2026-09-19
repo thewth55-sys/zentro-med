@@ -224,23 +224,22 @@ export function MarketingContentDetail({ pieceId }: MarketingContentDetailProps)
                 </div>
                 <span className="text-sm font-semibold text-foreground">{t("detail.previewAccount")}</span>
               </div>
-              <div className="w-full max-w-xs">
-                {embedUrl ? (
+              <div className="w-full max-w-xs space-y-1.5">
+                {embedUrl && (
                   <iframe
                     src={embedUrl}
                     className="aspect-video w-full rounded-lg border border-border"
                     allow="autoplay"
                   />
-                ) : (
-                  <a
-                    href={piece.drive_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-sm text-primary underline underline-offset-2"
-                  >
-                    {t("viewOnDrive")}
-                  </a>
                 )}
+                <a
+                  href={piece.drive_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block text-sm text-primary underline underline-offset-2"
+                >
+                  {t("viewOnDrive")}
+                </a>
               </div>
               <div className="flex w-full max-w-xs items-center gap-4 text-muted-foreground">
                 <Heart className="size-5" />
