@@ -48,3 +48,6 @@ supabase/.temp
 
 # graphify knowledge-graph output
 graphify-out/
+
+# per-machine editor settings (e.g. Qwen Code extension provider)
+.vscode/

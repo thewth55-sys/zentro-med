@@ -242,7 +242,40 @@
     "content": {
       "title": "Contenido",
       "description": "Biblioteca de contenido para tus campañas y redes.",
-      "comingSoon": "Una biblioteca para organizar el contenido que usas en tus campañas y redes."
+      "comingSoon": "Una biblioteca para organizar el contenido que usas en tus campañas y redes.",
+      "empty": "No hay piezas de contenido por ahora.",
+      "viewOnDrive": "Ver en Google Drive",
+      "scheduledFor": "Programado para {date}",
+      "statusValues": {
+        "pending": "Pendiente",
+        "approved": "Aprobado",
+        "rejected": "Rechazado"
+      },
+      "contentTypeValues": {
+        "reel": "Reel",
+        "carrusel": "Carrusel",
+        "historia": "Historia"
+      },
+      "actions": {
+        "approve": "Aprobar",
+        "reject": "Rechazar",
+        "feedback": "Dar observaciones",
+        "cancel": "Cancelar",
+        "submit": "Enviar",
+        "success": "Actualizado correctamente",
+        "error": "No se pudo actualizar",
+        "loadError": "No se pudo cargar el contenido"
+      },
+      "dialogs": {
+        "rejectTitle": "Rechazar pieza",
+        "rejectDescription": "Explica brevemente por qué se rechaza, para que el equipo de Zentro Labs pueda ajustarla.",
+        "feedbackTitle": "Dar observaciones",
+        "feedbackDescription": "Deja un comentario para el equipo sin rechazar la pieza."
+      },
+      "errors": {
+        "reasonRequired": "El motivo de rechazo es requerido",
+        "commentRequired": "El comentario es requerido"
+      }
     },
     "requests": {
       "title": "Solicitudes",
@@ -3435,7 +3468,33 @@
       "adminOnlyHint": "Solo admins y propietarios pueden cambiar esta configuración."
     },
     "scheduling": {
-      "businessHours": {"title": "Horario por consultorio", "description": "Días y horas de servicio de cada consultorio (ubicación). Se usan como base de los horarios que ofrece la página de agendamiento en línea.", "timezoneLabel": "Zona horaria", "open": "Abre", "close": "Cierra", "closed": "Cerrado", "save": "Guardar horario", "saving": "Guardando...", "saved": "Horario guardado", "saveFailed": "No se pudo guardar el horario", "loadFailed": "Error al cargar el horario", "invalidRange": "La hora de cierre debe ser posterior a la de apertura.", "days": {"0": "Domingo", "1": "Lunes", "2": "Martes", "3": "Miércoles", "4": "Jueves", "5": "Viernes", "6": "Sábado"}, "roomLabel": "Consultorio", "noRooms": "Primero crea un consultorio en la sección de Consultorios; el horario se define por consultorio.", "addRange": "Agregar turno", "removeRangeAria": "Quitar este turno"},
+      "businessHours": {
+        "title": "Horario por consultorio",
+        "description": "Días y horas de servicio de cada consultorio (ubicación). Se usan como base de los horarios que ofrece la página de agendamiento en línea.",
+        "timezoneLabel": "Zona horaria",
+        "open": "Abre",
+        "close": "Cierra",
+        "closed": "Cerrado",
+        "save": "Guardar horario",
+        "saving": "Guardando...",
+        "saved": "Horario guardado",
+        "saveFailed": "No se pudo guardar el horario",
+        "loadFailed": "Error al cargar el horario",
+        "invalidRange": "La hora de cierre debe ser posterior a la de apertura.",
+        "days": {
+          "0": "Domingo",
+          "1": "Lunes",
+          "2": "Martes",
+          "3": "Miércoles",
+          "4": "Jueves",
+          "5": "Viernes",
+          "6": "Sábado"
+        },
+        "roomLabel": "Consultorio",
+        "noRooms": "Primero crea un consultorio en la sección de Consultorios; el horario se define por consultorio.",
+        "addRange": "Agregar turno",
+        "removeRangeAria": "Quitar este turno"
+      },
       "title": "Agendamiento",
       "description": "Gestiona los doctores, consultorios y tipos de tratamiento usados para agendar citas desde el pipeline.",
       "doctors": {

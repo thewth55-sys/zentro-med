@@ -22,6 +22,7 @@ import {
   Loader2,
   LogIn,
   Mail,
+  Megaphone,
   MoreHorizontal,
   RotateCcw,
   Trash2,
@@ -266,6 +267,12 @@ export function AccountActionsMenu({
           <DropdownMenuItem onClick={() => router.push(`/admin/accounts/${accountId}/landing`)}>
             <Globe className="size-4" />
             Editar landing
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            onClick={() => router.push(`/admin/accounts/${accountId}/marketing-content`)}
+          >
+            <Megaphone className="size-4" />
+            Contenido de Marketing
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem

@@ -242,7 +242,40 @@
     "content": {
       "title": "Content",
       "description": "A content library for your campaigns and social accounts.",
-      "comingSoon": "A library to organize the content you use across campaigns and social."
+      "comingSoon": "A library to organize the content you use across campaigns and social.",
+      "empty": "No content pieces yet.",
+      "viewOnDrive": "View on Google Drive",
+      "scheduledFor": "Scheduled for {date}",
+      "statusValues": {
+        "pending": "Pending",
+        "approved": "Approved",
+        "rejected": "Rejected"
+      },
+      "contentTypeValues": {
+        "reel": "Reel",
+        "carrusel": "Carousel",
+        "historia": "Story"
+      },
+      "actions": {
+        "approve": "Approve",
+        "reject": "Reject",
+        "feedback": "Leave feedback",
+        "cancel": "Cancel",
+        "submit": "Submit",
+        "success": "Updated successfully",
+        "error": "Couldn't update",
+        "loadError": "Couldn't load content"
+      },
+      "dialogs": {
+        "rejectTitle": "Reject piece",
+        "rejectDescription": "Briefly explain why, so the Zentro Labs team can adjust it.",
+        "feedbackTitle": "Leave feedback",
+        "feedbackDescription": "Leave a comment for the team without rejecting the piece."
+      },
+      "errors": {
+        "reasonRequired": "A rejection reason is required",
+        "commentRequired": "A comment is required"
+      }
     },
     "requests": {
       "title": "Requests",
@@ -3435,7 +3468,33 @@
       "adminOnlyHint": "Only admins and owners can change this configuration."
     },
     "scheduling": {
-      "businessHours": {"title": "Hours per room", "description": "Service days and hours per room (location). Used as the base for the slots offered on the public booking page.", "timezoneLabel": "Time zone", "open": "Opens", "close": "Closes", "closed": "Closed", "save": "Save hours", "saving": "Saving...", "saved": "Hours saved", "saveFailed": "Could not save hours", "loadFailed": "Failed to load hours", "invalidRange": "Closing time must be after opening time.", "days": {"0": "Sunday", "1": "Monday", "2": "Tuesday", "3": "Wednesday", "4": "Thursday", "5": "Friday", "6": "Saturday"}, "roomLabel": "Room", "noRooms": "Create a room first in the Rooms section; hours are set per room.", "addRange": "Add shift", "removeRangeAria": "Remove this shift"},
+      "businessHours": {
+        "title": "Hours per room",
+        "description": "Service days and hours per room (location). Used as the base for the slots offered on the public booking page.",
+        "timezoneLabel": "Time zone",
+        "open": "Opens",
+        "close": "Closes",
+        "closed": "Closed",
+        "save": "Save hours",
+        "saving": "Saving...",
+        "saved": "Hours saved",
+        "saveFailed": "Could not save hours",
+        "loadFailed": "Failed to load hours",
+        "invalidRange": "Closing time must be after opening time.",
+        "days": {
+          "0": "Sunday",
+          "1": "Monday",
+          "2": "Tuesday",
+          "3": "Wednesday",
+          "4": "Thursday",
+          "5": "Friday",
+          "6": "Saturday"
+        },
+        "roomLabel": "Room",
+        "noRooms": "Create a room first in the Rooms section; hours are set per room.",
+        "addRange": "Add shift",
+        "removeRangeAria": "Remove this shift"
+      },
       "title": "Scheduling",
       "description": "Manage the doctors, exam rooms, and treatment types used to schedule appointments from the pipeline.",
       "doctors": {
