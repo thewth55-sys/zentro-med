@@ -171,7 +171,13 @@ export function Sidebar({ open = false, onClose, totalUnread }: SidebarProps) {
 
     const showUnreadDot = item.href === "/inbox" && totalUnread > 0 && !isActive;
 
-    const isLocked = item.comingSoon ? true : item.feature ? !featureAccess[item.feature] : false;
+    const isLocked = item.comingSoon
+      ? true
+      : item.feature
+        ? !featureAccess[item.feature]
+        : item.requiresAddon === "marketing"
+          ? !account?.marketing_addon
+          : false;
 
     return (
       <li key={item.href}>
@@ -318,7 +324,7 @@ export function Sidebar({ open = false, onClose, totalUnread }: SidebarProps) {
               <div key={group} className="mt-4">
                 <p className="mb-1 flex items-center gap-1.5 px-3 text-[11px] font-medium tracking-wider text-muted-foreground uppercase">
                   {t(`group_${group}`)}
-                  {group === "marketing" && (
+                  {group === "marketing" && items.every((i) => i.comingSoon) && (
                     <span className="rounded-full border border-amber-500/40 bg-amber-500/10 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wider text-amber-300">
                       {t("soon")}
                     </span>

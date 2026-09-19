@@ -11,7 +11,10 @@ import { requireRole, toErrorResponse } from "@/lib/auth/account";
  */
 export async function GET(request: Request) {
   try {
-    const { supabase, accountId } = await requireRole("viewer");
+    const { supabase, accountId, account } = await requireRole("viewer");
+    if (!account.marketingAddon) {
+      return NextResponse.json({ error: "Marketing add-on not enabled for this account" }, { status: 403 });
+    }
     const url = new URL(request.url);
     const status = url.searchParams.get("status");
 

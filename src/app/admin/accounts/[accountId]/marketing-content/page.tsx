@@ -1,8 +1,9 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 
-import { resolveAccountOwner } from "@/lib/auth/platform-admin";
+import { requireStaffRole, resolveAccountOwner } from "@/lib/auth/platform-admin";
+import { ForbiddenError } from "@/lib/auth/account";
 import { supabaseAdmin } from "@/lib/billing-platform/admin-client";
 import { AdminMarketingContentForm } from "@/components/admin/admin-marketing-content-form";
 import { AdminMarketingContentManager } from "@/components/admin/admin-marketing-content-manager";
@@ -12,6 +13,13 @@ export default async function AdminAccountMarketingContentPage({
 }: {
   params: Promise<{ accountId: string }>;
 }) {
+  try {
+    await requireStaffRole(["marketing"]);
+  } catch (err) {
+    if (err instanceof ForbiddenError) redirect("/admin");
+    throw err;
+  }
+
   const { accountId } = await params;
   const owner = await resolveAccountOwner(accountId);
   if (!owner) notFound();

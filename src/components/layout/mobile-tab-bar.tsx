@@ -37,7 +37,7 @@ export function MobileTabBar({ totalUnread }: MobileTabBarProps) {
   const t = useTranslations("Sidebar");
   const pathname = usePathname();
   const { isPlatformAdmin } = usePlatformAdmin();
-  const { sectionOverrides } = useAuth();
+  const { account, sectionOverrides } = useAuth();
   const featureAccess = useNavFeatureAccess();
   const [moreOpen, setMoreOpen] = useState(false);
 
@@ -66,7 +66,11 @@ export function MobileTabBar({ totalUnread }: MobileTabBarProps) {
         <ul className="grid grid-cols-6">
           {pinnedItems.map((item) => {
             const active = isActive(item.href);
-            const isLocked = item.feature ? !featureAccess[item.feature] : false;
+            const isLocked = item.feature
+              ? !featureAccess[item.feature]
+              : item.requiresAddon === "marketing"
+                ? !account?.marketing_addon
+                : false;
             const showUnreadDot = item.href === "/inbox" && totalUnread > 0 && !active;
             return (
               <li key={item.href}>
@@ -112,7 +116,7 @@ export function MobileTabBar({ totalUnread }: MobileTabBarProps) {
                 <div key={group}>
                   <p className="mb-1.5 flex items-center gap-1.5 px-1 text-[11px] font-medium tracking-wider text-muted-foreground uppercase">
                     {t(`group_${group}`)}
-                    {group === "marketing" && (
+                    {group === "marketing" && items.every((i) => i.comingSoon) && (
                       <span className="rounded-full border border-amber-500/40 bg-amber-500/10 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wider text-amber-300">
                         {t("soon")}
                       </span>
@@ -120,7 +124,13 @@ export function MobileTabBar({ totalUnread }: MobileTabBarProps) {
                   </p>
                   <div className="space-y-1">
                     {items.map((item) => {
-                      const isLocked = item.comingSoon ? true : item.feature ? !featureAccess[item.feature] : false;
+                      const isLocked = item.comingSoon
+                        ? true
+                        : item.feature
+                          ? !featureAccess[item.feature]
+                          : item.requiresAddon === "marketing"
+                            ? !account?.marketing_addon
+                            : false;
                       return (
                         <Link
                           key={item.href}

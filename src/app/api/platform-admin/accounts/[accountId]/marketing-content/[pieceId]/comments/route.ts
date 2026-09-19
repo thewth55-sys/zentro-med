@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { requirePlatformAdmin, resolveAccountOwner } from "@/lib/auth/platform-admin";
+import { requireStaffRole, resolveAccountOwner } from "@/lib/auth/platform-admin";
 import { toErrorResponse } from "@/lib/auth/account";
 import { supabaseAdmin } from "@/lib/billing-platform/admin-client";
 import { checkRateLimit, rateLimitResponse, RATE_LIMITS } from "@/lib/rate-limit";
@@ -14,7 +14,7 @@ export async function GET(
   { params }: { params: Promise<{ accountId: string, pieceId: string }> },
 ) {
   try {
-    await requirePlatformAdmin();
+    await requireStaffRole(["marketing"]);
     const { accountId, pieceId } = await params;
 
     const owner = await resolveAccountOwner(accountId);
@@ -55,7 +55,7 @@ export async function POST(
   { params }: { params: Promise<{ accountId: string, pieceId: string }> },
 ) {
   try {
-    const admin = await requirePlatformAdmin();
+    const admin = await requireStaffRole(["marketing"]);
     const { accountId, pieceId } = await params;
 
     const limit = checkRateLimit(

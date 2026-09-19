@@ -7,7 +7,10 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const { supabase, accountId, userId } = await requireRole("agent");
+    const { supabase, accountId, userId, account } = await requireRole("agent");
+    if (!account.marketingAddon) {
+      return NextResponse.json({ error: "Marketing add-on not enabled for this account" }, { status: 403 });
+    }
     const { id } = await params;
 
     const body = await request.json().catch(() => null);
@@ -65,7 +68,10 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const { supabase, accountId } = await requireRole("viewer");
+    const { supabase, accountId, account } = await requireRole("viewer");
+    if (!account.marketingAddon) {
+      return NextResponse.json({ error: "Marketing add-on not enabled for this account" }, { status: 403 });
+    }
     const { id } = await params;
 
     const { data: piece, error: pieceError } = await supabase

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { requirePlatformAdmin, resolveAccountOwner, logPlatformAdminAction } from "@/lib/auth/platform-admin";
+import { requireStaffRole, resolveAccountOwner, logPlatformAdminAction } from "@/lib/auth/platform-admin";
 import { toErrorResponse } from "@/lib/auth/account";
 import { supabaseAdmin } from "@/lib/billing-platform/admin-client";
 import { checkRateLimit, rateLimitResponse, RATE_LIMITS } from "@/lib/rate-limit";
@@ -14,7 +14,7 @@ export async function PATCH(
   { params }: { params: Promise<{ accountId: string }> },
 ) {
   try {
-    const admin = await requirePlatformAdmin();
+    const admin = await requireStaffRole(["marketing"]);
     const { accountId } = await params;
 
     const limit = checkRateLimit(

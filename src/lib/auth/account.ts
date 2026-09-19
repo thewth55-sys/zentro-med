@@ -134,6 +134,8 @@ export interface AccountContext {
     taxId: string | null;
     /** Drives clinical-record/prescription legal framework (see src/lib/country.ts) — migration 129. */
     country: string;
+    /** Marketing-as-a-Service add-on, gates /marketing/content — migration 145/147. */
+    marketingAddon: boolean;
   };
 }
 
@@ -228,7 +230,7 @@ export async function getCurrentAccount(options?: { allowSuspended?: boolean }):
   const { data: account, error: accountErr } = await supabase
     .from("accounts")
     .select(
-      "id, name, plan, subscription_status, trial_ends_at, included_seats, stripe_customer_id, logo_url, quote_terms, quote_accent_color, address, tax_id, country",
+      "id, name, plan, subscription_status, trial_ends_at, included_seats, stripe_customer_id, logo_url, quote_terms, quote_accent_color, address, tax_id, country, marketing_addon",
     )
     .eq("id", resolvedAccountId)
     .maybeSingle();
@@ -282,6 +284,7 @@ export async function getCurrentAccount(options?: { allowSuspended?: boolean }):
       address: account.address,
       taxId: account.tax_id,
       country: account.country,
+      marketingAddon: account.marketing_addon ?? false,
     },
   };
 }

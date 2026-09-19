@@ -92,6 +92,8 @@ interface AccountSummary {
   country: string;
   /** Platform-admin per-feature force on/off — see 057_account_feature_overrides.sql. */
   feature_overrides: FeatureOverrides;
+  /** Marketing-as-a-Service add-on, gates /marketing/content — migration 145/147. */
+  marketing_addon: boolean;
 }
 
 interface AuthContextValue {
@@ -270,7 +272,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             // default_currency added in migration 021; narrowed to the
             // USD fallback below for older schemas where it reads null.
             .select(
-              "id, name, default_currency, plan, subscription_status, trial_ends_at, included_seats, stripe_customer_id, logo_url, quote_terms, quote_accent_color, address, tax_id, specialty, country, feature_overrides",
+              "id, name, default_currency, plan, subscription_status, trial_ends_at, included_seats, stripe_customer_id, logo_url, quote_terms, quote_accent_color, address, tax_id, specialty, country, feature_overrides, marketing_addon",
             )
             .eq("id", resolvedAccountId)
             .maybeSingle();
@@ -299,6 +301,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               specialty: account.specialty ?? DENTAL_SPECIALTY,
               country: account.country ?? "mx",
               feature_overrides: (account.feature_overrides as FeatureOverrides | null) ?? {},
+              marketing_addon: account.marketing_addon ?? false,
             };
           }
         }

@@ -81,6 +81,16 @@ export interface NavItem {
    * sidebar.tsx / mobile-tab-bar.tsx.
    */
   sectionKey?: SectionKey;
+  /**
+   * Gates the item on a boolean add-on column on `accounts` rather
+   * than a plan tier — unlike `feature`, this isn't about which plan
+   * you're on, it's a separately-sold add-on a platform admin turns
+   * on per account (see `accounts.marketing_addon`, migration 145/147,
+   * toggled from /admin/marketing). Locked the same way `feature` is
+   * (see sidebar.tsx / mobile-tab-bar.tsx `isLocked`), just keyed off
+   * `account.marketing_addon` instead of `resolveFeatureAccess`.
+   */
+  requiresAddon?: "marketing";
 }
 
 export const navItems: NavItem[] = [
@@ -122,7 +132,7 @@ export const navItems: NavItem[] = [
   { href: "/marketing/summary", labelKey: "marketingSummary", icon: BarChart3, comingSoon: true, group: "marketing" },
   { href: "/marketing/campaigns", labelKey: "marketingCampaigns", icon: Megaphone, comingSoon: true, group: "marketing" },
   { href: "/marketing/social", labelKey: "marketingSocial", icon: AtSign, comingSoon: true, group: "marketing" },
-  { href: "/marketing/content", labelKey: "marketingContent", icon: Newspaper, comingSoon: false, group: "marketing" },
+  { href: "/marketing/content", labelKey: "marketingContent", icon: Newspaper, comingSoon: false, requiresAddon: "marketing", group: "marketing" },
   { href: "/marketing/requests", labelKey: "marketingRequests", icon: Inbox, comingSoon: true, group: "marketing" },
 
   // CONFIGURACIÓN — se configura una vez, no se visita a diario.
