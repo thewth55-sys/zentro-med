@@ -243,7 +243,12 @@
       "title": "Content",
       "description": "A content library for your campaigns and social accounts.",
       "comingSoon": "A library to organize the content you use across campaigns and social.",
-      "empty": "No content pieces yet.",
+      "empty": {
+        "pending": "No pieces waiting for approval.",
+        "approved": "No approved pieces yet.",
+        "rejected": "No pieces with requested changes.",
+        "published": "No piece has been published yet."
+      },
       "viewOnDrive": "View on Google Drive",
       "scheduledFor": "Scheduled for {date}",
       "statusValues": {
@@ -264,7 +269,10 @@
         "submit": "Submit",
         "success": "Updated successfully",
         "error": "Couldn't update",
-        "loadError": "Couldn't load content"
+        "loadError": "Couldn't load content",
+        "review": "Review",
+        "view": "View",
+        "viewNote": "View my note"
       },
       "dialogs": {
         "rejectTitle": "Reject piece",
@@ -275,6 +283,29 @@
       "errors": {
         "reasonRequired": "A rejection reason is required",
         "commentRequired": "A comment is required"
+      },
+      "banner": {
+        "title": "{count, plural, one {# piece is} other {# pieces are}} waiting for your approval",
+        "cta": "Review the first one"
+      },
+      "tabs": {
+        "pending": "Pending",
+        "approved": "Approved",
+        "rejected": "Needs changes",
+        "published": "Published"
+      },
+      "detail": {
+        "back": "Back to content",
+        "notFound": "This piece couldn't be found.",
+        "previewAccount": "Your clinic",
+        "complianceTitle": "Compliance review",
+        "complianceNote": "Reviewed by the team before reaching you.",
+        "decisionTitle": "Your decision",
+        "scheduledNotice": "Approving schedules it for {date}.",
+        "commentsTitle": "Comments",
+        "noComments": "No comments yet.",
+        "commentPlaceholder": "Write a comment…",
+        "rejectPlaceholder": "Explain what you'd like changed…"
       }
     },
     "requests": {

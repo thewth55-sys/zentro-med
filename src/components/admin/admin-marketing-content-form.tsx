@@ -7,6 +7,7 @@ import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Select,
@@ -15,6 +16,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+
+const MAX_COMPLIANCE_ITEMS = 4;
 
 type ContentType = "reel" | "carrusel" | "historia" | "";
 
@@ -33,13 +36,23 @@ function isDriveUrl(value: string): boolean {
 
 export function AdminMarketingContentForm({ accountId }: AdminMarketingContentFormProps) {
   const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
   const [contentType, setContentType] = useState<ContentType>("");
   const [driveUrl, setDriveUrl] = useState("");
   const [scheduledPublishAt, setScheduledPublishAt] = useState("");
+  const [complianceChecklist, setComplianceChecklist] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   function handleTitleChange(e: ChangeEvent<HTMLInputElement>) {
     setTitle(e.target.value);
+  }
+
+  function handleDescriptionChange(e: ChangeEvent<HTMLTextAreaElement>) {
+    setDescription(e.target.value);
+  }
+
+  function handleComplianceChange(e: ChangeEvent<HTMLTextAreaElement>) {
+    setComplianceChecklist(e.target.value);
   }
 
   function handleDriveUrlChange(e: ChangeEvent<HTMLInputElement>) {
@@ -65,16 +78,24 @@ export function AdminMarketingContentForm({ accountId }: AdminMarketingContentFo
 
     setIsSubmitting(true);
     try {
+      const compliance = complianceChecklist
+        .split("\n")
+        .map((line) => line.trim())
+        .filter(Boolean)
+        .slice(0, MAX_COMPLIANCE_ITEMS);
+
       const res = await fetch(`/api/platform-admin/accounts/${accountId}/marketing-content`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           title: title.trim(),
+          description: description.trim() || null,
           content_type: contentType,
           drive_url: driveUrl.trim(),
           scheduled_publish_at: scheduledPublishAt
             ? new Date(scheduledPublishAt).toISOString()
             : null,
+          compliance_checklist: compliance.length > 0 ? compliance : null,
         }),
       });
       const data = await res.json().catch(() => null);
@@ -84,9 +105,11 @@ export function AdminMarketingContentForm({ accountId }: AdminMarketingContentFo
       }
       toast.success("Pieza subida");
       setTitle("");
+      setDescription("");
       setContentType("");
       setDriveUrl("");
       setScheduledPublishAt("");
+      setComplianceChecklist("");
     } catch (err) {
       console.error("[AdminMarketingContentForm] submit failed:", err);
       toast.error("No se pudo subir la pieza");
@@ -105,6 +128,16 @@ export function AdminMarketingContentForm({ accountId }: AdminMarketingContentFo
           <div className="space-y-1.5">
             <Label htmlFor="title">Título</Label>
             <Input id="title" value={title} onChange={handleTitleChange} required />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="description">Bajada corta (opcional)</Label>
+            <Textarea
+              id="description"
+              value={description}
+              onChange={handleDescriptionChange}
+              placeholder="Explicación breve que la clínica verá bajo el título"
+              rows={2}
+            />
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="content_type">Tipo de contenido</Label>
@@ -142,6 +175,18 @@ export function AdminMarketingContentForm({ accountId }: AdminMarketingContentFo
               type="datetime-local"
               value={scheduledPublishAt}
               onChange={handleScheduledChange}
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="compliance_checklist">
+              Checklist de cumplimiento (opcional, una línea por punto, máx. {MAX_COMPLIANCE_ITEMS})
+            </Label>
+            <Textarea
+              id="compliance_checklist"
+              value={complianceChecklist}
+              onChange={handleComplianceChange}
+              placeholder={"No promete resultados clínicos\nSin fotos de antes y después engañosas"}
+              rows={4}
             />
           </div>
           <Button type="submit" disabled={isSubmitting}>

@@ -1,58 +1,51 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { toast } from "sonner";
-import { FileText, Loader2, MessageSquare } from "lucide-react";
+import { Loader2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 type ContentType = "reel" | "carrusel" | "historia";
-type PieceStatus = "pending" | "approved" | "rejected";
+type PieceStatus = "pending" | "approved" | "rejected" | "published";
 
 interface MarketingContentPiece {
   id: string;
   title: string;
+  description: string | null;
   content_type: ContentType;
   drive_url: string;
   scheduled_publish_at: string | null;
   status: PieceStatus;
   feedback: string | null;
+  created_at: string;
 }
 
-type DialogMode = "reject" | "feedback" | null;
-
-const STATUS_STYLES: Record<PieceStatus, string> = {
-  pending: "bg-amber-500/10 text-amber-600 border-amber-500/30 dark:text-amber-400",
-  approved: "bg-emerald-500/10 text-emerald-600 border-emerald-500/30 dark:text-emerald-400",
-  rejected: "bg-red-500/10 text-red-600 border-red-500/30 dark:text-red-400",
+const THUMBNAIL_STYLES: Record<ContentType, string> = {
+  reel: "bg-gradient-to-br from-emerald-100 to-teal-200",
+  carrusel: "bg-gradient-to-br from-emerald-100 to-emerald-200",
+  historia: "bg-gradient-to-br from-violet-100 to-violet-200",
 };
 
-function driveEmbedUrl(driveUrl: string): string | null {
-  const match = driveUrl.match(/\/file\/d\/([^/]+)/);
-  return match ? `https://drive.google.com/file/d/${match[1]}/preview` : null;
-}
+const STATUS_BADGE_STYLES: Record<PieceStatus, string> = {
+  pending: "bg-amber-500 text-white",
+  approved: "bg-emerald-500 text-white",
+  rejected: "bg-red-500 text-white",
+  published: "bg-muted-foreground text-white",
+};
+
+const dateFormatter = new Intl.DateTimeFormat(undefined, { dateStyle: "medium" });
 
 export function MarketingContentList() {
   const t = useTranslations("Marketing.content");
+  const router = useRouter();
+
   const [pieces, setPieces] = useState<MarketingContentPiece[]>([]);
   const [loading, setLoading] = useState(true);
-  const [busyId, setBusyId] = useState<string | null>(null);
-
-  const [dialogMode, setDialogMode] = useState<DialogMode>(null);
-  const [activeId, setActiveId] = useState<string | null>(null);
-  const [noteText, setNoteText] = useState("");
+  const [activeTab, setActiveTab] = useState<PieceStatus>("pending");
 
   useEffect(() => {
     async function fetchPieces() {
@@ -62,62 +55,12 @@ export function MarketingContentList() {
         setPieces((data?.pieces ?? []) as MarketingContentPiece[]);
       } catch (err) {
         console.error("[MarketingContentList] fetch failed:", err);
-        toast.error(t("actions.loadError"));
       } finally {
         setLoading(false);
       }
     }
     void fetchPieces();
-  }, [t]);
-
-  async function updatePiece(id: string, update: { status?: "approved" | "rejected"; feedback?: string }) {
-    setBusyId(id);
-    try {
-      const res = await fetch(`/api/marketing-content-pieces/${id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(update),
-      });
-      const data = await res.json().catch(() => null);
-      if (!res.ok) {
-        toast.error(data?.error ?? t("actions.error"));
-        return;
-      }
-      setPieces((prev) => prev.map((p) => (p.id === id ? { ...p, ...data.piece } : p)));
-      toast.success(t("actions.success"));
-    } catch (err) {
-      console.error("[MarketingContentList] update failed:", err);
-      toast.error(t("actions.error"));
-    } finally {
-      setBusyId(null);
-    }
-  }
-
-  function openDialog(mode: DialogMode, id: string) {
-    setDialogMode(mode);
-    setActiveId(id);
-    setNoteText("");
-  }
-
-  function closeDialog() {
-    setDialogMode(null);
-    setActiveId(null);
-    setNoteText("");
-  }
-
-  async function handleDialogSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    if (!activeId || !noteText.trim()) {
-      toast.error(dialogMode === "reject" ? t("errors.reasonRequired") : t("errors.commentRequired"));
-      return;
-    }
-    if (dialogMode === "reject") {
-      await updatePiece(activeId, { status: "rejected", feedback: noteText.trim() });
-    } else if (dialogMode === "feedback") {
-      await updatePiece(activeId, { feedback: noteText.trim() });
-    }
-    closeDialog();
-  }
+  }, []);
 
   if (loading) {
     return (
@@ -127,127 +70,100 @@ export function MarketingContentList() {
     );
   }
 
-  if (pieces.length === 0) {
+  const pending = pieces
+    .filter((p) => p.status === "pending")
+    .sort((a, b) => {
+      if (!a.scheduled_publish_at) return 1;
+      if (!b.scheduled_publish_at) return -1;
+      return new Date(a.scheduled_publish_at).getTime() - new Date(b.scheduled_publish_at).getTime();
+    });
+  const approved = pieces.filter((p) => p.status === "approved");
+  const rejected = pieces.filter((p) => p.status === "rejected");
+  const published = pieces.filter((p) => p.status === "published");
+
+  const groups: Record<PieceStatus, MarketingContentPiece[]> = { pending, approved, rejected, published };
+  const emptyKeys: Record<PieceStatus, string> = {
+    pending: "empty.pending",
+    approved: "empty.approved",
+    rejected: "empty.rejected",
+    published: "empty.published",
+  };
+  const actionKeys: Record<PieceStatus, string> = {
+    pending: "actions.review",
+    approved: "actions.view",
+    rejected: "actions.viewNote",
+    published: "actions.view",
+  };
+
+  function renderGrid(items: MarketingContentPiece[], status: PieceStatus) {
+    if (items.length === 0) {
+      return <p className="py-6 text-sm text-muted-foreground">{t(emptyKeys[status])}</p>;
+    }
     return (
-      <div className="flex flex-col items-center gap-2 py-8 text-center">
-        <FileText className="size-6 text-muted-foreground" />
-        <p className="text-sm text-muted-foreground">{t("empty")}</p>
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+        {items.map((piece) => (
+          <Card
+            key={piece.id}
+            onClick={() => router.push(`/marketing/content/${piece.id}`)}
+            className="cursor-pointer overflow-hidden"
+          >
+            <div className={`relative h-32 ${THUMBNAIL_STYLES[piece.content_type]}`}>
+              <span className="absolute top-2 left-2 rounded bg-white/90 px-1.5 py-0.5 text-[10px] font-bold tracking-wide text-foreground">
+                {piece.content_type.toUpperCase()}
+              </span>
+              <span
+                className={`absolute top-2 right-2 rounded px-1.5 py-0.5 text-[10px] font-bold tracking-wide ${STATUS_BADGE_STYLES[piece.status]}`}
+              >
+                {t(`statusValues.${piece.status}`)}
+              </span>
+            </div>
+            <CardContent className="space-y-1.5">
+              <p className="font-semibold text-foreground">{piece.title}</p>
+              {piece.description && (
+                <p className="line-clamp-2 text-sm text-muted-foreground">{piece.description}</p>
+              )}
+              <div className="flex items-center justify-between border-t border-border pt-2 text-xs">
+                <span className="text-muted-foreground">
+                  {piece.status === "published"
+                    ? dateFormatter.format(new Date(piece.created_at))
+                    : piece.scheduled_publish_at
+                      ? dateFormatter.format(new Date(piece.scheduled_publish_at))
+                      : ""}
+                </span>
+                <span className="font-medium text-foreground">{t(actionKeys[status])}</span>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
       </div>
     );
   }
 
   return (
     <div className="space-y-4">
-      {pieces.map((piece) => {
-        const embedUrl = driveEmbedUrl(piece.drive_url);
-        const isBusy = busyId === piece.id;
-        return (
-          <Card key={piece.id}>
-            <CardContent className="space-y-4 p-6">
-              <div className="flex flex-wrap items-center gap-2">
-                <h3 className="text-lg font-semibold text-foreground">{piece.title}</h3>
-                <span
-                  className={`rounded-full border px-2 py-0.5 text-[11px] font-medium ${STATUS_STYLES[piece.status]}`}
-                >
-                  {t(`statusValues.${piece.status}`)}
-                </span>
-                <span className="rounded-full border border-border bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
-                  {t(`contentTypeValues.${piece.content_type}`)}
-                </span>
-              </div>
+      {activeTab === "pending" && pending.length > 0 && (
+        <div className="flex flex-wrap items-center gap-3 rounded-xl border border-amber-500/30 bg-amber-500/10 p-4">
+          <span className="text-sm font-medium text-foreground">
+            {t("banner.title", { count: pending.length })}
+          </span>
+          <Button size="sm" className="ml-auto" onClick={() => router.push(`/marketing/content/${pending[0].id}`)}>
+            {t("banner.cta")}
+          </Button>
+        </div>
+      )}
 
-              {piece.scheduled_publish_at && (
-                <p className="text-sm text-muted-foreground">
-                  {t("scheduledFor", {
-                    date: new Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeStyle: "short" }).format(
-                      new Date(piece.scheduled_publish_at),
-                    ),
-                  })}
-                </p>
-              )}
-
-              {embedUrl ? (
-                <iframe
-                  src={embedUrl}
-                  className="aspect-video w-full rounded-lg border border-border"
-                  allow="autoplay"
-                />
-              ) : (
-                <a
-                  href={piece.drive_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-sm text-primary underline underline-offset-2"
-                >
-                  {t("viewOnDrive")}
-                </a>
-              )}
-
-              {piece.status === "pending" ? (
-                <div className="flex flex-wrap gap-2">
-                  <Button onClick={() => updatePiece(piece.id, { status: "approved" })} disabled={isBusy}>
-                    {isBusy ? <Loader2 className="size-4 animate-spin" /> : null}
-                    {t("actions.approve")}
-                  </Button>
-                  <Button
-                    variant="destructive"
-                    onClick={() => openDialog("reject", piece.id)}
-                    disabled={isBusy}
-                  >
-                    {t("actions.reject")}
-                  </Button>
-                  <Button variant="outline" onClick={() => openDialog("feedback", piece.id)} disabled={isBusy}>
-                    {t("actions.feedback")}
-                  </Button>
-                </div>
-              ) : (
-                piece.feedback && (
-                  <div className="flex items-start gap-1.5 text-sm text-muted-foreground">
-                    <MessageSquare className="mt-0.5 size-4 shrink-0" />
-                    <span>{piece.feedback}</span>
-                  </div>
-                )
-              )}
-            </CardContent>
-          </Card>
-        );
-      })}
-
-      <Dialog open={dialogMode !== null} onOpenChange={(open) => !open && closeDialog()}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>
-              {dialogMode === "reject" ? t("dialogs.rejectTitle") : t("dialogs.feedbackTitle")}
-            </DialogTitle>
-            <DialogDescription>
-              {dialogMode === "reject" ? t("dialogs.rejectDescription") : t("dialogs.feedbackDescription")}
-            </DialogDescription>
-          </DialogHeader>
-          <form onSubmit={handleDialogSubmit} className="space-y-4">
-            <div className="space-y-1.5">
-              <Label htmlFor="note-text">
-                {dialogMode === "reject" ? t("actions.reject") : t("actions.feedback")}
-              </Label>
-              <Textarea
-                id="note-text"
-                value={noteText}
-                onChange={(e) => setNoteText(e.target.value)}
-                required
-                autoFocus
-              />
-            </div>
-            <DialogFooter>
-              <Button type="button" variant="outline" onClick={closeDialog}>
-                {t("actions.cancel")}
-              </Button>
-              <Button type="submit" disabled={busyId === activeId}>
-                {busyId === activeId ? <Loader2 className="size-4 animate-spin" /> : null}
-                {t("actions.submit")}
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
+      <Tabs value={activeTab} onValueChange={(v) => v && setActiveTab(v as PieceStatus)}>
+        <TabsList>
+          <TabsTrigger value="pending">{t("tabs.pending")} ({groups.pending.length})</TabsTrigger>
+          <TabsTrigger value="approved">{t("tabs.approved")} ({groups.approved.length})</TabsTrigger>
+          <TabsTrigger value="rejected">{t("tabs.rejected")} ({groups.rejected.length})</TabsTrigger>
+          <TabsTrigger value="published">{t("tabs.published")} ({groups.published.length})</TabsTrigger>
+        </TabsList>
+        <TabsContent value="pending">{renderGrid(pending, "pending")}</TabsContent>
+        <TabsContent value="approved">{renderGrid(approved, "approved")}</TabsContent>
+        <TabsContent value="rejected">{renderGrid(rejected, "rejected")}</TabsContent>
+        <TabsContent value="published">{renderGrid(published, "published")}</TabsContent>
+      </Tabs>
     </div>
   );
 }

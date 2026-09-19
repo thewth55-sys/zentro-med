@@ -243,7 +243,12 @@
       "title": "Contenido",
       "description": "Biblioteca de contenido para tus campañas y redes.",
       "comingSoon": "Una biblioteca para organizar el contenido que usas en tus campañas y redes.",
-      "empty": "No hay piezas de contenido por ahora.",
+      "empty": {
+        "pending": "No hay piezas por aprobar.",
+        "approved": "No hay piezas aprobadas todavía.",
+        "rejected": "No hay piezas con cambios pedidos.",
+        "published": "Todavía no se ha publicado ninguna pieza."
+      },
       "viewOnDrive": "Ver en Google Drive",
       "scheduledFor": "Programado para {date}",
       "statusValues": {
@@ -264,7 +269,10 @@
         "submit": "Enviar",
         "success": "Actualizado correctamente",
         "error": "No se pudo actualizar",
-        "loadError": "No se pudo cargar el contenido"
+        "loadError": "No se pudo cargar el contenido",
+        "review": "Revisar",
+        "view": "Ver",
+        "viewNote": "Ver mi nota"
       },
       "dialogs": {
         "rejectTitle": "Rechazar pieza",
@@ -275,6 +283,29 @@
       "errors": {
         "reasonRequired": "El motivo de rechazo es requerido",
         "commentRequired": "El comentario es requerido"
+      },
+      "banner": {
+        "title": "{count, plural, one {# pieza espera} other {# piezas esperan}} tu visto bueno",
+        "cta": "Revisar la primera"
+      },
+      "tabs": {
+        "pending": "Por aprobar",
+        "approved": "Aprobadas",
+        "rejected": "Con cambios",
+        "published": "Publicadas"
+      },
+      "detail": {
+        "back": "Volver a contenido",
+        "notFound": "No se encontró esta pieza.",
+        "previewAccount": "Tu clínica",
+        "complianceTitle": "Revisión de cumplimiento",
+        "complianceNote": "Revisado por el equipo antes de llegarte.",
+        "decisionTitle": "Tu decisión",
+        "scheduledNotice": "Al aprobar se programa para el {date}.",
+        "commentsTitle": "Comentarios",
+        "noComments": "Sin comentarios todavía.",
+        "commentPlaceholder": "Escribe un comentario…",
+        "rejectPlaceholder": "Explica qué te gustaría cambiar…"
       }
     },
     "requests": {

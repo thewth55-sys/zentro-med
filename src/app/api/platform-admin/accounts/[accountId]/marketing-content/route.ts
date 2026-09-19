@@ -10,9 +10,11 @@ type ContentType = (typeof CONTENT_TYPES)[number];
 
 interface MarketingContentPostBody {
   title?: string;
+  description?: string | null;
   content_type?: ContentType;
   drive_url?: string;
   scheduled_publish_at?: string | null;
+  compliance_checklist?: string[] | null;
 }
 
 function isDriveUrl(value: string): boolean {
@@ -24,13 +26,6 @@ function isDriveUrl(value: string): boolean {
   }
 }
 
-/**
- * POST /api/platform-admin/accounts/[accountId]/marketing-content —
- * staff-only creation of a `marketing_content_pieces` row for any
- * account. Bypasses RLS via the service-role client — there is
- * deliberately no client-facing INSERT policy on this table, see
- * 145_marketing_content_pieces.sql.
- */
 export async function POST(
   request: Request,
   { params }: { params: Promise<{ accountId: string }> },
@@ -70,9 +65,11 @@ export async function POST(
       .insert({
         account_id: accountId,
         title: body.title.trim(),
+        description: body.description ?? null,
         content_type: body.content_type,
         drive_url: body.drive_url.trim(),
         scheduled_publish_at: body.scheduled_publish_at ?? null,
+        compliance_checklist: body.compliance_checklist ?? null,
       })
       .select("id, title, status")
       .single();
@@ -92,6 +89,36 @@ export async function POST(
     });
 
     return NextResponse.json({ piece: saved });
+  } catch (err) {
+    return toErrorResponse(err);
+  }
+}
+
+export async function GET(
+  request: Request,
+  { params }: { params: Promise<{ accountId: string }> },
+) {
+  try {
+    await requirePlatformAdmin();
+    const { accountId } = await params;
+
+    const owner = await resolveAccountOwner(accountId);
+    if (!owner) {
+      return NextResponse.json({ error: "Account not found" }, { status: 404 });
+    }
+
+    const { data, error } = await supabaseAdmin()
+      .from("marketing_content_pieces")
+      .select("*")
+      .eq("account_id", accountId)
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      console.error("[GET .../marketing-content] query error:", error);
+      return NextResponse.json({ error: "Failed to fetch marketing content pieces" }, { status: 500 });
+    }
+
+    return NextResponse.json({ pieces: data ?? [] });
   } catch (err) {
     return toErrorResponse(err);
   }

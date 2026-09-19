@@ -3,9 +3,10 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 
 import { resolveAccountOwner } from "@/lib/auth/platform-admin";
+import { supabaseAdmin } from "@/lib/billing-platform/admin-client";
 import { AdminMarketingContentForm } from "@/components/admin/admin-marketing-content-form";
+import { AdminMarketingContentManager } from "@/components/admin/admin-marketing-content-manager";
 
-// Auth is enforced by the parent /admin layout (requirePlatformAdmin).
 export default async function AdminAccountMarketingContentPage({
   params,
 }: {
@@ -15,23 +16,20 @@ export default async function AdminAccountMarketingContentPage({
   const owner = await resolveAccountOwner(accountId);
   if (!owner) notFound();
 
+  const { data: accountRow } = await supabaseAdmin().from('accounts').select('marketing_executive_id').eq('id', accountId).maybeSingle();
+  const currentExecutiveId = accountRow?.marketing_executive_id ?? null;
+
   return (
     <div className="space-y-4">
-      <Link
-        href="/admin/accounts"
-        className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
-      >
+      <Link href="/admin/accounts" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
         <ArrowLeft className="size-4" /> Cuentas
       </Link>
       <div>
-        <h1 className="text-xl font-semibold text-foreground">
-          Contenido de Marketing — {owner.accountName}
-        </h1>
-        <p className="text-sm text-muted-foreground">
-          Sube piezas de contenido (Reel / Carrusel / Historia) para que la clínica las apruebe.
-        </p>
+        <h1 className="text-xl font-semibold text-foreground">Contenido de Marketing — {owner.accountName}</h1>
+        <p className="text-sm text-muted-foreground">Sube piezas de contenido (Reel / Carrusel / Historia) para que la clínica las apruebe.</p>
       </div>
       <AdminMarketingContentForm accountId={accountId} />
+      <AdminMarketingContentManager accountId={accountId} currentExecutiveId={currentExecutiveId} />
     </div>
   );
 }
